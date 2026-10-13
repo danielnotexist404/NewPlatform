@@ -1,0 +1,5887 @@
+# נספח C — זרע ההוקים
+
+ספריית ההוקים ההתחלתית: **326 הוקים בעברית**. הקובץ הקנוני הוא `seed/hooks.json` במאגר. אם הוא חסר, צרו אותו **בדיוק** מבלוק ה-JSON שבסוף הנספח. ההוקים מוצגים בספרייה הציבורית ‏(`/hooks`, חלק 02), משמשים לבחירת הוק באשף (חלק 03), ומשמשים כ-few-shots ליצירת הוקים (חלק 05).
+
+**חשוב:**
+- **מספרים ומחירים בתוך הוקים הם דוגמאות.** לפני שימוש בסרטון מחליפים אותם בנתונים האמיתיים של העסק (שער "עובדות חסרות", חלק 03).
+- `{placeholders}` כמו `{עיר}` ו-`{שירות}` מוחלפים בנתוני העסק. המילון המלא נמצא בחלק 05.
+- `compliance_note_he` מסמן הוק שדורש זהירות בנישה מפוקחת או במודעות ממומנות. הממשק מציג את ההערה ליד ההוק.
+
+## C.1 התפלגות
+
+| נישה | slug | מספר הוקים |
+|---|---|---|
+| נדל״ן: מתווכים ומשרדי תיווך | `real-estate` | 10 |
+| נדל״ן: יזמים ופרויקטים חדשים | `real-estate-developers` | 5 |
+| קליניקות אסתטיקה וקוסמטיקה רפואית | `aesthetic-clinics` | 11 |
+| ציפורניים, גבות, ריסים ואיפור | `beauty-nails` | 10 |
+| מספרות וברברשופ | `barbers-salons` | 10 |
+| מסעדות, בתי קפה ומאפיות | `restaurants` | 11 |
+| מאמני כושר וסטודיו לאימון | `fitness-trainers` | 10 |
+| יוגה ופילאטיס | `yoga-pilates` | 10 |
+| קבלני שיפוצים, מטבחים ונגרות | `renovation-contractors` | 10 |
+| רופאי שיניים ומרפאות שיניים | `dentists` | 11 |
+| יועצי משכנתאות | `mortgage-advisors` | 11 |
+| אולמות וגני אירועים | `event-venues` | 5 |
+| חנויות אונליין ואיקומרס | `ecommerce` | 11 |
+| סוחרי רכב, מגרשים וליסינג | `car-dealers` | 11 |
+| מוסכים, מכוני רכב ודיטיילינג | `auto-services` | 5 |
+| עורכי דין ומשרדי עורכי דין | `lawyers` | 10 |
+| רואי חשבון ויועצי מס | `accountants` | 11 |
+| סוכני ביטוח, פנסיה ופיננסים | `insurance-agents` | 11 |
+| אדריכלות ועיצוב פנים | `interior-design` | 10 |
+| צלמי אירועים, משפחה ותדמית | `event-photographers` | 11 |
+| DJ, להקות ומוזיקאים לאירועים | `djs-musicians` | 5 |
+| צימרים, מלונות בוטיק ווילות | `zimmers-boutique-hotels` | 10 |
+| תיירות, אטרקציות וסיורים | `tourism-attractions` | 5 |
+| מורים פרטיים, קורסים ומאמנים עסקיים | `courses-educators` | 11 |
+| מטפלים, פסיכולוגים וקואצ׳רים | `therapists` | 11 |
+| וטרינרים, מספרות כלבים ופנסיונים | `vets-dog-grooming` | 11 |
+| בתי ספר לנהיגה ומורי נהיגה | `driving-schools` | 5 |
+| גנים, צהרונים, חוגים וקייטנות | `kids-activities` | 5 |
+| בעלי מקצוע: חשמל, אינסטלציה ומיזוג | `home-services` | 5 |
+| הובלות ואחסון | `movers-storage` | 5 |
+| חנויות פיזיות: אופנה, אופטיקה, פרחים ויודאיקה | `retail-stores` | 5 |
+| קייטרינג ושפים פרטיים | `catering-chefs` | 5 |
+| הייטק וסטארטאפים (B2B) | `b2b-startups` | 11 |
+| עמותות וארגונים חברתיים | `nonprofits` | 5 |
+| פיזיותרפיה, תזונה ורפואה משלימה | `physio-nutrition` | 5 |
+| עונתיים (בלי נישה) | — | 18 |
+| אוניברסליים עם משתנים | — | 10 |
+| **סה"כ** | | **326** |
+
+## C.2 דוגמאות לפי סוג (הוק אחד לכל סוג)
+
+| סוג | הוק לדוגמה | נישה |
+|---|---|---|
+| רשימה ממוספרת | לפני שאתם חותמים על דירה, תבדקו 3 דברים. על השלישי מתווכים פחות אוהבים לדבר | נדל״ן: מתווכים ומשרדי תיווך |
+| התוצאה קודם | הדירה הזאת נמכרה תוך 9 ימים. ככה עשינו את זה | נדל״ן: מתווכים ומשרדי תיווך |
+| POV / נקודת מבט | POV: סוף סוף מצאתם דירה עם מרפסת שמש – וגם חנייה | נדל״ן: מתווכים ומשרדי תיווך |
+| חשיפת מחיר | כמה באמת עולה דירת 4 חדרים ב{עיר} השנה? המספר לא מה שחשבתם | נדל״ן: מתווכים ומשרדי תיווך |
+| תפסיקו לעשות X | תפסיקו לתמחר את הדירה שלכם לפי מה שהשכן ביקש | נדל״ן: מתווכים ומשרדי תיווך |
+| אזהרה | הטעות של 120 אלף ₪ שהרבה מוכרים עושים כבר בשבוע הראשון | נדל״ן: מתווכים ומשרדי תיווך |
+| פער סקרנות | זה מה שקונים רואים ב-5 השניות הראשונות בדירה שלכם | נדל״ן: מתווכים ומשרדי תיווך |
+| השוואה (X מול Y) | למשקיעים: דירה קטנה במרכז או גדולה בפריפריה? | נדל״ן: מתווכים ומשרדי תיווך |
+| מאחורי הקלעים | סיור של 30 שניות בפנטהאוז שעוד לא עלה לאתרים | נדל״ן: מתווכים ומשרדי תיווך |
+| דעה לא פופולרית | דעה לא פופולרית: בית פתוח זה בזבוז זמן. הנה מה שעובד במקום | נדל״ן: מתווכים ומשרדי תיווך |
+| לפני / אחרי | היום זה בור באדמה. ככה זה ייראה בעוד {זמן} | נדל״ן: יזמים ופרויקטים חדשים |
+| דחיפות / הצעה | נשארו {מספר} דירות בשלב הראשון של הפרויקט | נדל״ן: יזמים ופרויקטים חדשים |
+| ניפוץ מיתוס | מיתוס: טיפולי פנים זה רק לנשים | קליניקות אסתטיקה וקוסמטיקה רפואית |
+| שאלה | שואלים אותי אם זה כואב. הנה התשובה הכנה | קליניקות אסתטיקה וקוסמטיקה רפואית |
+| יום בחיים | יום בקליניקה: 11 מטופלות, אפס תוצאות "מוגזמות" | קליניקות אסתטיקה וקוסמטיקה רפואית |
+| סוד מקצועי | לק ג׳ל שמחזיק 4 שבועות? הכול בהכנה | ציפורניים, גבות, ריסים ואיפור |
+| אתגר | הלקוחה הביאה תמונה מפינטרסט. הצלחנו? | ציפורניים, גבות, ריסים ואיפור |
+| ויזואל ממכר | בניית ציפורן מאפס. 30 שניות של רוגע | ציפורניים, גבות, ריסים ואיפור |
+| הדגמה | כמה זמן באמת לוקחת בניית ציפורניים? שמנו טיימר | ציפורניים, גבות, ריסים ואיפור |
+| הוכחה חברתית | הלקוחה חזרה אחרי 3 שבועות. זה מה שנשאר מהלק | ציפורניים, גבות, ריסים ואיפור |
+| שבירת דפוס | אל תבואו אלינו רעבים. ברצינות. | מסעדות, בתי קפה ומאפיות |
+| פנייה לקהל | אם אתם ב{עיר} ומחפשים איפה לאכול הערב – זה הסרטון שלכם | מסעדות, בתי קפה ומאפיות |
+| מדריך מהיר | אתם משתמשים בחוט דנטלי לא נכון. 20 שניות ומתקנים | רופאי שיניים ומרפאות שיניים |
+| נתון / מספר | אותה משכנתא, שני תמהילים – והפרש שיכול להגיע למאות אלפי שקלים | יועצי משכנתאות |
+| סיפור | עשינו טעות בייצור – והלקוחות דווקא התאהבו | חנויות אונליין ואיקומרס |
+| טענה נועזת | סלון של 20 מטר שנראה כמו 35 – בלי להזיז קיר | אדריכלות ועיצוב פנים |
+| X טעויות | 3 טעויות תאורה שהורסות כל דירה חדשה | אדריכלות ועיצוב פנים |
+
+## C.3 `hooks.json`
+
+```json
+[
+  {
+    "id": "real-estate-01",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "listicle",
+    "text_he": "לפני שאתם חותמים על דירה, תבדקו 3 דברים. על השלישי מתווכים פחות אוהבים לדבר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "יד עם עט קופאת מעל חוזה, שלושה מספרים קופצים על המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "real-estate-02",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "result-first",
+    "text_he": "הדירה הזאת נמכרה תוך 9 ימים. ככה עשינו את זה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מדבקת \"נמכר\" נדבקת בזום מהיר על שלט \"למכירה\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מספר הימים חייב להיות נתון אמיתי.",
+    "is_featured": true
+  },
+  {
+    "id": "real-estate-03",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "pov",
+    "text_he": "POV: סוף סוף מצאתם דירה עם מרפסת שמש – וגם חנייה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "דלת נפתחת אל מרפסת מוארת, המצלמה מתקדמת פנימה מגובה העיניים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-04",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה באמת עולה דירת 4 חדרים ב{עיר} השנה? המספר לא מה שחשבתם",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "המתווכת מחזיקה שלט עם מספר מטושטש, אצבע מתקרבת כדי לחשוף אותו",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "המחיר להמחשה; משתמשים בנתוני עסקאות אמיתיים.",
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-05",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לתמחר את הדירה שלכם לפי מה שהשכן ביקש",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מחיר על שלט נמחק בקו אדום, המתווך מניד בראשו אל המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-06",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "negative-warning",
+    "text_he": "הטעות של 120 אלף ₪ שהרבה מוכרים עושים כבר בשבוע הראשון",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "המספר 120,000 ₪ באדום מתנפץ על המסך, המתווכת מצביעה עליו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-07",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "זה מה שקונים רואים ב-5 השניות הראשונות בדירה שלכם",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מצלמת גוף נכנסת בדלת אל מסדרון עמוס נעליים ומעילים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-08",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "comparison",
+    "text_he": "למשקיעים: דירה קטנה במרכז או גדולה בפריפריה?",
+    "platforms": [
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: בניין לבן במרכז העיר מול בית עם גינה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-09",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "סיור של 30 שניות בפנטהאוז שעוד לא עלה לאתרים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "דלתות מעלית נפתחות ישר לסלון עם נוף, רחפן יוצא מהחלון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-10",
+    "niche_slug": "real-estate",
+    "hook_type_slug": "controversy",
+    "text_he": "דעה לא פופולרית: בית פתוח זה בזבוז זמן. הנה מה שעובד במקום",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "בית פתוח ריק עם בלונים, המתווך נכנס לפריים ומפוצץ בלון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-developers-01",
+    "niche_slug": "real-estate-developers",
+    "hook_type_slug": "pov",
+    "text_he": "ככה ייראה הבוקר שלכם בעוד שנתיים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "הדמיה: אור בוקר נכנס מחלון ענק אל מרפסת עם נוף פתוח, כוס קפה מעלה אדים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "הדמיה: חובה כיתוב \"הדמיה בלבד\" על המסך.",
+    "is_featured": true
+  },
+  {
+    "id": "real-estate-developers-02",
+    "niche_slug": "real-estate-developers",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות שחובה לשאול יזם לפני שקונים דירה על הנייר",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "תוכנית אדריכלית נפרשת על שולחן, יד מקיפה שלוש נקודות בעיגול",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-developers-03",
+    "niche_slug": "real-estate-developers",
+    "hook_type_slug": "before-after",
+    "text_he": "היום זה בור באדמה. ככה זה ייראה בעוד {זמן}",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "רחפן מעל בור חפירה, ואז מעבר ניגוב לאותה זווית בהדמיה של הבניין הגמור",
+    "placeholders": [
+      "זמן"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "הדמיה: חובה כיתוב \"הדמיה בלבד\" על המסך, ומועד המסירה רק לפי החוזה.",
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-developers-04",
+    "niche_slug": "real-estate-developers",
+    "hook_type_slug": "comparison",
+    "text_he": "דירה מקבלן או יד שנייה? מה באמת משתלם יותר",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: מפתח חדש עם תווית מול מפתח ישן על מחזיק עור",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "real-estate-developers-05",
+    "niche_slug": "real-estate-developers",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "נשארו {מספר} דירות בשלב הראשון של הפרויקט",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "תוכנית קומות גרפית, הדירות שנמכרו נצבעות אחת אחרי השנייה",
+    "placeholders": [
+      "מספר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון: המספר חייב להתעדכן לפי המלאי בפועל.",
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-01",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "negative-warning",
+    "text_he": "הטעות שגורמת לבוטוקס להיראות \"עשוי\"",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המטפלת מחזיקה מראה מול מטופלת, הפריים קופא",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "aesthetic-clinics-02",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות שחובה לשאול לפני שמזריקים חומצה היאלורונית",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מגש סטרילי, יד בכפפה מרימה שלוש אצבעות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-03",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לחפש \"הכי זול\" כשמדובר בפנים שלכם",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "תווית של 199 ₪ נקרעת לשניים מול המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-04",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: טיפולי פנים זה רק לנשים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "גבר שוכב על מיטת טיפולים, פוקח עין ומרים גבה אל המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "aesthetic-clinics-05",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "מה באמת קורה לעור ב-24 השעות שאחרי פילינג",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מאקרו של מרקם העור, שעון של 24 שעות מתחיל לרוץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-06",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "pov",
+    "text_he": "POV: חזרתם מטיפול, וכולם שואלים מאיזו חופשה חזרתם",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "במשרד, עמיתה מסתכלת פעמיים בהפתעה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-07",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "before-after",
+    "text_he": "טיפול אחד. בלי פילטר, באותה תאורה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל עם מחוון נגרר, אותה תאורה ואותה זווית",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "לפני ואחרי בתחום רפואי מוגבל בפרסום ממומן ובכללי משרד הבריאות: לבדוק לפני שימוש, או לעבור לגרסה שמראה את התהליך.",
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-08",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "question",
+    "text_he": "שואלים אותי אם זה כואב. הנה התשובה הכנה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המטפל מוריד כפפות ומתיישב מול המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "אין להבטיח טיפול \"בלי כאב\".",
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-09",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "day-in-life",
+    "text_he": "יום בקליניקה: 11 מטופלות, אפס תוצאות \"מוגזמות\"",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "female",
+    "visual_direction_he": "טיים-לאפס של חדר טיפולים, הדלת נפתחת ונסגרת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-10",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "הדבר הראשון שאני בודקת אצל כל מטופלת – וזה לא הקמטים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "מנורת זכוכית מגדלת נדלקת, תקריב על העיניים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "aesthetic-clinics-11",
+    "niche_slug": "aesthetic-clinics",
+    "hook_type_slug": "negative-warning",
+    "text_he": "אל תעשי בוטוקס לפני שאת שומעת את זה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "מזרק סגור מונח על מגש, יד בכפפה מרחיקה אותו מהמצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-01",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "insider-secret",
+    "text_he": "לק ג׳ל שמחזיק 4 שבועות? הכול בהכנה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מאקרו של שיוף והכנת הציפורן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "beauty-nails-02",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לקלף את הג׳ל לבד. ברצינות",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "יד מקלפת ג׳ל, X אדום קופץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-03",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "challenge",
+    "text_he": "הלקוחה הביאה תמונה מפינטרסט. הצלחנו?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "female",
+    "visual_direction_he": "טלפון עם תמונת ההשראה מוחזק ליד יד מוכנה לעבודה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "beauty-nails-04",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "צבע העונה – ולמי הוא פחות יחמיא",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מניפת דוגמאות צבע נפתחת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-05",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "בניית ציפורן מאפס. 30 שניות של רוגע",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מאקרו של פיסול ג׳ל בקצב איטי, סאונד ASMR",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-06",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "listicle",
+    "text_he": "3 סימנים שהמכשירים אצל המניקוריסטית לא עוקרו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "שקית עיקור אטומה נפתחת מול המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-07",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "before-after",
+    "text_he": "גבות אחרי מיקרובליידינג: יום 1 מול יום 30",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל של אותה גבה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-08",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "demonstration",
+    "text_he": "כמה זמן באמת לוקחת בניית ציפורניים? שמנו טיימר",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "יד לוחצת \"התחל\" על שעון עצר שעל השולחן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-09",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "pov",
+    "text_he": "POV: יש לכם אירוע בעוד יומיים, ואין תור בשום מקום",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "גלילה בטלפון: \"אין תורים פנויים\", ואז משבצת פנויה מהבהבת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "beauty-nails-10",
+    "niche_slug": "beauty-nails",
+    "hook_type_slug": "social-proof",
+    "text_he": "הלקוחה חזרה אחרי 3 שבועות. זה מה שנשאר מהלק",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "לקוחה מציגה את הציפורניים למצלמה באור יום",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק לקוחה אמיתית, בהסכמתה.",
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-01",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "before-after",
+    "text_he": "ביקש \"רק לסדר קצת\". זה מה שיצא",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "male",
+    "visual_direction_he": "הכיסא מסתובב לאט וחושף את הלקוח מול המראה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "barbers-salons-02",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "listicle",
+    "text_he": "התספורת הזאת מתאימה רק ל-3 צורות פנים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "הספרית מחזיקה מראה, קווי מתאר של צורות פנים מופיעים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-03",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לחפוף כל יום. ברצינות, השיער שלכם מתחנן",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "יד לוקחת בקבוק שמפו מהמקלחת ומחזירה אותו למדף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-04",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "פייד מושלם ב-60 שניות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מכונת תספורת מצולמת מלמעלה בהאצה, שיער נופל",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "barbers-salons-05",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה צריכה לעלות תספורת טובה? ולמה לא 40 ₪",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מטבעות על הדלפק, הספר מניד בראשו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-06",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הספר הקבוע שלכם בחופש, ואתם אצל מישהו חדש",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "לקוח בכיסא, העיניים שלו מתרחבות מול המראה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-07",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות שספר טוב שואל לפני שהוא נוגע במספריים",
+    "platforms": [
+      "reels",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "male",
+    "visual_direction_he": "מספריים נעצרים באוויר ליד השיער",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-08",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "insider-secret",
+    "text_he": "מה ששיער מתולתל צריך – ואף אחד לא אמר לכם",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "תקריב של תלתלים, טיפת מוצר נלחצת על כף היד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-09",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "question",
+    "text_he": "תספורת לחתונה: מתי לקבוע תור? (רמז: לא יום לפני)",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "חתן בחליפה על הכיסא, שעון על הקיר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "barbers-salons-10",
+    "niche_slug": "barbers-salons",
+    "hook_type_slug": "day-in-life",
+    "text_he": "שישי בבוקר אצלנו במספרה: שעה שלמה ב-30 שניות",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיים-לאפס של מספרה מלאה, מוזיקה קצבית",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-01",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "אל תבואו אלינו רעבים. ברצינות.",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "מגש ענק נוחת בחבטה על שולחן עץ בהילוך איטי, אדים עולים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "restaurants-02",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "social-proof",
+    "text_he": "המנה הזאת יוצאת מהמטבח 400 פעם בשבוע. הנה למה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "תקריב של רוטב שנשפך על המנה, רחש מהמחבת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המספר חייב להיות אמיתי.",
+    "is_featured": true
+  },
+  {
+    "id": "restaurants-03",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הזמנתם \"רק משהו קטן\", והשף החליט אחרת",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "צילום מלמעלה: השולחן מתמלא במנות בטיים-לאפס",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-04",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "שישי בצהריים אצלנו: 280 סועדים, מטבח אחד",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "להבה מתפרצת מהווק, פתקי הזמנות נפלטים מהמדפסת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-05",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "listicle",
+    "text_he": "3 מנות שהצוות שלנו אוכל בכל משמרת – וכמעט אף לקוח לא מזמין",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "ידיים של הצוות \"חוטפות\" מנה מהפס בפינת המטבח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-06",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "demonstration",
+    "text_he": "הבצק הזה תופח 48 שעות לפני שהוא מגיע לשולחן",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "תקריב של בצק נמתח, דלת התנור נפתחת עם ענן אדים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-07",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה ארוחה זוגית מלאה אצלנו? נחשו בתגובות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "engagement",
+    "gender": "plural",
+    "visual_direction_he": "שתי כוסות נוקשות זו בזו, תווית מחיר מטושטשת בפינה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-08",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "callout",
+    "text_he": "אם אתם ב{עיר} ומחפשים איפה לאכול הערב – זה הסרטון שלכם",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שלט הניאון של המסעדה נדלק בלילה, קאטים מהירים",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-09",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "challenge",
+    "text_he": "ניסינו להכין את השניצל הכי גדול ב{עיר}. זה מה שיצא",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שניצל ענק נשלף מהשמן וגולש מעבר לשולי הצלחת",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-10",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "social-proof",
+    "text_he": "ביקורת אמיתית, בלי תסריט ובלי עריכה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "סועדת באמצע ביס מהנהנת עם פה מלא, כיתוב \"בלי תסריט\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק לקוח אמיתי, בהסכמתו לצילום ולפרסום.",
+    "is_featured": false
+  },
+  {
+    "id": "restaurants-11",
+    "niche_slug": "restaurants",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "המנה שגורמת לאנשים לנסוע שעה בשבילה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "המנה מסתובבת על מגש בתקריב, ואז קאט לתור בכניסה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-01",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "stop-doing",
+    "text_he": "רוצים בטן שטוחה? תפסיקו לעשות כפיפות בטן",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "מתאמן עושה כפיפות בטן, המאמנת נכנסת לפריים עם יד שמסמנת \"עצור\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "בפרסום ממומן לא פונים לצופה בהנחה על הגוף שלו; מנסחים כטיפ כללי.",
+    "is_featured": true
+  },
+  {
+    "id": "fitness-trainers-02",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "listicle",
+    "text_he": "3 תרגילים שמחליפים שעה בחדר כושר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "ברפי מהיר עם טיימר ענק על המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-03",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "pov",
+    "text_he": "POV: השבוע הראשון שלכם באימון אישי",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מתאמנת מהססת בכניסה לחדר הכושר, המאמן נותן לה כיף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-04",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "result-first",
+    "text_he": "ירדה 14 קילו בלי לוותר על ארוחת שישי אצל אמא. ככה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "female",
+    "visual_direction_he": "מתאמנת מחזיקה מול המראה ג׳ינס ישן ורחב",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "לפני ואחרי של ירידה במשקל מוגבל בפרסום ממומן; רק סיפור אמיתי, בהסכמה, עם \"התוצאות משתנות מאדם לאדם\".",
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-05",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "challenge",
+    "text_he": "פלאנק 30 שניות. כתבו בתגובות כמה החזקתם",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "engagement",
+    "gender": "plural",
+    "visual_direction_he": "פלאנק עם ספירה לאחור גדולה באמצע המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "fitness-trainers-06",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "negative-warning",
+    "text_he": "הטעות שהורסת לכם את הברכיים בסקוואט",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "סקוואט מהצד, קו אדום מסמן ברכיים שבורחות קדימה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-07",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "question",
+    "text_he": "אין לכם זמן להתאמן? יש לכם 12 דקות?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "טיימר של מיקרוגל על 12:00, ואז קאט לאימון בסלון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-08",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: משקולות \"מנפחות\" נשים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מתאמנת מרימה דדליפט ומחייכת אל המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-09",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "ככה נראית ארוחת בוקר של מאמן כושר (לא מה שחשבתם)",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "male",
+    "visual_direction_he": "צלחת שקשוקה עם פיתה במקום חזה עוף, מבט מופתע",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "fitness-trainers-10",
+    "niche_slug": "fitness-trainers",
+    "hook_type_slug": "before-after",
+    "text_he": "90 יום: אותו אדם, אותה מראה, אותה תאורה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "סלפי במראה, מסך מפוצל עם מעבר ניגוב",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "לפני ואחרי של ירידה במשקל מוגבל בפרסום ממומן במטא ובטיקטוק: לבדוק לפני שימוש ולהוסיף \"התוצאות משתנות מאדם לאדם\".",
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-01",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "callout",
+    "text_he": "גב תפוס מהמחשב? 4 תנועות שאפשר לעשות בלי לקום מהכיסא",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "אדם ליד שולחן עבודה מסובב כתפיים, המצלמה מתקרבת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "בפרסום ממומן מנסחים בלי להניח את מצבו הבריאותי של הצופה (\"4 תנועות לגב בלי לקום מהכיסא\").",
+    "is_featured": true
+  },
+  {
+    "id": "yoga-pilates-02",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "comparison",
+    "text_he": "פילאטיס מכשירים או מזרן? רוב האנשים בוחרים לא נכון",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: מכשיר רפורמר מול מזרן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-03",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "pov",
+    "text_he": "POV: השיעור הראשון שלכם על רפורמר",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "כפות רגליים על הבר, הקרון מחליק לאט",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "yoga-pilates-04",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לעצור את הנשימה בתרגיל הזה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "תקריב של פנים עם לחיים נפוחות, ואז נשיפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-05",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "ככה נראה הסטודיו ב-6:30 בבוקר",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "אור זריחה נכנס מהחלון אל מזרנים שנפרשים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-06",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "challenge",
+    "text_he": "אמרו לי שיוגה זה \"רק מתיחות\". אז עשיתי את זה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "המדריכה עולה לעמידת ידיים מתוך ישיבה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-07",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "result-first",
+    "text_he": "3 חודשים, פעמיים בשבוע. זה מה שהשתנה ביציבה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "צילום פרופיל, קו גרפי של היציבה מתיישר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק סיפור אמיתי, עם \"התוצאות משתנות מאדם לאדם\".",
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-08",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "challenge",
+    "text_he": "בדיקה של 10 שניות: מגיעים לבהונות בלי לכופף ברכיים?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "engagement",
+    "gender": "plural",
+    "visual_direction_he": "אדם מתכופף קדימה ולא מגיע, טיימר של 10 שניות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-09",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "התרגיל שכולם שונאים בשיעור – והכי צריכים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "כל הכיתה נאנחת יחד באמצע תרגיל",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "yoga-pilates-10",
+    "niche_slug": "yoga-pilates",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "שיעור ניסיון עלינו. רק תבואו עם בגדים נוחים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "יד הופכת שלט עץ של \"שיעור ניסיון\" בכניסה לסטודיו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-01",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "price-reveal",
+    "text_he": "המטבח הזה עלה 38 אלף ₪. נחשו מה החלפנו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "שוט רחב של מטבח חדש, ניגוב אל המטבח הישן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר חייב להיות אמיתי.",
+    "is_featured": true
+  },
+  {
+    "id": "renovation-contractors-02",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "listicle",
+    "text_he": "3 דברים שאסור לחתום עליהם מול קבלן שיפוצים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "חוזה על השיש, יד עם עט מהססת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-03",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "insider-secret",
+    "text_he": "קבלן מגלה: איפה \"חוסכים\" בשיפוצים בלי שתשימו לב",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "male",
+    "visual_direction_he": "הקבלן דופק על קיר, צליל חלול, אריח נשלף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-04",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "before-after",
+    "text_he": "אמבטיה משנות ה-80 ← 10 ימי עבודה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "פטיש מנפץ אריח ורוד, ענן אבק קופא בפריים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "משך העבודה חייב להתאים להצעה האמיתית.",
+    "is_featured": true
+  },
+  {
+    "id": "renovation-contractors-05",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לבחור קבלן לפי ההצעה הכי זולה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "שלוש הצעות מחיר על שולחן, הזולה ביותר מתקמטת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-06",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הקבלן אמר \"שבועיים\". זה היה לפני 4 חודשים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "סלון מכוסה אבק, דפי לוח שנה עפים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-07",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "רטיבות בקיר? זה מה שבאמת מסתתר מאחוריו",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מד לחות מצפצף על הקיר, ואז פתיחה של הטיח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-08",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "דירת 4 חדרים, צביעה מלאה, יום עבודה אחד",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיים-לאפס של רולרים שצובעים קירות שלמים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-09",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה שיפוץ ב-2026? מחירים אמיתיים מהשטח",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "הקבלנית מחזיקה לוח כתיבה, המחירים מטושטשים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "renovation-contractors-10",
+    "niche_slug": "renovation-contractors",
+    "hook_type_slug": "social-proof",
+    "text_he": "הלקוחות חזרו הביתה אחרי השיפוץ. תסתכלו על הפנים שלהם",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "דלת נפתחת, משפחה נעצרת בהלם",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "צילום לקוחות רק בהסכמה בכתב.",
+    "is_featured": false
+  },
+  {
+    "id": "dentists-01",
+    "niche_slug": "dentists",
+    "hook_type_slug": "negative-warning",
+    "text_he": "אל תלבינו שיניים לפני שאתם יודעים את זה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "ערכת הלבנה ביד, חותמת X אדומה נוחתת עליה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "dentists-02",
+    "niche_slug": "dentists",
+    "hook_type_slug": "listicle",
+    "text_he": "3 סימנים שאתם צריכים טיפול שורש (השלישי מפתיע)",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "הרופאה מחזיקה דגם של שן ומרימה שלוש אצבעות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "בפרסום ממומן מנסחים בגוף שלישי (\"3 סימנים שאולי צריך טיפול שורש\"): פנייה שמניחה מצב בריאותי של הצופה נפסלת במטא.",
+    "is_featured": false
+  },
+  {
+    "id": "dentists-03",
+    "niche_slug": "dentists",
+    "hook_type_slug": "question",
+    "text_he": "מצחצחים מיד אחרי הקפה? יש לנו בעיה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "כוס קפה ליד מברשת שיניים, יד חוטפת את המברשת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "dentists-04",
+    "niche_slug": "dentists",
+    "hook_type_slug": "callout",
+    "text_he": "פוחדים מרופא שיניים? ככה זה נראה מהכיסא אצלנו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "צילום מנקודת המבט של המטופל: תקרה עם מסך שמקרין סדרה, תאורה רכה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "dentists-05",
+    "niche_slug": "dentists",
+    "hook_type_slug": "before-after",
+    "text_he": "ככה נראה חיוך אחרי 6 חודשים של יישור שקוף",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "קשתית שקופה יוצאת לאט וחושפת חיוך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "לפני ואחרי בתחום רפואי: לבדוק מול כללי הפרסום ולהוסיף \"התוצאות משתנות ממטופל למטופל\".",
+    "is_featured": false
+  },
+  {
+    "id": "dentists-06",
+    "niche_slug": "dentists",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: אם לא כואב – אין עששת",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "צילום רנטגן על מסך, עיגול אדום מסמן נקודה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "dentists-07",
+    "niche_slug": "dentists",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה באמת עולה שתל שיניים ב-2026? בלי אותיות קטנות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "הרופא כותב מספר על לוח ומסתיר אותו ביד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר רק לפי המחירון האמיתי של המרפאה.",
+    "is_featured": false
+  },
+  {
+    "id": "dentists-08",
+    "niche_slug": "dentists",
+    "hook_type_slug": "callout",
+    "text_he": "הילד שלכם בוכה בדרך לרופא שיניים? תראו מה קרה פה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "ילד צוחק על הכיסא מול בובה בצורת שן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "צילום קטינים רק בהסכמת הורים.",
+    "is_featured": false
+  },
+  {
+    "id": "dentists-09",
+    "niche_slug": "dentists",
+    "hook_type_slug": "controversy",
+    "text_he": "רופא שיניים מגיב: הלבנה עם פחם מטיקטוק",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "male",
+    "visual_direction_he": "מסך ירוק: הרופא מול סרטון הטרנד, מרים גבה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "dentists-10",
+    "niche_slug": "dentists",
+    "hook_type_slug": "how-to",
+    "text_he": "אתם משתמשים בחוט דנטלי לא נכון. 20 שניות ומתקנים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "דגם שיניים ענק, החוט נכנס בתנועה הנכונה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "dentists-11",
+    "niche_slug": "dentists",
+    "hook_type_slug": "listicle",
+    "text_he": "השתלת שיניים: 5 שאלות שחובה לשאול לפני שמתחילים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "הרופאה פורשת חמש אצבעות מול צילום פנורמי של הלסת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-01",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "statistic",
+    "text_he": "אותה משכנתא, שני תמהילים – והפרש שיכול להגיע למאות אלפי שקלים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "שתי ערימות מטבעות זהות, אחת מתחילה לצמוח מהר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "ההפרש חייב להתבסס על סימולציה מתועדת; מוסיפים \"סימולציה להמחשה בלבד\".",
+    "is_featured": true
+  },
+  {
+    "id": "mortgage-advisors-02",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו להגיע לבנק בלי הצעה מתחרה ביד",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "זוג נכנס לסניף בידיים ריקות, היועצת מגישה להם תיקייה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-03",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "listicle",
+    "text_he": "3 מסלולים שחובה להבין לפני שחותמים על משכנתא",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "שלושה עמודים צבעוניים נבנים בגרפיקה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-04",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "callout",
+    "text_he": "קיבלתם אישור עקרוני? מזל טוב. עכשיו מתחיל המשא ומתן",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "קונפטי על מכתב האישור, ואז צליל של תקליט שנעצר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "mortgage-advisors-05",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: \"אנחנו לקוחות של הבנק 20 שנה, יתנו לנו את הריבית הכי טובה\"",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "כרטיס אשראי ישן על השולחן, היועץ מניד בראשו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-06",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "comparison",
+    "text_he": "מחזור משכנתא: מתי זה משתלם, ומתי זה סתם עמלות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מאזניים מתנדנדים בין \"חיסכון\" ל\"עמלות\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-07",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "social-proof",
+    "text_he": "זוג מ{עיר} חסך {סכום} ₪ בפגישה אחת. ככה זה נראה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "זוג ליד שולחן עושה \"כיף\", מסמכים פרושים",
+    "placeholders": [
+      "עיר",
+      "סכום"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "רק מקרה אמיתי ומתועד, בהסכמת הלקוחות.",
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-08",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "question",
+    "text_he": "25 או 30 שנה? השאלה שהרבה עונים עליה לא נכון",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שני לוחות שנה מתהפכים זה מול זה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-09",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "insider-secret",
+    "text_he": "מה שלא תמיד מספרים לכם בפגישה הראשונה בבנק",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "פגישה בבנק, היועצת לוחשת למצלמה מהצד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-10",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "comparison",
+    "text_he": "שכירות או משכנתא? עשינו את החשבון על דירה של 2 מיליון ₪",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: צרור מפתחות מול קבלה על שכר דירה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "סימולציה להמחשה בלבד.",
+    "is_featured": false
+  },
+  {
+    "id": "mortgage-advisors-11",
+    "niche_slug": "mortgage-advisors",
+    "hook_type_slug": "question",
+    "text_he": "הריבית ירדה. מה זה אומר על המשכנתא שלכם?",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "גרף ריבית עם חץ שיורד, עיתון מתקפל על השולחן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אחרי החלטת ריבית אמיתית; להתאים ל\"עלתה\" או ל\"ירדה\" לפי החדשות.",
+    "is_featured": false
+  },
+  {
+    "id": "event-venues-01",
+    "niche_slug": "event-venues",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "ככה נראית חתונה של 400 איש אצלנו",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "רחפן נכנס מעל רחבה מלאה, האורות נדלקים בדיוק על הביט",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "צילום מאירוע אמיתי רק בהסכמת הזוג.",
+    "is_featured": true
+  },
+  {
+    "id": "event-venues-02",
+    "niche_slug": "event-venues",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות שזוגות שוכחים לשאול בפגישה באולם – ומצטערים אחר כך",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "זוג יושב מול חוזה, עט נעצר מעל קו החתימה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-venues-03",
+    "niche_slug": "event-venues",
+    "hook_type_slug": "pov",
+    "text_he": "POV: אתם נכנסים לחופה, וכל האורחים קמים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "צילום מגב הזוג: שביל נרות, האורחים קמים משני הצדדים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-venues-04",
+    "niche_slug": "event-venues",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "מאולם ריק לחתונה מוכנה: 8 שעות הקמה בדקה אחת",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיים-לאפס מלמעלה: אולם ריק מתמלא בשולחנות, מפות ופרחים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-venues-05",
+    "niche_slug": "event-venues",
+    "hook_type_slug": "price-reveal",
+    "text_he": "מחיר למנה בחתונה: מה באמת נכנס לתוך המספר?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "צלחת חגיגית מוגשת, ועליה תווית מחיר מטושטשת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר רק לפי המחירון האמיתי.",
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-01",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "social-proof",
+    "text_he": "נגמר לנו המלאי פעמיים החודש. הנה למה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מדף ריק, ואז ארגזים חדשים נפתחים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון.",
+    "is_featured": true
+  },
+  {
+    "id": "ecommerce-02",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "אל תקנו את זה אם אתם לא אוהבים מחמאות",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "חשיפת מוצר בהילוך איטי בתאורה דרמטית",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "ecommerce-03",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "listicle",
+    "text_he": "3 סיבות שבגללן לקוחות חוזרים אלינו (השנייה הפתיעה אותנו)",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "ביקורות קופצות על המסך אחת אחרי השנייה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק ביקורות אמיתיות.",
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-04",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "אורזים איתכם הזמנה ל{עיר}",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "צילום מלמעלה של אריזה: נייר טישו, מדבקה, סרט",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-05",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "demonstration",
+    "text_he": "מבחן קיצון: זרקנו אותו מקומה שנייה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "נפילה בהילוך איטי, המוצר פוגע ברצפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-06",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הזמנתם בבוקר, וזה כבר אצלכם בערב",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "פעמון בדלת, שליח מגיש חבילה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אם זמן המשלוח הזה מובטח באמת.",
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-07",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "price-reveal",
+    "text_he": "בחנויות: 349 ₪. אצלנו? חכו לסוף",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "תווית מחיר בחנות נמחקת בקו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מחיר ההשוואה חייב להיות אמיתי ועדכני.",
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-08",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "social-proof",
+    "text_he": "ביקורת אמיתית, לא ממומנת – ישר מהוואטסאפ",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "צילום מסך של שיחת וואטסאפ נגלל, הפרטים מטושטשים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק ביקורת אמיתית, בהסכמת הלקוח.",
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-09",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "demonstration",
+    "text_he": "ככה זה נראה אחרי 100 כביסות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "פריט חדש מול פריט משומש, זה לצד זה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-10",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "story",
+    "text_he": "עשינו טעות בייצור – והלקוחות דווקא התאהבו",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "המייסדת מחזיקה פריט פגום ומחייכת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "ecommerce-11",
+    "niche_slug": "ecommerce",
+    "hook_type_slug": "story",
+    "text_he": "הפסקתי לחפש מתנות לחג ברגע שגיליתי את זה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "ערימת שקיות מתנה נדחפת הצידה, ואז המוצר נחשף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-01",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "40 אלף ק״מ על השעון. תראו מה מצאנו כשהרמנו את הרכב",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "הרכב עולה על מגבה, פנס מאיר את החלק התחתון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "car-dealers-02",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "listicle",
+    "text_he": "3 דברים לבדוק ברכב יד שנייה עוד לפני נסיעת המבחן",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "יד בודקת עומק של צמיג, מוט שמן נשלף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "car-dealers-03",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לבחור רכב לפי הצבע. ברצינות",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שורת רכבים צבעוניים, איש המכירות טופח על המצח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-04",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "pov",
+    "text_he": "POV: יצאתם מהמגרש עם הרכב הראשון שלכם",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "ידיים על ההגה, מפתחות מתנדנדים, כביש פתוח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-05",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה באמת מקבלים על טרייד-אין?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "שני רכבים זה מול זה, מחשבון ביד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-06",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "comparison",
+    "text_he": "חשמלי או היברידי? עשינו חשבון על 3 שנים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: תקע טעינה מול אקדח דלק",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "החישוב חייב להתבסס על הנחות מפורטות.",
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-07",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "story",
+    "text_he": "הלקוח ניסה להוריד 10 אלף ₪. זה מה שקרה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "male",
+    "visual_direction_he": "לחיצת יד שקופאת באמצע",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-08",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "נכנס למגרש הבוקר: סיור של 30 שניות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "צילום גימבל סביב רכב מבריק",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-09",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: רכב שהגיע מליסינג הוא תמיד בחירה גרועה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "פתק \"ליסינג = רע\" נקרע",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-10",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "question",
+    "text_he": "מה חשוב לכם יותר: קילומטראז׳ או שנתון?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "engagement",
+    "gender": "plural",
+    "visual_direction_he": "תקריב של מד הקילומטרים, ואז של תווית שנת הייצור",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "car-dealers-11",
+    "niche_slug": "car-dealers",
+    "hook_type_slug": "listicle",
+    "text_he": "רכב משפחתי עד 100 אלף ₪? אלה 3 האפשרויות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "שלושה רכבים משפחתיים בשורה, מפתחות נזרקים לכל אחד מהם",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מחירים רק לפי המלאי והמחירון בפועל.",
+    "is_featured": false
+  },
+  {
+    "id": "auto-services-01",
+    "niche_slug": "auto-services",
+    "hook_type_slug": "before-after",
+    "text_he": "ככה ניקינו רכב אחרי חופש גדול עם 3 ילדים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "דלת אחורית נפתחת: פירורים, כתמים וצעצועים על המושב, ואז קאט למושב נקי ומבריק",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "auto-services-02",
+    "niche_slug": "auto-services",
+    "hook_type_slug": "negative-warning",
+    "text_he": "נדלקה לכם הנורה הזאת? אל תמשיכו לנסוע לפני שאתם צופים בזה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "תקריב של לוח השעונים, נורה כתומה מהבהבת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "auto-services-03",
+    "niche_slug": "auto-services",
+    "hook_type_slug": "insider-secret",
+    "text_he": "טיפול 15 אלף: מה באמת חייבים להחליף, ומה סתם מוסיפים לחשבון",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "חשבונית ארוכה על הדלפק, מרקר מסמן שורה אחת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "auto-services-04",
+    "niche_slug": "auto-services",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "ליטוש בשלושה שלבים. רק תסתכלו על ההשתקפות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "מכונת פוליש עוברת על מכסה מנוע עמום, וההשתקפות מתחדדת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "auto-services-05",
+    "niche_slug": "auto-services",
+    "hook_type_slug": "listicle",
+    "text_he": "3 בדיקות של 5 דקות לפני נסיעה ארוכה בחג",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "יד בודקת לחץ אוויר בצמיג, ואז מוט שמן נשלף",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-01",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "negative-warning",
+    "text_he": "פוטרתם? אל תחתמו על כלום לפני שאתם צופים בזה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מעטפה עם מכתב פיטורים על שולחן, יד מרחיקה את העט",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "lawyers-02",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "callout",
+    "text_he": "חתמתם על חוזה שכירות? תבדקו את הסעיף הזה עכשיו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "מרקר צהוב מסמן סעיף בחוזה, תקריב",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-03",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: צוואה זה רק לאנשים עשירים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "עורכת הדין קורעת דף שכתוב עליו \"רק לעשירים\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "lawyers-04",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "question",
+    "text_he": "השאלה שחוזרת אליי כל שבוע: מה קורה לדירה אחרי גירושים?",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "טלפון על שולחן מציג הודעת וואטסאפ מטושטשת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-05",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "story",
+    "text_he": "סיפור אמיתי (בשינוי פרטים): הודעת וואטסאפ אחת כמעט עלתה ללקוח 400 אלף ₪",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "בועת וואטסאפ מוגדלת על המסך, הפרטים מטושטשים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "סיפור אמיתי בלבד, בלי פרטים מזהים ובשמירה על חיסיון.",
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-06",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "comparison",
+    "text_he": "הסכם ממון מול \"אנחנו סומכים אחד על השני\"",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שתי טבעות על שולחן מול מסמך חתום",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-07",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה עורך דין לעסקת דירה? הנה הטווח האמיתי",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מחשבון על שולחן משרד, עורך הדין מקליד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-08",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "negative-warning",
+    "text_he": "קיבלתם מכתב התראה? השעון כבר מתקתק. 3 צעדים ראשונים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מעטפה עם חותמת אדומה, צליל תקתוק של שעון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-09",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "insider-secret",
+    "text_he": "מה שלא מספרים לכם על הסכמי פשרה",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "עורכת הדין סוגרת את דלת המשרד ומתקרבת למצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "lawyers-10",
+    "niche_slug": "lawyers",
+    "hook_type_slug": "pov",
+    "text_he": "POV: קניתם דירה על הנייר, והמסירה מתעכבת כבר שנה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "אתר בנייה ריק עם עגורן עומד, דפי לוח שנה עפים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-01",
+    "niche_slug": "accountants",
+    "hook_type_slug": "callout",
+    "text_he": "עצמאים? יש סיכוי טוב שאתם משלמים יותר מס ממה שצריך",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "ארנק פתוח, שטרות עפים ממנו בהילוך איטי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "accountants-02",
+    "niche_slug": "accountants",
+    "hook_type_slug": "listicle",
+    "text_he": "5 הוצאות מוכרות שהרבה עצמאים שוכחים לדרוש",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "קבלות נופלות על שולחן, רואת החשבון תופסת אחת באוויר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-03",
+    "niche_slug": "accountants",
+    "hook_type_slug": "negative-warning",
+    "text_he": "פתחתם עסק? ההחלטה הראשונה מול רשות המסים יכולה לעלות לכם אלפי שקלים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מפתח מסתובב במנעול של חנות חדשה, ואז טופס רשמי על השולחן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-04",
+    "niche_slug": "accountants",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לשמור קבלות בקופסת נעליים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "קופסת נעליים מתהפכת, קבלות מתפזרות, טלפון סורק אחת מהן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "accountants-05",
+    "niche_slug": "accountants",
+    "hook_type_slug": "callout",
+    "text_he": "קיבלתם מכתב ממס הכנסה? קודם כל, לנשום. הנה 3 צעדים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "יד מחזיקה מעטפה רשמית שרועדת קלות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-06",
+    "niche_slug": "accountants",
+    "hook_type_slug": "story",
+    "text_he": "הטעות הכי יקרה שראיתי השנה (ולא, זה לא היה לקוח שלי)",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "רואה החשבון מסובב מסך אל המצלמה, מספר אדום גדול",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-07",
+    "niche_slug": "accountants",
+    "hook_type_slug": "callout",
+    "text_he": "שכירים? יכול להיות שמגיע לכם החזר מס – ואתם בכלל לא יודעים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "המחאה מחליקה לאט לתוך הפריים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-08",
+    "niche_slug": "accountants",
+    "hook_type_slug": "how-to",
+    "text_he": "דוח שנתי ב-60 שניות: מה זה, ולמה זה חשוב לכם",
+    "platforms": [
+      "reels",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שעון עצר מתחיל לרוץ, רואת החשבון עומדת ליד לוח לבן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-09",
+    "niche_slug": "accountants",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "יום לפני הדדליין של הדוחות אצלנו במשרד",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "ערימות תיקים, כוסות קפה, מחוגי שעון במהירות כפולה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-10",
+    "niche_slug": "accountants",
+    "hook_type_slug": "controversy",
+    "text_he": "דעה לא פופולרית: אל תבחרו רואה חשבון לפי המחיר",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "רואה החשבון מסתובב בכיסא אל המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "accountants-11",
+    "niche_slug": "accountants",
+    "hook_type_slug": "callout",
+    "text_he": "עוסק פטור? זה מה שמשתנה לכם השנה",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "תעודת עוסק פטור על השולחן, לוח שנה מתהפך לשנה הבאה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "לוודא שהתקרות והכללים עדכניים לשנת המס הנוכחית.",
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-01",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "negative-warning",
+    "text_he": "יכול להיות שאתם משלמים פעמיים על אותו ביטוח בריאות",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "שתי פוליסות זהות נערמות זו על זו",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "insurance-agents-02",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "question",
+    "text_he": "מתי בפעם האחרונה בדקתם מה יש לכם ב\"הר הביטוח\"?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "טלפון פתוח על אתר החיפוש, הסוכנת מצביעה על המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-03",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות לפני שעושים ביטוח חיים למשכנתא",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מפתחות בית מונחים על פוליסה מקופלת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-04",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "story",
+    "text_he": "סיפור אמיתי: תאונה, אשפוז – ופוליסה שלא כיסתה את מה שחשבו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מסדרון בית חולים, דף פוליסה ביד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק מקרה אמיתי, בלי פרטים מזהים.",
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-05",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "comparison",
+    "text_he": "ביטוח רכב: \"הכי זול\" ו\"הכי משתלם\" זה לא אותו דבר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שני מפתחות רכב זה לצד זה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-06",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לחדש ביטוח אוטומטית בלי לבדוק",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "מייל של חידוש, אצבע מרחפת מעל \"אישור\"",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "insurance-agents-07",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "question",
+    "text_he": "נזילה מהשכן מלמעלה – מי משלם?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "טיפות מים נוטפות מהתקרה לתוך דלי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-08",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "callout",
+    "text_he": "עצמאים: אם לא תעבדו חודש – מי משלם את החשבונות?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "כיסא משרדי ריק, חשבונות נערמים על השולחן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "נוגע במצב כלכלי: בפרסום ממומן מנסחים בגוף שלישי (\"מה קורה לעצמאי שלא עובד חודש?\").",
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-09",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "day-in-life",
+    "text_he": "יום בחיים של סוכן ביטוח (זה לא רק טפסים)",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "male",
+    "visual_direction_he": "הסוכן נוהג, ואז נכנס לבית של משפחה עם כוס קפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-10",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "demonstration",
+    "text_he": "בדקנו תיק ביטוחי של זוג צעיר ב-10 דקות. זה מה שמצאנו",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "טבלה גרפית עם שורות שמסומנות באדום",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "insurance-agents-11",
+    "niche_slug": "insurance-agents",
+    "hook_type_slug": "question",
+    "text_he": "בדקתם כמה דמי ניהול אתם משלמים בפנסיה?",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "דוח פנסיה שנתי, מרקר מקיף שורה אחת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-01",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "bold-claim",
+    "text_he": "סלון של 20 מטר שנראה כמו 35 – בלי להזיז קיר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "חשיפה בעדשה רחבה, דחיפה איטית פנימה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "interior-design-02",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "mistakes",
+    "text_he": "3 טעויות תאורה שהורסות כל דירה חדשה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "לחיצה על מתג: אור לבן וקר מתחלף לאור חם",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "interior-design-03",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לקנות שטיח קטן מדי",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שטיח קטנטן בחדר ענק, המעצבת גוררת פנימה שטיח גדול",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-04",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "pov",
+    "text_he": "POV: קיבלתם מפתח לדירה ריקה. מאיפה בכלל מתחילים?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "דירה לבנה וריקה, הד של צעדים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-05",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "comparison",
+    "text_he": "אותו חדר, 3 תקציבים: 5, 15 ו-40 אלף ₪",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מחולק לשלושה עם שלוש הדמיות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-06",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "הדבר הראשון שאני בודקת כשאני נכנסת לדירה – וזה לא הקירות",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "המעצבת מסיטה וילון ובוחנת את כיוון האור",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-07",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "before-after",
+    "text_he": "לשדרג מטבח בדירה שכורה – בלי לשפץ ובלי לאבד את הפיקדון",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "יד מדביקה טפט נשלף על חזית של ארון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-08",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "controversy",
+    "text_he": "הטרנד שהגיע הזמן להיפרד ממנו",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "המעצב זורק כרית מהספה אל מחוץ לפריים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-09",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "comparison",
+    "text_he": "הדמיה מול מציאות: יצא כמו שתכננו?",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "הדמיה תלת-ממדית מתמזגת לצילום אמיתי מאותה זווית",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "interior-design-10",
+    "niche_slug": "interior-design",
+    "hook_type_slug": "how-to",
+    "text_he": "איך בוחרים צבע לקיר – בפחות מ-30 שניות",
+    "platforms": [
+      "reels",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "דוגמאות צבע מודבקות בסלוטייפ על הקיר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-01",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "story",
+    "text_he": "הרגע הזה נמשך שנייה וחצי. כמעט פספסנו אותו",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "פריים שקפא על רגע מרגש, אפקט של הרצה לאחור",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "event-photographers-02",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "listicle",
+    "text_he": "3 רגעים בחתונה שזוגות מצטערים שלא צולמו",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מונטאז׳ מהיר של רגעים קטנים בהילוך איטי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "event-photographers-03",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "pov",
+    "text_he": "POV: אתם צלמי החתונה, 600 אורחים, והכלה פשוט נעלמה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "ריצה בין האורחים, המצלמה רועדת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-04",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "איך יצא הצילום הזה? מאחורי הקלעים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "זום-אאוט מהתמונה הסופית אל סט מבולגן עם פנס של טלפון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-05",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לבקש \"רק תמונות טבעיות\". הנה למה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "זוג קפוא בפוזה מול זוג שצוחק בספונטניות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-06",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה צלם חתונות ב-2026? ולמה הפער יכול להגיע לפי 3",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "שני תיקי מצלמה עם תוויות מחיר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-07",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "comparison",
+    "text_he": "אותו זוג, אותו מקום: טלפון מול צלם מקצועי",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל, אותה תמונה בשתי רמות איכות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-08",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "insider-secret",
+    "text_he": "השעה הכי טובה לצילומי זוגיות בישראל? לא בצהריים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "אור של שעת הזהב מנצנץ מבעד לעצים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-09",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "statistic",
+    "text_he": "בת מצווה, 4 שעות, 2,300 תמונות. אלה נכנסו לאלבום",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "גלילה מהירה בגריד של תמונות בתוכנת עריכה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "צילום קטינים רק בהסכמת ההורים.",
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-10",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "social-proof",
+    "text_he": "אמא של הכלה ראתה את האלבום. זו הייתה התגובה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "female",
+    "visual_direction_he": "אישה מדפדפת באלבום ומוחה דמעה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק תגובה אמיתית, בהסכמה.",
+    "is_featured": false
+  },
+  {
+    "id": "event-photographers-11",
+    "niche_slug": "event-photographers",
+    "hook_type_slug": "how-to",
+    "text_he": "ככה גורמים גם למי ששונא מצלמות לחייך",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "אדם מסתיר את הפנים בידיים, ואז פורץ בצחוק מול העדשה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "djs-musicians-01",
+    "niche_slug": "djs-musicians",
+    "hook_type_slug": "result-first",
+    "text_he": "הרגע שבו כל האולם קם לרקוד",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "רחבה חצי ריקה, דרופ, ותוך שנייה כולם קופצים עם ידיים למעלה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "שירים מוקלטים בסרטון רק ברישיון.",
+    "is_featured": true
+  },
+  {
+    "id": "djs-musicians-02",
+    "niche_slug": "djs-musicians",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הדיג׳יי שם את השיר של סבתא – והרחבה מתפוצצת",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "סבתא בשמלה חגיגית גוררת את הנכדים לרחבה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "שירים מוקלטים בסרטון רק ברישיון.",
+    "is_featured": false
+  },
+  {
+    "id": "djs-musicians-03",
+    "niche_slug": "djs-musicians",
+    "hook_type_slug": "controversy",
+    "text_he": "3 שירים שאסור לשים בחתונה (השלישי יפתיע אתכם)",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "engagement",
+    "gender": "plural",
+    "visual_direction_he": "יד על המיקסר עוצרת את הפיידר באמצע שיר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "djs-musicians-04",
+    "niche_slug": "djs-musicians",
+    "hook_type_slug": "comparison",
+    "text_he": "פלייליסט מול דיג׳יי שקורא את הרחבה: אותו ערב, תוצאה אחרת",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: רמקול עם טלפון מחובר מול עמדת דיג׳יי מוארת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "djs-musicians-05",
+    "niche_slug": "djs-musicians",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "מאחורי העמדה: ככה נראית חתונה מהצד של הדיג׳יי",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מצלמה מאחורי הדיג׳יי, מבט אל קהל רוקד ואורות מהבהבים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-01",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "bold-claim",
+    "text_he": "ג׳קוזי מול הנוף הזה. בלי פילטר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "רחפן בדחיפה איטית אל ג׳קוזי בזריחה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "zimmers-boutique-hotels-02",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "pov",
+    "text_he": "POV: כיביתם את הטלפון לסופ״ש שלם",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "טלפון נופל לסלסלת קש, ערסל מתנדנד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "zimmers-boutique-hotels-03",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "listicle",
+    "text_he": "3 דברים לבדוק לפני שמזמינים צימר (את השלישי כמעט אף אחד לא בודק)",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "יד פותחת לאט דלת עץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-04",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה סופ״ש זוגי אצלנו – כולל ארוחת בוקר?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מגש ארוחת בוקר מונח על המיטה, תג המחיר מוסתר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-05",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "מה קורה פה ב-6 בבוקר",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "המארחת אופה לחם, ערפל מעל הגבעות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-06",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "comparison",
+    "text_he": "התמונות באתר מול המציאות. בדקנו",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "טלפון עם תמונת המודעה מורם מול הנוף האמיתי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-07",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "social-proof",
+    "text_he": "הזוג הזה הגיע לסופ״ש אחד, וחזר עוד 4 פעמים באותה שנה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "דפי ספר האורחים מתדפדפים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק סיפור אמיתי.",
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-08",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "נשארו 2 סופ״שים פנויים בחודש הבא",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "לוח שנה, שני תאריכים פנויים מהבהבים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון: הזמינות חייבת להתאים ליומן בפועל.",
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-09",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "אל תבואו לפה אם אתם לא מוכנים לשקט אמיתי",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שוט סטטי של עמק, בלי מוזיקה, רק ציוץ ציפורים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "zimmers-boutique-hotels-10",
+    "niche_slug": "zimmers-boutique-hotels",
+    "hook_type_slug": "callout",
+    "text_he": "חופשה עם ילדים שגם ההורים נחים בה? יש דבר כזה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "ילדים בבריכה, הורים בערסל עם קפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "tourism-attractions-01",
+    "niche_slug": "tourism-attractions",
+    "hook_type_slug": "question",
+    "text_he": "מה עושים בחול המועד עם ילדים? הנה רעיון",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "ילדים רצים לעבר שער כניסה צבעוני, ההורים מאחור עם צידנית",
+    "placeholders": [],
+    "season_slug": "passover",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "tourism-attractions-02",
+    "niche_slug": "tourism-attractions",
+    "hook_type_slug": "bold-claim",
+    "text_he": "שעה מ{עיר}, ונראה כמו חו״ל",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "רחפן נחשף מעל צוק או מפל, נוף פתוח עד האופק",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "tourism-attractions-03",
+    "niche_slug": "tourism-attractions",
+    "hook_type_slug": "listicle",
+    "text_he": "3 פינות ליד {עיר} שרוב המטיילים מפספסים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שביל צר נפתח אל נקודת תצפית מוסתרת",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "tourism-attractions-04",
+    "niche_slug": "tourism-attractions",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הילדים שואלים \"מה עושים היום?\", והפעם יש לכם תשובה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שלושה ילדים משועממים על ספה, ואז קאט לחיוך ענק במגלשת מים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "tourism-attractions-05",
+    "niche_slug": "tourism-attractions",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה יום כיף למשפחה של 5? עשינו את החשבון",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "חמישה כרטיסי כניסה נפרשים כמו קלפים על שולחן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מחירים רק לפי המחירון האמיתי, כולל מע״מ.",
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-01",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "story",
+    "text_he": "עבדתי באקסל 10 שנים. זה הקיצור שהייתי רוצה לדעת ביום הראשון",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "הקלטת מסך עם תקריב של מקלדת, קיצור נלחץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "courses-educators-02",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לשנן מילים באנגלית. תעשו את זה במקום",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "כרטיסיות עפות באוויר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-03",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "mistakes",
+    "text_he": "3 טעויות שכל מי שמתחיל ללמוד פייתון עושה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "קוד עם קווים אדומים מתחת לשגיאות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-04",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "callout",
+    "text_he": "רוצים לעבור להייטק אחרי 35? תקשיבו רגע",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "אדם מול לפטופ במטבח בלילה, אור המסך על הפנים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "גיל הוא מאפיין אישי: בפרסום ממומן לא פונים לפיו, ומנסחים בלי גיל.",
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-05",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "how-to",
+    "text_he": "שיעור של 60 שניות: איך כותבים פרומפט שבאמת עובד",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צ׳אט על המסך, הקלדה מהירה, התוצאה מופיעה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "courses-educators-06",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "social-proof",
+    "text_he": "בוגרת הקורס קיבלה הצעת עבודה אחרי 5 שבועות. ככה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "female",
+    "visual_direction_he": "מייל עם הצעת עבודה בטלפון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק מקרה אמיתי ובהסכמה; מוסיפים \"התוצאות אישיות\".",
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-07",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: צריך להיות \"טובים במתמטיקה\" בשביל לתכנת",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "נוסחאות מתמטיות נמחקות מהלוח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-08",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "question",
+    "text_he": "כמה דקות ביום באמת צריך כדי ללמוד שפה חדשה?",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיימר מטבח על 15:00",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-09",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "ההרשמה נסגרת ביום ראשון, ונשארו 12 מקומות",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "גרפיקה של כיסאות שמתמלאים אחד אחד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון: מועד הסגירה ומספר המקומות.",
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-10",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "challenge",
+    "text_he": "30 יום, 15 דקות ביום: לימדתי את עצמי לנגן בגיטרה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "יום 1: אקורד צורם ← יום 30: שיר שלם",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "courses-educators-11",
+    "niche_slug": "courses-educators",
+    "hook_type_slug": "story",
+    "text_he": "איך עליתי 100 נקודות בפסיכומטרי ב-3 חודשים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "דף ציונים מתהפך, ספרות רצות כלפי מעלה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק סיפור אמיתי; מוסיפים \"התוצאות אישיות\".",
+    "is_featured": false
+  },
+  {
+    "id": "therapists-01",
+    "niche_slug": "therapists",
+    "hook_type_slug": "callout",
+    "text_he": "מתעוררים עייפים גם אחרי 8 שעות שינה? אולי זה לא רק עייפות",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "שעון מעורר מצלצל, אדם בוהה בתקרה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "נוגע בבריאות הנפש: בפרסום ממומן מנסחים בגוף שלישי, בלי להניח את מצבו של הצופה.",
+    "is_featured": false
+  },
+  {
+    "id": "therapists-02",
+    "niche_slug": "therapists",
+    "hook_type_slug": "listicle",
+    "text_he": "3 משפטים שאנשים עם חרדה שומעים כל הזמן – ושלא באמת עוזרים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "בועות דיבור צצות סביב דמות ונעלמות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "נוגע בבריאות הנפש: לבדוק את הניסוח לפני פרסום ממומן.",
+    "is_featured": true
+  },
+  {
+    "id": "therapists-03",
+    "niche_slug": "therapists",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: טיפול זה רק למי ש\"משהו לא בסדר\" איתו",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "חדר טיפול רגוע, שתי כורסאות, אור חלון רך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "therapists-04",
+    "niche_slug": "therapists",
+    "hook_type_slug": "how-to",
+    "text_he": "מה קורה בפגישה הראשונה? בלי מסתורין",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מבט מגובה העיניים: נכנסים לחדר, הדלת נסגרת בעדינות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-05",
+    "niche_slug": "therapists",
+    "hook_type_slug": "demonstration",
+    "text_he": "30 שניות של נשימה, לרגעים שהכול מרגיש יותר מדי",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "עיגול נשימה מונפש מתרחב ומתכווץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-06",
+    "niche_slug": "therapists",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו להגיד לעצמכם \"אחרים עוברים דברים יותר קשים\"",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "משפט בכתב יד נמחק בקו עדין",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-07",
+    "niche_slug": "therapists",
+    "hook_type_slug": "question",
+    "text_he": "איך יודעים שזה המטפל המתאים?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המטפלת יושבת באור חם, מבט ישיר אל המצלמה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-08",
+    "niche_slug": "therapists",
+    "hook_type_slug": "pov",
+    "text_he": "POV: אמרתם בקול משהו שהחזקתם בפנים שנים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "כורסה ריקה, קרן אור שזזה לאט על הרצפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-09",
+    "niche_slug": "therapists",
+    "hook_type_slug": "comparison",
+    "text_he": "עצב או דיכאון? ההבדל בשפה פשוטה",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל: חלון גשום מול חלון עם קרן שמש",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מידע כללי ולא אבחנה; מומלץ לצרף שורת סיום עם קו סיוע.",
+    "is_featured": false
+  },
+  {
+    "id": "therapists-10",
+    "niche_slug": "therapists",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "מה מטפלים עושים כשקשה להם?",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המטפל הולך לבד על חוף בשקיעה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "therapists-11",
+    "niche_slug": "therapists",
+    "hook_type_slug": "callout",
+    "text_he": "אם אתם מרגישים שאתם רק שורדים – זה בשבילכם",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "אדם יושב ברכב בחנייה רגע לפני שהוא יוצא, ולוקח נשימה עמוקה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "נוגע בבריאות הנפש: מתאים לפרסום אורגני; בפרסום ממומן מנסחים בגוף שלישי.",
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-01",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "הכלב שלכם עושה את זה? זה לא \"סתם חמוד\"",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "כלב גורר את הישבן על השטיח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "vets-dog-grooming-02",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "listicle",
+    "text_he": "3 מאכלים מהמטבח שמסוכנים לכלבים (השני נמצא כמעט בכל בית)",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "ענבים, שוקולד ובצל על השיש, כלב מרחרח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "vets-dog-grooming-03",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "before-after",
+    "text_he": "חצי שנה בלי מספריים ← כלב חדש",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "כלב עם פרווה סבוכה, ואז כלב רך ונקי שמתנער",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-04",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הכלב שלכם מבין שנכנסתם לחנייה של הווטרינר",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "עיני הכלב נפתחות לרווחה במושב האחורי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-05",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לגזור ציפורניים בלי לבדוק את הנקודה הזאת",
+    "platforms": [
+      "reels",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "תקריב של ציפורן, פנס מאיר את כלי הדם",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-06",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "ככה נראית בדיקה שנתית מבפנים",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "וטרינרית עם סטטוסקופ על כלב רגוע",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-07",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: אף חם = כלב חולה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "יד נוגעת באף של כלב",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-08",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "how-to",
+    "text_he": "שרב בחוץ? בדיקה של 5 שניות לפני שיוצאים לטיול",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "כף יד על אספלט חם, טיימר של 5 שניות",
+    "placeholders": [],
+    "season_slug": "summer",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-09",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "אמבטיה וייבוש לגולדן של 40 קילו",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "התנערות בהילוך איטי, טיפות מים מתפזרות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-10",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "question",
+    "text_he": "כל כמה זמן באמת צריך לקלח כלב?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "כלב בורח מהאמבטיה עם קצף על הגב",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "vets-dog-grooming-11",
+    "niche_slug": "vets-dog-grooming",
+    "hook_type_slug": "callout",
+    "text_he": "הכלב שלכם מפחד מזיקוקים? 3 טיפים לערב הזה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "כלב מסתתר מתחת למיטה, זיקוקים מרצדים בחלון",
+    "placeholders": [],
+    "season_slug": "independence-day",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "driving-schools-01",
+    "niche_slug": "driving-schools",
+    "hook_type_slug": "mistakes",
+    "text_he": "5 טעויות שמכשילות בטסט, ואיך להימנע מהן",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מראה צד בתקריב, ואז X אדום קופץ על המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "driving-schools-02",
+    "niche_slug": "driving-schools",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הבוחן נכנס לרכב, ואתם שוכחים איך מתניעים",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "יד רועדת מעל המפתח, הבוחן מצמיד דף ללוח כתיבה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "driving-schools-03",
+    "niche_slug": "driving-schools",
+    "hook_type_slug": "how-to",
+    "text_he": "חנייה במקביל ב-3 צעדים. בלי לחץ",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צילום רחפן מלמעלה: רכב נכנס בין שני רכבים חונים בתנועה חלקה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "driving-schools-04",
+    "niche_slug": "driving-schools",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: מי שנכשל בטסט הראשון ינהג פחות טוב",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "דף עם המילה \"נכשל\" מתקמט, ואז מפתחות רכב נזרקים אל כף יד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "driving-schools-05",
+    "niche_slug": "driving-schools",
+    "hook_type_slug": "question",
+    "text_he": "כמה שיעורים באמת צריך עד הטסט?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מונה שיעורים גרפי רץ מעל לוח המחוונים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "ממוצעים ואחוזי הצלחה רק לפי הנתונים האמיתיים של בית הספר.",
+    "is_featured": false
+  },
+  {
+    "id": "kids-activities-01",
+    "niche_slug": "kids-activities",
+    "hook_type_slug": "day-in-life",
+    "text_he": "ככה נראה יום בקייטנה שלנו",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "טיים-לאפס של יום: אוטובוס מגיע, בריכה, יצירה, ריקוד סיום, הכול מצולם מהגב ומרחוק",
+    "placeholders": [],
+    "season_slug": "summer",
+    "compliance_note_he": "צילום ילדים רק בהסכמת הורים; עדיף בלי פנים מזוהות.",
+    "is_featured": true
+  },
+  {
+    "id": "kids-activities-02",
+    "niche_slug": "kids-activities",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות שחובה לשאול לפני שרושמים ילד לגן",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "יד קטנה ויד של מבוגר על הידית של שער גן צבעוני",
+    "placeholders": [],
+    "season_slug": "registration-season",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "kids-activities-03",
+    "niche_slug": "kids-activities",
+    "hook_type_slug": "pov",
+    "text_he": "POV: הילד שלכם חוזר מהחוג ולא מפסיק לספר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "מושב אחורי ברכב, ידיים קטנות מתנופפות בהתרגשות, קסדת אופניים על הברכיים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "צילום ילדים רק בהסכמת הורים.",
+    "is_featured": false
+  },
+  {
+    "id": "kids-activities-04",
+    "niche_slug": "kids-activities",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "ההרשמה לשנה הבאה נפתחה. נשארו {מספר} מקומות בקבוצה",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "לוח שיבוץ על הקיר, מגנטים צבעוניים מתמלאים אחד אחד",
+    "placeholders": [
+      "מספר"
+    ],
+    "season_slug": "registration-season",
+    "compliance_note_he": "רק אם נכון: המספר חייב להתעדכן.",
+    "is_featured": false
+  },
+  {
+    "id": "kids-activities-05",
+    "niche_slug": "kids-activities",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "מה הילדים באמת עושים פה בין 14:00 ל-17:00?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "שעון קיר מראה 14:00, ואז מונטאז׳ מהיר של ידיים בפעילות: בצק, לגו, צבעים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "home-services-01",
+    "niche_slug": "home-services",
+    "hook_type_slug": "negative-warning",
+    "text_he": "המזגן מטפטף? אל תתקשרו לטכנאי לפני שתבדקו את זה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "טיפות מים נופלות מיחידת מזגן לתוך קערה, צליל טפטוף מוגבר",
+    "placeholders": [],
+    "season_slug": "summer",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "home-services-02",
+    "niche_slug": "home-services",
+    "hook_type_slug": "listicle",
+    "text_he": "3 סימנים שהגיע הזמן להחליף את הדוד",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "דוד חשמלי על הגג, פנס מאיר על כתם חלודה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "home-services-03",
+    "niche_slug": "home-services",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה עולה להחליף לוח חשמל? מחיר אמיתי, בלי הפתעות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "דלת של לוח חשמל ישן נפתחת, חוטים מבולגנים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר להמחשה; עבודות חשמל רק על ידי חשמלאי מוסמך.",
+    "is_featured": false
+  },
+  {
+    "id": "home-services-04",
+    "niche_slug": "home-services",
+    "hook_type_slug": "stop-doing",
+    "text_he": "סתימה בכיור? תפסיקו לשפוך לשם כימיקלים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "יד שופכת חומר ניקוי לכיור, יד אחרת עוצרת אותה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "home-services-05",
+    "niche_slug": "home-services",
+    "hook_type_slug": "story",
+    "text_he": "נזילה שהשכנים חיפשו חודשיים – ומצאנו אותה בחצי שעה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "מצלמה תרמית סורקת קיר, כתם כחול מופיע על המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "movers-storage-01",
+    "niche_slug": "movers-storage",
+    "hook_type_slug": "how-to",
+    "text_he": "ככה אורזים מטבח בלי לשבור כלום",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צלחות נעטפות בנייר ונכנסות לארגז בעמידה, בקצב מהיר",
+    "placeholders": [],
+    "season_slug": "summer",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "movers-storage-02",
+    "niche_slug": "movers-storage",
+    "hook_type_slug": "mistakes",
+    "text_he": "3 טעויות שעולות ביוקר ביום ההובלה",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "ארגז מתפרק באוויר, וכוסות נופלות בהילוך איטי",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "movers-storage-03",
+    "niche_slug": "movers-storage",
+    "hook_type_slug": "challenge",
+    "text_he": "דירת 4 חדרים, קומה רביעית, בלי מעלית. הפעלנו סטופר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "סטופר מתחיל לרוץ, הצוות סוחב ספה בחדר מדרגות צר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "movers-storage-04",
+    "niche_slug": "movers-storage",
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה באמת עולה הובלה של דירת 3 חדרים?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "משאית הובלה פתוחה, מחשבון מונח על ארגז",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר להמחשה; רק מחירון אמיתי.",
+    "is_featured": false
+  },
+  {
+    "id": "movers-storage-05",
+    "niche_slug": "movers-storage",
+    "hook_type_slug": "pov",
+    "text_he": "POV: יום לפני ההובלה, ושום דבר עוד לא ארוז",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "סלון מלא חפצים, ארגז אחד ריק ופתוח באמצע החדר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "retail-stores-01",
+    "niche_slug": "retail-stores",
+    "hook_type_slug": "bold-claim",
+    "text_he": "מתנה לחג ב-100 ₪ שנראית כמו מתנה של 500",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "יד מסירה נייר עטיפה בתנועה אחת וחושפת מתנה מהודרת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "retail-stores-02",
+    "niche_slug": "retail-stores",
+    "hook_type_slug": "urgency-offer",
+    "text_he": "חדש על המדף השבוע – וזה לא יישאר פה הרבה זמן",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "יד מניחה פריט על מדף מואר, הפריטים סביבו נעלמים אחד אחד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון: המלאי באמת מוגבל.",
+    "is_featured": false
+  },
+  {
+    "id": "retail-stores-03",
+    "niche_slug": "retail-stores",
+    "hook_type_slug": "how-to",
+    "text_he": "פריט אחד, 3 לוקים: מהבוקר ועד הערב",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "אותה חולצה על קולב מתחלפת בשלושה קאטים מהירים לשלושה סטים שונים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "retail-stores-04",
+    "niche_slug": "retail-stores",
+    "hook_type_slug": "satisfying-visual",
+    "text_he": "ככה נבנה זר של יום שישי – מהדלי ועד העטיפה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צילום מלמעלה: פרחים נשלפים מדליים ומסתדרים לזר בהאצה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "retail-stores-05",
+    "niche_slug": "retail-stores",
+    "hook_type_slug": "how-to",
+    "text_he": "בוחרים מסגרת למשקפיים? הכלל הפשוט לפי צורת הפנים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "שלוש מסגרות מונחות על מראה, יד בוחרת אחת",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "catering-chefs-01",
+    "niche_slug": "catering-chefs",
+    "hook_type_slug": "bold-claim",
+    "text_he": "ארוחת חג ל-20 איש, בלי לעמוד במטבח",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "שולחן חג ארוך מתמלא במגשים בטיים-לאפס, הכיסאות עוד ריקים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "הצהרת כשרות רק עם תעודה בתוקף.",
+    "is_featured": true
+  },
+  {
+    "id": "catering-chefs-02",
+    "niche_slug": "catering-chefs",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "ככה מקימים שולחן אירוח ל-80 איש תוך שעה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיים-לאפס מלמעלה: שולחן ריק מתמלא בקרשים, גבינות ופירות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "catering-chefs-03",
+    "niche_slug": "catering-chefs",
+    "hook_type_slug": "price-reveal",
+    "text_he": "שף פרטי בבית לערב זוגי – כמה זה באמת עולה?",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "השף מניח צלחת מעוצבת מול זוג בסלון ביתי, תג מחיר מטושטש בפינה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "המחיר להמחשה; רק מחירון אמיתי.",
+    "is_featured": false
+  },
+  {
+    "id": "catering-chefs-04",
+    "niche_slug": "catering-chefs",
+    "hook_type_slug": "listicle",
+    "text_he": "3 מנות שתמיד נגמרות ראשונות באירוע",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מגש מתרוקן בהאצה, ידיים חוטפות את הביס האחרון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "catering-chefs-05",
+    "niche_slug": "catering-chefs",
+    "hook_type_slug": "pov",
+    "text_he": "POV: האורחים כבר בדלת, והאוכל רק עכשיו נכנס לתנור",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צלצול בדלת, דלת התנור נפתחת על מגש עם בצק שעוד לא נאפה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-01",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "statistic",
+    "text_he": "הצוות שלכם מאבד 6 שעות בשבוע על דוחות. עשינו את החשבון",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "שעון מסתובב מעל גיליונות אקסל",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "הנתון צריך מקור או סקר לקוחות מתועד.",
+    "is_featured": true
+  },
+  {
+    "id": "b2b-startups-02",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו לנהל מכירות באקסל",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "קובץ אקסל נגרר אל הפח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "b2b-startups-03",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "demonstration",
+    "text_he": "דמו של 30 שניות: מעלים קובץ, יוצא דוח",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook",
+      "youtube"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "הקלטת מסך, הסמן גורר קובץ לחלון",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-04",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "סמנכ״ל הכספים שלנו ביקש שלא נעלה את הסרטון הזה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "מנהלת נכנסת לפריים ומכסה את העדשה ביד",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-05",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "social-proof",
+    "text_he": "מה {מספר} חברות למדו כשעברו לאוטומציה",
+    "platforms": [
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "קיר של לוגואים של לקוחות מתאסף",
+    "placeholders": [
+      "מספר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "לוגואים ומספר הלקוחות רק באישור ולפי נתונים אמיתיים.",
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-06",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "pov",
+    "text_he": "POV: יום ראשון בבוקר, 47 מיילים, ואף אחד לא יודע מה הסטטוס",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "התראות מייל מציפות את המסך",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-07",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "listicle",
+    "text_he": "3 שאלות לשאול כל ספק SaaS לפני שחותמים על שנה",
+    "platforms": [
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המייסד כותב \"3\" על לוח לבן",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-08",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "result-first",
+    "text_he": "לקוח שלנו קיצר תהליך מ-14 ימים ל-2. זה מה שהשתנה",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "ציר זמן גרפי שמתכווץ",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק מקרה לקוח מתועד, באישור הלקוח.",
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-09",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "controversy",
+    "text_he": "דעה לא פופולרית: עוד דשבורד לא יפתור לכם את הבעיה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "המייסדת סוגרת לפטופ מלא גרפים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-10",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "ככה נראה ספרינט אצלנו מבפנים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "קיר פתקים צבעוניים, סטנדאפ של הצוות",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "b2b-startups-11",
+    "niche_slug": "b2b-startups",
+    "hook_type_slug": "story",
+    "text_he": "בנינו את המוצר הזה כי נמאס לנו מ{בעיה}",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook",
+      "youtube"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "המייסדת מוחקת בתנועה אחת תרשים מסובך מלוח לבן",
+    "placeholders": [
+      "בעיה"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "nonprofits-01",
+    "niche_slug": "nonprofits",
+    "hook_type_slug": "result-first",
+    "text_he": "ככה נראים {סכום} ₪ אחרי שהם מגיעים לשטח",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מעטפה נפתחת, ואז קאט לסל מזון מלא שמונח על שולחן במטבח",
+    "placeholders": [
+      "סכום"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "רק תיאור אמיתי של מה שהתרומה מממנת.",
+    "is_featured": true
+  },
+  {
+    "id": "nonprofits-02",
+    "niche_slug": "nonprofits",
+    "hook_type_slug": "story",
+    "text_he": "הוא הגיע אלינו בלי מקום לישון. זה הוא היום",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "male",
+    "visual_direction_he": "צללית של נער על ספסל בלילה, ואז אותו נער מחייך בבגדי עבודה ביום",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "רק סיפור אמיתי, בהסכמת המוטב ובשמירה על כבודו; בקטינים בהסכמת הורים או אפוטרופוס.",
+    "is_featured": false
+  },
+  {
+    "id": "nonprofits-03",
+    "niche_slug": "nonprofits",
+    "hook_type_slug": "how-to",
+    "text_he": "תורמים לפני סוף השנה? ככה מקבלים על זה זיכוי ממס",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "קבלה על תרומה מונחת ליד מחשבון, יד מסמנת וי",
+    "placeholders": [],
+    "season_slug": "tax-year-end",
+    "compliance_note_he": "רק לעמותה עם אישור סעיף 46 בתוקף; מנסחים בדיוק לפי האישור.",
+    "is_featured": false
+  },
+  {
+    "id": "nonprofits-04",
+    "niche_slug": "nonprofits",
+    "hook_type_slug": "behind-the-scenes",
+    "text_he": "מה באמת קורה עם הכסף שתרמתם? פתחנו את הספרים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "plural",
+    "visual_direction_he": "קלסר דוחות נפתח, דפים מתהפכים, גרף עמודות פשוט מופיע",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "nonprofits-05",
+    "niche_slug": "nonprofits",
+    "hook_type_slug": "day-in-life",
+    "text_he": "יום אחד עם המתנדבים שלנו, מ-6 בבוקר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "שעון מעורר על 5:45, ואז קאט למחסן מזון שמתמלא בארגזים",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "physio-nutrition-01",
+    "niche_slug": "physio-nutrition",
+    "hook_type_slug": "myth-busting",
+    "text_he": "המאכל ה\"בריא\" שהורס לא מעט דיאטות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "יד מושטת לחטיף גרנולה צבעוני, ונעצרת באוויר",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "physio-nutrition-02",
+    "niche_slug": "physio-nutrition",
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "התנוחה שרובנו יושבים בה מול המחשב – ומה היא עושה לגב",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צילום פרופיל של אדם שקוע בכיסא מול מחשב, קו גרפי מסמן את עמוד השדרה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "physio-nutrition-03",
+    "niche_slug": "physio-nutrition",
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: פחמימות בערב משמינות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "צלחת פסטה ליד שעון שמראה 21:00, חותמת \"מיתוס\" נוחתת עליה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": "מידע כללי, לא תחליף לייעוץ תזונתי אישי.",
+    "is_featured": false
+  },
+  {
+    "id": "physio-nutrition-04",
+    "niche_slug": "physio-nutrition",
+    "hook_type_slug": "listicle",
+    "text_he": "3 תרגילים של 2 דקות לכל מי שיושב 8 שעות ביום",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "טיימר של 2 דקות על המסך, אדם קם מכיסא משרדי ומתמתח",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "physio-nutrition-05",
+    "niche_slug": "physio-nutrition",
+    "hook_type_slug": "how-to",
+    "text_he": "מה קורה בפגישה הראשונה אצל פיזיותרפיסט? בלי הפתעות",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "דלת קליניקה נפתחת, מיטת טיפולים וכדור פיזיו בפינה",
+    "placeholders": [],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-rosh-hashana-01",
+    "niche_slug": null,
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "לפני שמרימים כוסית: מתנה לראש השנה שלא תגיע ישר לארון",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "קופסת מתנה נפתחת, ובפנים רימון ודבש",
+    "placeholders": [],
+    "season_slug": "rosh-hashana",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "seasonal-sukkot-01",
+    "niche_slug": null,
+    "hook_type_slug": "listicle",
+    "text_he": "חול המועד מתקרב: 3 דברים לעשות ב{עיר} בלי פקקים ובלי תורים",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "סוכה מוארת בלילה, ואז כביש ריק בבוקר",
+    "placeholders": [
+      "עיר"
+    ],
+    "season_slug": "sukkot",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-hanukkah-01",
+    "niche_slug": null,
+    "hook_type_slug": "urgency-offer",
+    "text_he": "8 נרות, 8 הפתעות. הנר הראשון נדלק עכשיו",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "הנר הראשון נדלק בחנוכייה, המוצר או השירות ברקע",
+    "placeholders": [],
+    "season_slug": "hanukkah",
+    "compliance_note_he": "ההפתעות וההטבות חייבות להיות אמיתיות.",
+    "is_featured": true
+  },
+  {
+    "id": "seasonal-purim-01",
+    "niche_slug": null,
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "התחפשנו ליום אחד לעסק אחר. זה מה שקרה",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "הצוות בתחפושות של מקצוע אחר (למשל שף עם מספריים של ספר)",
+    "placeholders": [],
+    "season_slug": "purim",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-pre-passover-01",
+    "niche_slug": null,
+    "hook_type_slug": "negative-warning",
+    "text_he": "ניקיונות פסח: הטעות שגוזלת לכם שעתיים כל יום",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "ארון חומרי ניקוי עולה על גדותיו",
+    "placeholders": [],
+    "season_slug": "pre-passover",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-independence-day-01",
+    "niche_slug": null,
+    "hook_type_slug": "insider-secret",
+    "text_he": "על האש: הנתח שכולם מזמינים וכמעט אף אחד לא יודע להכין",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "להבה מתפרצת מהמנגל, דגל ישראל ברקע",
+    "placeholders": [],
+    "season_slug": "independence-day",
+    "compliance_note_he": "טון מכבד: לא מפרסמים לפני צאת יום הזיכרון.",
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-tu-beav-01",
+    "niche_slug": null,
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "ט״ו באב: מתנה שאומרת \"חשבתי עלייך\" ולא \"נזכרתי ברגע האחרון\"",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "female",
+    "visual_direction_he": "יד מסתירה מתנה מאחורי הגב",
+    "placeholders": [],
+    "season_slug": "tu-beav",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-back-to-school-01",
+    "niche_slug": null,
+    "hook_type_slug": "listicle",
+    "text_he": "ה-1 בספטמבר בעוד שבועיים. רשימת הקניות שחוסכת לכם {סכום} ₪",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "plural",
+    "visual_direction_he": "תיק גב מתרוקן על השולחן, ציוד מתפזר",
+    "placeholders": [
+      "סכום"
+    ],
+    "season_slug": "back-to-school",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-summer-01",
+    "niche_slug": null,
+    "hook_type_slug": "callout",
+    "text_he": "10 שבועות של \"משעמם לי\" מתחילים עכשיו. הנה התוכנית",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "ילדים צונחים על הספה בבת אחת",
+    "placeholders": [],
+    "season_slug": "summer",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-black-friday-01",
+    "niche_slug": null,
+    "hook_type_slug": "insider-secret",
+    "text_he": "בלאק פריידיי: איך מזהים \"מבצע\" שהוא בעצם העלאת מחיר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "תווית מחיר מתהפכת וחושפת מאחוריה מחיר גבוה יותר",
+    "placeholders": [],
+    "season_slug": "black-friday",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "seasonal-after-holidays-01",
+    "niche_slug": null,
+    "hook_type_slug": "callout",
+    "text_he": "\"אחרי החגים\" הגיע. אז מאיפה באמת מתחילים?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "פתק \"אחרי החגים\" נתלש מלוח שנה ונזרק לפח",
+    "placeholders": [],
+    "season_slug": "after-holidays",
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "seasonal-singles-day-01",
+    "niche_slug": null,
+    "hook_type_slug": "urgency-offer",
+    "text_he": "11.11, יום הרווקים: 24 שעות של {הנחה} על כל האתר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "שעון ספירה לאחור מ-24:00:00 מתחיל לרוץ מעל עגלת קניות",
+    "placeholders": [
+      "הנחה"
+    ],
+    "season_slug": "singles-day",
+    "compliance_note_he": "רק אם נכון: ההנחה, משך המבצע וכל התנאים.",
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-new-year-01",
+    "niche_slug": null,
+    "hook_type_slug": "curiosity-gap",
+    "text_he": "ההחלטה לשנה החדשה שמחזיקה גם בפברואר",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "דף ינואר נתלש מלוח שנה וחושף את פברואר",
+    "placeholders": [],
+    "season_slug": "new-year",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-family-day-01",
+    "niche_slug": null,
+    "hook_type_slug": "callout",
+    "text_he": "יום המשפחה מתקרב: מתנה שכל המשפחה תיהנה ממנה",
+    "platforms": [
+      "reels",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "ידיים של שלושה דורות קושרות יחד סרט על קופסת מתנה",
+    "placeholders": [],
+    "season_slug": "family-day",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-valentines-01",
+    "niche_slug": null,
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "14.2 בלי ורד אדום אחד ובלי מסעדה עמוסה. יש רעיון יותר טוב",
+    "platforms": [
+      "reels",
+      "tiktok"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "יד מחזירה ורד אדום לדלי, ואז מרימה מעטפה",
+    "placeholders": [],
+    "season_slug": "valentines",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-pre-passover-02",
+    "niche_slug": null,
+    "hook_type_slug": "listicle",
+    "text_he": "לפני פסח: 3 תיקונים בבית שעדיף לסגור עכשיו, ולא בערב החג",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מגירה תקועה, ברז מטפטף ונורה שרופה מתחלפים בקאטים מהירים",
+    "placeholders": [],
+    "season_slug": "pre-passover",
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-shavuot-01",
+    "niche_slug": null,
+    "hook_type_slug": "social-proof",
+    "text_he": "שבועות בדרך: עוגת הגבינה שנגמרת אצלנו ראשונה כל שנה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook",
+      "whatsapp"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "סכין חותכת עוגת גבינה גבוהה, פירור נופל בהילוך איטי",
+    "placeholders": [],
+    "season_slug": "shavuot",
+    "compliance_note_he": "רק אם נכון.",
+    "is_featured": false
+  },
+  {
+    "id": "seasonal-tax-year-end-01",
+    "niche_slug": null,
+    "hook_type_slug": "listicle",
+    "text_he": "עד 31.12: 3 פעולות שעוד יכולות להוריד לכם את המס השנה",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "דף דצמבר בלוח שנה, הימים נמחקים אחד אחרי השני עד 31",
+    "placeholders": [],
+    "season_slug": "tax-year-end",
+    "compliance_note_he": "מידע כללי; לוודא את הכללים העדכניים לשנת המס.",
+    "is_featured": false
+  },
+  {
+    "id": "universal-01",
+    "niche_slug": null,
+    "hook_type_slug": "callout",
+    "text_he": "גרים ב{עיר} ומחפשים {שירות}? עצרו שנייה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "שלט של העיר או נוף מוכר של {עיר}, ואז קאט לבעל העסק מול המצלמה",
+    "placeholders": [
+      "עיר",
+      "שירות"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "universal-02",
+    "niche_slug": null,
+    "hook_type_slug": "mistakes",
+    "text_he": "{מספר} טעויות שכמעט כל מי שמחפש {שירות} עושה",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "בעלת העסק מרימה {מספר} אצבעות, X אדום ראשון קופץ",
+    "placeholders": [
+      "מספר",
+      "שירות"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "universal-03",
+    "niche_slug": null,
+    "hook_type_slug": "price-reveal",
+    "text_he": "כמה באמת עולה {שירות} ב{עיר}? בלי אותיות קטנות",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "מחשבון או לוח עם מספר מטושטש, אצבע מתקרבת",
+    "placeholders": [
+      "שירות",
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "המחיר רק לפי המחירון האמיתי.",
+    "is_featured": true
+  },
+  {
+    "id": "universal-04",
+    "niche_slug": null,
+    "hook_type_slug": "stop-doing",
+    "text_he": "תפסיקו {פעולה_שגויה}. תעשו את זה במקום",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "awareness",
+    "gender": "plural",
+    "visual_direction_he": "הפעולה השגויה מתבצעת, יד נכנסת לפריים ועוצרת אותה",
+    "placeholders": [
+      "פעולה_שגויה"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "universal-05",
+    "niche_slug": null,
+    "hook_type_slug": "pov",
+    "text_he": "POV: מצאתם סוף סוף {שירות} ב{עיר}, ועונים לכם בוואטסאפ תוך 5 דקות",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "whatsapp"
+    ],
+    "goal": "leads",
+    "gender": "plural",
+    "visual_direction_he": "טלפון רוטט, הודעת וואטסאפ נכנסת, חיוך של הקלה",
+    "placeholders": [
+      "שירות",
+      "עיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "זמן התגובה חייב להיות אמיתי.",
+    "is_featured": false
+  },
+  {
+    "id": "universal-06",
+    "niche_slug": null,
+    "hook_type_slug": "result-first",
+    "text_he": "ככה {קהל_יעד} חסכו {סכום} ₪ תוך {זמן}",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "leads",
+    "gender": "neutral",
+    "visual_direction_he": "הסכום {סכום} ₪ נבנה על המסך בספירה מהירה",
+    "placeholders": [
+      "קהל_יעד",
+      "סכום",
+      "זמן"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "רק מקרה אמיתי ומתועד.",
+    "is_featured": false
+  },
+  {
+    "id": "universal-07",
+    "niche_slug": null,
+    "hook_type_slug": "myth-busting",
+    "text_he": "מיתוס: {מיתוס}. האמת?",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "shorts"
+    ],
+    "goal": "trust",
+    "gender": "neutral",
+    "visual_direction_he": "המשפט {מיתוס} מופיע על המסך ונקרע לשניים",
+    "placeholders": [
+      "מיתוס"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": false
+  },
+  {
+    "id": "universal-08",
+    "niche_slug": null,
+    "hook_type_slug": "pattern-interrupt",
+    "text_he": "{שם_העסק} ב-30 שניות: מה אנחנו עושים, ולמי זה לא מתאים",
+    "platforms": [
+      "reels",
+      "shorts",
+      "facebook",
+      "youtube"
+    ],
+    "goal": "awareness",
+    "gender": "neutral",
+    "visual_direction_he": "הלוגו נכנס, ואז חותמת \"לא לכולם\"",
+    "placeholders": [
+      "שם_העסק"
+    ],
+    "season_slug": null,
+    "compliance_note_he": null,
+    "is_featured": true
+  },
+  {
+    "id": "universal-09",
+    "niche_slug": null,
+    "hook_type_slug": "before-after",
+    "text_he": "לפני: {לפני}. אחרי {זמן}: {אחרי}",
+    "platforms": [
+      "reels",
+      "tiktok",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "מסך מפוצל עם מעבר ניגוב",
+    "placeholders": [
+      "לפני",
+      "זמן",
+      "אחרי"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "בנישות רפואיות ובכושר לבדוק את ההגבלות על לפני ואחרי.",
+    "is_featured": false
+  },
+  {
+    "id": "universal-10",
+    "niche_slug": null,
+    "hook_type_slug": "urgency-offer",
+    "text_he": "נשארו {מספר} מקומות ב{חודש} במחיר {מחיר} ₪",
+    "platforms": [
+      "reels",
+      "facebook"
+    ],
+    "goal": "sales",
+    "gender": "neutral",
+    "visual_direction_he": "לוח שנה עם משבצות שנסגרות אחת אחרי השנייה",
+    "placeholders": [
+      "מספר",
+      "חודש",
+      "מחיר"
+    ],
+    "season_slug": null,
+    "compliance_note_he": "רק אם נכון: מספר המקומות, החודש והמחיר.",
+    "is_featured": false
+  }
+]
+```
