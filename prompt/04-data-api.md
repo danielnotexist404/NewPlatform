@@ -5,7 +5,7 @@
 בסוף יש תוכנית בדיקות RLS מלאה עם מקרי בדיקה קונקרטיים. כל השמות כאן הם חוזה (חלק 00 §4): טבלאות, עמודות, enum-ים, פונקציות, נתיבים וקודי שגיאה כתובים בדיוק כפי שצריך לממש אותם.
 המימוש של הלוגיקה העסקית שיושבת מעל החוזים האלה — הצנרת, הפרומפטים וההרכבה (חלק 05), מנוע החיוב והספקים (חלק 06), המסכים (חלק 03) — מפנה לכאן, ולא להפך.
 
-**איך לקרוא את קטעי ה-SQL.** כל בלוק SQL בחלק הזה הוא תוכן אמיתי של קובץ מיגרציה, בסדר שבו הוא צריך להופיע בקובץ. כשכתוב "‎0004_projects_jobs.sql" מעל בלוק — הבלוק נכנס לקובץ הזה. אין לשנות שמות; מותר לפצל קובץ לקבצים עוקבים אם הוא גדול מדי לביקורת, בתנאי שהסדר נשמר.
+**איך לקרוא את קטעי ה-SQL.** כל בלוק SQL בחלק הזה הוא תוכן אמיתי של קובץ מיגרציה, בסדר שבו הוא צריך להופיע בקובץ. כשכתוב ‏`0004_projects_jobs.sql` מעל בלוק — הבלוק נכנס לקובץ הזה. אין לשנות שמות; מותר לפצל קובץ לקבצים עוקבים אם הוא גדול מדי לביקורת, בתנאי שהסדר נשמר.
 
 ---
 
@@ -33,11 +33,11 @@
    - `http://localhost:3000/auth/callback` · `http://localhost:3000/auth/confirm` (staging ו-local בלבד)
 6. **Auth → Providers:**
    - **Email:** פעיל. כניסה בקישור קסם ובקוד בן 6 ספרות (Email OTP length = 6, ‏OTP expiry = ‏3600 שניות). "Secure email change" פעיל. אין טופס סיסמה במוצר; לא חושפים `signInWithPassword` בשום מקום.
-   - **Google:** פעיל. ב-Google Cloud Console: מסך הסכמה עם שם האפליקציה `{{BRAND_NAME}}`, דומיין מורשה `{{DOMAIN}}`, ‏Authorized redirect URI ‏`https://<project-ref>.supabase.co/auth/v1/callback`, ‏scopes ‏`openid email profile`. ה-Client ID וה-Secret נשמרים ב-Dashboard של Supabase בלבד (לא ב-env של האפליקציה). מומלץ לפני ההשקה: Custom Domain ‏(`auth.{{DOMAIN}}`) כדי שמסך ההסכמה של Google יציג את הדומיין שלנו ולא `supabase.co`.
+   - **Google:** פעיל. ב-Google Cloud Console: מסך הסכמה עם שם האפליקציה `{{BRAND_NAME}}`, דומיין מורשה `{{DOMAIN}}`, ‏Authorized redirect URI ‏`https://<project-ref>.supabase.co/auth/v1/callback`, ‏scopes ‏`openid email profile`. ה-Client ID וה-Secret נשמרים ב-Dashboard של Supabase בלבד (לא ב-env של האפליקציה). מומלץ לפני ההשקה: Custom Domain ‏(`auth.{{DOMAIN}}`) כדי שמסך ההסכמה של Google יציג את הדומיין שלנו ולא `supabase.co`. כשהוא פעיל, `NEXT_PUBLIC_SUPABASE_URL` = ‏`https://auth.{{DOMAIN}}`; ה-CSP (`buildCsp`) ו-`images.remotePatterns` ב-`next.config` גוזרים ממנו את `https://<host>` ואת `wss://<host>` (ל-`img-src`, ‏`media-src`, ‏`connect-src`), כך שהמעבר לא דורש שינוי קוד (חלק 06 §15.3; ‏§17.1).
    - **Phone:** כבוי. מופעל רק כשדגל `phone_otp` דולק, דרך Send SMS Hook מסוג HTTP שמצביע ל-`https://{{DOMAIN}}/api/auth/hooks/send-sms` (§22.6). לא משתמשים ב-Edge Function לזה.
 7. **Auth → SMTP:** ‏Custom SMTP של Resend לפני כל בדיקה עם משתמשים אמיתיים (שולח ברירת המחדל מוגבל לכמה מיילים בשעה ונועד לבדיקות בלבד). Host ‏`smtp.resend.com`, ‏Port ‏465, ‏User ‏`resend`, ‏Password = מפתח Resend ייעודי ל-SMTP, ‏Sender ‏`hello@{{DOMAIN}}`, ‏Sender name ‏`{{BRAND_NAME}}`. דומיין השולח מאומת ב-Resend (SPF, DKIM, DMARC).
 8. **Auth → Rate Limits:** מיילים בשעה: 120; אימותי OTP: ‏30 ל-5 דקות לכל IP; רענון טוקן: ‏150 ל-5 דקות לכל IP. המגבלה שלנו על `/auth/callback` ו-`/auth/confirm` (10 ל-10 דקות לכל IP, §18.6) היא שכבה נוספת מעל זה.
-9. **Auth → Multi-Factor → TOTP:** פעיל (רישום ואימות). אימות דו־שלבי הוא חובה למנהלי פלטפורמה: `is_platform_admin()` מחזירה `true` רק ב-session ברמת `aal2`, ו-`proxy.ts` מפנה מנהל בלי MFA ל-`/admin/mfa` (§9.2, §17.2, חלק 06 §15.4). למשתמשים רגילים MFA לא נדרש ולא מוצע ב-MVP.
+9. **Auth → Multi-Factor → TOTP:** פעיל (רישום ואימות). אימות דו-שלבי הוא חובה למנהלי פלטפורמה: `is_platform_admin()` מחזירה `true` רק ב-session ברמת `aal2`, ו-`proxy.ts` מפנה מנהל בלי MFA ל-`/admin/mfa` (§9.2, §17.2, חלק 06 §15.4). למשתמשים רגילים MFA לא נדרש ולא מוצע ב-MVP.
 10. **Auth → Email Templates:** ראו 1.3.
 11. **Storage:** ‏Global file size limit ‏2 GB (מספיק ל-`exports`; לכל bucket יש מגבלה נמוכה יותר, §13). Image transformations פעיל (Pro) לתמונות ממוזערות בספריית המדיה.
 12. **Realtime → Settings:** מבטלים "Allow public access" — רק ערוצים פרטיים (`private: true`), שההרשאה שלהם נקבעת ב-RLS על `realtime.messages` (§14).
@@ -46,7 +46,7 @@
     select vault.create_secret('<same value as TRIAL_HASH_PEPPER>', 'trial_hash_pepper', 'Pepper for trial_claims hashes');
     ```
     בסביבת local, `supabase/tests/00_helpers.sql` וסקריפט ה-seed יוצרים סוד בדיקה קבוע.
-14. **Database → Settings:** ‏SSL enforcement פעיל; Network restrictions לפרודקשן (רק IP-ים של CI ושל המפתחים לחיבור ישיר ל-5432; האפליקציה מדברת דרך HTTPS ולא נפגעת). ‏`statement_timeout`: ‏`authenticated` ‏8s, ‏`anon` ‏3s (מוגדר במיגרציה 0008).
+14. **Database → Settings:** ‏SSL enforcement פעיל. **Network restrictions כבויות בהשקה:** ה-runners של GitHub (hosted) אין להם IP יציא קבוע, ושם רצים גם השחרור (`migrate-production`) וגם `backup.yml`, כך שהגבלה לפי IP הייתה חוסמת אותם. בקרות מפצות: SSL enforcement פעיל; סיסמת `postgres` חזקה, שמוחלפת כל רבעון ואחרי כל שינוי בצוות; התפקיד `backup_reader` עם הרשאות מינימליות (§15b); מחרוזות החיבור נמצאות רק ב-GitHub secrets; ואין פרטי חיבור ישיר ל-5432 על מחשבי המפתחים (מפתחים עובדים דרך `supabase db` עם ההתחברות של ה-CLI). כדי להפעיל את ההגבלה צריך קודם runner עם IP יציא קבוע (self-hosted או larger runner) ולהוסיף אותו לרשימת ההיתר. ההחלטה נרשמת ב-`DECISIONS.md` ונשארת פריט פתוח בחלק 06 §25. האפליקציה מדברת עם המסד דרך HTTPS ולא מושפעת. ‏`statement_timeout`: ‏`authenticated` ‏8s, ‏`anon` ‏3s (מוגדר במיגרציה 0008).
 15. **Billing:** ‏Spend cap כבוי בפרודקשן (כדי שחריגה לא תשבית את השירות), עם התראות שימוש ב-50%, 80% ו-100% של המכסות. ב-staging ‏Spend cap פעיל.
 16. **Backups:** גיבוי יומי (כלול ב-Pro). PITR נרכש ומופעל ב-M7, לפני משתמשים משלמים. הגיבוי הלוגי השבועי רץ עם התפקיד `backup_reader` (§15b); ה-runbook לשחזור נמצא בחלק 06.
 
@@ -56,16 +56,16 @@
 
 שימו לב: בתבניות של Supabase הסוגריים `{{ .Token }}` הם משתני Go. את `{{BRAND_NAME}}` ו-`{{DOMAIN}}` **מחליפים בערך האמיתי לפני השמירה ב-Dashboard** — אחרת שמירת התבנית נכשלת על שגיאת תבנית. התבנית זהה ל-"Magic Link" ול-"Confirm signup" (שתיהן עוברות דרך `/auth/confirm` עם `type=email`).
 
-- **Subject:** `קישור הכניסה שלכם ל-{{BRAND_NAME}}`
+- **Subject:** `קישור הכניסה שלכם ל{{BRAND_NAME}}`
 - **Body:**
 
 ```html
 <!doctype html>
 <html lang="he" dir="rtl">
   <body style="margin:0;padding:24px;background:#FAF7F2;color:#16140F;direction:rtl;text-align:right;font-family:Heebo,Arial,'Segoe UI',sans-serif;">
-    <table role="presentation" width="100%" style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:14px;padding:32px;">
-      <tr><td>
-        <h1 style="font-size:24px;margin:0 0 16px;">כניסה ל-{{BRAND_NAME}}</h1>
+    <table role="presentation" dir="rtl" width="100%" style="max-width:520px;margin:0 auto;background:#FFFFFF;border-radius:14px;padding:32px;direction:rtl;">
+      <tr><td align="right" style="text-align:right">
+        <h1 style="font-size:24px;margin:0 0 16px;">כניסה ל{{BRAND_NAME}}</h1>
         <p style="font-size:17px;line-height:1.7;margin:0 0 24px;">לחצו על הכפתור כדי להיכנס לחשבון. הקישור תקף לשעה אחת ולכניסה אחת.</p>
         <p style="margin:0 0 24px;">
           <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}"
@@ -80,7 +80,7 @@
 </html>
 ```
 
-- **Change email address** — Subject: `אישור כתובת המייל החדשה ב-{{BRAND_NAME}}`; גוף זהה, עם הכותרת "אישור כתובת מייל חדשה", הטקסט "לחצו כדי לאשר שזו כתובת המייל החדשה שלכם. עד שתאשרו, הכתובת הקודמת נשארת פעילה.", כפתור "אישור הכתובת", והקישור `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change`.
+- **Change email address** — Subject: `אישור כתובת המייל החדשה ב{{BRAND_NAME}}`; גוף זהה, עם הכותרת "אישור כתובת מייל חדשה", הטקסט "לחצו כדי לאשר שזו כתובת המייל החדשה שלכם. עד שתאשרו, הכתובת הקודמת נשארת פעילה.", כפתור "אישור הכתובת", והקישור `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change`.
 - `/auth/confirm` (חלק 03 §3) מקבל `next` גם כ-URL מלא (מה-`RedirectTo`), ממיר אותו לנתיב יחסי רק אם ה-origin שלו הוא `NEXT_PUBLIC_SITE_URL`, ואחרת משתמש ב-`/app`.
 - הזמנות לצוות **לא** עוברות דרך תבנית ה-Invite של Supabase; הן נשלחות מהאפליקציה (מייל `team_invite`, חלק 06) עם הקישור `https://{{DOMAIN}}/login?invite={token}&email={urlencoded email}&next=/app`. ‏`email` רק ממלא מראש את שדה המייל בדף הכניסה (ה-`before_send` של PostHog מסיר את `invite` ואת `email` מכל URL שנשלח); אחרי הכניסה `/auth/callback` קורא ל-`POST /api/invites/accept` (§20.6).
 
@@ -216,7 +216,7 @@ supabase/
 | פקודה | מתי | מה בודקים |
 |---|---|---|
 | `pnpm db:reset && pnpm db:seed` | אחרי כל שינוי מיגרציה, וב-CI בכל PR | שתי הרצות רצופות של `db:seed` עוברות (אידמפוטנטיות) |
-| `pnpm seed:sync` | אחרי כל שינוי ב-`/seed` (נספחים A–C) | `build_seed.py --check` עובר, וששת קובצי ה-JSON ב-`supabase/seed/data/` זהים ל-`/seed` (ב-CI: `git diff --exit-code supabase/seed/data`) |
+| `pnpm seed:sync` | אחרי כל שינוי ב-`/seed` (נספחים A–C) | `build_seed.py --check` עובר, ושבעת קובצי ה-JSON של `/seed` (ששת הקבצים הקנוניים ו-`niche_extras.json`) זהים לעותקים ב-`supabase/seed/data/` (ב-CI: `git diff --exit-code supabase/seed/data`) |
 | `pnpm db:types` | אחרי כל שינוי סכמה | ב-CI: `git diff --exit-code lib/supabase/database.types.ts` — טיפוסים שלא עודכנו מכשילים את ה-PR |
 | `pnpm db:lint` | ב-CI | ‏plpgsql_check על כל הפונקציות; אזהרות = שגיאה |
 | `pnpm db:test` | ב-CI | כל קובצי pgTAP ב-§25 |
@@ -276,7 +276,7 @@ create type public.billing_cycle       as enum ('monthly','annual');
 create type public.subscription_status as enum ('active','past_due','canceled','expired');
 create type public.payment_kind        as enum ('subscription_initial','subscription_renewal','topup','plan_change','refund');
 create type public.payment_status      as enum ('pending','succeeded','failed','refunded','partially_refunded');
-create type public.invoice_doc_type    as enum ('tax_invoice_receipt','receipt','credit_invoice');
+create type public.invoice_doc_type    as enum ('tax_invoice_receipt','receipt','credit_invoice');   -- 'receipt' is never issued: עוסק פטור is not supported (part 06 §9.2)
 create type public.consent_kind        as enum ('terms','privacy','marketing_email','marketing_sms','marketing_whatsapp','analytics_cookies','biometric_voice','biometric_likeness','ai_content_policy');
 create type public.webhook_provider    as enum ('openrouter','payment','invoice','resend','render','whatsapp');   -- whatsapp: v2 (§22.6)
 create type public.share_kind          as enum ('public_view','client_approval');
@@ -284,6 +284,14 @@ create type public.approval_status     as enum ('pending','approved','changes_re
 create type public.notification_kind   as enum ('job_succeeded','job_failed','credits_low','payment_failed','approval_received','invite','system');
 
 -- Future functions are private by default; 0008 grants execute explicitly.
+-- Postgres grants EXECUTE to PUBLIC on every new function through the GLOBAL default ACL, which a per-schema
+-- "revoke" cannot remove. So both forms are needed:
+--   1. the global form removes the PUBLIC default for functions created by the migration role;
+--   2. the per-schema form is kept for Supabase's per-schema grants to anon/authenticated.
+-- This is still not enough on its own: every migration from 0009 on ends with an explicit
+-- "revoke execute on function … from public, anon, authenticated;" before its own grant,
+-- and the pgTAP allow-list test (§25.2) enforces the result.
+alter default privileges revoke execute on functions from public;
 alter default privileges in schema public revoke execute on functions from public, anon, authenticated;
 ```
 
@@ -828,6 +836,7 @@ create table public.project_versions (
   source             text not null check (source in ('ai','user_edit','rewrite')),
   created_by         uuid references public.profiles(id) on delete set null,       -- NULL = author deleted their account
   created_at         timestamptz not null default now(),
+  updated_at         timestamptz not null default now(),   -- set_updated_at; the ifUnmodifiedSince base of PATCH …/script (§19.5)
   unique (project_id, version)
 );
 
@@ -1033,7 +1042,7 @@ create index render_runs_job_idx on public.render_runs (job_id);
 
 הערות:
 - **`job_steps.step_key`** נאכף ב-regex: `keyframe:{sceneId}` ו-`clip:{sceneId}` עם uuid, ו-`render:{aspect}` עם `9x16`/`1x1`/`16x9` (אותו כתיב כמו בנתיבי האחסון).
-- **`project_versions`** — גרסה היא "טיוטה" כל עוד אף עבודה לא השתמשה בה: השרת רשאי לעדכן בה `script` ו-`source`. מרגע שעבודה כלשהי נוצרה עליה, `script` ו-`source` קפואים (טריגר `project_versions_guard`, §11.3), ועריכה פותחת גרסה חדשה (`POST /api/projects/[id]/versions`, §19). העמודות הנגזרות (`storyboard`, `caption_track`, `voiceover_asset_id`, `moderation`) נכתבות רק בצד השרת. למשתמשים אין הרשאת `update` על הטבלה בכלל.
+- **`project_versions`** — גרסה היא "טיוטה" כל עוד אף עבודה לא השתמשה בה: השרת רשאי לעדכן בה `script` ו-`source`. מרגע שעבודה כלשהי נוצרה עליה, `script` ו-`source` קפואים (טריגר `project_versions_guard`, §11.3), ועריכה פותחת גרסה חדשה (`POST /api/projects/[id]/versions`, §19). העמודות הנגזרות (`storyboard`, `caption_track`, `voiceover_asset_id`, `moderation`) נכתבות רק בצד השרת. למשתמשים אין הרשאת `update` על הטבלה בכלל. עריכה ידנית של תסריט בגרסת טיוטה עוברת ב-`PATCH /api/projects/[id]/script` (§19.5), ו-`updated_at` (טריגר `set_updated_at`) הוא הבסיס של `ifUnmodifiedSince` שלה.
 - **`assets.metadata.upload_state`**: ‏`pending` (נוצרה כתובת העלאה) → `ready` (אחרי `complete`) → או `rejected`. העלאה שנשארה `pending` יותר מ-24 שעות נמחקת ב-`/api/cron/cleanup`.
 - **מפתחות `assets.metadata`** (כל השאר אסור): `upload_state`, ‏`original_filename`, ‏`probe`, ‏`purge_reason`, ‏`purge_marked_at`, ‏`storage_deleted_at`, ‏`consent_attested: {by, at}` (הסכמה בכתב של מי שמופיע בהעלאה), ‏`moderation: {allowed, categories, checked_at, prompt_version}` — או `{pending: true}` כשהמודרציה של ההעלאה לא רצה בגלל תקלה אצל הספק (§20.2).
 - **`jobs.billing_workspace_id`** הוא `billing_workspace_id(workspace_id)` ברגע היצירה (סוכנות לסביבת לקוח); מגבלת המקביליות נספרת עליו (`jobs_active_billing_idx`).
@@ -1066,7 +1075,7 @@ create table public.plans (
   limits                   jsonb not null check (jsonb_typeof(limits) = 'object'),
   features_he              jsonb not null default '[]' check (jsonb_typeof(features_he) = 'array'),
   is_public                boolean not null default true,
-  is_highlighted           boolean not null default false,
+  is_highlighted           boolean not null default false,                               -- -> the "מומלץ" badge on the pricing page
   sort_order               int not null default 0,
   created_at               timestamptz not null default now(),
   updated_at               timestamptz not null default now()
@@ -1113,20 +1122,21 @@ create table public.credit_grants (
   amount       int not null check (amount > 0),
   remaining    int not null check (remaining >= 0),
   expires_at   timestamptz,                         -- null = never
+  expired_at   timestamptz,                         -- set once by _expire_due_grants (natural expiry); an expired grant is never refilled (§10.2)
   ref_type     text,                                -- user | subscription | payment | audit_log | reservation_return | promo | incident
   ref_id       text,
   created_at   timestamptz not null default now(),
   constraint credit_grants_remaining_le_amount check (remaining <= amount)
 );
 create index credit_grants_fifo_idx   on public.credit_grants (workspace_id, expires_at asc nulls last, created_at) where remaining > 0;
-create index credit_grants_expiry_idx on public.credit_grants (expires_at) where remaining > 0 and expires_at is not null;
+create index credit_grants_expiry_idx on public.credit_grants (expires_at) where remaining > 0 and expires_at is not null and expired_at is null;
 
 create table public.credit_reservations (
   id              uuid primary key default gen_random_uuid(),
   workspace_id    uuid not null references public.workspaces(id) on delete restrict,   -- always a billing workspace
   job_id          uuid references public.jobs(id) on delete set null,
-  action_key      text,                              -- spend_credits only (credit_costs.action_key)
-  ref             text,                              -- spend_credits only, e.g. project:{id}:script
+  action_key      text,                              -- begin_spend only (credit_costs.action_key)
+  ref             text,                              -- begin_spend only, e.g. project:{id}:script
   amount          int not null check (amount > 0),
   captured        int not null default 0 check (captured >= 0),
   refunded        int not null default 0 check (refunded >= 0),
@@ -1361,12 +1371,19 @@ create table public.share_links (
   kind           public.share_kind not null,
   token_hash     text not null unique,              -- hex(sha256(token)); token = 32 random bytes, base64url
   allow_download boolean not null default false,
-  show_branding  boolean not null default true,
+  -- no branding column: white label is resolved at every render/send by effective_white_label(workspace_id) (§9.2, §20.5)
   expires_at     timestamptz,
   view_count     int not null default 0 check (view_count >= 0),
+  -- client_approval only (ShareCreateBody, §20.5): the intended approver and the sender's note; drive the
+  -- client_approval_request email (part 06 §12.5: {approverName}, {senderNote}) and the /approve/[token] header
+  approver_name  text check (approver_name is null or char_length(btrim(approver_name)) between 2 and 80),
+  approver_email extensions.citext,
+  sender_note    text check (sender_note is null or char_length(sender_note) <= 300),
   created_by     uuid references public.profiles(id) on delete set null,   -- NULL = author deleted their account
   created_at     timestamptz not null default now(),
-  revoked_at     timestamptz
+  revoked_at     timestamptz,
+  constraint share_links_approver_only check (kind = 'client_approval' or (approver_name is null and approver_email is null and sender_note is null)),
+  constraint share_links_approval_expires check (kind <> 'client_approval' or expires_at is not null)   -- approval links always expire
 );
 create index share_links_project_idx on public.share_links (project_id, created_at desc);
 
@@ -1424,12 +1441,13 @@ create table public.consents (
   kind          public.consent_kind not null,
   version       text not null,
   granted       boolean not null,
-  source        text not null check (source in ('signup','settings','checkout','newsletter','cookie_banner','likeness_flow','generate')),
+  source        text not null check (source in ('signup','settings','checkout','newsletter','cookie_banner','likeness_flow','generate','unsubscribe')),   -- 'generate', 'unsubscribe': server-only
   ip            inet,
   user_agent    text,
   evidence_path text,
   created_at    timestamptz not null default now(),
   revoked_at    timestamptz,
+  subject_closed_at timestamptz,                    -- account closure; stamped by prepare_user_deletion (§9.6), retention clock (§11.4)
   constraint consents_subject check (user_id is not null or email is not null or source = 'cookie_banner')
 );
 create index consents_user_idx  on public.consents (user_id, kind, created_at desc);
@@ -1609,6 +1627,7 @@ create index api_idempotency_keys_expiry_idx on public.api_idempotency_keys (exp
 הערות:
 - **`abuse_reports`** היא טבלה חדשה בשביל "דיווח על הסרטון" בעמוד השיתוף (חלק 03), בדיוק במבנה שחלק 03 הגדיר; ערכי `reason` ממופים לחמש האפשרויות שבדיאלוג (`likeness`, `copyright`, `hate`, `political`, `other`). `ip` נשמר לצורכי הגבלת קצב וחקירת שימוש לרעה בלבד. ‏**`source`**: ‏`share_page` (הדיאלוג בעמוד השיתוף, `POST /api/abuse-reports`), ‏`system` (סימון אוטומטי, למשל קצב חשוד של הרשמות לניסיון: `reason = 'other'`, ‏`details = 'trial_velocity'`, חלק 06 §7.1), ‏`support` (פנייה שהגיעה לתמיכה, למשל הודעה על הפרת זכויות יוצרים, חלק 06 §11.12).
 - **`consents.source = 'generate'`** נכתב רק בצד השרת, בתוך `POST /api/projects/[id]/generate` (§19.8), בפעם הראשונה שמשתמש יוצר סרטון תחת גרסה של `/legal/ai-policy` (‏`kind = 'ai_content_policy'`). ה-enum הציבורי של `ConsentBody` (§21.4) **לא** מקבל את הערך הזה.
+- **`consents.source = 'unsubscribe'`** נכתב רק בצד השרת, בתוך `POST /api/unsubscribe` (§21.4: הסרה בלחיצה אחת, RFC 8058, והטופס של `/unsubscribe`): שורת `granted = false` לכל אחד מ-`marketing_email`, ‏`marketing_sms` ו-`marketing_whatsapp`. זה המקור של ביטול הסכמה שיווקית מקישור במייל (חלק 06 §11.4). גם את הערך הזה ה-enum של `ConsentBody` **לא** מקבל, ו-`POST /api/consents` דוחה אותו ב-400.
 - **`email_messages`** — יומן השליחות של `sendEmail` (חלק 06 §12.1): שורה לכל מייל, ייחודית לפי `idempotency_key` (למשל `payment_receipt:{paymentId}`), כך שמייל לא נשלח פעמיים. ‏`skipped_duplicate` הוא **ערך החזרה בלבד** של `sendEmail` (המפתח הייחודי מונע שורה שנייה) ולא סטטוס שמור. ‏RLS פעיל, קריאה למנהלי פלטפורמה בלבד, בלי כתיבה מהלקוח (§12). נשמר 24 חודשים (§15).
 - **`trial_claims.user_id`** מותר כ-NULL (בניגוד ל-NOT NULL שבסיכום שבנספח F), כדי ששורת הניסיון תישאר גם אחרי מחיקת חשבון — אחרת אפשר היה למחוק ולהירשם שוב עם אותו מייל ולקבל 70 קרדיטים נוספים. רשימת כל הסטיות האלה ב-§9.6.
 - **`api_idempotency_keys`** משמשת את `lib/idempotency.ts` לכל נתיב שמוציא קרדיטים ואינו יוצר `jobs` (§18.7). השורות נמחקות אחרי 24 שעות (§15).
@@ -1618,6 +1637,7 @@ create index api_idempotency_keys_expiry_idx on public.api_idempotency_keys (exp
 - [ ] `notifications.link = 'https://evil.com'` נדחה; `'/app/projects/…'` מתקבל.
 - [ ] `webhook_events` עם אותו `(provider, external_id)` פעמיים נכשל על ה-unique.
 - [ ] `consents` בלי `user_id` ובלי `email` מתקבל רק כש-`source = 'cookie_banner'`.
+- [ ] `consents` עם `source = 'unsubscribe'` ו-`email` מתקבל (שרת בלבד); ‏`source = 'email_link'` נדחה על ה-check (`23514`).
 - [ ] שתי שורות `email_messages` עם אותו `idempotency_key` נכשלות; ‏`status = 'skipped_duplicate'` נדחה על ה-check.
 - [ ] `abuse_reports` בלי `source` מקבל `share_page`; ‏`source = 'email'` נדחה.
 
@@ -1767,13 +1787,28 @@ as $$
   select public.effective_role(ws) is not null;
 $$;
 
-create or replace function public.billing_workspace_id(ws uuid)
+-- internal twin, unchecked and NOT granted to any API role (§12.6): for security-definer callers whose user may
+-- not have access to the workspace yet (accept_invite) and for the seat lock below
+create or replace function public._billing_workspace_id(ws uuid)
 returns uuid
 language sql stable security definer set search_path = ''
 as $$
   select case when w.type = 'client' then w.parent_workspace_id else w.id end
   from public.workspaces w where w.id = ws;
 $$;
+
+-- granted to authenticated (§12.6), so it checks access first (a signed-in user learns nothing about a foreign
+-- workspace); service-role and pg_cron calls (auth.uid() is null) are unaffected
+create or replace function public.billing_workspace_id(ws uuid)
+returns uuid
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if (select auth.uid()) is not null and not (public.can_access_workspace(ws) or public.is_platform_admin()) then
+    return null;
+  end if;
+  return public._billing_workspace_id(ws);
+end $$;
 
 -- set-returning twins used inside RLS policies: evaluated once per statement (initPlan)
 create or replace function public.accessible_workspace_ids()
@@ -1813,16 +1848,40 @@ as $$
 $$;
 
 -- effective plan of the billing workspace (client workspaces inherit the agency plan; their own plan_id is display-only);
--- an admin plan_override wins while its `until` is in the future
-create or replace function public.workspace_plan(ws uuid)
+-- an admin plan_override wins while its `until` is in the future. _workspace_plan is the internal unchecked twin (no grants).
+create or replace function public._workspace_plan(ws uuid)
 returns public.plans
 language sql stable security definer set search_path = ''
 as $$
   select p.* from public.workspaces w
   join public.plans p on p.id = case when w.plan_override is not null and (w.plan_override->>'until')::timestamptz > now()
                                      then w.plan_override->>'plan_id' else w.plan_id end
-  where w.id = public.billing_workspace_id(ws);
+  where w.id = public._billing_workspace_id(ws);
 $$;
+
+create or replace function public.workspace_plan(ws uuid)
+returns public.plans
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if (select auth.uid()) is not null and not (public.can_access_workspace(ws) or public.is_platform_admin()) then
+    return null;
+  end if;
+  return public._workspace_plan(ws);
+end $$;
+
+-- row lock on the billing workspace: every seat check (accept_invite, change_member_role, invite creation through
+-- the workspace_invites_seat_guard trigger, enforce_plan_limits) takes it before counting, so concurrent
+-- invites, accepts and promotions are counted one at a time. Internal, no grants.
+create or replace function public._lock_billing_workspace(ws uuid)
+returns uuid
+language plpgsql security definer set search_path = ''
+as $$
+declare v uuid;
+begin
+  select w.id into v from public.workspaces w where w.id = public._billing_workspace_id(ws) for update;
+  return v;
+end $$;
 
 -- seats in use for a billing workspace: distinct owner/admin/editor members of it and its client workspaces
 -- + pending admin/editor invites. Viewers (members and invites) do not use seats and are unlimited.
@@ -1842,11 +1901,27 @@ as $$
         and i.role <> 'viewer')
   )::int;
 $$;
+
+-- white label is resolved at render/send time, never stored on a link: the workspace toggle (of the billing
+-- workspace, so a client workspace follows its agency) AND the effective plan's limit. A toggle change or a plan
+-- downgrade affects existing links immediately. Service role only (§12.6): /v/[token], /approve/[token] and the
+-- approval emails call it through resolveShareBranding() (§20.5).
+create or replace function public.effective_white_label(p_ws uuid)
+returns boolean
+language plpgsql stable security definer set search_path = ''
+as $$
+declare bw uuid := public.billing_workspace_id(p_ws);
+begin
+  return coalesce((select w.white_label from public.workspaces w where w.id = bw and w.deleted_at is null), false)
+     and coalesce(((select pl.limits from public.workspace_plan(bw) pl)->>'white_label')::boolean, false);
+end $$;
 ```
 
-`can_access_workspace(ws)` הוא ההגדרה הקנונית ("חבר ב-ws, או בעלים/מנהל/עורך בסוכנות האם"), ומשמש בפונקציות, ב-Route Handlers, באחסון וב-Realtime. בתוך מדיניות RLS משתמשים בתאום שמחזיר קבוצה (`workspace_id in (select public.accessible_workspace_ids())`), כי Postgres מחשב אותו פעם אחת לשאילתה במקום פעם לכל שורה. בדיקת שקילות ב-§25 מוודאת ששתי הצורות מחזירות בדיוק אותה תשובה לכל זוג משתמש–סביבה.
+**עזרים פרטיים מול עזרים עם בדיקת גישה.** ‏`billing_workspace_id`, ‏`workspace_plan` ו-`is_version_locked` מוענקים ל-`authenticated` (§12.6), ולכן כל אחד מהם מתחיל בבדיקה: כשיש משתמש מחובר (`auth.uid()` לא null) והוא לא `can_access_workspace` של הסביבה (ב-`is_version_locked` — דרך גרסה ← פרויקט ← סביבה) ולא מנהל פלטפורמה, הפונקציה מחזירה `null`. קריאות של התפקיד הסודי ושל pg_cron (`auth.uid()` הוא null) לא מושפעות. התאומים `_billing_workspace_id` ו-`_workspace_plan` בלי בדיקה ובלי שום הרשאת `execute`; משתמשים בהם רק בתוך פונקציות security definer שהמשתמש שלהן עוד לא חבר בסביבה (`accept_invite`) ובנעילת המושבים `_lock_billing_workspace`.
 
-**מנהל פלטפורמה = דגל + MFA.** ‏`is_platform_admin()` מחזירה `true` רק כש-`profiles.is_platform_admin` דולק **וגם** ה-JWT של ה-session הוא ברמת `aal2` (אימות דו־שלבי ב-TOTP). מנהל שנכנס בלי MFA הוא משתמש רגיל לכל דבר: מדיניות האדמין ב-RLS, `requirePlatformAdmin()` ו-`/api/admin/*` דוחים אותו. ‏`platform_admin_status()` מחזירה `'none'` / `'needs_mfa'` / `'ok'`, ו-`proxy.ts` משתמש בה כדי להחזיר 404 למי שאינו מנהל ולהפנות מנהל בלי MFA ל-`/admin/mfa` (§17.2).
+`can_access_workspace(ws)` הוא ההגדרה הקנונית ("חבר ב-ws, או בעלים, מנהל או עורך בסוכנות האם"), ומשמש בפונקציות, ב-Route Handlers, באחסון וב-Realtime. בתוך מדיניות RLS משתמשים בתאום שמחזיר קבוצה (`workspace_id in (select public.accessible_workspace_ids())`), כי Postgres מחשב אותו פעם אחת לשאילתה במקום פעם לכל שורה. בדיקת שקילות ב-§25 מוודאת ששתי הצורות מחזירות בדיוק אותה תשובה לכל זוג משתמש–סביבה.
+
+**מנהל פלטפורמה = דגל + MFA.** ‏`is_platform_admin()` מחזירה `true` רק כש-`profiles.is_platform_admin` דולק **וגם** ה-JWT של ה-session הוא ברמת `aal2` (אימות דו-שלבי ב-TOTP). מנהל שנכנס בלי MFA הוא משתמש רגיל לכל דבר: מדיניות האדמין ב-RLS, `requirePlatformAdmin()` ו-`/api/admin/*` דוחים אותו. ‏`platform_admin_status()` מחזירה `'none'` / `'needs_mfa'` / `'ok'`, ו-`proxy.ts` משתמש בה כדי להחזיר 404 למי שאינו מנהל ולהפנות מנהל בלי MFA ל-`/admin/mfa` (§17.2).
 
 ### 9.3 יצירת סביבת עבודה
 
@@ -2033,8 +2108,10 @@ begin
   end if;
 
   if v_inv.role <> 'viewer' then                                -- viewers do not use seats (seats_used)
-    v_billing := public.billing_workspace_id(v_inv.workspace_id);
-    select (p.limits->>'seats')::int into v_seats from public.workspace_plan(v_billing) p;
+    -- the invitee has no access to the workspace yet, so the unchecked twins are used (§9.2);
+    -- the billing-row lock serializes this count with invite creation and change_member_role
+    v_billing := public._lock_billing_workspace(v_inv.workspace_id);
+    select (p.limits->>'seats')::int into v_seats from public._workspace_plan(v_billing) p;
     v_used := public.seats_used(v_billing) - 1;                 -- this pending admin/editor invite is already counted
     if v_seats is not null and v_used >= v_seats then           -- null = unlimited
       perform public.raise_app_error('PLAN_LIMIT', jsonb_build_object('limit', 'seats', 'max', v_seats));
@@ -2050,6 +2127,74 @@ begin
           jsonb_build_object('reason', 'invite_accepted', 'user_id', v_uid, 'from', null, 'to', v_inv.role));
   return v_inv.workspace_id;
 end $$;
+
+-- the only path for role changes: authenticated has no update grant on workspace_members (§12.2) and there is no
+-- update policy (§12.4). Ownership moves only through transfer_workspace_ownership.
+create or replace function public.change_member_role(p_ws uuid, p_user uuid, p_role public.member_role)
+returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_uid uuid := (select auth.uid()); v_from public.member_role; v_bw uuid; v_seats int;
+begin
+  if v_uid is null then perform public.raise_app_error('UNAUTHENTICATED'); end if;
+  if not public.has_role(p_ws, array['owner','admin']::public.member_role[]) then
+    perform public.raise_app_error('FORBIDDEN', jsonb_build_object('requiredRoles', array['owner','admin']));
+  end if;
+  if p_role = 'owner' then
+    perform public.raise_app_error('INVALID_INPUT', jsonb_build_object('reason', 'use_transfer_ownership'));
+  end if;
+
+  v_bw := public._lock_billing_workspace(p_ws);                 -- same lock as accept_invite and invite creation
+  select m.role into v_from from public.workspace_members m
+   where m.workspace_id = p_ws and m.user_id = p_user
+   for update;
+  if not found then
+    perform public.raise_app_error('NOT_FOUND', jsonb_build_object('reason', 'member_not_found'));
+  end if;
+  if v_from = 'owner' then
+    perform public.raise_app_error('FORBIDDEN', jsonb_build_object('reason', 'owner_role_is_fixed'));
+  end if;
+  if v_from = p_role then return; end if;                       -- idempotent
+
+  -- viewer -> editor/admin takes a seat, unless the user already holds one elsewhere in the billing workspace
+  if v_from = 'viewer' and not exists (
+       select 1 from public.workspace_members m
+       join public.workspaces w on w.id = m.workspace_id and w.deleted_at is null
+       where (w.id = v_bw or w.parent_workspace_id = v_bw) and m.user_id = p_user and m.role <> 'viewer') then
+    select (p.limits->>'seats')::int into v_seats from public._workspace_plan(v_bw) p;
+    if v_seats is not null and public.seats_used(v_bw) >= v_seats then   -- null = unlimited
+      perform public.raise_app_error('PLAN_LIMIT', jsonb_build_object('limit', 'seats', 'max', v_seats));
+    end if;
+  end if;
+
+  update public.workspace_members set role = p_role where workspace_id = p_ws and user_id = p_user;
+  insert into public.audit_logs (workspace_id, actor_id, action, target_type, target_id, metadata)
+  values (p_ws, v_uid, 'member.role_change', 'workspace_member', p_user::text,
+          jsonb_build_object('reason', 'role_change', 'user_id', p_user, 'from', v_from, 'to', p_role));
+end $$;
+
+-- invite creation (inviteMember inserts through the user client under RLS, §24.2) and a viewer -> admin/editor
+-- change of a pending invite take the same billing-row lock before counting, so two concurrent invites
+-- cannot overshoot `seats`
+create or replace function public.invite_seat_guard()
+returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+declare v_bw uuid; v_seats int;
+begin
+  if new.role = 'viewer' or (tg_op = 'UPDATE' and old.role <> 'viewer') then
+    return new;                                                 -- viewers use no seat; admin <-> editor keeps the seat
+  end if;
+  v_bw := public._lock_billing_workspace(new.workspace_id);
+  select (p.limits->>'seats')::int into v_seats from public._workspace_plan(v_bw) p;
+  if v_seats is not null and public.seats_used(v_bw) >= v_seats then     -- the new invite is not counted yet
+    perform public.raise_app_error('PLAN_LIMIT', jsonb_build_object('limit', 'seats', 'max', v_seats));
+  end if;
+  return new;
+end $$;
+create trigger workspace_invites_seat_guard before insert or update of role on public.workspace_invites
+  for each row execute function public.invite_seat_guard();
 
 create or replace function public.transfer_workspace_ownership(p_ws uuid, p_new_owner uuid)
 returns void
@@ -2091,6 +2236,9 @@ begin
 end $$;
 ```
 
+- **שינוי תפקיד עובר רק דרך `change_member_role`.** אין ל-`authenticated` הרשאת `update` על `workspace_members` ואין מדיניות `update` (§12.2, §12.4), כך שאי אפשר לעקוף את מגבלת המושבים בעדכון ישיר. הפונקציה בודקת שהקורא בעלים או מנהל, דוחה `p_role = 'owner'` ושינוי של שורת הבעלים (העברת בעלות: `transfer_workspace_ownership`), ובמעבר מ-`viewer` ל-`editor`/`admin` בודקת מחדש את `seats_used` מול `limits.seats` ← `PLAN_LIMIT` ‏`{ limit: "seats", max }`. כל שינוי נרשם ב-`audit_logs` ‏(`member.role_change`).
+- **נעילת מושבים אחת.** ‏`accept_invite`, ‏`change_member_role`, יצירת הזמנה (הטריגר `workspace_invites_seat_guard`) ו-`enforce_plan_limits` נועלים קודם את שורת סביבת החיוב (`_lock_billing_workspace`) ורק אחר כך סופרים. ‏`seats_used` כבר סופר הזמנות ממתינות של `admin`/`editor`, כך ששתי קבלות מקבילות לא יכולות לחרוג; הנעילה סוגרת את המרוץ ביצירת הזמנות ובקידום תפקיד.
+
 ### 9.5b אכיפת מגבלות אחרי הורדת תוכנית (`enforce_plan_limits`)
 
 אחרי הורדת תוכנית, מושב "עודף" לא נשאר פתוח: הפונקציה מחזירה את סביבת החיוב למכסת `limits.seats` של התוכנית האפקטיבית. קודם היא מבטלת הזמנות ממתינות של `admin`/`editor` (החדשה ביותר קודם), ואם עדיין יש חריגה — מורידה חברים בתפקיד `admin`/`editor` לתפקיד `viewer` (מי שהצטרף אחרון יורד ראשון; הבעלים לעולם לא). צופים לא תופסים מושב, ולכן ההורדה באמת משחררת מקום. כל הורדה נרשמת ב-`audit_logs`.
@@ -2106,6 +2254,7 @@ declare
   v_ws uuid := public.billing_workspace_id(p_ws);
   v_max int; v_revoked int := 0; v_demoted uuid[] := '{}'; r record;
 begin
+  perform public._lock_billing_workspace(v_ws);                 -- same lock as every other seat check (§9.2)
   select (p.limits->>'seats')::int into v_max from public.workspace_plan(v_ws) p;
   if v_max is null then                                           -- unlimited
     return jsonb_build_object('invites_revoked', 0, 'demoted', to_jsonb(v_demoted));
@@ -2188,7 +2337,8 @@ begin
   update public.assets set is_deleted = true,
          metadata = metadata || jsonb_build_object('purge_reason', 'account_deleted', 'purge_marked_at', now())
    where workspace_id = any (v_owned) and not is_deleted;
-  update public.share_links set revoked_at = coalesce(revoked_at, now()) where workspace_id = any (v_owned);
+  update public.share_links set revoked_at = coalesce(revoked_at, now()), approver_name = null, approver_email = null, sender_note = null
+   where workspace_id = any (v_owned);
   delete from public.business_profiles     where workspace_id = any (v_owned);
   delete from public.pronunciation_entries where workspace_id = any (v_owned);
   delete from public.workspace_hooks       where workspace_id = any (v_owned);
@@ -2213,6 +2363,9 @@ begin
 
   delete from public.hook_favorites where user_id = p_user;
   delete from public.notifications  where user_id = p_user;
+  -- consent records are kept 7 years after account closure (purge_support_data, §11.4): start the clock here,
+  -- before deleteUser sets user_id to null
+  update public.consents set subject_closed_at = coalesce(subject_closed_at, now()) where user_id = p_user;
   update public.profiles set deleted_at = now(), full_name = null, avatar_url = null, phone = null where id = p_user;
   return jsonb_build_object('owned_workspaces', to_jsonb(v_owned));
 end $$;
@@ -2253,6 +2406,8 @@ end $$;
 - [ ] משתמש שהיה עורך בסביבה של מישהו אחר ומחק את חשבונו: `auth.admin.deleteUser` מצליח, והשורות שנשארו (פרויקט, גרסה, עבודה, קישור שיתוף) מקבלות מחבר `NULL` או את בעלי הסביבה.
 - [ ] `platform_admin_status()` מחזירה `none` למשתמש רגיל, `needs_mfa` למנהל עם JWT ברמת `aal1`, ו-`ok` למנהל ברמת `aal2`; ‏`is_platform_admin()` = `true` רק במקרה האחרון.
 - [ ] בתוכנית בסיס (מושב אחד): הזמנה של `viewer` מתקבלת ונכנסת גם כשהמושב תפוס; הזמנה של `editor` נכשלת ב-`PLAN_LIMIT`. ‏`seats_used` לא סופר צופים.
+- [ ] `update workspace_members set role` ישיר נכשל בשגיאת הרשאה (`42501`) גם לבעלים; ‏`change_member_role` מ-`viewer` ל-`editor` כשהמושבים מלאים ← `PLAN_LIMIT` ‏`{"limit":"seats"}`; שינוי של שורת הבעלים ← `FORBIDDEN`.
+- [ ] משתמש מחובר שאינו חבר בסביבה מקבל `null` מ-`billing_workspace_id`, ‏`workspace_plan` ו-`is_version_locked` שלה; ‏`effective_white_label` מחזיר `false` אחרי הורדה מ-`agency` ל-`business`, גם כש-`workspaces.white_label = true`.
 - [ ] `enforce_plan_limits` על סביבה עם בעלים, שני עורכים והזמנת עורך ממתינה, שעברה מ-`business` ל-`starter` (מושב אחד): ההזמנה נמחקת, שני העורכים הופכים ל-`viewer`, הבעלים נשאר `owner`, ונוספות 2 שורות `audit_logs` ‏(`member.role_change`, ‏`reason = 'plan_downgrade'`); קריאה שנייה לא משנה דבר.
 
 ---
@@ -2268,11 +2423,11 @@ end $$;
 | **דלי** (grant) | `credit_grants` | כל הענקה היא דלי עם `remaining` ו-`expires_at`. צריכה: הדלי שפג ראשון, ואז הישן ביותר (`expires_at asc nulls last, created_at asc`) |
 | **שמירה** (reservation) | `credit_reservations` | `amount` נלקח מהדליים מראש (`allocations` = ‏`[{grant_id, amount, returned}]`); `captured` = מה שנצרך; `refunded` = מה שהוחזר בהחזרים |
 | **יומן** (ledger) | `credit_ledger` | רק הוספה. `reserve` ‏(−N) · `capture` ‏(0, מתעד צריכה של שלב) · `release` ‏(+לא נוצל) · `refund` ‏(+הוחזר) · הענקות ורכישות (+N) · `expire` ‏(−יתרת דלי) · `adjustment` (±, אדמין) |
-| **מפתחות אידמפוטנטיות** | `credit_ledger.idempotency_key`, ‏`credit_reservations.idempotency_key` | לפי §6.4 בנספח F: `reserve:{jobId}` · `capture:{jobId}:{stepKey}` · `settle:{reservationId}` · `refund:{reservationId}` · `refund:{jobId}:{stepKey}` · `spend:{requestKey}` · `grant:trial:{userId}` · `grant:plan:{subscriptionId}:{periodStartISO}` · `grant:plan_change:{paymentId}` · `grant:pack:{paymentId}` · `grant:admin:{auditLogId}` · `debit:admin:{auditLogId}` · `expire:{grantId}` · `revoke:{refundRequestId}:{grantId}` · `revoke:admin:{auditLogId}` · `revoke:chargeback:{paymentId}:{grantId}` |
+| **מפתחות אידמפוטנטיות** | `credit_ledger.idempotency_key`, ‏`credit_reservations.idempotency_key` | לפי §6.4 בנספח F: `reserve:{jobId}` · `capture:{jobId}:{stepKey}` · `settle:{reservationId}` · `refund:{reservationId}` · `refund:{jobId}:{stepKey}` · `spend:{scope}:{key}:{attempt}` (`begin_spend`; ‏`commit_spend` מוסיף `:capture` ו-`:settle`) · `grant:trial:{userId}` · `grant:plan:{subscriptionId}:{periodStartISO}` · `grant:plan_change:{paymentId}` · `grant:pack:{paymentId}` · `grant:admin:{auditLogId}` · `debit:admin:{auditLogId}` · `expire:{grantId}` (פקיעה טבעית, פעם אחת לכל דלי) · `expire:cap:{grantId}:{ref}` (תקרת הגלגול, `cap_rollover`; ‏`ref` = מפתח האידמפוטנטיות של ההענקה) · `revoke:{refundRequestId}:{grantId}` · `revoke:admin:{auditLogId}` · `revoke:chargeback:{paymentId}:{grantId}` |
 
 **סדר נעילות (מונע deadlock):** תמיד `workspace_balances` של סביבת החיוב (`for update`) ← שורת `credit_reservations` ← שורות `credit_grants` לפי סדר הצריכה. כל פונקציה שמשנה קרדיטים נועלת קודם את שורת היתרה; זו נקודת הסריאליזציה לכל סביבת חיוב, ולכן שתי שמירות מקבילות לעולם לא חורגות מהיתרה.
 
-**החזרה לדליים:** קרדיטים שחוזרים (`release`, `refund`) נכנסים לדליים שמהם נלקחו, מהאחרון שהוקצה לראשון (כלומר לדלי שתוקפו הארוך ביותר — הכי נדיב למשתמש). אם הדלי המקורי כבר פג, הקרדיטים נכנסים לדלי חדש מאותו מקור עם תוקף של 7 ימים (`ref_type = 'reservation_return'`) — כך אף החזר לא "נעלם" ואף דלי לא פג פעמיים.
+**החזרה לדליים:** קרדיטים שחוזרים (`release`, `refund`) נכנסים לדליים שמהם נלקחו, מהאחרון שהוקצה לראשון (כלומר לדלי שתוקפו הארוך ביותר — הכי נדיב למשתמש). אם הדלי המקורי כבר פג (`expired_at` מולא, או ש-`expires_at` עבר לפי `clock_timestamp()`), הקרדיטים נכנסים לדלי חדש מאותו מקור עם תוקף של 7 ימים (`ref_type = 'reservation_return'`) — כך אף החזר לא "נעלם", ודלי שפג לעולם לא מתמלא מחדש ולא פג פעמיים (המפתח `expire:{grantId}` נכתב פעם אחת בלבד).
 
 **כלל ההגנה של §6.4 בנספח F:** `capture` לעולם לא עובר את גובה השמירה. אם השימוש בפועל גבוה מההערכה (למשל קריינות ארוכה יותר), ההפרש נבלע ולא מחויב בדיעבד.
 
@@ -2300,11 +2455,12 @@ declare g record; v_bal int; v_n int := 0;
 begin
   for g in
     select c.id, c.remaining from public.credit_grants c
-    where c.workspace_id = p_ws and c.remaining > 0 and c.expires_at is not null and c.expires_at <= now()
+    where c.workspace_id = p_ws and c.remaining > 0 and c.expired_at is null
+      and c.expires_at is not null and c.expires_at <= clock_timestamp()
     order by c.id
     for update
   loop
-    update public.credit_grants set remaining = 0 where id = g.id;
+    update public.credit_grants set remaining = 0, expired_at = clock_timestamp() where id = g.id;   -- never refilled again (_return_to_grants)
     select b.balance into v_bal from public.workspace_balances b where b.workspace_id = p_ws;
     insert into public.credit_ledger (workspace_id, delta, kind, balance_after, grant_id, description_he, idempotency_key)
     values (p_ws, -g.remaining, 'expire', v_bal - g.remaining, g.id, 'קרדיטים שפג תוקפם', 'expire:' || g.id::text);
@@ -2332,7 +2488,7 @@ begin
     continue when v_can <= 0;
     v_give := least(v_can, v_left);
     select * into g from public.credit_grants where id = (a->>'grant_id')::uuid for update;
-    if g.expires_at is null or g.expires_at > now() then
+    if g.expired_at is null and (g.expires_at is null or g.expires_at > clock_timestamp()) then
       update public.credit_grants set remaining = remaining + v_give where id = g.id;
     else
       insert into public.credit_grants (workspace_id, source, amount, remaining, expires_at, ref_type, ref_id)
@@ -2345,6 +2501,49 @@ begin
     raise exception 'credit return of % exceeds allocations of reservation %', p_amount, p_res;
   end if;
   update public.credit_reservations set allocations = v_allocs where id = p_res;
+end $$;
+
+-- rollover cap (part 06 §2.4). Called inside billing_apply_* (§10.8) BEFORE the plan grant, with the balance lock held;
+-- p_cap = rollover_cap_multiplier × max(monthly_credits of the previous plan, of the new plan), p_ref = the idempotency
+-- key of the grant being applied. Valid plan_cycle/rollover credits above p_cap expire now, soonest-expiring grant first.
+-- A partial expiry has its own key, so the later natural expiry of the same grant (expire:{grantId}) never collides.
+create or replace function public.cap_rollover(p_ws uuid, p_cap int, p_ref text)
+returns int                                                         -- credits expired
+language plpgsql security definer set search_path = ''
+as $$
+declare g record; v_total int; v_excess int; v_take int; v_bal int; v_done int := 0;
+begin
+  if p_cap is null or p_cap < 0 or p_ref is null then return 0; end if;
+  -- already applied for this grant event: keys are expire:cap:{36-char grantId}:{p_ref}, so p_ref starts at char 49
+  if exists (select 1 from public.credit_ledger l
+             where l.workspace_id = p_ws and l.kind = 'expire'
+               and starts_with(l.idempotency_key, 'expire:cap:') and substr(l.idempotency_key, 49) = p_ref) then
+    return 0;
+  end if;
+  select coalesce(sum(c.remaining), 0)::int into v_total from public.credit_grants c
+   where c.workspace_id = p_ws and c.source in ('plan_cycle','rollover') and c.remaining > 0
+     and c.expired_at is null and (c.expires_at is null or c.expires_at > clock_timestamp());
+  v_excess := v_total - p_cap;
+  if v_excess <= 0 then return 0; end if;
+
+  for g in
+    select c.id, c.remaining from public.credit_grants c
+     where c.workspace_id = p_ws and c.source in ('plan_cycle','rollover') and c.remaining > 0
+       and c.expired_at is null and (c.expires_at is null or c.expires_at > clock_timestamp())
+     order by c.expires_at asc nulls last, c.created_at asc, c.id
+     for update
+  loop
+    exit when v_excess = 0;
+    v_take := least(g.remaining, v_excess);
+    update public.credit_grants set remaining = remaining - v_take where id = g.id;   -- expired_at stays null: not a natural expiry
+    select b.balance into v_bal from public.workspace_balances b where b.workspace_id = p_ws;
+    insert into public.credit_ledger (workspace_id, delta, kind, balance_after, grant_id, description_he, idempotency_key)
+    values (p_ws, -v_take, 'expire', v_bal - v_take, g.id, 'קרדיטים מעבר לתקרת הגלגול',
+            'expire:cap:' || g.id::text || ':' || p_ref);
+    v_excess := v_excess - v_take;
+    v_done := v_done + v_take;
+  end loop;
+  return v_done;
 end $$;
 ```
 
@@ -2575,10 +2774,13 @@ begin
           left(coalesce(nullif(p_reason_he, ''), 'החזר קרדיטים על שלב שלא הצליח'), 200), p_idem);
 end $$;
 
--- interactive LLM actions (script, storyboard, hooks): reserve + capture + settle in one call
-create or replace function public.spend_credits(
+-- interactive LLM actions (script, storyboard, hooks): reserve BEFORE the model call, capture only AFTER the output
+-- is persisted. Flow (§19.5): gates -> begin_spend -> model call(s) -> persist -> commit_spend -> complete_idempotency_key;
+-- any error -> refund_reservation(res, 'refund:' || res, …). A reservation left open (function killed mid-call) is
+-- refunded by the sweeper (§23, sweep_orphaned_spends).
+create or replace function public.begin_spend(
   p_ws uuid, p_amount int, p_action_key text, p_ref text, p_idem text, p_daily_cap int default null)
-returns uuid
+returns uuid                                                        -- reservation id; null for a free action
 language plpgsql security definer set search_path = ''
 as $$
 declare v_res uuid; v_label text;
@@ -2587,9 +2789,53 @@ begin
   select c.label_he into v_label from public.credit_costs c where c.action_key = p_action_key;
   v_res := public.reserve_credits(public.billing_workspace_id(p_ws), p_amount, null, p_idem, p_daily_cap, coalesce(v_label, 'שימוש בקרדיטים'));
   update public.credit_reservations set action_key = p_action_key, ref = p_ref where id = v_res and action_key is null;
-  perform public.capture_credits(v_res, p_amount, p_idem || ':capture', coalesce(v_label, p_action_key));
-  perform public.settle_reservation(v_res, p_idem || ':settle');
-  return v_res;
+  return v_res;                                                     -- status stays 'open' until commit_spend
+end $$;
+
+-- captures the full amount and settles; idempotent (ledger keys p_idem || ':capture' / ':settle'; a second call is a no-op,
+-- and a reservation already refunded by the catch or the sweeper is left alone)
+create or replace function public.commit_spend(p_reservation uuid, p_idem text)
+returns void
+language plpgsql security definer set search_path = ''
+as $$
+declare r public.credit_reservations; v_label text;
+begin
+  if p_reservation is null then return; end if;                     -- free action
+  select * into r from public.credit_reservations where id = p_reservation;
+  if not found then perform public.raise_app_error('NOT_FOUND', jsonb_build_object('reservation', p_reservation)); end if;
+  if r.status <> 'open' then return; end if;
+  select c.label_he into v_label from public.credit_costs c where c.action_key = r.action_key;
+  perform public.capture_credits(r.id, r.amount, p_idem || ':capture', coalesce(v_label, r.action_key));
+  perform public.settle_reservation(r.id, p_idem || ':settle');
+end $$;
+
+-- sweeper step "orphaned interactive spends" (§23 sweep-jobs; service role only): job-less reservations still open
+-- after 6 minutes (maxDuration 300 s + 60 s) are refunded, and in_progress API idempotency keys of the same age
+-- become failed. If the function was killed after persisting but before commit_spend, the user keeps the output free
+-- (fail-safe by design).
+create or replace function public.sweep_orphaned_spends(p_older_than interval default interval '6 minutes')
+returns int                                                         -- reservations refunded
+language plpgsql security definer set search_path = ''
+as $$
+declare r record; v_n int := 0;
+begin
+  for r in
+    select c.id from public.credit_reservations c
+     where c.job_id is null and c.status = 'open' and c.created_at < now() - p_older_than
+     order by c.created_at
+     limit 500
+  loop
+    begin                                                           -- one bad row never stops the sweep
+      perform public.refund_reservation(r.id, 'refund:' || r.id::text, 'הפעולה לא הושלמה. הקרדיטים הוחזרו.');
+      v_n := v_n + 1;
+    exception when others then
+      raise warning 'sweep_orphaned_spends: reservation % failed: % (%)', r.id, sqlerrm, sqlstate;
+    end;
+  end loop;
+  update public.api_idempotency_keys
+     set status = 'failed', updated_at = now()
+   where status = 'in_progress' and updated_at < now() - p_older_than;
+  return v_n;
 end $$;
 
 -- admin negative adjustment (credits.adjust with a negative amount)
@@ -2658,11 +2904,15 @@ declare v_ws uuid; v_n int := 0;
 begin
   for v_ws in
     select distinct g.workspace_id from public.credit_grants g
-    where g.remaining > 0 and g.expires_at is not null and g.expires_at <= now()
+    where g.remaining > 0 and g.expired_at is null and g.expires_at is not null and g.expires_at <= clock_timestamp()
     order by 1
   loop
-    perform public._lock_balance(v_ws);
-    v_n := v_n + public._expire_due_grants(v_ws);
+    begin                                                           -- one tenant's error never aborts the whole run
+      perform public._lock_balance(v_ws);
+      v_n := v_n + public._expire_due_grants(v_ws);
+    exception when others then
+      raise warning 'expire_credit_grants: workspace % failed: % (%)', v_ws, sqlerrm, sqlstate;
+    end;
   end loop;
   return v_n;
 end $$;
@@ -2740,7 +2990,7 @@ begin
   return query
     select coalesce(b.balance, 0),
            coalesce(b.reserved, 0),
-           (select pl.monthly_credits from public.workspace_plan(v_b) pl),
+           (select nullif(pl.monthly_credits, 0) from public.workspace_plan(v_b) pl),   -- null = no monthly allowance (free)
            coalesce((select sum(g.remaining) from public.credit_grants g
                      where g.workspace_id = v_b and g.remaining > 0
                        and g.expires_at > now() and g.expires_at <= now() + interval '30 days'), 0)::int,
@@ -2792,6 +3042,8 @@ begin
     order by 2 desc;
 end $$;
 ```
+
+- **`plan_allowance`** (‏`planAllowance` ב-API) הוא `null` כשאין מכסה חודשית (התוכנית החינמית), ולא 0. ‏`lib/billing/credits.ts` (בעלים: חלק 06) מחשב ממנו את `videosLeft(balance, planId)` ואת `lowThreshold(summary, planId)`: בלי מכסה ← `perVideoCredits(planId)`; עם מכסה ← `max(perVideoCredits(planId), ceil(0.15 × planAllowance))`. אותה נוסחה משמשת את `CreditsMeter` (חלק 01; הטבעת מצוירת רק כש-`planAllowance != null`), את הבאנר בחלק 03 ואת `/api/cron/reminders` (§23).
 
 ### 10.6 טריגרים על היומן
 
@@ -2868,7 +3120,7 @@ create trigger audit_logs_no_truncate before truncate on public.audit_logs
 | שלב נכשל ולא חויב | לא קוראים לכלום — `settle_reservation` בסוף משחרר אותו | — |
 | עבודה הצליחה / בוטלה | `settle_reservation(resId, …)` | `settle:{reservationId}` |
 | עבודה נכשלה | `refund_reservation(resId, …, 'היצירה נכשלה. כל הקרדיטים הוחזרו.')` | `refund:{reservationId}` |
-| פעולת LLM אינטראקטיבית | `spend_credits(ws, credits, actionKey, ref, …)`; בכשל `refund_reservation(resId, 'refund:' || resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')` | `spend:{scope}:{idempotencyKey}:{attempt}` (§18.7) |
+| פעולת LLM אינטראקטיבית | `begin_spend(ws, credits, actionKey, ref, …)` **לפני** הקריאה למודל ← שמירת התוצר ← `commit_spend(resId, key)` (capture ו-settle); בכל כשל `refund_reservation(resId, 'refund:' || resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')`; שמירה שנשארה פתוחה מעל 6 דקות מוחזרת ב-`sweep_orphaned_spends` (§23) | `spend:{scope}:{idempotencyKey}:{attempt}` (§18.7), ו-`…:capture` / `…:settle` |
 | חידוש מנוי / חבילה | `grant_credits(…, 'plan_cycle', period_end + interval '1 month', …)` / `grant_credits(…, 'topup', null, …)` | `grant:plan:{subscriptionId}:{periodStartISO}` / `grant:pack:{paymentId}` |
 | התאמה ידנית באדמין | `grant_credits(…, 'admin', …)` או `debit_credits(…)` | `grant:admin:{auditLogId}` / `debit:admin:{auditLogId}` |
 | הסרת היתרה מדלי (החזר כספי, chargeback, כלי האדמין) | `revoke_grant_remaining(grantId, key, descriptionHe, actorId)` | `revoke:{refundRequestId}:{grantId}` / `revoke:chargeback:{paymentId}:{grantId}` / `revoke:admin:{auditLogId}` |
@@ -2885,7 +3137,9 @@ create trigger audit_logs_no_truncate before truncate on public.audit_logs
 
 -- checkout webhook: subscription_initial | topup | update_card (by checkout_sessions.kind) — part 06 §4.1 step 5
 create or replace function public.billing_apply_payment(
-  p_session uuid, p_provider text, p_txn text, p_amount_ils numeric, p_vat_rate numeric,
+  p_session uuid, p_provider text, p_txn text,
+  p_amount_ils numeric,  -- decimal shekels, 2 dp: fromAgorot(ev.amountAg); never integer agorot
+  p_vat_rate numeric,
   p_method jsonb,        -- {token_enc, brand, last4, exp_month, exp_year, holder_name} | null (Bit / no token)
   p_payload jsonb)
 returns jsonb  -- {payment_id, subscription_id, credits_granted, status: 'succeeded'|'amount_mismatch'|'duplicate'}
@@ -2896,13 +3150,20 @@ returns jsonb  -- {subscription_id, period_start, period_end, credits_granted}
 
 -- plan change; p_payment / p_txn are NULL when nothing is charged (downgrade, scheduled change, zero proration) — part 06 §5.3
 create or replace function public.billing_apply_plan_change(
-  p_subscription uuid, p_payment uuid, p_txn text, p_quote jsonb, p_actor uuid)
+  p_subscription uuid, p_payment uuid, p_txn text,
+  p_quote jsonb,         -- quoteToDb(q): {charge_now_ils: "98.17", new_price_ils: "…", credits_granted_now, effective_at, new_cycle}
+  p_actor uuid)
 returns jsonb  -- {plan_id, cycle, credits_granted, demoted}
+
+-- every billing_apply_* that grants a plan allowance first calls (same transaction, balance lock held):
+--   perform public.cap_rollover(v_billing_ws, v_cap, v_grant_key);   -- §10.2; v_grant_key = the grant's idempotency key
 ```
 
-- **`billing_apply_payment`** — לפי `checkout_sessions.kind`: מאמתת שהסכום שהתקבל שווה ל-`amount_ils` של הסשן (אחרת שורת `payments` עם `failure_reason = 'amount_mismatch'`, בלי הענקה, ו-`status: 'amount_mismatch'`), מכניסה `payments` עם `idempotency_key = 'checkout:' || p_session` (קיים ← `status: 'duplicate'`), שומרת `payment_methods` כשיש `p_method` (הקודם מסומן `deleted_at`), יוצרת `subscriptions` (מנוי) או מעניקה את החבילה (`grant:pack:{paymentId}`), מעדכנת `workspaces.plan_id` ו-`has_paid = true`, ומסמנת את הסשן `completed`.
-- **`billing_apply_renewal`** — ‏`payments.status = 'succeeded'`, קידום התקופה לפי `anchor_at`, ‏`next_charge_at`, איפוס `retry_count` ו-`past_due_since`, הענקת המכסה (`grant:plan:{subscriptionId}:{periodStartISO}`), ובמנוי שנתי `next_grant_at`.
-- **`billing_apply_plan_change`** — מעדכנת את התוכנית, המחזור והמחיר הנעול במנוי ובסביבה, מנקה את `scheduled_change`, מעניקה את ההפרש (`grant:plan_change:{paymentId}`, או `grant:plan:{subscriptionId}:{periodStartISO}` במעבר לשנתי "מעכשיו"), ובהורדת תוכנית קוראת ל-`enforce_plan_limits(workspace, p_actor)` (§9.5b) ומחזירה את `demoted`. הפרמטר `p_subscription` קיים כי לשינוי בלי חיוב אין שורת `payments`.
+**יחידות כסף בחוזה הזה:** כל `p_*_ils` וכל שדה `*_ils` ב-jsonb הם שקלים עשרוניים (‏`numeric(10,2)`, כולל מע״מ), כמו עמודות ה-DDL. קוד החיוב ב-TypeScript עובד ב-`Agorot` שלמים (‏`…Ag`) וממיר בגבול: `p_amount_ils` = ‏`fromAgorot(ev.amountAg)`; ‏`p_quote` = ‏`quoteToDb(q)`, שממיר את `chargeNowAg`/`newPriceAg` ל-`charge_now_ils`/`new_price_ils` עשרוניים (מחרוזות). לעולם לא מעבירים אובייקט TS גולמי ל-jsonb.
+
+- **`billing_apply_payment`** — ‏`p_amount_ils` בשקלים עשרוניים (`fromAgorot(ev.amountAg)`). לפי `checkout_sessions.kind`: מאמתת שהסכום שהתקבל שווה ל-`amount_ils` של הסשן (אחרת שורת `payments` עם `failure_reason = 'amount_mismatch'`, בלי הענקה, ו-`status: 'amount_mismatch'`), מכניסה `payments` עם `idempotency_key = 'checkout:' || p_session` (קיים ← `status: 'duplicate'`), שומרת `payment_methods` כשיש `p_method` (הקודם מסומן `deleted_at`), יוצרת `subscriptions` (מנוי) או מעניקה את החבילה (`grant:pack:{paymentId}`), מעדכנת `workspaces.plan_id` ו-`has_paid = true`, ומסמנת את הסשן `completed`. לפני הענקת מכסה של מנוי: `cap_rollover` (§10.2).
+- **`billing_apply_renewal`** — ‏`payments.status = 'succeeded'`, קידום התקופה לפי `anchor_at`, ‏`next_charge_at`, איפוס `retry_count` ו-`past_due_since`, הענקת המכסה (`grant:plan:{subscriptionId}:{periodStartISO}`, ולפניה `cap_rollover` עם המפתח הזה), ובמנוי שנתי `next_grant_at`.
+- **`billing_apply_plan_change`** — ‏`p_quote` = ‏`quoteToDb(q)` עם `charge_now_ils`/`new_price_ils` עשרוניים. מעדכנת את התוכנית, המחזור והמחיר הנעול במנוי ובסביבה, מנקה את `scheduled_change`, מעניקה את ההפרש (`grant:plan_change:{paymentId}`, או `grant:plan:{subscriptionId}:{periodStartISO}` במעבר לשנתי "מעכשיו"), קוראת ל-`cap_rollover` לפני ההענקה, ובהורדת תוכנית קוראת ל-`enforce_plan_limits(workspace, p_actor)` (§9.5b) ומחזירה את `demoted`. הפרמטר `p_subscription` קיים כי לשינוי בלי חיוב אין שורת `payments`.
 
 ### קריטריוני קבלה
 - [ ] `revoke_grant_remaining` פעמיים עם אותו מפתח: הקריאה השנייה מחזירה 0; היתרה יורדת בדיוק ב-`remaining` של הדלי, ושמירה פתוחה של עבודה רצה לא משתנה.
@@ -2930,6 +3191,7 @@ returns jsonb  -- {plan_id, cycle, credits_granted, demoted}
 - **דירוג:** `sort=new` ← לפי `created_at`; ‏`sort=most_generated` ← לפי `generations_count`; ברירת המחדל `popular` ← רלוונטיות (כשיש שאילתה), ואז מומלצים, ואז `hook_popularity.score`.
 - **נישה מיוחדת:** `p_niche = 'universal'` מחזיר רק הוקים בלי נישה. הוקים של נישה לא פעילה (`is_active = false`) לא מוחזרים לעולם.
 - **סוג:** `p_type` תואם גם לסוג המשני (`secondary_type_slug`).
+- **שדות תצוגה:** כל שורה מחזירה גם `niche_short_name_he`, ‏`niche_icon` (שם רכיב lucide), ‏`why_it_works_he` (מ-`hook_types`), ‏`secondary_type_slug` ו-`season_name_he` (join ל-`seasons`), כך שכרטיס ההוק (`HookCardDTO`, §20.3) נבנה משורה אחת בלי שאילתות נוספות.
 - **פאסטים:** `search_hooks_facets` מחזירה ספירות לכל ערך **בתוך תוצאות הסינון הנוכחי** (לא ספירה "דיסיונקטיבית"); הממשק מציג ערכים עם 0 כמושבתים.
 
 ```sql
@@ -2968,9 +3230,10 @@ create or replace function public.search_hooks(
   p_featured boolean default null, p_sort text default 'popular',
   p_limit int default 24, p_offset int default 0, p_has_video boolean default null)
 returns table (
-  id text, niche_slug text, niche_name_he text, hook_type_slug text, hook_type_name_he text, family_slug text,
+  id text, niche_slug text, niche_name_he text, niche_short_name_he text, niche_icon text,
+  hook_type_slug text, hook_type_name_he text, family_slug text, why_it_works_he text, secondary_type_slug text,
   text_he text, platforms public.platform[], goal public.hook_goal, gender public.hook_gender,
-  visual_direction_he text, placeholders text[], season_slug text, compliance_note_he text,
+  visual_direction_he text, placeholders text[], season_slug text, season_name_he text, compliance_note_he text,
   is_featured boolean, sample_video_path text, copies_count int, generations_count int,
   popularity int, rank real, total_count bigint)
 language sql stable security definer set search_path = ''
@@ -2982,7 +3245,8 @@ as $$
            coalesce(nullif(p_sort, ''), 'popular') as srt
   ),
   base as (
-    select b.*, n.name_he as n_name, t.name_he as t_name, t.family_slug as fam,
+    select b.*, n.name_he as n_name, n.short_name_he as n_short, n.icon as n_icon,
+           t.name_he as t_name, t.family_slug as fam, t.why_it_works_he as t_why, s.name_he as s_name,
            coalesce(hp.score, 0) as pop,
            case when params.q is null then 0::real
                 when b.search_text like '%' || public.escape_like(params.q) || '%' then 1::real
@@ -2991,11 +3255,13 @@ as $$
          public._search_hooks_base(params.q, p_niche, p_type, p_platform, p_goal, p_gender, p_season, p_featured, p_has_video) b
     join public.hook_types t on t.slug = b.hook_type_slug
     left join public.niches n on n.slug = b.niche_slug
+    left join public.seasons s on s.slug = b.season_slug
     left join public.hook_popularity hp on hp.hook_id = b.id
   )
-  select base.id, base.niche_slug, base.n_name, base.hook_type_slug, base.t_name, base.fam,
+  select base.id, base.niche_slug, base.n_name, base.n_short, base.n_icon,
+         base.hook_type_slug, base.t_name, base.fam, base.t_why, base.secondary_type_slug,
          base.text_he, base.platforms, base.goal, base.gender, base.visual_direction_he, base.placeholders,
-         base.season_slug, base.compliance_note_he, base.is_featured, base.sample_video_path,
+         base.season_slug, base.s_name, base.compliance_note_he, base.is_featured, base.sample_video_path,
          base.copies_count, base.generations_count, base.pop, base.rnk, count(*) over ()
   from base, params
   order by
@@ -3084,7 +3350,7 @@ begin
     return query select 'mismatch'::text, k.attempt::int, null::int, null::jsonb, null::text;
   elsif k.status = 'completed' then
     return query select 'completed'::text, k.attempt::int, k.response_status::int, k.response_body, k.resource_id;
-  elsif k.status = 'in_progress' and k.updated_at > now() - interval '5 minutes' then
+  elsif k.status = 'in_progress' and k.updated_at > now() - interval '6 minutes' then   -- maxDuration 300 s + 60 s (§18.7)
     return query select 'in_progress'::text, k.attempt::int, null::int, null::jsonb, null::text;
   else                                                              -- failed with 5xx, or a stale in_progress: run again
     update public.api_idempotency_keys i
@@ -3213,13 +3479,22 @@ create trigger workspaces_cross_ref before update           on public.workspaces
 create trigger brand_kits_cross_ref before insert or update on public.brand_kits for each row execute function public.cross_ref_guard();
 
 -- a version is locked for edits (script and scenes) once any job used it, whatever its status;
--- edits after that fork a new version that re-uses unchanged scene assets
+-- edits after that fork a new version that re-uses unchanged scene assets.
+-- Granted to authenticated (§12.6), so it checks access through version -> project -> workspace first.
 create or replace function public.is_version_locked(p_version uuid)
 returns boolean
-language sql stable security definer set search_path = ''
+language plpgsql stable security definer set search_path = ''
 as $$
-  select exists (select 1 from public.jobs j where j.version_id = p_version);
-$$;
+begin
+  if (select auth.uid()) is not null and not exists (
+       select 1 from public.project_versions v
+       join public.projects p on p.id = v.project_id
+       where v.id = p_version
+         and (public.can_access_workspace(p.workspace_id) or public.is_platform_admin())) then
+    return null;
+  end if;
+  return exists (select 1 from public.jobs j where j.version_id = p_version);
+end $$;
 
 -- reorder / compact scene indexes atomically (unique (version_id, index) is not deferrable, index >= 0)
 create or replace function public.reindex_scenes(p_version uuid, p_ids uuid[])
@@ -3307,9 +3582,24 @@ begin
   delete from public.contact_messages where created_at < now() - interval '24 months';  get diagnostics v = row_count; n := n + v;
   delete from public.abuse_reports    where created_at < now() - interval '24 months';  get diagnostics v = row_count; n := n + v;
   delete from public.email_messages   where created_at < now() - interval '24 months';  get diagnostics v = row_count; n := n + v;
-  -- consents of closed accounts (user_id set null) and anonymous cookie-banner rows; rows of existing users are never purged
-  delete from public.consents c      where c.user_id is null and c.created_at < now() - interval '7 years'
-     and not exists (select 1 from public.likeness_profiles lp where lp.consent_id = c.id);   -- FK restrict (v2 likeness)
+  -- consents: kept 7 years after account closure / consent withdrawal (part 02 privacy §9, part 06 §11.5).
+  -- Rows of existing users (user_id not null) are never purged.
+  --  * closed account (user_id set null by deleteUser): 7 years after subject_closed_at (stamped by prepare_user_deletion)
+  --  * no account, with email (newsletter): 7 years after the row stopped being current — the first later row of the same
+  --    email+kind (withdrawal or re-consent), or the row's own created_at when it is itself a withdrawal (granted = false),
+  --    or revoked_at; the current granted row is kept
+  --  * anonymous cookie-banner row (no user, no email): 7 years after created_at (cannot be linked to a later choice)
+  delete from public.consents c
+   where c.user_id is null
+     and not exists (select 1 from public.likeness_profiles lp where lp.consent_id = c.id)   -- FK restrict (v2 likeness)
+     and case
+           when c.subject_closed_at is not null then c.subject_closed_at < now() - interval '7 years'
+           when c.email is null                 then c.created_at        < now() - interval '7 years'
+           else coalesce((select min(w.created_at) from public.consents w
+                           where w.user_id is null and w.email = c.email and w.kind = c.kind and w.created_at > c.created_at),
+                         case when not c.granted then c.created_at end,
+                         c.revoked_at) < now() - interval '7 years'
+         end;
   get diagnostics v = row_count; n := n + v;
   delete from public.trial_claims     where created_at < now() - interval '5 years';    get diagnostics v = row_count; n := n + v;
   return n;
@@ -3348,12 +3638,13 @@ as $$
 $$;
 ```
 
-- **שמירת נתונים:** `purge_support_data` מוחקת הסכמות רק של חשבונות סגורים (`user_id` התאפס) ושל שורות אנונימיות מבאנר העוגיות, אחרי 7 שנים; שורת הסכמה שפרופיל דמות (`likeness_profiles.consent_id`, ‏`on delete restrict`) עדיין מצביע עליה לא נמחקת, כדי שהמשימה לא תיכשל. ‏`purge_audit_logs` שומרת 7 שנים את פעולות `payment.*`, ‏`invoice.*`, ‏`refund_request.*`, ‏`subscription.*`, ‏`credits.*` ו-`billing.*`, ו-36 חודשים את כל השאר.
+- **שמירת נתונים:** `purge_support_data` לא מוחקת אף פעם הסכמה של משתמש קיים. הסכמות של חשבון שנסגר נמחקות 7 שנים אחרי סגירת החשבון (`consents.subject_closed_at`, שנחתם ב-`prepare_user_deletion`); הסכמות בלי חשבון (מייל בלבד) — 7 שנים אחרי שבוטלו או הוחלפו בשורה מאוחרת יותר; שורות אנונימיות מבאנר העוגיות — 7 שנים מהרישום; שורת הסכמה שפרופיל דמות (`likeness_profiles.consent_id`, ‏`on delete restrict`) עדיין מצביע עליה לא נמחקת, כדי שהמשימה לא תיכשל. ‏`purge_audit_logs` שומרת 7 שנים את פעולות `payment.*`, ‏`invoice.*`, ‏`refund_request.*`, ‏`subscription.*`, ‏`credits.*` ו-`billing.*`, ו-36 חודשים את כל השאר.
 
 ### קריטריוני קבלה
 - [ ] `select count(*) from search_hooks(p_q => 'נדל"ן')` שווה ל-`search_hooks(p_q => 'נדל״ן')` וגדול מ-0 על ה-seed.
 - [ ] `search_hooks(p_q => '50%')` לא מתפרש כתבנית `like` (הסימן `%` עובר בריחה).
 - [ ] `search_hooks(p_niche => 'local-politics')` מחזיר 0 שורות (נישה לא פעילה).
+- [ ] `purge_support_data()`: הסכמה בת 10 שנים של חשבון שנסגר לפני 6 שנים (`subject_closed_at`) נשמרת, ושל חשבון שנסגר לפני 8 שנים נמחקת; הסכמה בת 9 שנים של משתמש קיים נשמרת; שורת ניוזלטר (מייל בלבד) שבוטלה לפני 8 שנים נמחקת, ושורה מאושרת בת 9 שנים שלא בוטלה נשמרת.
 - [ ] `search_hooks_facets()` בלי סינון מחזיר בפאסט `niche` את כל הנישות הפעילות עם הוקים, ובפאסט `platform` את ששת הערכים שב-seed.
 - [ ] `next_hook_id('dentists')` מחזיר את המספר הבא אחרי המקסימום הקיים (למשל `dentists-11` כשיש 10, ו-`dentists-100` אחרי `dentists-99` — בלי קיטוע ל-`dentists-10`).
 - [ ] עורך שמנסה `update projects set deleted_at = now()` נכשל ב-`FORBIDDEN`; בעלים מצליח.
@@ -3373,7 +3664,7 @@ $$;
 3. `auth.uid()` תמיד בצורה `(select auth.uid())`, וסינון לפי סביבה תמיד בצורת הקבוצה (`workspace_id in (select public.accessible_workspace_ids())`) — מחושב פעם אחת לשאילתה.
 4. כל עמודה שמדיניות מסננת לפיה מאונדקסת (`workspace_id`, `user_id`, `project_id`, `job_id` — ראו האינדקסים ב-§4–§8).
 5. **הרשאות עמודה** מצמצמות עוד: גם מדיניות `update` שמתירה שורה לא מאפשרת לשנות עמודות רגישות (`is_platform_admin`, `plan_id`, `token_enc`…).
-6. כתיבה לטבלאות כספיות, לעבודות, ליומנים, להגדרות ולקישורי שיתוף — **רק בצד השרת** (מפתח סודי), אחרי בדיקת הרשאה ב-Route Handler.
+6. כתיבה לטבלאות כספיות, לעבודות, ליומנים, להגדרות, לקישורי שיתוף, לסצנות (`scenes`) ולהסכמות (`consents`) — **רק בצד השרת** (מפתח סודי), אחרי בדיקת הרשאה ב-Route Handler.
 7. **הפניות בתוך שורה:** RLS בודק את השורה שנכתבת, לא את המזהים שבתוכה. הטריגר `cross_ref_guard` (§11.3) דוחה כתיבה של משתמש שמצביעה על ערכת מותג, נכס, הוק פרטי או פרויקט של סביבה אחרת, ו-`profiles_guard` מונע מהמשתמש לכתוב את פרטי ה-WhatsApp המאומתים בעצמו.
 8. מנהל פלטפורמה **לא** עוקף RLS באפליקציה; פאנל האדמין עובד דרך `/api/admin/*` עם המפתח הסודי ו-`requirePlatformAdmin()`. מדיניות האדמין כאן מכסה רק את הקטלוג ואת טבלאות התפעול שנספח F מגדיר כך, וגם היא דורשת session ברמת `aal2` (`is_platform_admin()`, §9.2).
 
@@ -3408,7 +3699,9 @@ revoke insert, update, delete on
   public.approvals, public.abuse_reports, public.audit_logs, public.webhook_events, public.trial_claims, public.email_suppressions,
   public.email_messages,
   public.model_registry, public.model_routes, public.app_settings, public.feature_flags,
-  public.contact_messages, public.data_requests, public.likeness_profiles, public.api_idempotency_keys
+  public.contact_messages, public.data_requests, public.likeness_profiles, public.api_idempotency_keys,
+  public.scenes,                                    -- written only by the §19.6 routes and part 05 steps (secret client)
+  public.consents                                   -- written only by recordConsent() (§21.4)
 from authenticated;
 
 -- column-level narrowing
@@ -3417,8 +3710,7 @@ grant  update (full_name, avatar_url, phone, ui_gender_form, theme, reduce_motio
                last_workspace_id, onboarding_completed_at, notification_prefs) on public.profiles to authenticated;
 revoke update on public.workspaces from authenticated;
 grant  update (name, niche_slug, default_brand_kit_id) on public.workspaces to authenticated;
-revoke update on public.workspace_members from authenticated;
-grant  update (role) on public.workspace_members to authenticated;
+revoke update on public.workspace_members from authenticated;                  -- role changes only via change_member_role (§9.5)
 revoke update on public.assets from authenticated;
 grant  update (is_deleted) on public.assets to authenticated;
 revoke update on public.share_links from authenticated;
@@ -3450,13 +3742,13 @@ alter role anon          set statement_timeout = '3s';
 |---|---|---|---|---|
 | `profiles` | השורה שלי; מנהל פלטפורמה — הכול | — (טריגר) | השורה שלי (עמודות מותרות בלבד) | — |
 | `workspaces` | member | — (`create_workspace`) | owner/admin (שם, נישה, ערכת ברירת מחדל) | — (מחיקה לוגית דרך API) |
-| `workspace_members` | member | — (`accept_invite`) | owner/admin, לא שורת `owner`, לא ל-`owner` | owner/admin (לא `owner`); אני — את החברות שלי (לא `owner`) |
+| `workspace_members` | member | — (`accept_invite`) | — (RPC `change_member_role`, §9.5: owner/admin, לא שורת `owner`, לא ל-`owner`, בדיקת מושבים בנעילה) | owner/admin (לא `owner`); אני — את החברות שלי (לא `owner`) |
 | `workspace_invites` | owner/admin | owner/admin | owner/admin | owner/admin |
 | `business_profiles` · `brand_kits` · `pronunciation_entries` · `workspace_hooks` | member | editor+ | editor+ | editor+ |
 | `hook_favorites` | שלי | שלי, בסביבה שאני חבר בה | — | שלי |
 | `projects` | member | editor+ (`created_by` = אני) | editor+ (+ שומר §11.3) | owner/admin |
 | `project_versions` | member (דרך הפרויקט) | editor+ (דרך הפרויקט; בלי `moderation` ו-`voiceover_asset_id`) | — | owner/admin |
-| `scenes` | member (דרך הפרויקט) | editor+ | editor+ | owner/admin |
+| `scenes` | member (דרך הפרויקט) | שרת בלבד (§19.6) | שרת בלבד (§19.6) | שרת בלבד (§19.6) |
 | `assets` | member | editor+, רק `logo`/`brand_image`/`upload_image`/`upload_video` במקור `upload` | editor+, רק `is_deleted` של אותם סוגים | — |
 | `jobs` · `job_steps` · `render_runs` | member (דרך העבודה) | — | — | — |
 | `ai_generations` (בלי `meta`) | owner/admin | — | — | — |
@@ -3467,7 +3759,7 @@ alter role anon          set statement_timeout = '3s';
 | `share_links` | member | — (שרת, `POST /api/share`) | editor+ (ביטול, הורדה, תפוגה) | — |
 | `approvals` | member (דרך הפרויקט) | — (שרת, מנתיב הטוקן) | — | — |
 | `notifications` | שלי | — | שלי (`read_at`) | — |
-| `consents` | שלי | שלי (`user_id` = אני) | — | — |
+| `consents` | שלי | שרת בלבד (§21.4) | — | — |
 | קטלוג: `niche_categories` · `niches` (`is_active`) · `hook_families` · `hook_types` · `seasons` · `hooks` (`published`) · `templates` (`is_public`) · `examples` (`is_published`) · `music_tracks` (`is_active`) · `plans` (`is_public`) · `credit_packs` (`is_active`) · `credit_costs` · `voices` (`is_active`) | **anon + authenticated** לפי התנאי; מנהל פלטפורמה — הכול | מנהל פלטפורמה | מנהל פלטפורמה | מנהל פלטפורמה |
 | `model_registry` · `model_routes` · `app_settings` · `feature_flags` · `audit_logs` · `webhook_events` · `trial_claims` · `contact_messages` · `data_requests` · `email_suppressions` · `email_messages` · `abuse_reports` | מנהל פלטפורמה | — (שרת) | — (שרת) | — (שרת) |
 | `likeness_profiles` (v2) | member | — (שרת, אחרי זרימת הסכמה) | — | — |
@@ -3492,9 +3784,7 @@ create policy workspaces_update_admin on public.workspaces for update to authent
 
 create policy members_select on public.workspace_members for select to authenticated
   using (workspace_id in (select public.accessible_workspace_ids()));
-create policy members_update_admin on public.workspace_members for update to authenticated
-  using (workspace_id in (select public.workspace_ids_with_role('{owner,admin}')) and role <> 'owner')
-  with check (workspace_id in (select public.workspace_ids_with_role('{owner,admin}')) and role <> 'owner');
+-- no update policy: role changes go through change_member_role (§9.5), which checks seats under the billing-row lock
 create policy members_delete_admin on public.workspace_members for delete to authenticated
   using (workspace_id in (select public.workspace_ids_with_role('{owner,admin}')) and role <> 'owner');
 create policy members_delete_self on public.workspace_members for delete to authenticated
@@ -3596,19 +3886,8 @@ create policy versions_delete on public.project_versions for delete to authentic
 create policy scenes_select on public.scenes for select to authenticated
   using (exists (select 1 from public.projects p where p.id = scenes.project_id
                  and p.workspace_id in (select public.accessible_workspace_ids())));
-create policy scenes_insert on public.scenes for insert to authenticated
-  with check (exists (select 1 from public.projects p join public.project_versions v on v.project_id = p.id
-                      where p.id = scenes.project_id and v.id = scenes.version_id
-                        and p.workspace_id in (select public.workspace_ids_with_role('{owner,admin,editor}'))));
-create policy scenes_update on public.scenes for update to authenticated
-  using (exists (select 1 from public.projects p where p.id = scenes.project_id
-                 and p.workspace_id in (select public.workspace_ids_with_role('{owner,admin,editor}'))))
-  with check (exists (select 1 from public.projects p join public.project_versions v on v.project_id = p.id
-                      where p.id = scenes.project_id and v.id = scenes.version_id
-                        and p.workspace_id in (select public.workspace_ids_with_role('{owner,admin,editor}'))));
-create policy scenes_delete on public.scenes for delete to authenticated
-  using (exists (select 1 from public.projects p where p.id = scenes.project_id
-                 and p.workspace_id in (select public.workspace_ids_with_role('{owner,admin}'))));
+-- no insert/update/delete policies: scenes are written only by the §19.6 routes and part 05 steps with the secret
+-- client, after is_version_locked() and edit moderation (and the table is in the server-only revoke list, §12.2)
 
 create policy assets_select on public.assets for select to authenticated
   using (workspace_id in (select public.accessible_workspace_ids()));
@@ -3672,9 +3951,7 @@ create policy notifications_update_own on public.notifications for update to aut
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 create policy consents_select_own on public.consents for select to authenticated using (user_id = (select auth.uid()));
-create policy consents_insert_own on public.consents for insert to authenticated
-  with check (user_id = (select auth.uid())
-              and (workspace_id is null or workspace_id in (select public.accessible_workspace_ids())));
+-- no insert policy: consents are written only by recordConsent() with the secret client (§21.4)
 
 create policy likeness_select on public.likeness_profiles for select to authenticated
   using (workspace_id in (select public.accessible_workspace_ids()));
@@ -3716,17 +3993,22 @@ grant execute on function
   public.accessible_workspace_ids(), public.workspace_ids_with_role(public.member_role[]), public.workspace_plan(uuid),
   public.create_workspace(text, public.workspace_type, uuid), public.accept_invite(text),
   public.transfer_workspace_ownership(uuid, uuid), public.list_workspace_members(uuid),
+  public.change_member_role(uuid, uuid, public.member_role),
   public.get_credit_summary(uuid), public.credit_usage_by_action(uuid, timestamptz, timestamptz), public.is_version_locked(uuid)
 to authenticated;
--- everything else stays service_role-only: credit engine (incl. revoke_grant_remaining), billing engine (billing_apply_*),
--- enforce_plan_limits, idempotency, deletion, maintenance, internal _*
+-- billing_workspace_id, workspace_plan and is_version_locked check access first and return null otherwise (§9.2, R39)
+-- everything else stays service_role-only: credit engine (incl. begin_spend, commit_spend, sweep_orphaned_spends,
+-- cap_rollover, revoke_grant_remaining), billing engine (billing_apply_*), effective_white_label, enforce_plan_limits,
+-- idempotency, deletion, maintenance, internal _* (_billing_workspace_id, _workspace_plan, _lock_billing_workspace, …)
 
 -- retention jobs run from pg_cron as postgres only; no API role (not even the secret key) may call them
 revoke execute on function public.purge_ai_generations(), public.purge_support_data(), public.purge_audit_logs()
   from public, anon, authenticated, service_role;
 ```
 
-`storage_ws` ו-`storage_upload_allowed` (0009) ו-`realtime_topic_allowed` (0010) מקבלות את ה-grant ל-`authenticated` בסוף המיגרציה שבה הן נוצרות (§13.3, §14.1), כי `grant` על פונקציה שעוד לא קיימת נכשל. ה-`revoke … on all functions` שלמעלה לא חל עליהן, כי הן נוצרות אחריו — ברירת המחדל שנקבעה ב-0001 (`alter default privileges … revoke execute`) דואגת שהן ייווצרו פרטיות.
+`storage_ws` ו-`storage_upload_allowed` (0009) ו-`realtime_topic_allowed` (0010) מקבלות את ה-grant ל-`authenticated` בסוף המיגרציה שבה הן נוצרות (§13.3, §14.1), כי `grant` על פונקציה שעוד לא קיימת נכשל. ה-`revoke … on all functions` שלמעלה לא חל עליהן, כי הן נוצרות אחריו. הן נוצרות פרטיות בזכות ה-revoke הגלובלי ב-0001 (`alter default privileges revoke execute on functions from public`) וה-revoke המפורש בסוף כל מיגרציה; בדיקת ה-allow-list אוכפת (§25.2).
+
+**כלל לכל מיגרציה מ-0009 והלאה:** כל מיגרציה שיוצרת פונקציה מסתיימת ב-`revoke execute on function public.<name>(<args>) from public, anon, authenticated;` לכל פונקציה שהיא יוצרת, **לפני** ה-`grant` שלה (אם יש). לא סומכים על ברירת המחדל לבד. בדיקת ה-pgTAP של §25.2 בוחרת כל פונקציה ב-`public` ש-`anon` או `authenticated` יכולים להריץ (`has_function_privilege`), והקבוצה חייבת להיות בדיוק רשימת ה-grants שבסעיף הזה ועוד `storage_ws`, ‏`storage_upload_allowed`, ‏`realtime_topic_allowed`.
 
 ### קריטריוני קבלה
 - [ ] `select tablename from pg_tables where schemaname = 'public' and not rowsecurity` מחזיר אפס שורות.
@@ -3747,13 +4029,15 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 |---|---|---|---|---|---|
 | `brand-assets` | לא | 20MB | `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml` | עורך+ (כתובת העלאה חתומה) | `{workspace_id}/brand/{kit_id}/{asset_id}.{ext}` |
 | `uploads` | לא | 500MB | `video/mp4`, `video/quicktime`, `image/jpeg`, `image/png`, `image/webp`, `image/heic`, `image/heif` | עורך+ (חתומה; TUS מעל 6MB) | `{workspace_id}/uploads/{asset_id}.{ext}` |
-| `generated` | לא | 250MB | `image/png`, `image/jpeg`, `image/webp`, `video/mp4`, `audio/mpeg`, `application/json` | שרת בלבד | `{workspace_id}/{project_id}/keyframes/{scene_id}-{attempt}.png` · `/clips/{scene_id}-{attempt}.mp4` · `/voice/v{version}.mp3` · `/music/{asset_id}.mp3` · `/captions/v{version}.json`; ותצוגות קול: `{workspace_id}/voice-previews/{sha256}.mp3` |
+| `generated` | לא | 250MB | `image/png`, `image/jpeg`, `image/webp`, `video/mp4`, `audio/mpeg`, `application/json` | שרת בלבד | `{workspace_id}/{project_id}/keyframes/{scene_id}-{attempt}.png` · `/clips/{scene_id}-{attempt}.mp4` · `/voice/v{version}.mp3` · `/music/{asset_id}.mp3` · `/captions/v{version}.json`; ותצוגות קול: `{workspace_id}/voice-previews/{sha256}.mp3`; ובדיקות מודלים מהאדמין: `_admin-tests/{YYYY-MM-DD}/{uuid}.{ext}` (בלי סביבה, ראו מתחת לטבלה) |
 | `renders` | לא | 1GB | `video/mp4`, `image/jpeg`, `application/x-subrip`, `text/vtt` | שרת בלבד | `{workspace_id}/{project_id}/{job_id}/{9x16\|1x1\|16x9}.mp4` · `poster.jpg` · `captions.srt` · `captions.vtt` |
-| `public-media` | **כן** | 100MB | `video/mp4`, `image/avif`, `image/webp`, `image/png`, `image/jpeg`, `audio/mpeg`, `text/vtt` | אדמין/שרת | `examples/{id}.mp4` · `hooks/{hook_id}.mp4` · `niches/{slug}/cover.avif` · `music-library/{mood}/{id}.mp3` · `og/{type}/{slug}.png` · `voices/{voice_id}.mp3` · `sfx/{id}.mp3` · `tests/keyframe-9x16.png` · `demo/wall/{n}-{hook_id}.{mp4\|avif\|vtt}` · `demo/examples/{id}-{9x16\|1x1\|16x9}.mp4`, `{id}-poster.jpg`, `{id}.vtt`, `{id}-loop.mp4` |
+| `public-media` | **כן** | 100MB | `video/mp4`, `image/avif`, `image/webp`, `image/png`, `image/jpeg`, `audio/mpeg`, `text/vtt` | אדמין/שרת | `examples/{id}.mp4` · `hooks/{hook_id}.mp4` · `hooks/{hook_id}.jpg` (פוסטר: הפריים ב-1.0 שניות, נכתב עם העלאת סרטון הדוגמה באדמין) · `niches/{slug}/cover.avif` · `music-library/{mood}/{id}.mp3` · `og/{type}/{slug}.png` · `voices/{voice_id}.mp3` · `sfx/{id}.mp3` · `tests/keyframe-9x16.png` · `demo/wall/{n}-{hook_id}.{mp4\|avif\|vtt}` · `demo/examples/{id}-{9x16\|1x1\|16x9}.mp4`, `{id}-poster.jpg`, `{id}.vtt`, `{id}-loop.mp4` |
 | `exports` | לא | 2GB | `application/zip` | שרת בלבד | `{user_id}/{request_id}.zip` (נמחק אחרי 7 ימים) |
 | `invoices` | לא | 10MB | `application/pdf` | שרת בלבד | `{workspace_id}/{invoice_id}.pdf` — **אין** מדיניות קריאה; רק `GET /api/billing/invoices/[id]` (בעלים/מנהל) מנפיק כתובת חתומה |
 
 ה-bucket `invoices` נוסף על אלה שבנספח F: חשבוניות שייכות לבעלים ולמנהלים בלבד, ואילו `generated`/`renders` קריאים לכל חבר בסביבה. כתובת חתומה ל-5 דקות מונפקת רק דרך `GET /api/billing/invoices/[id]`.
+
+**פלט של "בדיקה" מהאדמין** (`POST /api/admin/models/test`, §24.1; חלק 05 §6.4): קובצי המדיה נשמרים ב-`generated` בנתיב `_admin-tests/{YYYY-MM-DD}/{uuid}.{ext}` (תאריך UTC; ‏`ext` ∈ `png`/`jpg`/`webp`/`mp4`/`mp3`, לפי ה-MIME המותרים של ה-bucket), נכתבים בלקוח הסודי ולא נרשמים ב-`assets`. הקטע הראשון אינו uuid, ולכן `storage_ws(name)` מחזירה NULL ומדיניות `"members read workspace media"` לא מתאימה לאף משתמש: הגישה היחידה היא הכתובת החתומה ל-10 דקות שהנתיב מחזיר. ‏`/api/cron/cleanup` (§23, סעיף 8) מוחק כל תיקייה `_admin-tests/{date}` שעברו עליה 7 ימים.
 
 **קבצים סטטיים ב-`public-media`** (מועלים על ידי `scripts/upload-static-media.ts` מ-`supabase/seed/media/`, שנמצא ב-git עם רישיון לכל קובץ ב-`supabase/seed/media/LICENSES.md` — CC0 או הפקה עצמית):
 - `sfx/{id}.mp3` — שמונה אפקטים, `id ∈ whoosh, impact, pop, sizzle, click, riser, cash, camera_shutter` (ערכי `scenes.sfx` חוץ מ-`none`).
@@ -3816,6 +4100,8 @@ begin
       and a.created_at > now() - interval '2 hours');
 end $$;
 
+-- per-migration rule (§12.6): explicit revoke first, then only the grants the storage policies need
+revoke execute on function public.storage_ws(text), public.storage_upload_allowed(text, text) from public, anon, authenticated;
 grant execute on function public.storage_ws(text), public.storage_upload_allowed(text, text) to authenticated;
 
 create policy "members read workspace media" on storage.objects for select to authenticated
@@ -3932,6 +4218,8 @@ begin
   return exists (select 1 from public.jobs j where j.id = v_id and public.can_access_workspace(j.workspace_id));
 end $$;
 
+-- per-migration rule (§12.6): explicit revoke first, then only the grant the Realtime policy needs
+revoke execute on function public.realtime_topic_allowed(text) from public, anon, authenticated;
 grant execute on function public.realtime_topic_allowed(text) to authenticated;
 
 create policy "members receive job and workspace broadcasts" on realtime.messages
@@ -3972,6 +4260,8 @@ exception when others then
   raise warning 'broadcast_job_change failed on %: %', tg_table_name, sqlerrm;   -- never fail a pipeline write over a broadcast
   return null;
 end $$;
+
+revoke execute on function public.broadcast_job_change() from public, anon, authenticated;   -- trigger-only: no grant
 
 create trigger jobs_broadcast_insert after insert on public.jobs
   for each row execute function public.broadcast_job_change();
@@ -4103,7 +4393,7 @@ select cron.schedule('purge-audit-logs',         '30 4 1 * *',   $$select public
 | `purge-cron-history` | ראשון 03:50 | מנקה היסטוריית ריצות של pg_cron (מומלץ ב-Supabase) |
 | `purge-ai-generation-meta` | כל יום 03:25 | מאפס את `ai_generations.meta` (קטעי דיבאג) אחרי 30 יום |
 | `purge-ai-generations` | ב-1 לחודש, 04:10 | `purge_ai_generations()`: מוחק שורות `ai_generations` בנות יותר מ-24 חודשים |
-| `purge-support-data` | ב-1 לחודש, 04:20 | `purge_support_data()`: ‏`contact_messages`, ‏`abuse_reports` ו-`email_messages` אחרי 24 חודשים; הסכמות של חשבונות סגורים ושורות באנר אנונימיות אחרי 7 שנים; ‏`trial_claims` אחרי 5 שנים |
+| `purge-support-data` | ב-1 לחודש, 04:20 | `purge_support_data()`: ‏`contact_messages`, ‏`abuse_reports` ו-`email_messages` אחרי 24 חודשים; הסכמות — 7 שנים אחרי סגירת החשבון או ביטול ההסכמה (שורות באנר אנונימיות — 7 שנים מהרישום; §11.4); ‏`trial_claims` אחרי 5 שנים |
 | `purge-audit-logs` | ב-1 לחודש, 04:30 | `purge_audit_logs()`: ‏36 חודשים, ופעולות חיוב (`payment.*`, ‏`invoice.*`, ‏`refund_request.*`, ‏`subscription.*`, ‏`credits.*`, ‏`billing.*`) — 7 שנים |
 
 `cron.schedule` עם שם קיים מעדכן את המשימה, ולכן המיגרציה בטוחה להרצה חוזרת. מעקב: `/admin` מציג את 20 הריצות האחרונות שנכשלו (דרך `GET /api/admin/ops/cron`, שקורא ל-`cron_recent_failures()` עם המפתח הסודי — הסכמה `cron` לא חשופה ב-Data API, ולכן הקריאה עוברת דרך פונקציה ב-`public`, §11.4).
@@ -4154,7 +4444,7 @@ alter default privileges in schema public grant select on tables to backup_reade
 | 1 | `hook_families.json` | `/seed/hook_families.json` (8) | `upsert` | `slug` |
 | 2 | `niche_categories.json` | `/seed/niche_categories.json` (13) | `upsert` | `slug` |
 | 3 | `niches.json` | `/seed/niches.json` (36) | `upsert` של השדות הקנוניים בלבד | `slug` |
-| 3b | `niche_extras.json` | חלק 02 §1.2 + נספח E §3.3 | `fill_if_null` | `slug` |
+| 3b | `niche_extras.json` | `/seed/niche_extras.json` (36; הערכים מחלק 02 §1.2 ומנספח E §3.3, נבנה ב-`build_seed.py`) | `fill_if_null` | `slug` |
 | 4 | `hook_types.json` | `/seed/hook_types.json` (27) | `upsert` של השדות הקנוניים בלבד | `slug` |
 | 5 | `seasons.json` | `/seed/seasons.json` (25, כולל 2 ימי שקט) | `upsert` של השדות הקנוניים בלבד | `slug` |
 | 6 | `hooks.json` | `/seed/hooks.json` (326) | `upsert` של השדות הקנוניים, **רק לשורות `source = 'seed'`** | `id` |
@@ -4170,10 +4460,10 @@ alter default privileges in schema public grant select on tables to backup_reade
 | 16 | `feature_flags.json` | §16.4 | `insert_missing` | `key` |
 
 - **הסדר הוא בדיוק הסדר של §5.8 בנספח F**, ועוד שלב 3b מיד אחרי `niches.json`. הוא שונה מעט מהסדר שב-`/seed/README.md` (שם `hook_families` אחרי `niches`), ושניהם תקינים כי אין תלות בין המשפחות לנישות; הסדר הקובע הוא של נספח F.
-- **`niche_extras.json`** (חדש, קיים רק ב-`supabase/seed/data/`): מערך של `{ slug, short_name_he, default_register, default_audience_gender, default_cta, default_music_mood }` לכל 36 הנישות. ‏`short_name_he` מחלק 02 §1.2; ‏`default_register`, ‏`default_audience_gender` ו-`default_cta` מנספח E §3.3; ‏`default_music_mood` = `null` בהשקה (האדמין קובע; אחרת הסטוריבורד בוחר מצב רוח). ל-`local-politics` כל הערכים `null`. **מצב `fill_if_null`:** כל עמודה נכתבת רק כשהערך במסד הוא NULL, כך שעריכה באדמין לעולם לא נדרסת.
+- **`niche_extras.json`** (חדש; `seed/scripts/build_seed.py` בונה אותו אל `/seed/niche_extras.json` ובודק אותו ב-`--check`, ו-`pnpm seed:sync` מעתיק אותו ל-`supabase/seed/data/` כמו את שאר קובצי `/seed`): מערך של `{ slug, short_name_he, default_register, default_audience_gender, default_cta, default_music_mood }` לכל 36 הנישות. ‏`short_name_he` מחלק 02 §1.2; ‏`default_register`, ‏`default_audience_gender` ו-`default_cta` מנספח E §3.3; ‏`default_music_mood` = `null` בהשקה (האדמין קובע; אחרת הסטוריבורד בוחר מצב רוח). ל-`local-politics` כל הערכים `null`. **מצב `fill_if_null`:** כל עמודה נכתבת רק כשהערך במסד הוא NULL, כך שעריכה באדמין לעולם לא נדרסת.
 - **"שדות קנוניים בלבד"** = רק המפתחות שבקובץ. עמודות DB-only (`is_active`, `seo_*`, `short_name_he`, `sample_scripts`, `starts_on`, מונים, `status`…) מקבלות ברירת מחדל בהכנסה ראשונה ולא נדרסות אחר כך, כי upsert של PostgREST מעדכן רק את העמודות שנשלחו.
 - **הוקים שנערכו באדמין** מקבלים `source = 'admin'` בעת העריכה, וה-seed מדלג עליהם. הסקריפט מושך מראש את רשימת ה-`id` עם `source <> 'seed'` ומסנן אותם.
-- `/seed` (בשורש הריפו) נשאר מקור האמת לנספחים A–C (נבנה מ-`seed/scripts/build_seed.py`); `pnpm seed:sync` מריץ `python3 -I seed/scripts/build_seed.py --check` ואז מעתיק את ששת הקבצים ל-`supabase/seed/data/`. לא עורכים את ה-JSON ידנית. קובצי הנתונים העסקיים (`plans.json`, ‏`credit_packs.json`, …, ‏`niche_extras.json`) קיימים רק ב-`supabase/seed/data/`.
+- `/seed` (בשורש הריפו) נשאר מקור האמת לנספחים A–C (נבנה מ-`seed/scripts/build_seed.py`); `pnpm seed:sync` מריץ `python3 -I seed/scripts/build_seed.py --check` ואז מעתיק את שבעת הקבצים (ששת הקבצים הקנוניים ו-`niche_extras.json`) ל-`supabase/seed/data/`. לא עורכים את ה-JSON ידנית, לא ב-`/seed` ולא בעותק. קובצי הנתונים העסקיים (`plans.json`, ‏`credit_packs.json`, …, ‏`feature_flags.json`, מ-§16.4–§16.5) קיימים רק ב-`supabase/seed/data/`.
 
 ### 16.2 סכמות Zod (`supabase/seed/schemas.ts`)
 
@@ -4231,7 +4521,9 @@ export const NicheSeed = z.strictObject({
 // DB-only launch defaults (step 3b, fill_if_null)
 export const NicheExtrasSchema = z.strictObject({
   slug: Slug,
-  short_name_he: HeOpt,                                   // plural form usable after "ל…", e.g. "מתווכי נדל״ן"
+  short_name_he: HeOpt                                    // plural form usable after "ל…", e.g. "מתווכי נדל״ן"
+    .refine((v) => v == null || !/[()]/.test(v), "HE025: parentheses are not allowed in short_name_he")   // same check as build_seed.py
+    .refine((v) => v == null || (v.length <= 40 && v.trim().split(/\s+/).length <= 4), "short_name_he: 1-4 words, at most 40 chars"),
   default_register: z.enum(E.register).nullable(),
   default_audience_gender: z.enum(E.audience_gender).nullable(),
   default_cta: z.string().trim().min(1).max(120).nullable(),
@@ -4278,6 +4570,14 @@ export const HookSeed = z.strictObject({
     ctx.addIssue({ code: "custom", path: ["text_he"], message: "banned phrase (appendix E §5.2)" });
   if (/₪\s?\d|₪\{/.test(h.text_he))
     ctx.addIssue({ code: "custom", path: ["text_he"], message: "hook text uses the suffix form: '349 ₪' / '{מחיר} ₪'" });
+  // HE010: at most 12 words; a word = a whitespace token that contains a letter or a digit ("–" and "₪" alone do not count;
+  // a placeholder such as {מחיר} counts as one word)
+  const words = h.text_he.split(/\s+/).filter((t) => /[\p{L}\p{N}]/u.test(t));
+  if (words.length > 12)
+    ctx.addIssue({ code: "custom", path: ["text_he"], message: `HE010: hook has ${words.length} words (max 12)` });
+  // HE025 (Part 05 §23.3): no parentheses in hook text (spoken hooks cannot "read" them; rephrase with a comma or a colon)
+  if (/[()]/.test(h.text_he))
+    ctx.addIssue({ code: "custom", path: ["text_he"], message: "HE025: parentheses are not allowed in hook text" });
   if (!h.niche_slug && !h.season_slug && !h.id.startsWith("universal-"))
     ctx.addIssue({ code: "custom", path: ["id"], message: "hooks without niche/season must be universal-NN" });
   if (h.season_slug && !h.niche_slug && !h.id.startsWith(`seasonal-${h.season_slug}-`))
@@ -4298,7 +4598,9 @@ export const PlanSeed = z.strictObject({
   id: z.enum(["free", "starter", "business", "agency"]), name_he: He, tagline_he: He,
   price_monthly_ils: z.number().min(0), price_annual_monthly_ils: z.number().min(0).nullable(),
   monthly_credits: z.number().int().min(0), trial_credits: z.number().int().min(0),
-  limits: LimitsSchema, features_he: z.array(He).min(3), is_public: z.boolean(), is_highlighted: z.boolean(), sort_order: z.number().int(),
+  limits: LimitsSchema, features_he: z.array(He).min(3), is_public: z.boolean(),
+  is_highlighted: z.boolean(),                            // → התג "מומלץ"
+  sort_order: z.number().int(),
 });
 export const CreditPackSeed = z.strictObject({
   id: z.string().regex(/^pack-[0-9]+$/), name_he: He, credits: z.number().int().positive(), price_ils: z.number().positive(),
@@ -4363,7 +4665,7 @@ async function main() {
   guardProduction(env);                      // production URL requires --yes-production; --fixtures is refused in production
   const files = await readAll("supabase/seed/data");            // 17 files; a missing file is an error
 
-  // 1) shape: Zod per row + canonical key order for the six canonical files; collect ALL errors, then exit(1)
+  // 1) shape: Zod per row + canonical key order for the seven /seed files (six canonical + niche_extras); collect ALL errors, then exit(1)
   const parsed = validateShapes(files);      // errors printed as "hooks.json[41].placeholders: …"
 
   // 2) normalize season aliases (seasons.slug, hooks.season_slug); unknown slug -> error
@@ -4425,7 +4727,7 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 
 ### 16.4 תוכן קובצי הנתונים העסקיים
 
-**`plans.json`** (מחירים כולל מע״מ; `features_he` כלשונו בנספח F §10.2; `tagline_he` — הערכים כאן הם הקנוניים, וחלק 02 §7.2 מציג אותם כלשונם):
+**`plans.json`** (מחירים כולל מע״מ; `features_he` לפי נספח F §10.2, והנוסח כאן קנוני — שורת הניסיון מציינת גם "באיכות טיוטה, עם סימן מים"; `tagline_he` — הערכים כאן הם הקנוניים, וחלק 02 §7.2 מציג אותם כלשונם):
 
 ```json
 [
@@ -4435,7 +4737,7 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
                 "visual_mix": ["images", "smart"], "max_ai_clips": 1, "max_ai_clip_sec": 5, "max_formats": 1, "max_resolution": "720p",
                 "watermark": true, "concurrent_jobs": 1, "daily_credit_cap": 70, "music_generate": false, "hook_variants_max": 1,
                 "approval_links": false, "white_label": false, "projects_max": 3 },
-    "features_he": ["70 קרדיטים לניסיון (כ-2 סרטונים קצרים)", "איכות טיוטה, 720p, פורמט 9:16", "סימן מים של {{BRAND_NAME}}",
+    "features_he": ["70 קרדיטים לניסיון (כ-2 סרטונים קצרים באיכות טיוטה, עם סימן מים)", "איכות טיוטה, 720p, פורמט 9:16", "סימן מים של {{BRAND_NAME}}",
                     "גישה מלאה לספריית ההוקים", "בלי כרטיס אשראי"],
     "is_public": true, "is_highlighted": false, "sort_order": 10 },
   { "id": "starter", "name_he": "בסיס", "tagline_he": "לעסק שמפרסם כל שבוע",
@@ -4515,7 +4817,6 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 | `prompt_versions` | `{}` | `{[family]: "vN"}` | Active prompt version per family; empty = latest in code |
 | `disposable_email_domains` | `["10minutemail.com", "guerrillamail.com", "mailinator.com", "temp-mail.org", "yopmail.com", "trashmail.com", "sharklasers.com", "getnada.com", "dispostable.com", "maildrop.cc", …]` | מערך מחרוזות | Domains that never receive trial credits (full list in the file) |
 | `allocation_threshold_schedule` | `[{"from":"2026-01-01","ils":10000},{"from":"2026-06-01","ils":5000}]` | ממוין עולה לפי `from` | Invoice allocation-number threshold by date (part 06 §9.4) |
-| `business_tax_status` | `"licensed"` | `licensed` \| `exempt` (חלק 06 §9.2) | Which invoice document type is issued |
 | `dunning_retry_days` | `[1, 3, 7]` | מערך שלמים | Days after a failed renewal on which the charge is retried (part 06 §6.1) |
 | `non_business_days` | תאריכי החגים בישראל ל-12 החודשים הבאים (ISO) | מערך תאריכים | Holidays for business-day counting (part 06 §10.2) |
 | `renewals_paused` | `false` | בוליאני | Pauses renewal charges during a provider incident (runbook R3) |
@@ -4592,6 +4893,8 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 | `lib/supabase/browser.ts` | `createClient()` | publishable | עוגיות (דפדפן) | Client Components | Realtime, העלאות TUS, קריאות קלות שמוגנות ב-RLS |
 | `lib/supabase/admin.ts` | `createAdminClient()` | **secret** | אין | רק קוד `server-only`: Route Handlers אחרי בדיקת הרשאה, webhooks, cron, workflows, seed | כתיבות כספיות, צנרת, מנוע הקרדיטים, כתובות חתומות |
 | `lib/supabase/static.ts` | `createStaticClient()` | publishable | אין (בלי `cookies()`) | דפי שיווק SSG/ISR (`lib/marketing/queries.ts`) | קריאת הקטלוג הציבורי כ-`anon` בלי להפוך את הדף לדינמי |
+
+**`NEXT_PUBLIC_SUPABASE_URL`** יכול להיות `https://<project-ref>.supabase.co` או הדומיין המותאם (`https://auth.{{DOMAIN}}`, §1.2). אף קובץ לא מקודד את המארח: ארבעת הלקוחות, `publicMediaUrl()` (§13.4), ה-CSP (`buildCsp`: ‏`https://<host>` ו-`wss://<host>` ב-`img-src`, ‏`media-src`, ‏`connect-src`) ו-`images.remotePatterns` ב-`next.config` גוזרים אותו מהמשתנה הזה.
 
 **כלל ברזל:** `admin.ts` מייבא `"server-only"` ונבדק ב-ESLint (`no-restricted-imports` מכל קובץ תחת `components/` או קובץ עם `"use client"`). שימוש בלקוח הסודי מותר רק **אחרי** שהקוד בדק הרשאה במפורש (`requireRole`, אימות חתימה או `CRON_SECRET`).
 
@@ -4778,7 +5081,7 @@ export const config = {
 **מה ה-proxy עושה, לפי הסדר:**
 1. `/dev/*` ← ‏404 כש-`APP_ENV === "production"` (בנוסף לשומר בזמן build בדפים עצמם; חלק 06 §8.3).
 2. `/` ← `marketingExperiments` בלבד: rewrite ל-`/exp/hero/[variant]` רק כשקיימת עוגיית `exp_hero` (חלק 02). אין שם Supabase ואין nonce.
-3. **CSP עם nonce** לנתיבים הדינמיים (`/app`, ‏`/admin`, ‏`/login`, ‏`/auth/*`, ‏`/v/*`, ‏`/approve/*`, ‏`/unsubscribe`): nonce חדש לכל בקשה בכותרת `x-nonce`, וכותרת ה-CSP מ-`buildCsp` (חלק 06 §15.3). דפי השיווק הסטטיים מקבלים CSP מבוסס hash מ-`next.config.ts`.
+3. **CSP עם nonce** לנתיבים הדינמיים (`/app`, ‏`/admin`, ‏`/login`, ‏`/auth/*`, ‏`/v/*`, ‏`/approve/*`, ‏`/unsubscribe`): nonce חדש לכל בקשה בכותרת `x-nonce`, וכותרת ה-CSP מ-`buildCsp` (חלק 06 §15.3). דפי השיווק הסטטיים מקבלים CSP מבוסס hash מ-`next.config.ts` (`staticCspHeaders`, חלק 06 §15.3; ה-hash של `THEME_SCRIPT_SOURCE` בשני הענפים; ההתנהגות מול סקריפטי ה-inline של Next [M0-verify ספייק 16]).
 4. **`/admin*`**: ‏`platform_admin_status()` = `none` ← rewrite ל-404; ‏`needs_mfa` ← הפניה ל-`/admin/mfa?next=…` (חוץ מכשכבר נמצאים ב-`/admin/mfa`); ‏`ok` ← ממשיכים. הדף `/admin/mfa` (חלק 06 §15.4) נגיש ברמת `aal1`, רושם או מאמת TOTP (`mfa.enroll` / `challenge` / `verify`) ומפנה ל-`next` או ל-`/admin`.
 5. רענון ה-session, הפניה ל-`/login` כשאין משתמש ב-`/app` או ב-`/admin`, והפניה מ-`/login` למשתמש מחובר.
 
@@ -4843,7 +5146,7 @@ export type Row<T extends keyof Database["public"]["Tables"]> = Database["public
 ### 18.1 כללים
 
 - כל Route Handler נמצא תחת `app/api/**/route.ts`, רץ ב-Node.js (`export const runtime = "nodejs"`, ‏`preferredRegion = "fra1"`), ונבנה רק דרך העטיפה `route()` (18.4). אין handler "חשוף".
-- **גוף בקשה:** JSON בלבד (`content-type: application/json`), מקסימום 64KB, מאומת ב-Zod. מפתחות בבקשות ב-camelCase (כמו בנספח F). **שני החריגים היחידים:** `POST /api/admin/billing/payments/[id]/invoice` (‏`multipart/form-data`, עד 10MB, §24.1), וה-webhooks (גוף גולמי עד 1MB, §22.1).
+- **גוף בקשה:** JSON בלבד (`content-type: application/json`), מקסימום 64KB, מאומת ב-Zod. מפתחות בבקשות ב-camelCase (כמו בנספח F). **שני החריגים היחידים:** `POST /api/admin/billing/payments/[id]/invoice` (‏`multipart/form-data`, קובץ PDF עד 4MB — מתחת למגבלת הגוף של Vercel, 4.5MB, חלק 06 §9.5, §19.6; §24.1), וה-webhooks (גוף גולמי עד 1MB, §22.1).
 - **תשובות:** מעטפת ב-camelCase (`{ projectId }`, `{ job, steps, scenes }`, `{ url, expiresAt }`); אובייקטי ישויות (DTO) בשמות העמודות של המסד (snake_case), כדי שיתמזגו ישירות עם payload-ים של Realtime ועם הטיפוסים המחוללים. JSON Schemas קנוניים (`ScriptV1`, `StoryboardV1`, `HookBatchV1`, `CaptionTrackV1`, `BrandProfileV1`) נשארים כמו שהם.
 - **שגיאה:** תמיד `{ error: { code, message_he, details? } }` עם סטטוס HTTP מהטבלה ב-18.2. ‏`message_he` הוא גיבוי (מיילים, לוגים, קליינט בלי מפתח); הממשק מציג את `errors.{code}` מ-`messages/he.json` (חלק 03 §1.4).
 - **כותרות בכל תשובה:** `x-request-id` (uuid), ‏`cache-control: no-store` (חוץ מ-`GET /api/hooks/search`, ‏18.6).
@@ -4872,28 +5175,28 @@ export const ERROR_STATUS: Record<ErrorCode, number> = {
 
 /** server-side Hebrew fallback; the UI shows errors.{code}.title/body from messages/he.json */
 export const ERROR_MESSAGE_HE: Record<ErrorCode, string> = {
-  INSUFFICIENT_CREDITS: "אין מספיק קרדיטים לפעולה הזו. לא חויבתם.",
-  PLAN_LIMIT: "האפשרות הזו זמינה בתוכנית גבוהה יותר.",
-  CONCURRENCY_LIMIT: "כבר רצות יצירות במקביל עד המכסה של התוכנית. לא חויבתם.",
+  INSUFFICIENT_CREDITS: "אין מספיק קרדיטים לפעולה הזו. לא בוצע חיוב.",
+  PLAN_LIMIT: "התוכנית הנוכחית לא כוללת את האפשרות הזו.",
+  CONCURRENCY_LIMIT: "כבר רצות יצירות במקביל עד המכסה של התוכנית. לא בוצע חיוב.",
   RATE_LIMITED: "היו יותר מדי בקשות בזמן קצר. אפשר לנסות שוב בעוד רגע.",
-  MODERATION_BLOCKED: "אי אפשר ליצור את התוכן הזה לפי מדיניות השימוש ב-AI. לא חויבתם.",
-  ELECTION_POLICY_BLOCKED: "תוכן פוליטי חסום בתקופת הבחירות. לא חויבתם.",
+  MODERATION_BLOCKED: "אי אפשר ליצור את התוכן הזה לפי מדיניות השימוש ב-AI. לא בוצע חיוב.",
+  ELECTION_POLICY_BLOCKED: "תוכן פוליטי חסום בתקופת הבחירות. לא בוצע חיוב.",
   MISSING_FACTS: "חסרים נתונים אמיתיים שצריך למלא או להסיר לפני היצירה.",
-  PROVIDER_UNAVAILABLE: "מנוע ה-AI לא זמין כרגע. לא חויבתם; אפשר לנסות שוב בעוד כמה דקות.",
+  PROVIDER_UNAVAILABLE: "מנוע ה-AI לא זמין כרגע. לא בוצע חיוב. אפשר לנסות שוב בעוד כמה דקות.",
   PROVIDER_TIMEOUT: "היצירה לקחה יותר מדי זמן ונעצרה. הקרדיטים חזרו ליתרה.",
   VIDEO_JOB_FAILED: "לא הצלחנו ליצור את הסרטון. הקרדיטים חזרו ליתרה.",
   TTS_FAILED: "לא הצלחנו להקליט את הקריינות. הקרדיטים חזרו ליתרה.",
   RENDER_FAILED: "ההרכבה נכשלה. הקרדיטים חזרו ליתרה.",
-  BUDGET_GUARD: "בשעות הקרובות לא מתחילים יצירות חדשות. לא חויבתם, והעבודה שלכם שמורה.",
+  BUDGET_GUARD: "בשעות הקרובות לא מתחילים יצירות חדשות. לא בוצע חיוב, והעבודה נשמרה.",
   INVALID_INPUT: "חלק מהפרטים לא תקינים.",
-  NOT_FOUND: "לא מצאנו את מה שחיפשתם.",
-  FORBIDDEN: "אין לכם הרשאה לפעולה הזו.",
-  PAYMENT_FAILED: "התשלום לא עבר, ולא חויבתם.",
+  NOT_FOUND: "הפריט המבוקש לא נמצא.",
+  FORBIDDEN: "אין הרשאה לפעולה הזו.",
+  PAYMENT_FAILED: "התשלום לא עבר. לא בוצע חיוב.",
   WEBHOOK_INVALID_SIGNATURE: "חתימת ה-webhook לא תקינה.",
-  MAINTENANCE: "המערכת בתחזוקה קצרה. העבודה שלכם שמורה.",
+  MAINTENANCE: "המערכת בתחזוקה קצרה. העבודה נשמרה.",
   UNAUTHENTICATED: "צריך להתחבר כדי להמשיך.",
-  EDIT_CONFLICT: "מישהו שינה את זה בזמן שעבדתם. טענו מחדש כדי לראות את הגרסה העדכנית.",
-  INTERNAL_ERROR: "משהו השתבש אצלנו. לא חויבתם על הפעולה הזו.",
+  EDIT_CONFLICT: "התוכן השתנה בזמן העריכה. כדאי לטעון מחדש כדי לראות את הגרסה העדכנית.",
+  INTERNAL_ERROR: "משהו השתבש אצלנו. לא בוצע חיוב על הפעולה הזו.",
 };
 
 export class ApiError extends Error {
@@ -4932,8 +5235,8 @@ import { z } from "zod/v4";
 export const VALIDATION_HE = {
   required: "זה שדה חובה",
   invalid_type: "הערך לא תקין",
-  too_small_string: "צריך לפחות {min} תווים",
-  too_big_string: "אפשר עד {max} תווים",
+  too_small_string: "מספר התווים המינימלי הוא {min}",
+  too_big_string: "מספר התווים המקסימלי הוא {max}",
   too_small_array: "צריך לבחור לפחות {min}",
   too_big_array: "אפשר לבחור עד {max}",
   too_small_number: "הערך המינימלי הוא {min}",
@@ -5062,7 +5365,7 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 
 זרם האובייקטים של AI SDK (`streamObject` כזרם טקסט, וה-hook שצורך אותו בדפדפן) לא בשימוש: זרם טקסט לא יכול לשאת שגיאה טיפוסית באמצע הזרם או את תוצאת ההחזר, ו-`streamObject` מסומן כ-deprecated ב-AI SDK v6 (חלק 05 §3.2).
 
-`maxDuration`: נתיבי AI אינטראקטיביים 120 שניות (§6.12 בנספח F), `generate`/`render`/`regenerate` 60, שאר הנתיבים 30, webhooks 30, ‏cron ‏300.
+`maxDuration`: נתיבי AI אינטראקטיביים 300 שניות, עם תקציב זמן פנימי של 240 שניות (חלק 05 §2.2; ‏§19.5 שלב 6), `generate`/`render`/`regenerate` 60, שאר הנתיבים 30, webhooks 30, ‏cron ‏300.
 
 ### 18.6 הגבלות קצב (Upstash, `lib/ratelimit.ts`)
 
@@ -5131,10 +5434,10 @@ export async function claimIdempotency(ctx: RouteCtx<unknown, unknown>, scope: R
 |---|---|
 | `new` | ממשיכים. מפתח הקרדיטים: `spend:{scope}:{key}:{attempt}` |
 | `completed` | **שחזור:** אותו סטטוס ואותו גוף JSON שנשמר, עם `Idempotent-Replayed: true`. בנתיבי NDJSON הגוף השמור הוא התוצאה הסופית (`{ versionId, script }` / `{ hooks }`) כ-JSON רגיל (`application/json`), לא זרם — `useNdjsonObject` מטפל בשני הסוגים לפי `Content-Type` |
-| `in_progress` (פחות מ-5 דקות) | ‏409 `EDIT_CONFLICT` ‏`{ reason: "request_in_progress" }` + `Retry-After: 2` |
+| `in_progress` (פחות מ-6 דקות: ‏`maxDuration` של 300 שניות ועוד 60) | ‏409 `EDIT_CONFLICT` ‏`{ reason: "request_in_progress" }` + `Retry-After: 2` |
 | `mismatch` | ‏400 `INVALID_INPUT` ‏`{ reason: "idempotency_key_reused" }` |
 
-**סיום:** תשובת 2xx או 4xx ← `complete_idempotency_key(…, 'completed', status, body, resourceId)`. תשובת 5xx או זרם שנקטע ← `'failed'`; ניסיון חוזר עם אותו מפתח מקבל `attempt + 1`, ולכן מפתח קרדיטים חדש — הניסיון הקודם כבר הוחזר (`refund_reservation`) ולא "נבלע".
+**סיום:** תשובת 2xx או 4xx ← `complete_idempotency_key(…, 'completed', status, body, resourceId)`, אחרי `commit_spend`. תשובת 5xx או זרם שנקטע ← `'failed'`; ניסיון חוזר עם אותו מפתח מקבל `attempt + 1` ומפתח קרדיטים חדש; השמירה של הניסיון הקודם הוחזרה ב-catch, או על ידי ה-sweeper (§23) אם הפונקציה נקטעה.
 
 ### 18.8 קליינט טיפוסי (`lib/api/client.ts`)
 
@@ -5214,6 +5517,7 @@ export const looseRow = z.looseObject({ id: z.string() });                      
 | 6 | `GET /api/projects/[id]/hooks` | member · project | — | — | `200 { hooks }` | — |
 | 7 | `POST /api/projects/[id]/hooks` | editor · project | **חובה** | `llm` | **NDJSON** `HookBatchV1`; ‏`done.workspaceHookIds` | `INSUFFICIENT_CREDITS`, `MODERATION_BLOCKED`, `PROVIDER_UNAVAILABLE` |
 | 8 | `POST /api/projects/[id]/script` | editor · project | **חובה** | `llm` | **NDJSON** `ScriptV1`; ‏`done.versionId` | `MISSING_FACTS`, `MODERATION_BLOCKED`, `ELECTION_POLICY_BLOCKED`, `INSUFFICIENT_CREDITS` |
+| 8a | `PATCH /api/projects/[id]/script` | editor · project | — | default | `200 { versionId, updatedAt, script, storyboardStale }` | `EDIT_CONFLICT` (`stale`/`version_locked`), `INVALID_INPUT`, `NOT_FOUND` |
 | 9 | `POST /api/projects/[id]/script/beats/[index]/rewrite` | editor · project | — | `rewrite` | `200 { versionId, beat }` | `EDIT_CONFLICT` |
 | 10 | `POST /api/projects/[id]/script/inflect` | editor · project | — | `inflect` | `200 { versionId }` | — |
 | 11 | `POST /api/projects/[id]/storyboard` | editor · project | **חובה** | `llm` | `200 { versionId, storyboard, scenes }` | `MODERATION_BLOCKED`, `INSUFFICIENT_CREDITS` |
@@ -5248,12 +5552,16 @@ export const CreateProjectBody = z.strictObject({
 export const CreateProjectResponse = z.object({ projectId: Uuid, step: WizardStep });
 // step = first incomplete step computed by lib/wizard/progress.ts (part 03 §6.0), not always "business"
 
+// end-card headline (appendix E is the source): at most 6 words and 30 characters; same rule in part 05 end_card.headline_he
+export const EndCardHeadline = z.string().trim().max(30)
+  .refine((v) => v.split(/\s+/).filter(Boolean).length <= 6, { params: { key: "custom" } });
+
 export const ProjectBrief = z.strictObject({
   focus_service: HeText(1, 80).nullable().optional(),
   notes: z.string().trim().max(2000).nullable().optional(),
   offer: z.strictObject({ text_he: HeText(2, 200), valid_until: z.iso.date().nullable(), season_slug: Slug.nullable() }).nullable().optional(),
   cta: z.strictObject({ type: CtaType, target: z.string().trim().max(300).nullable(), keyword: z.string().trim().max(30).nullable(),
-    prefill_he: z.string().trim().max(200).nullable(), headline_he: z.string().trim().max(60).nullable() }).nullable().optional(),
+    prefill_he: z.string().trim().max(200).nullable(), headline_he: EndCardHeadline.nullable() }).nullable().optional(),
   // NON-primary hook variants only; the primary is projects.hook_id / workspace_hook_id / hook_text_he
   variant_hooks: z.array(z.strictObject({ hook_id: HookId.nullable(), workspace_hook_id: Uuid.nullable(), text_he: HeText(3, 160) })).max(4).optional(),
   fact_answers: z.array(z.strictObject({
@@ -5280,7 +5588,7 @@ export const RenderOptions = z.strictObject({
   caption_position: z.enum(["lower", "middle"]).optional(),
   caption_highlight_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).nullable().optional(),
   end_card: z.strictObject({
-    headline_he: z.string().trim().max(60).optional(),
+    headline_he: EndCardHeadline.optional(),
     show_phone: z.boolean().optional(), show_whatsapp: z.boolean().optional(), show_website: z.boolean().optional(),
     show_address: z.boolean().optional(), show_instagram: z.boolean().optional(), show_qr: z.boolean().optional(),
   }).optional(),
@@ -5339,7 +5647,7 @@ export const ProjectPatchResponse = z.object({ project: looseRow });
 
 **`POST /api/projects/[id]/duplicate`:** מעתיק את שורת הפרויקט (כותרת + " (עותק)"), את הגרסה הנוכחית כגרסה 1 ואת הסצנות שלה עם אותם `*_asset_id` (בלי ליצור מדיה מחדש), ‏`stage = 'storyboard'` אם היו סצנות, אחרת `'brief'`.
 
-**`POST /api/projects/[id]/versions`** — ‏`{ fromVersionId: Uuid }` ← ‏`201 { versionId, version }`: גרסה חדשה (`source = 'user_edit'`) עם עותק של `script`, ‏`storyboard`, וכל הסצנות (אותם נכסים, `status` כמו במקור), ו-`projects.current_version_id` מצביע עליה. אם `fromVersionId` אינה הגרסה הנוכחית — מותר (שחזור מגרסה קודמת).
+**`POST /api/projects/[id]/versions`** — ‏`{ fromVersionId: Uuid }` ← ‏`201 { versionId, version }`: גרסה חדשה (`source = 'user_edit'`) עם עותק של `script`, ‏`storyboard`, וכל הסצנות (אותם נכסים, `status` כמו במקור; ההעתקה בלקוח הסודי, כי `scenes` נכתבת רק בשרת, §19.6), ו-`projects.current_version_id` מצביע עליה. אם `fromVersionId` אינה הגרסה הנוכחית — מותר (שחזור מגרסה קודמת).
 
 ### 19.4 חילוץ מותג (SSE)
 
@@ -5357,7 +5665,7 @@ export const BrandExtractEvent = z.discriminatedUnion("type", [
 |---|---|
 | `fetching` | פותחים את האתר… |
 | `logo_found` | מצאנו לוגו |
-| `services_found` | זיהינו {n} שירותים |
+| `services_found` | `{n, plural, one {זיהינו שירות אחד} two {זיהינו שני שירותים} other {זיהינו # שירותים}}` |
 | `contact_found` | מצאנו טלפון ווואטסאפ (או "מצאנו טלפון" / "מצאנו וואטסאפ" לפי מה שנמצא) |
 | `tone` | מזהים את הטון… |
 | `colors` | אוספים את צבעי המותג… |
@@ -5380,6 +5688,26 @@ export const ScriptBody = z.strictObject({ hookText: HeText(3, 160).optional(), 
 //           projects.stage = 'script' (server client) → `done` { versionId, modelServed, credits }.
 //           Validation failure after one repair attempt → refund + `error` event PROVIDER_UNAVAILABLE { refunded }.
 // replay: 200 application/json { versionId, script: ScriptV1 }
+
+// manual edit of a draft script (part 03 §6.5 autosave, debounce 800ms); free, no AI call, bucket `default`, no Idempotency-Key
+export const ScriptBeatEdit = z.strictObject({
+  index: z.number().int().min(0).max(9),                         // ScriptV1.beats[].index
+  vo_he: z.string().trim().max(400).optional(),
+  onscreen_text_he: z.string().trim().max(70).optional(),        // > 8 words = lint warning only (part 03), not an error
+  visual_idea_he: z.string().trim().max(300).optional(),
+}).refine((b) => b.vo_he !== undefined || b.onscreen_text_he !== undefined || b.visual_idea_he !== undefined,
+          { params: { key: "required" } });
+export const ScriptPatchBody = z.strictObject({
+  versionId: Uuid,                                               // must be projects.current_version_id
+  ifUnmodifiedSince: IsoDateTime,                                // project_versions.updated_at the editor loaded
+  beats: z.array(ScriptBeatEdit).min(1).max(10),                 // unique index values (refine in the contract file)
+});
+export const ScriptPatchResponse = z.object({
+  versionId: Uuid,                                               // same version (edited in place)
+  updatedAt: IsoDateTime,                                        // the next ifUnmodifiedSince
+  script: ScriptV1,
+  storyboardStale: z.boolean(),                                  // true when the version already had a storyboard
+});
 
 export const RewriteInstruction = z.enum(["shorter", "energetic", "formal", "custom"]);
 export const BeatRewriteBody = z.strictObject({
@@ -5411,14 +5739,23 @@ export const EditPlanBody = z.strictObject({ versionId: Uuid, instructionHe: HeT
 export const EditPlanResponse = z.object({ plan: EditPlanV1 });            // EditPlanV1 from lib/ai/schemas (part 05, edit.chat.v1)
 ```
 
-**שערים לפני כל פעולת LLM שמוציאה קרדיטים** (בסדר הזה; כולם **לפני** `spend_credits`, כך שחסימה לא עולה כלום):
+**שערים לפני כל פעולת LLM שמוציאה קרדיטים** (בסדר הזה; כולם **לפני** `begin_spend`, כך שחסימה לא עולה כלום):
 1. `assertBudget()` (חלק 05) ← ‏503 `BUDGET_GUARD`.
 2. מצב בחירות + קטגוריה פוליטית (`ELECTION_POLICY_BLOCKED`, ‏451, ‏`{ until }`), ואז `moderation.brief.v1` על התקציר/הטקסט, עם מטמון לפי hash הטקסט ב-`project_versions.moderation` (`{allowed, categories, reason_he, kind, checked_at, prompt_version, input_hash}`; נכתב רק בצד השרת) ← ‏`MODERATION_BLOCKED`, ‏422.
 3. שער העובדות (`lib/hebrew/facts.ts`): כל placeholder מסוג `fact` (לפי `PLACEHOLDERS` של חלק 05 §8.2: מחיר · סכום · מספר · זמן · הנחה · דירוג · שם_לקוח · מספר_רישיון) בלי תשובה ב-`brief.fact_answers` ← ‏422 `MISSING_FACTS` ‏`{ facts }` (תוויות בעברית).
-4. `spend_credits(ws, credits, actionKey, ref, 'spend:' || requestKey, plan.daily_credit_cap)`.
-5. הקריאה ל-AI. כשל ← `refund_reservation(resId, 'refund:' || resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')`, ואז תשובת 503/504 — או, אם זרם ה-NDJSON כבר התחיל, אירוע `error` עם `details.refunded` (§18.5).
+4. `begin_spend(ws, credits, actionKey, ref, 'spend:' || requestKey, plan.daily_credit_cap)` ← `resId` (השמירה פתוחה; עוד לא נצרך כלום).
+5. הקריאה ל-AI, ואז שמירת התוצר (הגרסה או ההוקים), ורק אחר כך `commit_spend(resId, 'spend:' || requestKey)` (capture מלא ו-settle, אידמפוטנטי) ו-`complete_idempotency_key`. כל כשל בדרך ← `refund_reservation(resId, 'refund:' || resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')`, ואז תשובת 503/504 — או, אם זרם ה-NDJSON כבר התחיל, אירוע `error` עם `details.refunded` (§18.5). פונקציה שנקטעה באמצע משאירה שמירה פתוחה, וה-sweeper מחזיר אותה אחרי 6 דקות (§23). אם הפונקציה נקטעה אחרי השמירה של התוצר ולפני `commit_spend`, המשתמש מקבל את התוצר בחינם — כשל בטוח בכוונה.
+6. **זמנים:** לנתיבי AI אינטראקטיביים `maxDuration = 300`; ‏`RunContext.deadlineAt` = תחילת הבקשה + ‏240 000 ms; ה-timeout של כל ניסיון = `min(POLICY[endpoint].timeoutMs, deadlineAt − now − 5 000)`; כשנשארו פחות מ-30 שניות אין ניסיון חדש ואין `repairOnce` — הנתיב נכשל ומחזיר את הקרדיטים. כל קריאת AI SDK ‏(`generateText`/`streamText`/`generateObject`/`streamObject`) עם `maxRetries: 0` ו-`abortSignal: AbortSignal.any([req.signal, AbortSignal.timeout(deadlineAt − now)])`; הניסיונות החוזרים הם של הלולאה שלנו ושל `models[]` ב-OpenRouter (חלק 05 §2.2).
 
 **שכתובים (חינם):** `beats/[index]/rewrite` ו-`scenes/[sceneId]/rewrite` משתמשים ב-`scene.rewrite.v1`; `script/inflect` ב-`hooks.inflect.v1` על כל ביט. אם הגרסה נעולה (`is_version_locked`), השרת מפצל אותה קודם (כמו `POST …/versions`) ומחזיר את `versionId` החדש. גם `post-caption` חינמי ועובר את שער המודרציה (שלב 2) בלבד; הוא לא מפצל גרסה, כי התוצאה נשמרת ב-`projects.brief.post_caption`.
+
+**`PATCH /api/projects/[id]/script` (עריכה ידנית, חינם):** הנתיב היחיד שמשנה טקסט של beats בגרסה קיימת בלי AI (חלק 03 §6.5, §6.12). כללי הגרסאות זהים לעריכת סצנות (§19.6), כדי שהקליינט יטפל בשניהם באותו קוד:
+- `versionId` שייכת לפרויקט (אחרת ‏404 `NOT_FOUND`) וחייבת להיות `projects.current_version_id` — אחרת ‏409 `EDIT_CONFLICT` ‏`{ reason: "stale" }`.
+- **נעילה:** `is_version_locked(versionId)` ← ‏409 `EDIT_CONFLICT` ‏`{ reason: "version_locked" }` בלי לשנות דבר; הקליינט מפצל (`POST …/versions {fromVersionId}`, ‏`source = 'user_edit'`) וחוזר על אותה בקשה עם ה-`versionId` וה-`updatedAt` החדשים (חלק 03 §9.2). השרת **לא** מפצל כאן מעצמו (בשונה מהשכתובים), כי שמירה אוטומטית שמפצלת בשקט הייתה יוצרת גרסה חדשה בכל הקשה.
+- **התנגשות:** `ifUnmodifiedSince` ≠ ‏`project_versions.updated_at` ← ‏409 `EDIT_CONFLICT` ‏`{ reason: "stale", currentUpdatedAt }`.
+- **מיזוג:** כל `beats[i]` מחליף רק את השדות שנשלחו ב-beat עם אותו `index` (אינדקס שלא קיים או כפול ← ‏400 `INVALID_INPUT` עם `issues`). אחר כך, בצורה דטרמיניסטית: `vo_full_he` = שרשור `beats[].vo_he` ברווח אחד (‏`S03`, חלק 05 §11.3); ‏`cta.vo_he` = ‏`vo_he` של ה-beat האחרון (‏`S04`); ב-beat הראשון (`role = 'hook'`) — ‏`hook.text_he` ← ‏`vo_he` ו-`hook.onscreen_he` ← ‏`onscreen_text_he` כשנשלחו. ‏`vo_tts_he` לא מחושב כאן: ‏`source` הופך ל-`'user_edit'`, ולכן צעד הקריינות משתמש ב-`normalizeForTts(vo_full_he)` (חלק 05 §15.1). התסריט המלא מאומת שוב ב-`ScriptV1` (Zod בלבד; כללי `lint` הם אזהרות בממשק) ← שגיאה ← ‏400 `INVALID_INPUT` עם `issues` על `beats.{i}.…`.
+- **כתיבה:** `update project_versions set script, source = 'user_edit'` בלקוח הסודי (אחרי בדיקת ההרשאה בעטיפה; `project_versions_guard` ממילא חוסם גרסה עם עבודה), כך ש-`updated_at` מתעדכן; אין גרסה חדשה בכל שמירה. ‏`moderation` לא נמחק — ה-`input_hash` שלו כבר לא תואם, ולכן `storyboard`/`generate` מריצים את המודרציה שוב (שלב 2 למעלה). שער העובדות לא רץ כאן; ‏`POST …/generate` אוכף אותו (§19.8).
+- **סטוריבורד קיים:** העריכה לא נוגעת ב-`storyboard` ובסצנות. כשלגרסה כבר יש `storyboard`, התשובה מחזירה `storyboardStale: true`, ושלב התצוגה המקדימה (חלק 03 §6.9, "אם אין סטוריבורד עדכני") מציע לבנות אותו מחדש.
 
 ### 19.6 עריכת סצנות
 
@@ -5446,6 +5783,7 @@ export const SceneReorderBody = z.strictObject({ versionId: Uuid, sceneIds: z.ar
 export const ScenesIndexResponse = z.object({ scenes: z.array(z.object({ id: Uuid, index: z.number().int() })) });
 ```
 
+- **כתיבה רק בשרת:** ל-`authenticated` אין הרשאת כתיבה ל-`scenes` ואין מדיניות `insert`/`update`/`delete` (§12.2, §12.4), כך שאין נתיב ישיר לטבלה. כל כתיבה לסצנות — הנתיבים כאן ו-`POST …/versions` (פיצול), וגם הצעדים של חלק 05 — נעשית בלקוח הסודי, ורק אחרי: (1) בדיקת התפקיד בעטיפה (`editor+`); (2) `is_version_locked(versionId)`; (3) מודרציית העריכה — `imagePromptEn`/`motionPromptEn` עוברים `promptSafety` ו-`moderation.brief.v1` ‏(`kind: image_prompt`, חלק 05 §21.1), וטקסטים בעברית נבדקים שוב ב-`generate` דרך ה-hash של המודרציה (§19.8).
 - **נעילת גרסה:** כל שינוי בסצנה של גרסה נעולה ← ‏409 `EDIT_CONFLICT` ‏`{ reason: "version_locked" }`; הקליינט מפצל (`POST …/versions`) וחוזר על הפעולה על הגרסה החדשה (חלק 03).
 - `ifUnmodifiedSince` מושווה ל-`scenes.updated_at` (בשינוי סצנה) או ל-`max(updated_at)` של סצנות הגרסה (מחיקה וסידור). התנגשות ← `EDIT_CONFLICT` ‏`{ reason: "stale" }`.
 - `userAssetId` חייב להיות `upload_image`/`upload_video` של אותה סביבה; בחירה בו קובעת `visual_source = 'user_media'` (וידאו) או `'user_photo_animated'` (תמונה) אם לא נשלח אחרת.
@@ -5504,15 +5842,20 @@ export const JobStartedResponse = z.object({ jobId: Uuid });
 **`POST …/generate` — סדר הפעולות** (מרחיב את §6.4 בנספח F):
 1. הפרויקט והגרסה שייכים זה לזה; ‏`versionId` היא `current_version_id` (אחרת ‏409 `EDIT_CONFLICT` ‏`{ reason: "stale" }`); יש לגרסה `storyboard` וסצנות.
 2. מגבלות תוכנית על הגרסה ועל הבקשה (`quality_tiers`, `max_duration_sec`, `visual_mix` + `max_ai_clips`/`max_ai_clip_sec`, `max_formats`, `music_generate`, `hook_variants_max`) ← `PLAN_LIMIT`. סביבת לקוח שעברה לקריאה בלבד אחרי הורדת תוכנית (`canGenerate(ws)` ב-`lib/workspace/limits.ts`, חלק 06 §5.4) ← ‏403 `PLAN_LIMIT` ‏`{ limit: "client_workspaces", reason: "client_workspace_read_only" }`.
-3. מצב תחזוקה, `assertBudget()`, מצב בחירות ומודרציה (מטמון על הגרסה), שער העובדות. סרטון המלצה (`brief.testimonial` קיים, או דגל `testimonial_requires_consent` בתסריט) בלי `brief.testimonial.consent_attested = true` ← ‏422 `MISSING_FACTS` ‏`{ facts: ["אישור הלקוח על ההמלצה"] }`.
-   3b. **הסכמה למדיניות ה-AI:** אם אין למשתמש שורת `consents` מסוג `ai_content_policy` בגרסה הנוכחית של `/legal/ai-policy`, נרשמת שורה (`source = 'generate'`, ‏`granted = true`, ‏`ip`, ‏`user_agent`; לקוח סודי). השורה בדיאלוג האישור (חלק 03 §6.10) מודיעה על כך; אין תיבת סימון.
+3. מצב תחזוקה, `assertBudget()`, מצב בחירות ומודרציה (מטמון על הגרסה), שער העובדות, ואז **שער האישורים** (`assertAttestations(project, version)` ב-`lib/compliance/attestations.ts`), שנבדק על הגרסה שנוצרת — השרת קורא את `project_versions.script` שלה ולא סומך על הקליינט:
+   1. `projects.video_type = 'testimonial'` דורש `brief.testimonial.consent_attested = true` **וגם** שורת `brief.attestations[]` מסוג `testimonial_requires_consent`.
+   2. `flags = script.compliance.flags ∩ ATTESTED_FLAGS`, כש-`ATTESTED_FLAGS = [testimonial_requires_consent, urgency_must_be_true, results_claim, price_claim, kashrut_claim, minors]`. כל דגל כזה דורש שורת `brief.attestations[]` עם אותו `kind`. השרת דורס את `by` עם המשתמש המחובר (הכלל הקיים, §19.3) ודורש `at ≤ now()`.
+   3. חסר משהו ← ‏422 `MISSING_FACTS` ‏`{ facts: [label…] }`, עם התוויות של `ATTESTATION_LABELS_HE`: `testimonial_requires_consent` ← "אישור בכתב מהלקוח על השימוש בהמלצה" · `urgency_must_be_true` ← "אישור שההגבלה בזמן או בכמות אמיתית" · `results_claim` ← "אישור שהתוצאה מבוססת על נתונים אמיתיים" · `price_claim` ← "אישור שהמחיר נכון ומעודכן" · `kashrut_claim` ← "אישור שיש תעודת כשרות בתוקף" · `minors` ← "הסכמה בכתב של ההורים".
+
+   תסריט `reel_hook`/`brand_promo` שסומן `testimonial_requires_consent` עובר ברגע שתיבת הסימון (שנשמרת ב-`brief.attestations`) מסומנת.
+   3b. **הסכמה למדיניות ה-AI:** אם אין למשתמש שורת `consents` מסוג `ai_content_policy` בגרסה הנוכחית של `/legal/ai-policy`, נרשמת שורה דרך `recordConsent()` (`source = 'generate'`, ‏`granted = true`, ‏`ip`, ‏`user_agent`; לקוח סודי, §21.4). השורה בדיאלוג האישור (חלק 03 §6.10) מודיעה על כך; אין תיבת סימון.
 4. `credits = estimate(...)`.
 5. `create_job_and_reserve(ws, project, version, 'full_generate', key, {formats}, credits, user, ORCHESTRATOR, limits.concurrent_jobs, limits.daily_credit_cap)` — כפילות ← אותה עבודה (202, `Idempotent-Replayed`).
 6. **גרסאות הוק** (`brief.variant_hooks`, ‏§6.11 בנספח F): לכל אחת — פרויקט אח (`variant_group_id` משותף, `variant_of_project_id` = הראשי, גרסה עם סצנת הוק משלה ושאר הסצנות עם אותם נכסים), ואז `create_job_and_reserve` עם `options.afterJobId = primaryJobId`, מפתח `{key}:v{n}` ואותו `p_max_concurrent` של התוכנית (עבודות אחים לא נספרות במקביליות, §10.4). קבוצת הגרסאות מחויבת ומוגבלת כיצירה אחת. אם אחת מהן נכשלת ב-`INSUFFICIENT_CREDITS`, כל העבודות שנוצרו בבקשה מבוטלות (`refund_reservation`) והתשובה 402.
 7. `orchestrator.start(jobId)` ← `jobs.run_id`, ‏`started_at`; ‏`projects.stage = 'voice'`. כשל בהפעלה ← העבודה `failed` + `refund_reservation` + ‏503 `PROVIDER_UNAVAILABLE`.
 8. ‏`202 { jobId, variantProjectIds }`. האירוע `generation_confirmed` נשלח מהלקוח (`ConfirmGenerateDialog`) אחרי ה-202, לא מהשרת.
 
-**`regenerate`:** עבודת `regenerate_scene` עם `options = { formats, sceneIds: [sceneId], what, promptOverrideEn }` (‏`formats` = הפורמטים של ההרכבה המוצלחת האחרונה), והערכה של המדיה החדשה לסצנה + הרכבה מחדש של כל הפורמטים האלה (`render.base` + `render.extra_format × (n−1)`), שמוצגת לפני האישור. הגרסה הנוכחית חייבת להיות כזו שהסצנה שייכת אליה; אם היא נעולה — הצנרת עובדת על פיצול (חלק 05 מחליט; ה-API רק מעביר).
+**`regenerate`:** שלב 3 שלו כולל את אותו שער אישורים (1)–(3) על הגרסה של הסצנה. עבודת `regenerate_scene` עם `options = { formats, sceneIds: [sceneId], what, promptOverrideEn }` (‏`formats` = הפורמטים של ההרכבה המוצלחת האחרונה), והערכה של המדיה החדשה לסצנה + הרכבה מחדש של כל הפורמטים האלה (`render.base` + `render.extra_format × (n−1)`), שמוצגת לפני האישור. הגרסה הנוכחית חייבת להיות כזו שהסצנה שייכת אליה; אם היא נעולה — הצנרת עובדת על פיצול (חלק 05 מחליט; ה-API רק מעביר).
 **`render`:** עבודת `rerender` בלי מדיה חדשה, חוץ מ-`voice`/`captions` כשהקריינות, הקול או המהירות השתנו מאז ההרכבה האחרונה (העלות כלולה בהערכה).
 
 ### 19.9 עבודות
@@ -5531,11 +5874,12 @@ export const CancelJobResponse = z.object({ status: z.enum(ENUMS.job_status) });
 - [ ] `PATCH` עם `qualityTier: "premium"` בתוכנית בסיס ← 403 `PLAN_LIMIT` ‏`{ limit: "quality_tiers", required: "business" }`.
 - [ ] `PATCH` עם `ifUnmodifiedSince` ישן ← 409 `EDIT_CONFLICT` עם `currentUpdatedAt`.
 - [ ] `POST …/script` בלי `Idempotency-Key` ← 400; עם מפתח ← זרם NDJSON שהשורה הראשונה שלו מגיעה תוך 3 שניות, ואירוע `done` עם `versionId` שתואם לגרסה שנשמרה.
+- [ ] `PATCH …/script` על גרסת טיוטה משנה את ה-beat באותה גרסה (אין שורת `project_versions` חדשה), מחשב מחדש את `vo_full_he`, מעביר את `source` ל-`user_edit` ומחזיר `updatedAt` חדש; שליחה חוזרת עם ה-`ifUnmodifiedSince` הישן ← 409 `{ reason: "stale" }`; על גרסה שיש לה עבודה ← 409 `{ reason: "version_locked" }` והתסריט לא השתנה.
 - [ ] `POST …/generate` כשהיתרה 40 וההערכה 107 ← 402 עם `{ needed: 107, balance: 40 }`, ואין שורת `jobs` חדשה.
 - [ ] `POST …/generate` כשרצות 2 יצירות בתוכנית בסיס ← 409 `CONCURRENCY_LIMIT` ‏`{ max: 2, running: 2 }`.
 - [ ] `POST …/generate` עם 2 גרסאות הוק בתוכנית בסיס (2 במקביל) כשכבר רצה יצירה אחת ← ‏202, ‏`variantProjectIds.length = 2`, שלוש עבודות ושלוש שמירות; עבודות האחים (`options.afterJobId`) לא נספרות במקביליות בשום סטטוס.
 - [ ] `POST …/generate` ראשון של משתמש יוצר שורת `consents` אחת (`ai_content_policy`, ‏`source = 'generate'`); השני לא יוצר שורה נוספת.
-- [ ] `POST …/generate` בפרויקט המלצה בלי `brief.testimonial.consent_attested` ← 422 `MISSING_FACTS` ‏`{ facts: ["אישור הלקוח על ההמלצה"] }`.
+- [ ] `POST …/generate` בפרויקט המלצה בלי `brief.testimonial.consent_attested` ← 422 `MISSING_FACTS` ‏`{ facts: ["אישור בכתב מהלקוח על השימוש בהמלצה"] }`; תסריט עם הדגל `price_claim` בלי שורת `brief.attestations` מתאימה ← ‏422 `{ facts: ["אישור שהמחיר נכון ומעודכן"] }`; אחרי סימון התיבה ← 202. אותו דבר ב-`…/scenes/[sceneId]/regenerate`.
 - [ ] `POST …/estimate` אחרי יצירת תסריט וסטוריבורד מחזיר `alreadySpent = 3`.
 - [ ] `POST …/post-caption` לא מחייב קרדיטים, שומר `brief.post_caption` עם הפלטפורמה, ועובד גם על גרסה נעולה.
 - [ ] `PATCH` עם `renderOptions: { logo_bug: true }` ואחר כך `renderOptionsReset: ["logo_bug"]` משאיר `render_options = {}`.
@@ -5560,7 +5904,7 @@ export const CancelJobResponse = z.object({ status: z.enum(ENUMS.job_status) });
 | 8 | `POST /api/hooks/inflect` | user · cookie | `inflect` | `200 { text_he }` | `RATE_LIMITED` |
 | 9 | `POST /api/voices/preview` | user · cookie | `voice_preview` | `200 { url, expiresAt }` | `NOT_FOUND` (קול לא פעיל) |
 | 10 | `GET /api/models/options` | user · cookie | default | `200 { qualityTiers, advanced? }` | — |
-| 11 | `POST /api/share` | editor · project | `share` | `201 { url, shareLinkId, expiresAt }` | `PLAN_LIMIT` (`approval_links`), `INVALID_INPUT` (`no_render`) |
+| 11 | `POST /api/share` | editor · project | `share` | `201 { url, shareLinkId, expiresAt, emailSent }` | `PLAN_LIMIT` (`approval_links`), `INVALID_INPUT` (`no_render`; פרטי מאשר בקישור `public_view`) |
 | 12 | `POST /api/approvals/[token]` | public + token | `approvals` | `200 { status }` | `NOT_FOUND` (טוקן לא תקף/פג/בוטל) |
 | 13 | `POST /api/abuse-reports` | public | `public_forms` | `204` | `INVALID_INPUT` (נשמר עם `source = 'share_page'`) |
 | 14 | `POST /api/invites/accept` | user | default | `200 { workspaceId }` | `NOT_FOUND`, `FORBIDDEN` (`invite_email_mismatch`), `PLAN_LIMIT` (`seats`) |
@@ -5629,13 +5973,20 @@ export const HookSearchQuery = z.object({
   page: z.coerce.number().int().min(1).max(50).default(1),
   pageSize: z.coerce.number().int().min(6).max(48).default(24),
 });
+// THE single hook-card contract (flat). Part 02 and part 03 import it from here; no local copies.
 export const HookCardDTO = z.object({
   id: HookId, niche_slug: Slug.nullable(), niche_name_he: z.string().nullable(),
+  niche_short_name_he: z.string().nullable(),
+  niche_icon: z.string().nullable(),                        // lucide-react component name
   hook_type_slug: Slug, hook_type_name_he: z.string(), family_slug: Slug,
+  why_it_works_he: z.string().nullable(),                   // from hook_types
+  secondary_type_slug: Slug.nullable(),
   text_he: z.string(), platforms: z.array(z.enum(ENUMS.platform)), goal: z.enum(ENUMS.hook_goal), gender: z.enum(ENUMS.hook_gender),
   visual_direction_he: z.string(), placeholders: z.array(z.string()), season_slug: Slug.nullable(),
+  season_name_he: z.string().nullable(),
   compliance_note_he: z.string().nullable(), is_featured: z.boolean(),
   sample_video_url: z.url().nullable(),                     // public-media URL built from sample_video_path
+  sample_poster_url: z.url().nullable(),                    // public-media/hooks/{hook_id}.jpg; null when there is no video
   copies_count: z.number().int(), generations_count: z.number().int(), popularity: z.number().int(),
 });
 export const HookSearchResponse = z.object({
@@ -5665,6 +6016,7 @@ export const HookInflectBody = z.strictObject({
 export const HookInflectResponse = z.object({ text_he: z.string() });
 ```
 
+- **`toHookCardDTO(row)`** (`lib/hooks/dto.ts`) הוא הממפה היחיד משורת `search_hooks` ל-`HookCardDTO`: ‏`sample_video_url` נבנה מ-`sample_video_path`, ו-`sample_poster_url` נגזר ממנו (אותו שם בסיס, סיומת `.jpg`: ‏`public-media/hooks/{hook_id}.jpg`, הפריים ב-1.0 שניות שנכתב בהעלאת סרטון הדוגמה באדמין); בלי סרטון ← `null`. ‏`featured`/`has_video` בשאילתה הם המחרוזת `"1"`, לא בוליאני. סדר `popular`: רלוונטיות (כשיש `q`), ואז `is_featured`, ואז `hook_popularity.score`, ואז `id`.
 - **`GET /api/hooks/search`** קורא ל-`search_hooks` ול-`search_hooks_facets` עם `createStaticClient()` (‏anon, בלי עוגיות) ומחזיר `cache-control: public, s-maxage=300, stale-while-revalidate=3600`. ‏`offset = (page - 1) * pageSize`.
 - **`POST /api/hooks/[id]/event`:** ‏`id` חייב להתאים ל-`HookId`; כפילות מאותו IP לאותו הוק ולאותו `kind` בתוך שעה נבלעת (Upstash `SET NX EX 3600`) כדי שהמונים לא ינופחו; אחרת `increment_hook_event` עם הלקוח הסודי. תמיד 204 (גם כשההוק לא קיים), כדי לא לחשוף מידע ולא לשבור את ההעתקה בממשק.
 - **`POST /api/hooks/favorites`:** ‏`on: true` ← ‏insert (מתעלם מכפילות) עם `workspace_id` הנוכחי; `false` ← delete. הוק שאינו `published` ← 404.
@@ -5706,16 +6058,25 @@ export const ShareCreateBody = z.strictObject({
   projectId: Uuid,
   kind: z.enum(ENUMS.share_kind),
   allowDownload: z.boolean(),
-  expiresInDays: z.number().int().min(1).max(90).optional(),     // default: public_view never, client_approval 14
+  // omitted → public_view: never; client_approval: 14. client_approval is 1–90 days (UI: 14 · 30 · 90);
+  // a never-expiring approval link does not exist (DB check share_links_approval_expires)
+  expiresInDays: z.number().int().min(1).max(90).optional(),
   versionId: Uuid.optional(),                                     // default: current_version_id
-});
-export const ShareCreateResponse = z.object({ url: z.url(), shareLinkId: Uuid, expiresAt: IsoDateTime.nullable() });
+  // client_approval only (part 03 §8.2 "שם הלקוח / מייל הלקוח / הודעה ללקוח"); names = part 06 §12.5 template variables
+  approverName: HeText(2, 80).optional(),                         // → share_links.approver_name → {approverName}
+  approverEmail: z.email().optional(),                            // → share_links.approver_email; present → client_approval_request email
+  senderNote: z.string().trim().min(1).max(300).optional(),       // → share_links.sender_note → {senderNote} + quote on /approve/[token]
+}).refine((b) => b.kind === "client_approval" || (!b.approverName && !b.approverEmail && !b.senderNote),
+          { path: ["kind"], params: { key: "custom" } });
+export const ShareCreateResponse = z.object({ url: z.url(), shareLinkId: Uuid, expiresAt: IsoDateTime.nullable(), emailSent: z.boolean() });
 ```
 
 - השורה נכתבת עם הלקוח הסודי, אחרי בדיקות התוכנית וההרשאה (אין מדיניות `insert` למשתמשים, §12). הטוקן: 32 בתים אקראיים ב-base64url; נשמר רק `sha256` שלו (`share_links.token_hash`). ה-URL: `${SITE_URL}/v/{token}` או `${SITE_URL}/approve/{token}` — מוצג פעם אחת; אפשר ליצור קישור חדש בכל רגע.
-- `client_approval` דורש `limits.approval_links` ← אחרת 403 `PLAN_LIMIT`. ‏`show_branding = !workspace.white_label` (‏white label רק בסוכנות).
+- `client_approval` דורש `limits.approval_links` ← אחרת 403 `PLAN_LIMIT`. לקישור `client_approval` תמיד יש תפוגה (ברירת מחדל 14 יום, עד 90); אין קישור אישור בלי הגבלה.
+- **מיתוג:** המיתוג נקבע בזמן הצגה ושליחה: `resolveShareBranding(link)` ← `effective_white_label(link.workspace_id)` (§9). ‏`lib/share/branding.ts` מחזיר `{ whiteLabel, senderName, senderLogoUrl }`: ‏`senderName` הוא שם סביבת החיוב (הסוכנות) בסביבת לקוח, ואחרת שם העסק של הסביבה; ‏`senderLogoUrl` הוא הלוגו של ערכת המותג הראשית של סביבת החיוב. אין עמודת מיתוג בקישור, ולכן הפעלה או כיבוי של White label והורדת תוכנית חלים מיד גם על קישורים קיימים. המיילים `client_approval_request` ותוצאות האישור קוראים לאותה פונקציה בזמן השליחה (שם השולח והכותרת התחתונה, חלק 06 §12.1).
+- **פרטי המאשר** (`client_approval` בלבד; בקישור `public_view` ← ‏400 `INVALID_INPUT`): ‏`approverName`, ‏`approverEmail` ו-`senderNote` נשמרים ב-`share_links.approver_name` / `approver_email` / `sender_note`. כש-`approverEmail` קיים, אחרי ה-insert נשלח המייל `client_approval_request` (חלק 06 §12.5; מפתח אידמפוטנטיות `approval_request:{shareLinkId}`) עם `{approverName}`, ‏`{agencyName}` (שם העסק/הסוכנות, כמו `senderName` בדף), ‏`{projectTitle}`, ‏`{senderNote}`, ‏`{expiresAt}` והקישור עם הטוקן — הטוקן הגולמי קיים רק בזיכרון של הבקשה הזו, ולכן המייל נשלח ממנה ולא מ-job מאוחר. ‏`emailSent` בתשובה = המייל יצא (`false` כשלא היה מייל, או כש-`sendEmail` דילג/נכשל; הקישור נוצר בכל מקרה). ‏`/approve/[token]` מציג את `sender_note` בציטוט מתחת לכותרת ומשתמש ב-`approver_name` כערך התחלתי לשדה "השם שלכם" (חלק 03 §8.4). המייל של המאשר לא מוצג בדף הציבורי.
 - לפרויקט חייב להיות רינדור מוצלח לגרסה ← אחרת 400 `INVALID_INPUT` ‏`{ reason: "no_render" }`.
-- דף `/v/[token]` ו-`/approve/[token]` (Server Components) מאתרים את הקישור לפי `sha256(token)` עם הלקוח הסודי, בודקים `revoked_at` ו-`expires_at`, מגדילים `view_count` (פעם אחת לכל צפייה, עם מניעת כפילויות לפי עוגייה), ומנפיקים כתובות חתומות לשעה. טוקן לא תקף ← `notFound()`.
+- דף `/v/[token]` ו-`/approve/[token]` (Server Components) מאתרים את הקישור לפי `sha256(token)` עם הלקוח הסודי, בודקים `revoked_at` ו-`expires_at`, מגדילים `view_count` (פעם אחת לכל צפייה, עם מניעת כפילויות לפי עוגייה), קוראים ל-`resolveShareBranding(link)` **בכל הצגה** (לא נשמר במטמון), ומנפיקים כתובות חתומות לשעה. טוקן לא תקף ← `notFound()`.
 
 ### 20.6 אישור לקוח, דיווח והזמנות
 
@@ -5811,6 +6172,8 @@ export const CheckoutStatus = z.object({
 
 export const CancelReason = z.enum(["too_expensive", "not_using_enough", "missing_feature", "video_quality",
                                     "switched_tool", "one_time_project", "other", "unspecified"]);
+// money in API JSON = decimal shekels (…Ils, number, 2 dp). Serialized by toApiRefundQuote(q) from the internal
+// part 06 RefundQuote (paidAg/consumedValueAg/feeAg/refundAg: Agorot) via toIlsNumber — e.g. refundAg 9817 → refundIls 98.17
 export const RefundQuote = z.object({
   paymentId: Uuid, reasonCode: z.enum(["distance_14d", "extended_4m", "technical", "goodwill", "annual_prorata"]),
   paidIls: z.number(), creditsConsumed: z.number().int(), consumedValueIls: z.number(), feeIls: z.number(), refundIls: z.number(),
@@ -5834,6 +6197,7 @@ export const PlanChangeBody = z.strictObject({
   when: z.enum(["now", "period_end"]).optional(),       // only monthly → annual offers a choice; default per part 06 §5.1
   dryRun: z.boolean().default(false),                   // true → quote only, nothing changes (PlanChangeDialog)
 });
+// serialized by toApiPlanChange(q): chargeNowAg/newPriceAg (Agorot, part 06 §5.3) → chargeNowIls/newPriceIls via toIlsNumber
 export const PlanChangeResponse = z.object({
   effectiveAt: IsoDateTime, chargeNowIls: z.number(), creditsGrantedNow: z.number().int(), immediate: z.boolean(),
   newCycle: z.enum(ENUMS.billing_cycle), newPriceIls: z.number(),
@@ -5841,12 +6205,13 @@ export const PlanChangeResponse = z.object({
 });
 ```
 
+- **יחידות כסף:** שדות כסף ב-JSON הם שקלים עשרוניים (`…Ils`), מסודרים ב-`toIlsNumber`; בקוד החיוב הפנימי — `Agorot` (`…Ag`). ההמרה קורית רק בגבולות עם שם: `toAgorot()` מ-DB/API/ספק פנימה, `fromAgorot()` אל DB/RPC ואל פורמט הספק, ו-`toIlsNumber()` אל JSON של ה-API (`lib/billing/money.ts`, חלק 06). הסכמות כאן שומרות את השמות `*Ils: z.number()`.
 - **סביבת החיוב:** כל נתיבי החיוב פועלים על `billing_workspace_id(ws)`; מסביבת לקוח ← 403 `FORBIDDEN` ‏`{ reason: "billing_on_parent" }`.
 - **פרטי חיוב חובה** לפני `checkout`: שורת `billing_profiles` (שם משפטי ומייל לפחות) ← אחרת 400 `INVALID_INPUT` ‏`{ reason: "billing_profile_required" }`, והממשק פותח את `BillingProfileForm`.
 - `cycle: "annual"` כשדגל `annual_billing` כבוי ← 400 `{ reason: "annual_disabled" }`.
 - **שגיאות `checkout`:** מנוי (`kind: "subscription"`) כשכבר יש מנוי חי ← 400 `{ reason: "use_plan_change" }` (הממשק פותח את דיאלוג שינוי התוכנית); שלושה תשלומים שנכשלו בשעה אחת בסביבה ← חסימה ל-24 שעות, ‏403 `FORBIDDEN` ‏`{ reason: "checkout_temporarily_blocked" }` (חלק 06 §7.2); bucket ‏`checkout_ip` ← 429 `{ scope: "checkout" }`; יותר מ-6 חבילות ב-24 שעות ← 429 `{ scope: "topup_daily" }`; דגל `billing_checkout` כבוי או `app_settings.maintenance_mode.enabled` ← ‏503 `MAINTENANCE` ‏`{ until: null, scope: "checkout" }`.
 - **`plan-change`:** אותה תוכנית ואותו מחזור כשקיים `scheduled_change` ← מבטל את השינוי המתוזמן ומחזיר 200 עם `immediate: true`, ‏`chargeNowIls: 0`. אותה תוכנית ומחזור בלי שינוי מתוזמן ← 400 `{ reason: "same_plan" }`. מנוי ב-`past_due` ← 400 `{ reason: "past_due" }`. ‏`when` נשלח רק במעבר מחודשי לשנתי (בורר "מתי לעבור?" בממשק); בשאר המעברים ברירת המחדל של חלק 06 §5.1 חלה. ‏`dryRun: true` מחזיר את אותה תשובה בלי לשנות דבר.
-- `checkout` יוצר `checkout_sessions` (‏`status='created'`, סכום כולל מע״מ מ-`plans`/`credit_packs`), קורא ל-`PaymentProvider.createHostedCheckout` עם `successUrl = ${SITE_URL}/app/billing/return?session={id}`, ‏`cancelUrl = ${SITE_URL}/app/billing?checkout=canceled`, ‏`webhookUrl = ${SITE_URL}/api/webhooks/payments/{provider}`, ושומר `provider_session_ref`. **הענקת קרדיטים קורית רק ב-webhook** — לעולם לא בדף החזרה.
+- `checkout` יוצר `checkout_sessions` (‏`status='created'`, סכום כולל מע״מ מ-`plans`/`credit_packs`), קורא ל-`PaymentProvider.createHostedCheckout` עם `amountAg = toAgorot(session.amount_ils)`, ‏`successUrl = ${SITE_URL}/app/billing/return?session={id}`, ‏`cancelUrl = ${SITE_URL}/app/billing?checkout=canceled`, ‏`webhookUrl = ${SITE_URL}/api/webhooks/payments/{provider}`, ושומר `provider_session_ref`. **הענקת קרדיטים קורית רק ב-webhook** — לעולם לא בדף החזרה.
 - `GET /api/billing/invoices/[id]`: קריאת השורה דרך הלקוח של המשתמש (RLS = בעלים/מנהל), ואז ‏302 לכתובת חתומה ל-5 דקות מ-`invoices`.
 
 ### 21.3 חשבון
@@ -5878,11 +6243,13 @@ export const WhatsappConfirmResponse = z.object({ verifiedAt: IsoDateTime });
 
 ```ts
 // lib/api/contracts/public.ts
+// only the kinds a person grants or withdraws by hand; terms/privacy (ensureFirstLogin, checkout), biometric_* (likeness
+// route, v2) and ai_content_policy (generate, §19.8) are written by their own server routes through recordConsent()
 export const ConsentBody = z.strictObject({
-  kind: z.enum(ENUMS.consent_kind),
+  kind: z.enum(["marketing_email", "marketing_sms", "marketing_whatsapp", "analytics_cookies"]),
   granted: z.boolean(),
-  version: z.string().regex(/^\d{4}-\d{2}-\d{2}(\.\d+)?$/),           // legal doc version, e.g. 2026-10-13
-  source: z.enum(["signup", "settings", "checkout", "newsletter", "cookie_banner", "likeness_flow"]),   // 'generate' is server-only (§19.8)
+  version: z.string().regex(/^\d{4}-\d{2}-\d{2}(\.\d+)?$/),           // must equal LEGAL_VERSIONS[kind], else 400 { reason: "version_mismatch" }
+  source: z.enum(["signup", "settings", "newsletter", "cookie_banner"]),   // never "generate" / "unsubscribe" (server-only sources)
 });
 
 export const ContactBody = z.strictObject({
@@ -5899,10 +6266,16 @@ export const NewsletterBody = z.strictObject({ email: z.email(), consent: z.lite
 export const EmailTokenQuery = z.object({ token: z.string().min(40).max(600) });
 ```
 
-- **`POST /api/consents`:** משתמש מחובר ← `consents` דרך הלקוח שלו (`user_id` = הוא, ‏`ip` ו-`user_agent` מהבקשה). אנונימי ← מותר רק `kind = 'analytics_cookies'` עם `source = 'cookie_banner'` (לקוח סודי, בלי `user_id`/`email`); כל צירוף אחר ← 400. ביטול הסכמה = שורה חדשה עם `granted: false` (היסטוריה מלאה, אף פעם לא עדכון).
+- **`POST /api/consents`:** ‏`recordConsent()` בלקוח הסודי, עם allow-list של (kind, source): ‏`marketing_email`/`marketing_sms`/`marketing_whatsapp` × ‏`settings`/`signup`/`newsletter`, ו-`analytics_cookies` × ‏`cookie_banner`/`settings`; כל צירוף אחר ← 400 `INVALID_INPUT`. משתמש מחובר ← `user_id` = הוא. אנונימי ← מותר רק `analytics_cookies` עם `cookie_banner` (בלי `user_id`/`email`). ל-`authenticated` אין הרשאת `insert` על `consents` (§12.2), כך שאין דרך אחרת לכתוב הסכמה.
+- **`recordConsent({ userId, workspaceId?, email?, kind, granted, source, req })`** (`lib/consents/record.ts`) היא הכותבת היחידה של `consents`: לקוח סודי; ‏`ip` מ-`ipAddress(req)` ו-`user_agent` מהכותרת; ‏`created_at = now()`; ‏`version = LEGAL_VERSIONS[kind]` — גרסה שנשלחה מהקליינט חייבת להיות שווה לה, אחרת ‏400 `INVALID_INPUT` ‏`{ reason: "version_mismatch" }`. את שאר הסוגים כותבים רק השרתים שלהם: `terms`/`privacy` בהרשמה — `ensureFirstLogin`; ‏`terms` עם `source = 'checkout'` — נתיב ה-checkout; ‏`biometric_*` — נתיב ה-likeness (v2); ‏`ai_content_policy` — ‏`generate` (§19.8); ביטול `marketing_*` מקישור הסרה במייל — ‏`POST /api/unsubscribe` עם `source = 'unsubscribe'` (למטה). ביטול הסכמה = שורה חדשה עם `granted: false` (היסטוריה מלאה, אף פעם לא עדכון).
 - **`POST /api/contact`:** honeypot מלא ← 204 בלי לשמור. אחרת `contact_messages` + מייל פנימי לתמיכה (Reply-To = הפונה). `marketingOptIn: true` ← אותה זרימה כמו `newsletter` (אישור כפול). ‏`topic = 'accessibility'` מסומן לרכז הנגישות.
 - **`POST /api/newsletter`:** אם המייל ב-`email_suppressions` עם `bounce`/`complaint` ← 204 בלי מייל. אחרת מייל `newsletter_confirm` עם קישור `GET /api/newsletter/confirm?token=…`. ההסכמה `marketing_email` נרשמת **רק** באישור (`source = 'newsletter'`, ‏`email`, ‏`ip`), ושורת `unsubscribe` (אם הייתה) נמחקת מ-`email_suppressions`.
-- **`POST /api/unsubscribe?token=`:** תומך ב-`List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) ובטופס של `/unsubscribe`. מוסיף `email_suppressions (reason 'unsubscribe')`, שורת `consents` עם `granted: false` לכל ערוץ שיווקי, ומסנכרן ל-Resend (חלק 06). מיילי מערכת (קבלות, סרטון מוכן) ממשיכים להישלח.
+- **`POST /api/unsubscribe?token=`:** תומך ב-`List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) ובטופס של `/unsubscribe`. טוקן לא תקין ← 400. עם טוקן תקין, בסדר הזה (לקוח סודי):
+  1. **קודם, ובנפרד:** `insert into email_suppressions (email, reason) values (<email>, 'unsubscribe') on conflict (email) do nothing`. זו פעולה עצמאית, לא באותה טרנזקציה עם השלבים הבאים, כך שכשל בהמשך לא מבטל את ההסרה.
+  2. לכל `kind` מתוך `marketing_email`, ‏`marketing_sms`, ‏`marketing_whatsapp`: ‏`recordConsent({ email, userId, kind, granted: false, source: 'unsubscribe', req })`, כש-`userId` הוא המשתמש ש-`auth.users.email` שלו שווה למייל (אם יש כזה; אחרת `null`). סך הכול 3 שורות `consents`. הערך `'unsubscribe'` מותר ב-check של `consents.source` (§8) ונכתב רק כאן; ‏`ConsentBody` לא מקבל אותו.
+  3. סנכרון ההסרה ל-Resend (חלק 06).
+  - **התשובה תמיד 200** כשהטוקן תקין, גם אם שלב 2 או 3 נכשל: השגיאה נרשמת בלוג וב-Sentry ולא מגיעה לנמען, וההסרה (שלב 1) כבר שמורה. הסרה חוזרת של אותו מייל מוסיפה שורות `granted: false` חדשות (היסטוריה) ולא נכשלת.
+  - מיילי מערכת (קבלות, סרטון מוכן) ממשיכים להישלח.
 - **טוקני מייל** (`lib/crypto.ts`): `signEmailToken({ email, purpose: "newsletter_confirm" | "unsubscribe", exp })` = ‏base64url(payload) + "." + base64url(HMAC-SHA256). המפתח נגזר ב-HKDF מ-`APP_ENCRYPTION_KEY` עם info `"email-tokens"`. ‏`newsletter_confirm` תקף 7 ימים; `unsubscribe` לא פג (קישור הסרה חייב לעבוד תמיד), ולכן האימות מנסה גם את המפתחות שב-`APP_ENCRYPTION_KEY_PREVIOUS` (חלק 06 §15.5).
 
 ### 21.5 בריאות המערכת (`GET /api/health`)
@@ -5931,6 +6304,8 @@ export const HealthResponse = z.object({
 - [ ] `GET /api/health` מחזיר 200 עם `db: "ok"` ו-`redis: "ok"`, בלי עוגיות ובלי `Set-Cookie`; כש-Upstash מדומה כלא זמין ← 503 עם `redis: "error"`.
 - [ ] `consents` אנונימי עם `kind: "marketing_email"` ← 400.
 - [ ] קישור `unsubscribe` עובד גם אחרי שנה; POST חד-קליקי מחזיר 200 בלי עוגיות ובלי Origin.
+- [ ] POST חד-קליקי ל-`/api/unsubscribe?token=` כותב שורת `email_suppressions` אחת (`reason = 'unsubscribe'`) ו-3 שורות `consents` עם `granted = false` ו-`source = 'unsubscribe'` (אחת לכל `marketing_*`), ומחזיר 200; כש-`recordConsent` מדומה ככושל — עדיין 200, ושורת ההסרה קיימת.
+- [ ] `POST /api/consents` עם `source: "unsubscribe"` ← 400.
 
 ---
 
@@ -5960,12 +6335,15 @@ export async function finishWebhook(id: string, status: "processed" | "failed" |
 ### 22.2 `POST /api/webhooks/openrouter/video`
 
 ```ts
-// lib/ai/openrouter/webhook.ts
-/** X-OpenRouter-Signature: "t=<unix seconds>,v1=<hex hmac>[,v1=<hex>…]" — HMAC-SHA256(OPENROUTER_WEBHOOK_SECRET, `${t}.${rawBody}`)
- *  [M0-verify] header name, the exact signed string and the encoding (hex vs base64) against the official cookbook
- *  (openrouter.ai/docs/cookbook/video-generation/video-generation-webhooks); record the result in DECISIONS.md. */
-export function verifyOpenRouterSignature(raw: string, header: string | null, secret: string, toleranceSec = 300): boolean;
+// verifyOpenRouterSignature has ONE owner: part 05 §5.2 (lib/ai/openrouter/webhook.ts). This part only imports it.
+// Canonical signature: (rawBody: string, header: string | null, secret: string,
+//                       opts?: { nowMs?: number; toleranceSec?: number }) => boolean
+// X-OpenRouter-Signature: "t=<unix seconds>,v1=<hex hmac>[,v1=<hex>…]" — it parses EVERY v1= value and accepts the
+// signature if any of them matches (key rotation), with a 300 s tolerance on t.
+// [M0-verify] header name, signed string and encoding: part 05 §5.2 owns the spike result (DECISIONS.md).
+import { verifyOpenRouterSignature } from "@/lib/ai/openrouter/webhook";
 
+// lib/ai/openrouter/webhook.ts (event shape; validated in spike 3, part 05 §5.2)
 export const OpenRouterVideoEvent = z.looseObject({
   type: z.string().optional(),                              // "video.generation" [M0-verify]
   data: z.looseObject({
@@ -6030,6 +6408,7 @@ export const RenderWebhookBody = z.strictObject({
 
 - אימות: `?t=` נבדק ב-`hmacVerifyAny(secretList(OPENROUTER_CALLBACK_TOKEN_SECRET), renderRunId, t)` (‏`timingSafeEqual`; נחתם ב-`hmacSign(secrets[0], renderRunId)`); שגוי ← 401 `WEBHOOK_INVALID_SIGNATURE`.
 - `rendering`/`uploading`: עדכון `render_runs.progress` רק אם הוא גדל (מונוטוני), בלי `webhook_events`. ‏`succeeded`/`failed`: ‏`claimWebhook({ provider: "render", externalId: `${renderRunId}:${status}` })` ← `orchestrator.resume(`render:${renderRunId}`, …)`. ‏204.
+- **רק כש-`RENDER_PROVIDER=lambda`** (חלופה, חלק 05 §19.2–§19.3): Remotion Lambda שולח משלוח משלו, לא `RenderWebhookBody`. ה-handler מזהה אותו לפי הכותרת `X-Remotion-Signature` (או `X-Remotion-Status`), מאמת את החתימה ב-`validateWebhookSignature` של `@remotion/lambda` על הגוף הגולמי (הסוד שהועבר ב-`webhook.secret`), ואז **מתרגם** ל-`RenderWebhookBody` לפני ה-Zod ולפני אימות ה-`?t=`: ‏`renderRunId` ← `customData.renderRunId`; ‏`type: "success"` ← ‏`status: "succeeded"`, ‏`progress: 1`, בלי `outputPath` (צעד האיסוף של חלק 05 מעתיק מ-`outputUrl` ב-S3 ל-`renders` וקובע את הנתיב); ‏`"error"` / `"timeout"` ← ‏`status: "failed"`, ‏`progress: 0`, ‏`error` = הודעת השגיאה הראשונה מ-`errors[]` או `"timeout"`. Lambda לא שולח אירועי התקדמות — `progress` מגיע מ-`getRenderProgress` בצעד. משלוח בלי `customData.renderRunId` ← 400 `INVALID_INPUT`. מבנה המשלוח והכותרות [M0-verify ספייק Lambda, רק אם עוברים לחלופה]. ב-`vercel-sandbox` וב-`local` הענף הזה לא קיים בפועל, והגוף תמיד `RenderWebhookBody`.
 
 ### 22.4 `POST /api/webhooks/payments/[provider]`
 
@@ -6069,7 +6448,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | נתיב | ספק (`webhook_provider`) | אימות | פעולה |
 |---|---|---|---|
 | `POST /api/webhooks/resend` | `resend` | Svix: `svix-id`, `svix-timestamp`, `svix-signature`, סוד `RESEND_WEBHOOK_SECRET` | `email.bounced` (hard) ← `email_suppressions('bounce')`; ‏`email.complained` ← `('complaint')` + ביטול הסכמות שיווק |
-| `POST /api/auth/hooks/send-sms` (דגל `phone_otp`) | — | Standard Webhooks: `webhook-id`, `webhook-timestamp`, `webhook-signature`, סוד `SEND_SMS_HOOK_SECRET` [M0-verify פורמט ה-hook של Supabase] | שליחת SMS דרך `SMS_PROVIDER` בנוסח: "קוד הכניסה שלכם ל-{{BRAND_NAME}}: {otp}. הקוד תקף ל-10 דקות. לא מוסרים אותו לאף אחד." ← ‏200 `{}`; דגל כבוי ← 404 |
+| `POST /api/auth/hooks/send-sms` (דגל `phone_otp`) | — | Standard Webhooks: `webhook-id`, `webhook-timestamp`, `webhook-signature`, סוד `SEND_SMS_HOOK_SECRET` [M0-verify פורמט ה-hook של Supabase] | שליחת SMS דרך `SMS_PROVIDER` בנוסח: "קוד הכניסה שלכם ל{{BRAND_NAME}}: {otp}. הקוד תקף ל-10 דקות. לא מוסרים אותו לאף אחד." ← ‏200 `{}`; דגל כבוי ← 404 |
 | `GET` + `POST /api/webhooks/whatsapp` (v2, דגל `whatsapp_notify`) | `whatsapp` | `GET`: אתגר האימות של Meta — `hub.mode=subscribe` ו-`hub.verify_token` שווה לטוקן שנגזר ב-HMAC מ-`WHATSAPP_APP_SECRET` ← מחזיר את `hub.challenge`. ‏`POST`: ‏`X-Hub-Signature-256` = HMAC-SHA256 של הגוף הגולמי עם `WHATSAPP_APP_SECRET`; ‏`external_id` = מזהה ההודעה | סטטוסי מסירה ← לוג; הודעה נכנסת "הסרה" או "STOP" ← `notification_prefs.whatsapp.opted_out_at = now()`, ‏`audit_logs` ‏`notifications.whatsapp_opt_out`, ותשובת ההסרה של חלק 06 §13.3; דגל כבוי ← 404 |
 
 ### קריטריוני קבלה
@@ -6090,7 +6469,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
 **מודול משותף:** הלוגיקה של כל cron יושבת ב-`lib/cron/{name}.ts`, וה-route הוא עטיפה דקה. העטיפה המשותפת לוקחת את הנעילה `cron:{name}` ובסוף כותבת ל-Upstash את `cron:last:{name}` (‏JSON: `{ startedAt, ms, ok, summary }`). כך `POST /api/admin/ops/cron { name }` (§24.1) מריץ את אותה פונקציה בתוך התהליך, תחת אותה נעילה, ו-`GET /api/admin/ops/cron` מציג את הריצה האחרונה של כל cron בלי טבלה חדשה.
 
-```json
+```jsonc
 // vercel.json
 {
   "crons": [
@@ -6106,17 +6485,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
 | נתיב | נעילה | מה הוא עושה | תשובה |
 |---|---|---|---|
-| `/api/cron/sweep-jobs` | 55 ש׳ | (1) צעדי `clip:*` ב-`waiting_external` מעל 5 דקות ← polling ב-OpenRouter לפי `provider_job_id` ו-`resume`; (2) עבודות `running` עם `heartbeat_at` ישן מ-10 דקות ← שאלת התזמור על ה-run; מת ← הפעלה מחדש מהצעד הראשון שלא הסתיים (פעם אחת; `jobs.error_detail.restarts`), ובפעם השנייה ← `failed` + `refund_reservation`; (3) עבודות שרצות מעל 60 דקות ← `failed` עם `PROVIDER_TIMEOUT` + החזר מלא; (4) עבודות אחים (`options.afterJobId`) שהעבודה הראשית שלהן הגיעה לשלב שמאפשר להתחיל (חלק 05) ← `orchestrator.start` | `{ swept: { polled, resumed, restarted, timedOut, variantsStarted } }` |
+| `/api/cron/sweep-jobs` | 55 ש׳ | (1) צעדי `clip:*` ב-`waiting_external` מעל 5 דקות ← polling ב-OpenRouter לפי `provider_job_id` ו-`resume`; (2) עבודות `running` עם `heartbeat_at` ישן מ-10 דקות ← שאלת התזמור על ה-run; מת או לא ידוע ← ביטול הריצה הקודמת (`orchestrator.cancel(run_id)`) ואז הפעלה מחדש מהצעד הראשון שלא הסתיים (פעם אחת; המונה `jobs.error_detail.restarts`), ובהפעלה מחדש השנייה ← `failed` + `refund_reservation`; (3) עבודות שרצות מעל 120 דקות מ-`started_at` ← `failed` עם `PROVIDER_TIMEOUT` + החזר מלא (‏`runStep` ו-`finalize` קוראים את `jobs.status` ועוצרים, בלי capture ובלי `succeeded`, כשהוא `failed` או `canceled`; חלק 05 §19.4); (4) עבודות אחים (`options.afterJobId`) שהעבודה הראשית שלהן הגיעה לשלב שמאפשר להתחיל (חלק 05) ← `orchestrator.start`; (5) **הוצאות אינטראקטיביות יתומות:** `sweep_orphaned_spends()` (§10.3) — שמירות בלי `job_id` שעדיין `open` אחרי 6 דקות ← `refund_reservation(id, 'refund:' || id, 'הפעולה לא הושלמה. הקרדיטים הוחזרו.')`, ומפתחות `api_idempotency_keys` ב-`in_progress` מעל 6 דקות ← `failed` | `{ swept: { polled, resumed, restarted, timedOut, variantsStarted, orphanedSpendsRefunded } }` |
 | `/api/cron/billing-renewals` | 50 דק׳ | חלק 06 §4.2 (`runBillingCron`): התאמת סשנים פתוחים (`reconcilePendingCheckouts`), שינויים מתוזמנים, סיום מנויים שבוטלו, חיוב מנויים ב-`next_charge_at <= now()`, ניסיונות חוזרים ל-`past_due` (לפי `app_settings.dunning_retry_days`), סיום הגבייה החוזרת (`expired`), והענקות חודשיות למנויים שנתיים (`grant:plan:{subscriptionId}:{periodStartISO}`); כש-`app_settings.renewals_paused` דולק, רק שלבי החיוב (חידוש וניסיון חוזר) מדלגים | `{ reconciled, scheduled, ended, charged, failed, downgraded, granted }` |
 | `/api/cron/sync-models` | 30 דק׳ | חלק 05: סנכרון `model_registry` מ-`/models` ו-`/videos/models`; לעולם לא מפעיל מודל; מסמן הוצאה משימוש ומתריע לאדמין אם מודל בנתיב פעיל נעלם | `{ added, updated, deprecated, alerts }` |
-| `/api/cron/hook-of-the-day` | 10 דק׳ | בחירת הוק למחר (תאריך ישראלי): `published`, נישה פעילה, לא נבחר ב-60 הימים האחרונים (`app_settings.hook_of_the_day.history`); עדיפות להוקים של עונה שתחילתה בתוך `promo_lead_days`, ואחר כך ל-`is_featured`; ביום שקט (מחר) — רק הוק אוניברסלי לא שיווקי מסוג `education`; כתיבה ל-`app_settings.hook_of_the_day = { hook_id, date, history }` ו-`revalidateTag('hooks:hotd')` | `{ hookId, date }` |
-| `/api/cron/reminders` | 30 דק׳ | `renewal_upcoming` למנויים שנתיים 7 ימים לפני החידוש; `low_credits` כשהיתרה מתחת ל-`typical_video_credits` או מתחת ל-15% מהמכסה החודשית, לכל היותר פעם בשבוע לסביבה (לפי `notifications` מסוג `credits_low`); מכבד `email_suppressions` ו-`notification_prefs` | `{ renewalUpcoming, lowCredits }` |
-| `/api/cron/cleanup` | 50 דק׳ | (1) נכסים עם `is_deleted` ו-`purge_reason` בלי `storage_deleted_at` ← מחיקה מהאחסון (500 לריצה) וסימון; (2) `purge_deleted_content` לכל סביבה שטופלה; (3) העלאות `pending` מעל 24 שעות ← מחיקה; (4) קובצי `exports` מעל 7 ימים ← מחיקה; (5) `data_requests` תקועים (`processing` מעל שעה) ← הפעלה מחדש של ה-workflow; (6) Blob זמני של הרינדור שנשאר (`@remotion/vercel`) ← מחיקה; (7) העלאות עם `metadata.moderation.pending` ← הרצה חוזרת של `moderation.upload.v1` (חסימה ← כמו ב-§20.2) | `{ objectsDeleted, rowsPurged, pendingRemoved, exportsRemoved, requestsRetried, moderationRechecked }` |
+| `/api/cron/hook-of-the-day` | 10 דק׳ | בחירת הוק **להיום** (`todayIL()` בזמן הריצה; ה-cron ‏`2 22 * * *` UTC רץ אחרי חצות שעון ישראל, גם בשעון קיץ וגם בשעון חורף): `published`, נישה פעילה, לא נבחר ב-60 הימים האחרונים (`app_settings.hook_of_the_day.history`); עדיפות להוקים של עונה שתחילתה בתוך `promo_lead_days`, ואחר כך ל-`is_featured`; ביום שקט — רק הוק אוניברסלי לא שיווקי **ממשפחת** `education` (`hook_types.family_slug = 'education'`); כתיבה ל-`app_settings.hook_of_the_day = { hook_id, date, history }` ו-`revalidateTag('hooks:hotd', "max")` | `{ hookId, date }` |
+| `/api/cron/reminders` | 30 דק׳ | `renewal_upcoming` למנויים שנתיים 7 ימים לפני החידוש; `low_credits` כש-`balance < lowThreshold(summary, planId)` (`lib/billing/credits.ts`, §10.5; בלי מכסה חודשית ← עלות סרטון אחד, אחרת `max(perVideoCredits, ceil(0.15 × planAllowance))`), לכל היותר פעם בשבוע לסביבה (לפי `notifications` מסוג `credits_low`); מכבד `email_suppressions` ו-`notification_prefs` | `{ renewalUpcoming, lowCredits }` |
+| `/api/cron/cleanup` | 50 דק׳ | (1) נכסים עם `is_deleted` ו-`purge_reason` בלי `storage_deleted_at` ← מחיקה מהאחסון (500 לריצה) וסימון; (2) `purge_deleted_content` לכל סביבה שטופלה; (3) העלאות `pending` מעל 24 שעות ← מחיקה; (4) קובצי `exports` מעל 7 ימים ← מחיקה; (5) `data_requests` תקועים (`processing` מעל שעה) ← הפעלה מחדש של ה-workflow; (6) Blob זמני של הרינדור שנשאר (`@remotion/vercel`) ← מחיקה; (7) העלאות עם `metadata.moderation.pending` ← הרצה חוזרת של `moderation.upload.v1` (חסימה ← כמו ב-§20.2); (8) תיקיות `generated/_admin-tests/{date}` בנות יותר מ-7 ימים ← מחיקה (§13.1) | `{ objectsDeleted, rowsPurged, pendingRemoved, exportsRemoved, requestsRetried, moderationRechecked, adminTestsRemoved }` |
 
 ### קריטריוני קבלה
 - [ ] קריאה בלי `CRON_SECRET` ← 401; שתי קריאות מקבילות ל-`sweep-jobs` ← השנייה מחזירה `{ skipped: "locked" }`.
 - [ ] עבודה עם `heartbeat_at` ישן מ-10 דקות מופעלת מחדש פעם אחת, ובפעם השנייה נכשלת עם החזר מלא.
 - [ ] הוק היום לא חוזר על עצמו בתוך 60 יום (בדיקה עם 61 ריצות מדומות).
+- [ ] בדיקות יחידה של הוק היום: ריצה ב-22:02 UTC סביב 2026-10-25 (מעבר משעון קיץ לשעון חורף) בוחרת הוק לתאריך הישראלי של אותו יום (`todayIL()`), לא למחר; ביום שקט נבחר רק הוק אוניברסלי ממשפחת `education`.
+- [ ] שמירה של `begin_spend` בלי `commit_spend`, בת יותר מ-6 דקות, מוחזרת בריצת `sweep-jobs` הבאה (`orphanedSpendsRefunded: 1`), ומפתח האידמפוטנטיות שלה עובר ל-`failed`.
+- [ ] עבודה שרצה יותר מ-120 דקות מ-`started_at` נכשלת עם `PROVIDER_TIMEOUT` והחזר מלא.
 - [ ] אחרי `cleanup`, אין אובייקט באחסון לנכס עם `storage_deleted_at`, ואין שורת `assets` שהאובייקט שלה חסר (למעט `rejected`).
 
 ---
@@ -6125,7 +6507,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
 ### 24.1 `/api/admin/*`
 
-כל נתיב: `auth: "platform_admin"` (‏`platform_admin_status()` = `ok`, כלומר דגל + session ברמת `aal2`, דרך הלקוח של המשתמש), bucket ‏`admin` (120 לדקה), לקוח סודי לכל השאר, Zod על כל קלט, ו**כל פעולה כותבת יוצרת `audit_logs`** עם `action` מהרשימה הקנונית שלמטה, `actor_id`, ‏`ip`, ‏`target_type`, ‏`target_id` ו-`metadata` עם before/after של השדות שהשתנו. שינוי שנוגע בדפים ציבוריים קורא ל-`revalidateTag` המתאים (חלק 02).
+כל נתיב: `auth: "platform_admin"` (‏`platform_admin_status()` = `ok`, כלומר דגל + session ברמת `aal2`, דרך הלקוח של המשתמש), bucket ‏`admin` (120 לדקה), לקוח סודי לכל השאר, Zod על כל קלט, ו**כל פעולה כותבת יוצרת `audit_logs`** עם `action` מהרשימה הקנונית שלמטה, `actor_id`, ‏`ip`, ‏`target_type`, ‏`target_id` ו-`metadata` עם before/after של השדות שהשתנו. שינוי שנוגע בדפים ציבוריים קורא ל-`revalidateTag(tag, "max")` המתאים (חלק 02).
 
 **הרשימה הקנונית של פעולות הביקורת** (`audit_logs.action`, ‏regex `^[a-z_]+(\.[a-z_]+)+$`; אין שמות אחרים): `user.ban` · `user.unban` · `user.admin_grant` · `user.admin_revoke` · `workspace.plan_override` · `workspace.white_label` · `workspace.soft_delete` · `workspace.restore` · `member.role_change` · `job.retry` · `job.cancel` · `job.force_refund` · `model.toggle` · `model.sync` · `model.route_update` · `prompt.activate` · `niche.update` · `season.update` · `hook.create` · `hook.update` · `hook.publish` · `hook.archive` · `hook.batch_generate` · `template.update` · `example.publish` · `voice.update` · `music.approve` · `payment.refund` · `payment.chargeback` · `invoice.attach` · `refund_request.approve` · `refund_request.reject` · `subscription.retry_charge` · `subscription.cancel_on_behalf` · `billing.cancel` · `billing.resume` · `billing.plan_change` · `plan.update` · `pack.update` · `credits.adjust` · `credits.revoke` · `credit_cost.update` · `settings.update` · `flag.update` · `share_link.revoke` · `abuse.action` · `ops.cron_run` · `privacy.request` · `notifications.whatsapp_opt_in` · `notifications.whatsapp_opt_out` · `security.incident`.
 - שינויי תפקיד שאינם עריכה ידנית נרשמים כ-`member.role_change` עם `metadata.reason`: ‏`invite_accepted` (`accept_invite`), ‏`ownership_transfer` (`transfer_workspace_ownership`), ‏`plan_downgrade` (`enforce_plan_limits`). הענקת אדמין ראשונה מ-`ADMIN_EMAILS` היא `user.admin_grant` עם `metadata.source = 'admin_emails_bootstrap'`.
@@ -6153,18 +6535,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | `POST /api/admin/jobs/[id]/retry` · `/cancel` · `/force-refund` | `{ reasonHe }` | ניסיון חוזר (עבודה חדשה שממחזרת נכסים), ביטול, `refund_reservation` | `job.retry` · `job.cancel` · `job.force_refund` |
 | `GET /api/admin/billing/payments` · `POST /api/admin/billing/payments/[id]/refund` | `{ amountIls, reasonHe }` | החזר דרך השער + חשבונית זיכוי | `payment.refund` |
 | `POST /api/admin/billing/payments/[id]/chargeback` | `{ reasonHe: HeText(5, 300) }` | ‏`payments.status = 'refunded'`, ‏`failure_reason = 'chargeback'`; ‏`revoke_grant_remaining` לכל דלי עם `ref_type = 'payment'` ו-`ref_id = paymentId` (מפתח `revoke:chargeback:{paymentId}:{grantId}`); המנוי נסגר מיד (`status = 'canceled'`, ‏`current_period_end = now()`, ‏`workspaces.plan_id = 'free'`); התראת אדמין ← ‏`200 { revoked }` | `payment.chargeback` |
-| `POST /api/admin/billing/payments/[id]/invoice` | `multipart/form-data`: ‏`pdf` (עד 10MB, ‏`application/pdf`), ‏`docNumber`, ‏`allocationNumber?`, ‏`docType` (`invoice_doc_type`) | חשבונית שהופקה ידנית: ה-PDF נשמר ב-`invoices/{ws}/{invoiceId}.pdf`, שורת `invoices` עם `provider = 'manual'` ו-`provider_doc_id = 'manual:{docNumber}'`, ומייל `invoice_ready` ← ‏`201 { invoiceId }` | `invoice.attach` |
+| `POST /api/admin/billing/payments/[id]/invoice` | `multipart/form-data`: ‏`pdf` (עד 4MB, ‏`application/pdf` — הקובץ עובר בגוף הבקשה, ומגבלת הגוף של Vercel היא 4.5MB; מעל 4MB ← ‏400 `INVALID_INPUT` ‏`{ reason: "too_large" }`, ומעל 4.5MB Vercel עונה 413 לפני ה-handler; חלק 06 §9.5), ‏`docNumber`, ‏`allocationNumber?`, ‏`docType` (`tax_invoice_receipt` או `credit_invoice`; ‏`receipt` ← ‏400 `INVALID_INPUT`, כי עוסק פטור לא נתמך, חלק 06 §9.2) | חשבונית שהופקה ידנית: ה-PDF נשמר ב-`invoices/{ws}/{invoiceId}.pdf`, שורת `invoices` עם `provider = 'manual'` ו-`provider_doc_id = 'manual:{docNumber}'`, ומייל `invoice_ready` ← ‏`201 { invoiceId }` | `invoice.attach` |
 | `POST /api/admin/billing/refund-requests/[id]/decision` | `{ decision: "approve" \| "reject", refundIls?, notesHe }` | טיפול בבקשות החזר | `refund_request.approve` · `refund_request.reject` |
 | `POST /api/admin/billing/subscriptions/[id]/retry-charge` · `/cancel` | `{ channel: "email" \| "phone", reasonHe }` | חיוב חוזר / ביטול בשם הלקוח (ס׳ 13ד) | `subscription.retry_charge` · `subscription.cancel_on_behalf` |
 | `PUT /api/admin/plans/[id]` · `PUT /api/admin/packs/[id]` · `PUT /api/admin/credit-costs/[key]` | שדות הטבלה | מחירון | `plan.update` · `pack.update` · `credit_cost.update` |
-| `POST /api/admin/credits/adjust` | `{ workspaceId, amount (≠0, ‎-10000..10000), reasonHe }` | חיובי ← `grant_credits(…,'admin',…, 'grant:admin:{auditLogId}')`; שלילי ← `debit_credits(…, 'debit:admin:{auditLogId}')`. שורת היומן נכתבת **לפני** הקריאה כדי שמזהה שלה יהיה המפתח | `credits.adjust` |
+| `POST /api/admin/credits/adjust` | `{ workspaceId, amount (≠0, -10000..10000), reasonHe }` | חיובי ← `grant_credits(…,'admin',…, 'grant:admin:{auditLogId}')`; שלילי ← `debit_credits(…, 'debit:admin:{auditLogId}')`. שורת היומן נכתבת **לפני** הקריאה כדי שמזהה שלה יהיה המפתח | `credits.adjust` |
 | `POST /api/admin/credits/revoke-grant` | `{ grantId: Uuid, reasonHe: HeText(5, 300) }` | "הסרת היתרה מהדלי": שורת `audit_logs` קודם, ואז `revoke_grant_remaining(grantId, 'revoke:admin:{auditLogId}', reasonHe, actorId)` ← ‏`200 { removed }` | `credits.revoke` |
 | `PUT /api/admin/settings/[key]` · `PUT /api/admin/flags/[key]` | `{ value }` (Zod לפי מפתח) · `{ enabled, plans?, workspaceIds? }` | הגדרות ודגלים | `settings.update` · `flag.update` |
 | `GET /api/admin/abuse` | `?status=&source=&page=` (50 לעמוד) | רשימת דיווחים עם סינון לפי מצב ומקור (`share_page` / `system` / `support`) | — |
 | `POST /api/admin/share-links/[id]/revoke` · `PATCH /api/admin/abuse/[id]` | `{ status, notes }` | דיווחים ושיתוף (טיפול בדיווח יכול לבטל את קישור השיתוף) | `share_link.revoke` · `abuse.action` |
 | `GET /api/admin/audit` · `GET /api/admin/costs` · `GET /api/admin/ops/cron` · `GET /api/admin/ops/credit-invariants` | פילטרים | יומן ביקורת, עלויות ומרווח, 20 הריצות האחרונות של pg_cron שנכשלו (`cron_recent_failures()`) + הריצה האחרונה של כל cron של Vercel (`cron:last:{name}` ב-Upstash), `credit_invariant_violations()` | — |
 | `POST /api/admin/ops/cron` | `{ name: "sweep-jobs" \| "billing-renewals" \| "sync-models" \| "hook-of-the-day" \| "reminders" \| "cleanup" }` | הרצה מיידית של אותה פונקציה (`lib/cron/{name}.ts`) בתוך התהליך, תחת אותה נעילה; הכפתור "התאמת תשלומים עכשיו" שולח `billing-renewals` (שמתחיל ב-`reconcilePendingCheckouts`) ← ‏`200 { summary }` או `{ skipped: "locked" }` | `ops.cron_run` |
-| `POST /api/admin/models/test` | `{ taskKey, slug? }` | "בדיקה" של נתיב משימה עם קלט קבוע (חלק 05 §6.4): לא מחויב, נרשם ב-`ai_generations` עם `workspace_id = NULL` ← ‏`200 { ok, modelServed, latencyMs, costUsd, output }` (טקסט/JSON ל-LLM, כתובת חתומה למדיה) | — |
+| `POST /api/admin/models/test` | `{ taskKey, slug? }` | "בדיקה" של נתיב משימה עם קלט קבוע (חלק 05 §6.4): לא מחויב, נרשם ב-`ai_generations` עם `workspace_id = NULL` ← ‏`200 { ok, modelServed, latencyMs, costUsd, output }` (טקסט/JSON ל-LLM; במדיה — כתובת חתומה ל-10 דקות לקובץ ב-`generated/_admin-tests/{YYYY-MM-DD}/{uuid}.{ext}`, שנמחק אחרי 7 ימים, §13.1) | — |
 | `POST /api/admin/revalidate` | `{ tags: string[] }` | revalidate יזום | `settings.update` |
 
 ### 24.2 Server Actions (שמירות טפסים פשוטות)
@@ -6181,8 +6563,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | `switchWorkspace` | `{ workspaceId }` | עוגיית `ws`, ‏`profiles.last_workspace_id` | חבר |
 | `createClientWorkspace` | `{ name }` | `create_workspace(name, 'client', parent)` | בעלים/מנהל בסוכנות |
 | `renameWorkspace` | `{ name }` | `workspaces.name` | בעלים/מנהל |
-| `inviteMember` · `revokeInvite` · `resendInvite` | `{ email, role: admin\|editor\|viewer }` · מגבלת `seats` (`seats_used`) נבדקת רק כש-`role ≠ viewer` (צופים לא תופסים מושב) | `workspace_invites` (טוקן 32 בתים, נשמר `sha256`) + מייל `team_invite` עם הקישור של §1.3 | בעלים/מנהל |
-| `changeMemberRole` · `removeMember` · `leaveWorkspace` · `transferOwnership` | `{ userId, role? }` · העלאה מ-`viewer` ל-`editor`/`admin` בודקת את מגבלת `seats` | `workspace_members` (+ `audit_logs` ‏`member.role_change`) / `transfer_workspace_ownership` | לפי RLS (§12) |
+| `inviteMember` · `revokeInvite` · `resendInvite` | `{ email, role: admin\|editor\|viewer }` · מגבלת `seats` (`seats_used`) נבדקת רק כש-`role ≠ viewer` (צופים לא תופסים מושב), בתוך ה-insert: הטריגר `workspace_invites_seat_guard` נועל את שורת סביבת החיוב וסופר (§9.5) ← `PLAN_LIMIT` | `workspace_invites` (טוקן 32 בתים, נשמר `sha256`) + מייל `team_invite` עם הקישור של §1.3 | בעלים/מנהל |
+| `changeMemberRole` · `removeMember` · `leaveWorkspace` · `transferOwnership` | `{ userId, role? }` · `changeMemberRole` ← `rpc('change_member_role')` עם הלקוח של המשתמש (בדיקת המושבים בתוך הפונקציה, בנעילה; העלאה מ-`viewer` ל-`editor`/`admin` מעבר למכסה ← `PLAN_LIMIT`) | `change_member_role` (§9.5, + `audit_logs` ‏`member.role_change`) / `workspace_members` (הסרה ועזיבה) / `transfer_workspace_ownership` | בעלים/מנהל (בתוך הפונקציה); הסרה ועזיבה לפי RLS (§12) |
 | `saveBillingProfile` | `{ legalName, vatId?, isBusiness, email, addressLine?, city?, zip?, phone? }` | `billing_profiles` (סביבת החיוב) | בעלים/מנהל |
 | `markNotificationsRead` | `{ ids?: uuid[] }` (בלי ids = הכול) | `notifications.read_at` | שלי |
 | `archiveProject` · `renameProject` | `{ projectId, archived? , title? }` | `projects` | עורך+ |
@@ -6268,7 +6650,8 @@ end $$;
 | | כל טבלה עם `updated_at` (חוץ מ-`hooks` שיש לה טריגר עמודות) מחוברת ל-`set_updated_at` | 0 חסרות |
 | | אף פונקציה `security definer` ב-`public` בלי `search_path` קבוע | 0 (`proconfig` מכיל `search_path=`) |
 | | `anon` יכול להריץ רק: `search_hooks`, `search_hooks_facets`, `normalize_he`, `escape_like`, `health_ping` | רשימה זהה בדיוק |
-| | `authenticated` לא יכול להריץ `reserve_credits`, `capture_credits`, `settle_reservation`, `refund_reservation`, `refund_credits`, `spend_credits`, `grant_credits`, `debit_credits`, `revoke_grant_remaining`, `create_job_and_reserve`, `claim_idempotency_key`, `prepare_user_deletion`, `enforce_plan_limits`, `billing_apply_payment`, `billing_apply_renewal`, `billing_apply_plan_change`, `cron_recent_failures`, `trial_pepper_configured` | `has_function_privilege = false` לכולן |
+| | **allow-list של `execute`:** כל פונקציה ב-`public` (`pg_proc` ⋈ `pg_namespace`) שבה `has_function_privilege('anon', oid, 'execute')` או `has_function_privilege('authenticated', oid, 'execute')` | הקבוצה שווה בדיוק לרשימת ה-grants של §12.6 (כולל `change_member_role`) ועוד `storage_ws`, ‏`storage_upload_allowed`, ‏`realtime_topic_allowed`; כל פונקציה חדשה בלי revoke מפורש נכשלת כאן |
+| | `authenticated` לא יכול להריץ `reserve_credits`, `capture_credits`, `settle_reservation`, `refund_reservation`, `refund_credits`, `begin_spend`, `commit_spend`, `sweep_orphaned_spends`, `cap_rollover`, `effective_white_label`, `_billing_workspace_id`, `_workspace_plan`, `_lock_billing_workspace`, `grant_credits`, `debit_credits`, `revoke_grant_remaining`, `create_job_and_reserve`, `claim_idempotency_key`, `prepare_user_deletion`, `enforce_plan_limits`, `billing_apply_payment`, `billing_apply_renewal`, `billing_apply_plan_change`, `cron_recent_failures`, `trial_pepper_configured` | `has_function_privilege = false` לכולן |
 | | `purge_ai_generations`, `purge_support_data`, `purge_audit_logs` לא ניתנות להרצה ל-`anon`, ל-`authenticated` וגם לא ל-`service_role` | `false` לכולן |
 | | מפתחות זרים שמצביעים על `profiles` עם `on delete restrict` (‏`pg_constraint.confdeltype = 'r'`) | 0 (כולם `cascade` או `set null`, §9.6) |
 | | 36 enum-ים; ‏`member_role` בסדר `owner,admin,editor,viewer` | ✓ |
@@ -6276,14 +6659,20 @@ end $$;
 | | A קורא `projects`, ‏`assets`, ‏`jobs`, ‏`brand_kits` של WB | 0 שורות |
 | | A מכניס `projects` עם `workspace_id = WB` | שגיאת RLS (`42501`) |
 | | B מזמין את A כ-`viewer` ל-WB; A מקבל את ההזמנה (`accept_invite`) | A רואה את פרויקטי WB; ‏`insert` לפרויקט ב-WB נכשל |
-| | B משנה את A ל-`editor` | A מכניס פרויקט; `delete` של פרויקט נכשל (0 שורות); `update … set deleted_at` נכשל ב-`FORBIDDEN` |
-| | A (עורך) מנסה לשנות את עצמו ל-`admin` | 0 שורות מעודכנות |
-| | A (מנהל) מנסה לשנות את B (בעלים) | 0 שורות |
+| | B משנה את A ל-`editor` (`change_member_role(WB, A, 'editor')`) | A מכניס פרויקט; `delete` של פרויקט נכשל (0 שורות); `update … set deleted_at` נכשל ב-`FORBIDDEN`; שורת `audit_logs` ‏`member.role_change` |
+| | `update workspace_members set role = …` ישיר, גם כ-B (בעלים) | שגיאת הרשאה (`42501`): אין grant ואין מדיניות `update` |
+| | A (עורך) קורא ל-`change_member_role(WB, A, 'admin')` | `FORBIDDEN` |
+| | A (מנהל) קורא ל-`change_member_role(WB, B, 'admin')` (B בעלים) / עם `p_role = 'owner'` | `FORBIDDEN` (`owner_role_is_fixed`) / `INVALID_INPUT` |
+| | תוכנית בסיס (מושב אחד, תפוס על ידי B); B קורא ל-`change_member_role(WB, V, 'editor')` לצופה V | `PLAN_LIMIT` ‏`{"limit":"seats","max":1}`; התפקיד של V לא משתנה |
+| | B מכניס `workspace_invites` עם `role = 'editor'` כשהמושבים מלאים | `PLAN_LIMIT` מהטריגר `workspace_invites_seat_guard`; הזמנת `viewer` מצליחה |
+| | עורך מכניס, מעדכן או מוחק `scenes` ישירות | שגיאת הרשאה (`42501`) לכל אחת משלוש הפעולות; ‏`select` עובד |
+| | A מכניס `consents` ישירות (גם עם `user_id` = A) | שגיאת הרשאה (`42501`); ‏`select` של השורות של A עובד |
+| | A (לא חבר ב-WB) קורא ל-`billing_workspace_id(WB)`, ‏`workspace_plan(WB)` ו-`is_version_locked(<גרסה ב-WB>)` | `null` בשלושתן; אותן קריאות כ-`service_role` מחזירות ערכים |
 | | A עוזב את WB (`delete` על החברות שלו) | מצליח; אחר כך 0 שורות מ-WB |
 | | `profiles`: A קורא את השורה של B | 0 שורות; `list_workspace_members(WB)` מחזיר את שניהם כש-A חבר |
 | | A מעדכן `profiles.is_platform_admin = true` | שגיאת הרשאה (`42501`) |
 | | מנהל פלטפורמה P: `platform_admin_status()` עם `aal1` / עם `aal2` | `needs_mfa` / `ok`; ‏`profiles_select_admin` מחזיר שורות של אחרים רק עם `aal2` |
-| | B (בעלים, תוכנית בסיס עם מושב אחד) מזמין את A כ-`viewer` ואת C כ-`editor` | ההזמנה של A מתקבלת; `accept_invite` של C נכשל ב-`PLAN_LIMIT`; ‏`seats_used(WB)` = 1 |
+| | B (בעלים, תוכנית בסיס עם מושב אחד) מזמין את A כ-`viewer` ואת C כ-`editor` | ההזמנה של A מתקבלת; ההזמנה של C נדחית כבר ביצירה (`PLAN_LIMIT`, ‏`workspace_invites_seat_guard`); הזמנת `editor` שנוצרה כ-`postgres` לפני כן — `accept_invite` שלה נכשל ב-`PLAN_LIMIT`; ‏`seats_used(WB)` = 1 |
 | | סוכנות: G (בעלים של WG מסוג `agency`) יוצר לקוח WC; E (עורך ב-WG); V (צופה ב-WG) | E רואה וכותב ב-WC; V לא רואה את WC; ‏`effective_role(WC)` ל-G = `admin` |
 | | סביבה שנמחקה לוגית (`deleted_at`) | אף אחד לא רואה אותה דרך RLS |
 | | שקילות: לכל זוג (משתמש × סביבה) בנתוני הבדיקה | `ws in accessible_workspace_ids()` ⇔ `can_access_workspace(ws)` |
@@ -6303,7 +6692,13 @@ end $$;
 | | `daily_credit_cap = 70`, שימוש 60 היום, `reserve 20` | `PLAN_LIMIT` ‏`{"limit":"daily_credit_cap"}` |
 | | `update`/`delete`/`truncate` על `credit_ledger` (גם כ-`service_role`) | שגיאה |
 | | `credit_invariant_violations()` בסוף כל תרחיש | 0 שורות |
-| | `spend_credits` של 0 | `null`, בלי שורות |
+| | `begin_spend` של 0 | `null`, בלי שורות; `commit_spend(null, …)` לא עושה כלום |
+| | `begin_spend 5` ← `commit_spend` ← `commit_spend` שוב | שמירה `settled` עם `captured = 5`; שורות `reserve -5`, ‏`capture 0` (מפתח `…:capture`); הקריאה השנייה לא מוסיפה שורות |
+| | `begin_spend 5` בלי `commit_spend`; ‏`created_at` מוזז 7 דקות אחורה; `sweep_orphaned_spends()` | מחזירה 1; השמירה `refunded`, היתרה חוזרת במלואה, שורת `refund +5` עם "הפעולה לא הושלמה. הקרדיטים הוחזרו."; מפתח `api_idempotency_keys` ב-`in_progress` מאותו גיל ← `failed` |
+| | **החזר אחרי פקיעה טבעית:** דלי שפג (`expire_credit_grants` כותב `expire:{grantId}` וממלא `expired_at`), ואז `refund_reservation` של שמירה ישנה ממנו, ואז `expire_credit_grants` שוב | ההחזר נכנס לדלי חדש (`reservation_return`, +7 ימים); הדלי המקורי נשאר עם `remaining = 0`; הריצה השנייה עוברת בלי `23505` |
+| | **תקרה ואז פקיעה טבעית:** `cap_rollover(ws, cap, 'grant:plan:s:p1')` מוריד חלק מדלי (`expire:cap:{grantId}:grant:plan:s:p1`), ואחר כך הדלי פג | שתי שורות `expire` עם מפתחות שונים, בלי `23505`; קריאה חוזרת ל-`cap_rollover` עם אותו `p_ref` מחזירה 0 |
+| | `expire_credit_grants()` כשסביבה אחת זורקת שגיאה | שאר הסביבות פגות כרגיל; אזהרה בלוג |
+| | `get_credit_summary` בתוכנית `free` / ‏`starter` | `plan_allowance` = `null` / ‏400 |
 | | `create_job_and_reserve` כש-`concurrent_jobs` מלא | `CONCURRENCY_LIMIT`; אין שורת `jobs` |
 | | אותו מצב, עבודת אח עם `options.afterJobId` | נוצרת; ‏`running` בבדיקה הבאה לא כולל אותה |
 | | `revoke_grant_remaining` פעמיים עם אותו מפתח | בפעם השנייה 0; היתרה יורדת בדיוק ב-`remaining`; שמירה פתוחה לא משתנה |
@@ -6323,7 +6718,8 @@ end $$;
 | | `update audit_logs set action = 'x.y'` ו-`delete from audit_logs` כ-`service_role` | `AUDIT_LOG_IMMUTABLE` |
 | | `purge_audit_logs()` כ-`postgres` עם שורת `model.toggle` בת 37 חודשים ושורת `payment.refund` בת 37 חודשים | הראשונה נמחקת, השנייה נשארת |
 | | `reindex_scenes` עם קבוצה לא תואמת | `INVALID_INPUT` |
-| | עורך ב-WA מעדכן `scenes.user_asset_id` לנכס של WB, או `projects.brand_kit_id` לערכה של WB | `FORBIDDEN` (`cross_workspace_reference`) |
+| | עורך ב-WA מעדכן `projects.brand_kit_id` לערכה של WB | `FORBIDDEN` (`cross_workspace_reference`) |
+| | עורך ב-WA מעדכן `scenes.user_asset_id` ישירות | שגיאת הרשאה (`42501`): ‏`scenes` נכתבת רק בשרת (§19.6) |
 | | משתמש מעדכן `profiles.notification_prefs` עם `whatsapp.verified_at` | `FORBIDDEN`; עדכון של `kinds` בלבד מצליח |
 | | עורך מכניס `project_versions` עם `moderation` / מכניס `share_links` ישירות | שגיאת הרשאה (`42501`) |
 | | עורך מכניס `assets` עם `path` שמתחיל בסביבה אחרת | שגיאת RLS |
@@ -6336,9 +6732,12 @@ end $$;
 | `09_idempotency.sql` | `claim → complete → claim` | `new` ← `completed` עם הגוף השמור |
 | | `claim` עם hash אחר | `mismatch` |
 | | `claim → complete('failed') → claim` | `new` עם `attempt = 2` |
+| | `claim` ← (`updated_at` מוזז 5 דקות אחורה) `claim` ← (מוזז 7 דקות) `claim` | `in_progress` ← `new` עם `attempt = 2` (חלון של 6 דקות) |
 | `10_billing_ops.sql` | `enforce_plan_limits` אחרי הורדת תוכנית (בעלים + 2 עורכים + הזמנת עורך, ל-`starter`) | ההזמנה נמחקת, שני העורכים `viewer`, 2 שורות `member.role_change` ‏(`plan_downgrade`); קריאה שנייה — אין שינוי |
 | | `mark_retention()` על רינדור בן 91 יום: סביבה חינמית עם `has_paid = false` / `true` | מסומן / לא מסומן |
+| | `effective_white_label`: סוכנות עם `white_label = true` בתוכנית `agency` / אותה סוכנות אחרי מעבר ל-`business` / סביבת לקוח של הסוכנות / `white_label = false` | `true` / `false` / `true` (לפי סביבת החיוב) / `false` |
 | | `email_messages` עם `idempotency_key` כפול | `23505` |
+| | `insert into consents (email, kind, version, granted, source)` עם `source = 'unsubscribe'` ו-`granted = false` כ-`service_role` / אותו דבר עם `source = 'email_link'` | מצליח / `23514` (`check_violation`) |
 | | `cron.job` | בדיוק 11 משימות |
 | | `backup_reader` (`set role backup_reader`) | `select` על `credit_ledger` מצליח; `insert` נכשל |
 
@@ -6373,6 +6772,7 @@ test("create_job_and_reserve respects concurrent_jobs under 10 parallel calls", 
 - לכל נתיב ב-§19–§21: בקשה תקינה, בקשה לא תקינה (400 עם `issues`), משתמש לא מחובר (401), תפקיד חסר (403), משאב של סביבה אחרת (404).
 - נתיבי קרדיטים: אותו `Idempotency-Key` פעמיים, ומפתח שנעשה בו שימוש עם גוף אחר.
 - webhooks: חתימה שגויה, חתימה תקינה, משלוח כפול, אירוע לא סופי — עם fixtures ב-`tests/fixtures/openrouter/*.json` ו-`tests/fixtures/payments/*.json`.
+- `POST /api/unsubscribe?token=` (`tests/contract/api/unsubscribe.test.ts`): POST חד-קליקי בלי עוגיות ובלי `Origin` ← 200, שורת `email_suppressions` אחת ו-3 שורות `consents` (`granted = false`, ‏`source = 'unsubscribe'`, אחת לכל `marketing_*`); כש-`recordConsent` זורק — עדיין 200 ושורת ההסרה נשמרה; טוקן לא תקין ← 400.
 - בדיקת "כיסוי נתיבים": סקריפט שמוצא כל `route.ts` תחת `app/api` ומוודא שהוא מייצא handler שנבנה ב-`route()` (או ברשימת החריגים: webhooks, ‏`/.well-known/workflow`) ושיש לו לפחות קובץ בדיקה אחד.
 
 ### קריטריוני קבלה

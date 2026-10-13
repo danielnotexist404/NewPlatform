@@ -54,7 +54,7 @@
 
 | סוג | הוק לדוגמה | נישה |
 |---|---|---|
-| רשימה ממוספרת | לפני שאתם חותמים על דירה, תבדקו 3 דברים. על השלישי מתווכים פחות אוהבים לדבר | נדל״ן: מתווכים ומשרדי תיווך |
+| רשימה ממוספרת | 3 דברים לבדוק לפני שחותמים על דירה. על השלישי פחות מדברים | נדל״ן: מתווכים ומשרדי תיווך |
 | התוצאה קודם | הדירה הזאת נמכרה תוך 9 ימים. ככה עשינו את זה | נדל״ן: מתווכים ומשרדי תיווך |
 | POV / נקודת מבט | POV: סוף סוף מצאתם דירה עם מרפסת שמש – וגם חנייה | נדל״ן: מתווכים ומשרדי תיווך |
 | חשיפת מחיר | כמה באמת עולה דירת 4 חדרים ב{עיר} השנה? המספר לא מה שחשבתם | נדל״ן: מתווכים ומשרדי תיווך |
@@ -90,14 +90,14 @@
     "id": "real-estate-01",
     "niche_slug": "real-estate",
     "hook_type_slug": "listicle",
-    "text_he": "לפני שאתם חותמים על דירה, תבדקו 3 דברים. על השלישי מתווכים פחות אוהבים לדבר",
+    "text_he": "3 דברים לבדוק לפני שחותמים על דירה. על השלישי פחות מדברים",
     "platforms": [
       "reels",
       "tiktok",
       "shorts"
     ],
     "goal": "trust",
-    "gender": "plural",
+    "gender": "neutral",
     "visual_direction_he": "יד עם עט קופאת מעל חוזה, שלושה מספרים קופצים על המסך",
     "placeholders": [],
     "season_slug": null,
@@ -866,7 +866,7 @@
     "id": "barbers-salons-09",
     "niche_slug": "barbers-salons",
     "hook_type_slug": "question",
-    "text_he": "תספורת לחתונה: מתי לקבוע תור? (רמז: לא יום לפני)",
+    "text_he": "תספורת לחתונה: מתי לקבוע תור? רמז: לא יום לפני",
     "platforms": [
       "reels",
       "facebook"
@@ -1239,7 +1239,7 @@
     "id": "fitness-trainers-09",
     "niche_slug": "fitness-trainers",
     "hook_type_slug": "curiosity-gap",
-    "text_he": "ככה נראית ארוחת בוקר של מאמן כושר (לא מה שחשבתם)",
+    "text_he": "ככה נראית ארוחת בוקר של מאמן כושר, וזה לא מה שחשבתם",
     "platforms": [
       "reels",
       "tiktok"
@@ -1643,14 +1643,14 @@
     "id": "dentists-02",
     "niche_slug": "dentists",
     "hook_type_slug": "listicle",
-    "text_he": "3 סימנים שאתם צריכים טיפול שורש (השלישי מפתיע)",
+    "text_he": "3 סימנים שאולי צריך טיפול שורש. השלישי מפתיע",
     "platforms": [
       "reels",
       "shorts",
       "facebook"
     ],
     "goal": "leads",
-    "gender": "plural",
+    "gender": "neutral",
     "visual_direction_he": "הרופאה מחזיקה דגם של שן ומרימה שלוש אצבעות",
     "placeholders": [],
     "season_slug": null,
@@ -1891,7 +1891,7 @@
     "id": "mortgage-advisors-05",
     "niche_slug": "mortgage-advisors",
     "hook_type_slug": "myth-busting",
-    "text_he": "מיתוס: \"אנחנו לקוחות של הבנק 20 שנה, יתנו לנו את הריבית הכי טובה\"",
+    "text_he": "מיתוס: \"20 שנה אנחנו בבנק, יתנו לנו את הריבית הכי טובה\"",
     "platforms": [
       "reels",
       "facebook"
@@ -1916,7 +1916,7 @@
     ],
     "goal": "leads",
     "gender": "neutral",
-    "visual_direction_he": "מאזניים מתנדנדים בין \"חיסכון\" ל\"עמלות\"",
+    "visual_direction_he": "מאזניים מתנדנדים, על כף אחת \"חיסכון\" ועל השנייה \"עמלות\"",
     "placeholders": [],
     "season_slug": null,
     "compliance_note_he": null,
@@ -2011,7 +2011,7 @@
     "visual_direction_he": "גרף ריבית עם חץ שיורד, עיתון מתקפל על השולחן",
     "placeholders": [],
     "season_slug": null,
-    "compliance_note_he": "רק אחרי החלטת ריבית אמיתית; להתאים ל\"עלתה\" או ל\"ירדה\" לפי החדשות.",
+    "compliance_note_he": "רק אחרי החלטת ריבית אמיתית; לפי החדשות, כותבים \"עלתה\" או \"ירדה\".",
     "is_featured": false
   },
   {
@@ -2141,7 +2141,7 @@
     "id": "ecommerce-03",
     "niche_slug": "ecommerce",
     "hook_type_slug": "listicle",
-    "text_he": "3 סיבות שבגללן לקוחות חוזרים אלינו (השנייה הפתיעה אותנו)",
+    "text_he": "3 סיבות שבגללן לקוחות חוזרים אלינו. השנייה הפתיעה גם אותנו",
     "platforms": [
       "reels",
       "facebook"
@@ -2654,7 +2654,7 @@
     "id": "lawyers-05",
     "niche_slug": "lawyers",
     "hook_type_slug": "story",
-    "text_he": "סיפור אמיתי (בשינוי פרטים): הודעת וואטסאפ אחת כמעט עלתה ללקוח 400 אלף ₪",
+    "text_he": "מקרה אמיתי, בשינוי פרטים: וואטסאפ אחד כמעט עלה ללקוח 400 אלף ₪",
     "platforms": [
       "reels",
       "facebook"
@@ -2845,7 +2845,7 @@
     "id": "accountants-06",
     "niche_slug": "accountants",
     "hook_type_slug": "story",
-    "text_he": "הטעות הכי יקרה שראיתי השנה (ולא, זה לא היה לקוח שלי)",
+    "text_he": "הטעות הכי יקרה שראיתי השנה. ולא, זה לא היה לקוח שלי",
     "platforms": [
       "reels",
       "shorts",
@@ -2967,7 +2967,7 @@
     "id": "insurance-agents-02",
     "niche_slug": "insurance-agents",
     "hook_type_slug": "question",
-    "text_he": "מתי בפעם האחרונה בדקתם מה יש לכם ב\"הר הביטוח\"?",
+    "text_he": "מתי בפעם האחרונה בדקתם מה יש לכם בהר הביטוח?",
     "platforms": [
       "reels",
       "facebook"
@@ -3019,7 +3019,7 @@
     "id": "insurance-agents-05",
     "niche_slug": "insurance-agents",
     "hook_type_slug": "comparison",
-    "text_he": "ביטוח רכב: \"הכי זול\" ו\"הכי משתלם\" זה לא אותו דבר",
+    "text_he": "ביטוח רכב: זול ומשתלם זה לא אותו דבר",
     "platforms": [
       "reels",
       "tiktok",
@@ -3089,7 +3089,7 @@
     "id": "insurance-agents-09",
     "niche_slug": "insurance-agents",
     "hook_type_slug": "day-in-life",
-    "text_he": "יום בחיים של סוכן ביטוח (זה לא רק טפסים)",
+    "text_he": "יום בחיים של סוכן ביטוח, וזה לא רק טפסים",
     "platforms": [
       "reels",
       "tiktok"
@@ -3543,7 +3543,7 @@
     "id": "djs-musicians-03",
     "niche_slug": "djs-musicians",
     "hook_type_slug": "controversy",
-    "text_he": "3 שירים שאסור לשים בחתונה (השלישי יפתיע אתכם)",
+    "text_he": "3 שירים שאסור לשים בחתונה. השלישי יפתיע אתכם",
     "platforms": [
       "reels",
       "tiktok",
@@ -3631,7 +3631,7 @@
     "id": "zimmers-boutique-hotels-03",
     "niche_slug": "zimmers-boutique-hotels",
     "hook_type_slug": "listicle",
-    "text_he": "3 דברים לבדוק לפני שמזמינים צימר (את השלישי כמעט אף אחד לא בודק)",
+    "text_he": "3 דברים לבדוק לפני שמזמינים צימר. השלישי נשכח כמעט תמיד",
     "platforms": [
       "reels",
       "facebook"
@@ -4089,7 +4089,7 @@
     "id": "therapists-03",
     "niche_slug": "therapists",
     "hook_type_slug": "myth-busting",
-    "text_he": "מיתוס: טיפול זה רק למי ש\"משהו לא בסדר\" איתו",
+    "text_he": "מיתוס: טיפול זה רק למי שמשהו לא בסדר איתו",
     "platforms": [
       "reels",
       "shorts",
@@ -4263,7 +4263,7 @@
     "id": "vets-dog-grooming-02",
     "niche_slug": "vets-dog-grooming",
     "hook_type_slug": "listicle",
-    "text_he": "3 מאכלים מהמטבח שמסוכנים לכלבים (השני נמצא כמעט בכל בית)",
+    "text_he": "3 מאכלים מהמטבח שמסוכנים לכלבים. השני נמצא כמעט בכל בית",
     "platforms": [
       "reels",
       "tiktok",
@@ -5262,7 +5262,7 @@
     "id": "physio-nutrition-01",
     "niche_slug": "physio-nutrition",
     "hook_type_slug": "myth-busting",
-    "text_he": "המאכל ה\"בריא\" שהורס לא מעט דיאטות",
+    "text_he": "המאכל שנחשב בריא והורס לא מעט דיאטות",
     "platforms": [
       "reels",
       "tiktok",

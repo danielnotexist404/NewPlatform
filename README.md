@@ -20,6 +20,7 @@
 | [`PROMPT-FULL.md`](PROMPT-FULL.md) | כל הפרומפט בקובץ אחד, להעתקה (קובץ ענק; ב-GitHub פותחים אותו ב-Raw) |
 | [`PROMPT-QUICKSTART.md`](PROMPT-QUICKSTART.md) | **גרסה מקוצרת ועצמאית** לכלים עם מגבלת קלט (Lovable, ‏Bolt, ‏v0, ‏Replit), כולל הודעת פתיחה מוכנה להדבקה |
 | [`seed/`](seed/) | נתוני הזרע ב-JSON: נישות, קטגוריות, משפחות וסוגי הוקים, עונות והוקים. נבנים ומאומתים על ידי `seed/scripts/build_seed.py` |
+| [`docs/build-log/`](docs/build-log/) | יומן הבנייה של הפרומפט: החלטות האינטגרציה, תוכנית התיקונים ודוחות האימות (רקע בלבד) |
 | [`docs/research/`](docs/research/) | קובצי המחקר הגולמיים (באנגלית) עם מקורות. בכל קובץ, ה-"Verification addendum" שבסופו גובר על מה שלפניו |
 
 ## הממצאים בקצרה

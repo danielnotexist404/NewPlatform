@@ -1690,6 +1690,7 @@
 |---|---|---|---|
 | `seed/niche_categories.json` | `niche_categories` | `slug` | קטגוריות לניווט ולעמודי SEO |
 | `seed/niches.json` | `niches` | `slug` | `category_slug` מפנה ל-`niche_categories.slug` |
+| `seed/niche_extras.json` | `niches` (עמודות שקיימות רק במסד, מצב `fill_if_null`) | `slug` | שורה אחת לכל נישה, באותו סדר כמו `niches.json`: ערכי ההשקה של `short_name_he`, ‏`default_register`, ‏`default_audience_gender`, ‏`default_cta` ו-`default_music_mood`. עמודה נכתבת רק כשהיא NULL במסד, כך שעריכה באדמין לא נדרסת |
 | `seed/hook_families.json` | `hook_families` (אופציונלי) | `slug` | אפשר להחזיק את המשפחות גם כקבוע בקוד |
 | `seed/hook_types.json` | `hook_types` | `slug` | `family_slug` מפנה ל-`hook_families.slug` |
 | `seed/seasons.json` | `seasons` (אופציונלי) | `slug` | רשימת המועדים; התאריכים בפועל מגיעים מ-API של לוח עברי |

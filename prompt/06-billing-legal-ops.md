@@ -20,7 +20,8 @@
 ```
 lib/billing/
 ├─ types.ts          # Agorot, BillingCustomer, PaymentRecord, ChargeResult, RefundResult, VerifiedPaymentEvent, InvoiceLine
-├─ money.ts       ★  # toAgorot / fromAgorot / formatAgorot — all arithmetic in integer agorot
+├─ money.ts       ★  # toAgorot / fromAgorot / toIlsNumber / formatAgorot — all arithmetic in integer agorot (…Ag)
+├─ credits.ts     ★  # creditMath(): perVideoCredits / videosLeft / lowThreshold (§2.6) — pure, client-safe; getCreditMath() in credits.server.ts
 ├─ vat.ts            # vatRateAt(date), splitGross(gross, rate) — never a literal 0.18 in code
 ├─ clock.ts       ★  # injectable now(); tests pass a fixed clock
 ├─ periods.ts     ★  # periodBounds(anchor, cycle, n), grantWindow(anchor, k) — Asia/Jerusalem calendar math
@@ -46,7 +47,7 @@ lib/invoicing/
 
 | # | כלל | איך נאכף |
 |---|---|---|
-| 1 | **כל חשבון כספי במספרים שלמים של אגורות** (`type Agorot = number & { __brand: "agorot" }`). המרה מ/אל `numeric(10,2)` רק בגבול ה-DB, דרך `toAgorot()` / `fromAgorot()`. עיגול: חצי למעלה, לאגורה. | ESLint אוסר `parseFloat` ו-`toFixed` בתוך `lib/billing/**`, חוץ מ-`money.ts`; בדיקות יחידה לכל נוסחה |
+| 1 | **כל חשבון כספי במספרים שלמים של אגורות** (`type Agorot = number & { __brand: "agorot" }`). המרה מ/אל `numeric(10,2)` רק בגבול ה-DB, דרך `toAgorot()` / `fromAgorot()`. עיגול: חצי למעלה, לאגורה. **שמות — שתי יחידות, עם סיומת חובה:** שקלים עשרוניים (2 ספרות אחרי הנקודה, כולל מע״מ אלא אם השם אומר `net`) — `_ils` ב-SQL ו-`Ils` ב-TS/JSON: עמודות ה-DB, פרמטרי RPC (`p_*_ils`), ה-JSON של ה-API (`RefundQuote.*Ils`, `PlanChangeResponse.chargeNowIls`/`newPriceIls`, גופי האדמין `{amountIls}`) והממשק (`Price`, `formatIls`); אגורות שלמות (`Agorot`) — `Ag`, רק בקוד שב-`lib/billing/**` וב-`lib/invoicing/**` ובממשקים הציבוריים של `PaymentProvider`/`InvoiceProvider`. ההמרה רק בגבולות עם שם: `toAgorot()` (DB / API / ספק ← פנימי), `fromAgorot()` (פנימי ← DB/RPC ופורמט הסכום של הספק), `toIlsNumber()` (פנימי ← JSON של ה-API). המתאם של כל ספק ממיר לפורמט שלו בפנים. | ESLint אוסר `parseFloat` ו-`toFixed` בתוך `lib/billing/**`, חוץ מ-`money.ts`; כלל ESLint ובדיקת טיפוסים ב-`lib/billing/**` וב-`lib/invoicing/**`: מאפיין מטיפוס `Agorot` חייב להסתיים ב-`Ag`, ומאפיין שמסתיים ב-`Ils` לא יכול להיות `Agorot` (`number` לא ניתן להשמה ל-`Agorot`, ולכן שקלים לא מגיעים לספק בטעות); בדיקות יחידה לכל נוסחה ולכל גבול (§18.2) |
 | 2 | **המחירים במסד כוללים מע״מ** (`plans.price_monthly_ils`, `credit_packs.price_ils`). מע״מ מחושב לאחור מהמחיר הכולל, בשיעור שתקף **ביום החיוב**. | `splitGross()` הוא המקום היחיד שמחשב מע״מ |
 | 3 | **שיעור המע״מ לא כתוב בקוד.** הוא נקרא מ-`app_settings.vat_rate` (היום 0.18), עם שינוי עתידי אופציונלי ב-`app_settings.vat_rate_next` (`{ "rate": <number>, "effective_from": "YYYY-MM-DD" }`). | `scripts/lint-billing.ts` נכשל על הליטרלים `0.18`, `1.18`, `18%` מחוץ ל-seed ולבדיקות |
 | 4 | **קרדיטים מוענקים רק מתוך webhook מאומת או מתוך ה-cron**, לעולם לא מדף החזרה מהסליקה ולא מהדפדפן. | בדיקת e2e: רענון `/app/billing/return` לא מעניק פעמיים |
@@ -62,8 +63,9 @@ lib/invoicing/
 // lib/billing/money.ts
 export type Agorot = number & { readonly __brand: "agorot" };
 export const ag = (n: number) => { if (!Number.isInteger(n)) throw new Error("agorot must be integer"); return n as Agorot; };
-export const toAgorot = (ils: string | number): Agorot => ag(Math.round(Number(ils) * 100));   // DB boundary only
-export const fromAgorot = (a: Agorot): string => (a / 100).toFixed(2);                          // DB boundary only
+export const toAgorot = (ils: string | number): Agorot => ag(Math.round(Number(ils) * 100));   // boundary in: DB / API / provider → internal
+export const fromAgorot = (a: Agorot): string => (a / 100).toFixed(2);                          // boundary out: internal → DB/RPC (p_*_ils) and provider wire format
+export const toIlsNumber = (a: Agorot): number => Number(fromAgorot(a));                        // boundary out: internal → API JSON (…Ils fields) only
 export const roundHalfUp = (x: number): Agorot => ag(Math.sign(x) * Math.round(Math.abs(x)));
 // The ONLY ILS display formatter is formatIls() of part 01 §2.5 (₪ prefix, no Intl currency style).
 // Billing code, emails and invoice-line builders call formatAgorot; React UI uses <Price>.
@@ -76,9 +78,9 @@ export async function vatRateAt(date: Date): Promise<number> {
   if (next && date >= startOfDayIL(next.effective_from)) return next.rate;
   return s.vat_rate as number;
 }
-export function splitGross(gross: Agorot, rate: number): { net: Agorot; vat: Agorot } {
+export function splitGross(gross: Agorot, rate: number): { netAg: Agorot; vatAg: Agorot } {
   const net = roundHalfUp(gross / (1 + rate));
-  return { net, vat: ag(gross - net) };                                    // net + vat === gross, always
+  return { netAg: net, vatAg: ag(gross - net) };                           // netAg + vatAg === gross, always
 }
 ```
 
@@ -110,6 +112,7 @@ export function splitGross(gross: Agorot, rate: number): { net: Agorot; vat: Ago
 | הסרת יתרה מדלי בידי אדמין | `revoke:admin:{auditLogId}` | `credit_ledger.idempotency_key` |
 | הסרת קרדיטים ב-chargeback | `revoke:chargeback:{paymentId}:{grantId}` | `credit_ledger.idempotency_key` |
 | שחזור קרדיטים שפגו בזמן תקלה | `grant:rollover:{incidentId}:{workspaceId}` | `credit_ledger.idempotency_key` |
+| פקיעה בתקרת הגלגול (§2.4) | `expire:cap:{grantId}:{grantingKey}` (`grantingKey` = מפתח ההענקה שמפעילה את התקרה) | `credit_ledger.idempotency_key` (חלק 04 §10.1) |
 | חשבונית לתשלום | `invoice:{paymentId}:{docType}` | `invoices` + מזהה חיצוני אצל Morning (שדה הערה פנימית) |
 
 `payments.idempotency_key` (‏`text unique`, ‏NULL מותר) ו-`payments.confirmation_sent_at` מוגדרות בחלק 04 §7. שורת `payments` נוצרת בסטטוס `pending` עם `provider_txn_id = 'pending:' || id`, ומתעדכנת למזהה האמיתי כשהספק עונה — כך אילוץ ה-`unique (provider, provider_txn_id)` של נספח F נשמר. ערכי `payments.failure_reason`: ‏`declined`, ‏`card_expired`, ‏`insufficient_funds`, ‏`invalid_token`, ‏`provider_error`, ‏`amount_mismatch`, ‏`chargeback`.
@@ -201,7 +204,7 @@ export function grantWindow(anchor: Date, k: number) {           // monthly gran
 ### 2.4 גלגול קרדיטים ("קרדיטים שלא נוצלו עוברים לחודש הבא")
 
 - הגלגול **ממומש דרך התוקף**: כל הענקת מכסה פגה חודש אחרי סוף התקופה שלה. בתקופה החדשה עומדים לרשותכם המכסה החדשה ומה שנשאר מהקודמת; סדר הצריכה (הדלי שפג ראשון) מבטיח שהשאריות מהחודש הקודם נצרכות קודם. אין צורך ב"העברה" פעילה, ולכן אין סיכוי לגלגול כפול.
-- **תקרת גלגול** (`app_settings.rollover_cap_multiplier`, היום 1): ברגע כל הענקת מכסה (בתוך פונקציות `billing_apply_*` ובהענקה החודשית של מנוי שנתי, לפני ההענקה עצמה), סך `remaining` של דליי `plan_cycle`/`rollover` שעדיין בתוקף (לפני ההענקה) לא יעלה על `multiplier × max(monthly_credits של התוכנית הקודמת, של החדשה)`. עודף פג מיד (שורת `expire` עם התיאור **"קרדיטים מעבר לתקרת הגלגול"**). בפועל, עם התוקף של חודש אחד, התקרה תופסת רק חריגות (הענקות ידניות, תקלות) — היא רשת ביטחון ולא מנגנון עיקרי.
+- **תקרת גלגול** (`app_settings.rollover_cap_multiplier`, היום 1): ברגע כל הענקת מכסה (בתוך פונקציות `billing_apply_*` ובהענקה החודשית של מנוי שנתי, לפני ההענקה עצמה), סך `remaining` של דליי `plan_cycle`/`rollover` שעדיין בתוקף (לפני ההענקה) לא יעלה על `multiplier × max(monthly_credits של התוכנית הקודמת, של החדשה)`. עודף פג מיד דרך `cap_rollover(ws, cap, grantingKey)` (חלק 04 §10.2; `cap` = הערך שלמעלה, `grantingKey` = מפתח האידמפוטנטיות של ההענקה שמפעילה את התקרה), שכותב שורת `expire` במפתח `expire:cap:{grantId}:{grantingKey}` עם התיאור **"קרדיטים מעבר לתקרת הגלגול"**; פקיעה טבעית מאוחרת של אותו דלי כותבת `expire:{grantId}`, בלי התנגשות מפתחות. בפועל, עם התוקף של חודש אחד, התקרה תופסת רק חריגות (הענקות ידניות, תקלות) — היא רשת ביטחון ולא מנגנון עיקרי.
 - **ערכי `grant_source = 'rollover'` / `ledger_kind = 'grant_rollover'`** משמשים פעולה אחת: **"שחזור קרדיטים שפגו"** — כשתקלה מצדנו מנעה מלקוח לנצל קרדיטים לפני שפגו, הסקריפט `scripts/restore-expired-credits.ts --incident={id} --from={ISO} --to={ISO} [--dry-run]` (runbook R1) מעניק לכל סביבה שנפגעה דלי `rollover` (‏`ref_type = 'incident'`, ‏`ref_id = incidentId`) בגובה מה שפג בחלון התקלה, עם תוקף חדש של 30 יום ותיאור **"שחזור קרדיטים שפגו בזמן תקלה"**. מפתח: `grant:rollover:{incidentId}:{workspaceId}`.
 - **בביטול או בשנמוך** הקרדיטים שכבר הוענקו נשארים עד תוקפם (חלק 03 §15.3, §15.5). אחרי החזר כספי — הקרדיטים שנותרו מאותו תשלום מוסרים (§10).
 
@@ -209,11 +212,40 @@ export function grantWindow(anchor: Date, k: number) {           // monthly gran
 
 70 קרדיטים (`app_settings.free_trial_credits`), פעם אחת לכל מייל מנורמל, בלי כרטיס ובלי המרה אוטומטית לתשלום — ולכן אין "תזכורת לפני חיוב" ואין חיוב בסוף ניסיון. ההענקה ב-`handle_new_user` (חלק 04 §9.4), בלי תוקף. סימן מים עד התשלום הראשון. מניעת ניצול לרעה: §7.
 
+### 2.6 יתרה בסרטונים וסף "יתרה נמוכה" (`lib/billing/credits.ts` ★)
+
+זו הנוסחה האחת ל"בערך N סרטונים" ולסף "יתרה נמוכה". משתמשים בה `CreditsMeter` (חלק 01; הטבעת מצוירת רק כש-`planAllowance != null`, ובלי מכסה מוצג רק המספר), הבאנר והכרטיסים של חלק 03 (§1.7, §5.7), `/api/cron/reminders` (חלק 04 §23: נשלח כש-`balance < lowThreshold`) והמייל `low_credits` (§12.5). אין חישוב מקומי בשום רכיב, נתיב או מייל.
+
+```ts
+// lib/billing/credits.ts ★ — pure (no I/O, no "server-only"), so client components may import it: the one exception to the
+// lib/billing/** client-import ban (§23.1). Inputs = credit_costs + app_settings.typical_video_credits, read on the server by
+// getCreditMath() (lib/billing/credits.server.ts, cached 60 s) and passed to client components by the app layout.
+import { estimateSample, type CreditCostMap } from "@/lib/pipeline/estimate";   // part 05 §14.2
+import { FREE_VIDEO_SAMPLE } from "@/lib/marketing/savings";                      // part 02 §3.3.4 — 30 credits with the seed
+
+export function creditMath(i: { creditCosts: CreditCostMap; typicalVideoCredits: number }) {   // typical_video_credits = 50 (seed)
+  const perVideoCredits = (planId: PlanId): number =>
+    planId === "free" ? estimateSample(FREE_VIDEO_SAMPLE, i.creditCosts) : i.typicalVideoCredits;
+  return {
+    perVideoCredits,
+    videosLeft: (balance: number, planId: PlanId): number => Math.floor(Math.max(0, balance) / perVideoCredits(planId)),
+    // planAllowance = get_credit_summary.plan_allowance: null = no monthly allowance (free), never 0 (part 04 §10.5)
+    lowThreshold: (summary: { planAllowance: number | null }, planId: PlanId): number =>
+      summary.planAllowance == null
+        ? perVideoCredits(planId)
+        : Math.max(perVideoCredits(planId), Math.ceil(0.15 * summary.planAllowance)),
+  };
+}
+```
+
+`videosLeft(balance, planId)` ו-`lowThreshold(summary, planId)` שבשאר החלקים הן הפונקציות שמוחזרות מ-`creditMath(...)` (בשרת: `(await getCreditMath()).videosLeft(…)`). עם ה-seed: בתוכנית החינמית `perVideoCredits = 30`, ולכן 70 קרדיטי הניסיון = 2 סרטונים, והסף הוא 30; בבסיס (מכסה 400) הסף הוא `max(50, 60) = 60`; בעסק (1,000) — 150; בסוכנות (3,300) — 495.
+
 ### קריטריוני קבלה
 - [ ] מנוי שהתחיל ב-2027-01-31 10:00 שעון ישראל מתחדש ב-2027-02-28 10:00 וב-2027-03-31 10:00 (בדיקת יחידה).
 - [ ] מנוי שנתי מקבל 12 הענקות בדיוק בשנה, כל אחת עם תוקף "סוף החלון + חודש", ומפתח כפול לא יוצר הענקה שנייה.
 - [ ] אחרי חידוש, יתרה = שארית החודש הקודם + המכסה החדשה; ההזמנה הבאה צורכת קודם מהשארית (בדיקת SQL מול `reserve_credits`).
 - [ ] תקרת הגלגול לא פוגעת בשנמוך: מעבר מסוכנות לבסיס עם 2,000 קרדיטים שנותרו לא מפיג אף קרדיט.
+- [ ] `lib/billing/credits.ts` מחזיר את ערכי 2.6 עם ה-seed, ו-`CreditsMeter`, הבאנר, `/api/cron/reminders` והמייל `low_credits` משתמשים בו בלבד (בדיקת יחידה + סקירה).
 
 ---
 
@@ -229,7 +261,7 @@ export function grantWindow(anchor: Date, k: number) {           // monthly gran
 
 - זמינות בכל תוכנית, כולל חינם. רכישה ראשונה מסמנת `workspaces.has_paid = true` (מסיר סימן מים מהיצירות הבאות).
 - תשלום: כרטיס אשראי, ו-Bit רק בחבילות ורק כש-`GROW_PAGE_CODE_BIT` מוגדר (וספייק M0 של Grow אישר אותו [M0-verify]). השרת מעביר `bitEnabled: boolean` ל-`/pricing`, ל-`TopUpDialog` ולקופי של הקופה; כשהוא `false`, המחרוזות שמזכירות Bit מוצגות בגרסת "כרטיס בלבד" שלהן (מפתחות `…ByCardOnly`, חלק 02 §7.3, §7.6). בחבילות **לא שומרים אסימון** (אין `saveToken`), כדי שרכישה חד־פעמית לא תיצור אמצעי תשלום שמור בלי שהתבקש.
-- ההענקה: `grant_credits(ws, credits, 'topup', null, 'payment', paymentId, 'grant:pack:{paymentId}', 'רכישת חבילת {credits} קרדיטים')`.
+- ההענקה: `grant_credits(ws, credits, 'topup', null, 'payment', paymentId, 'grant:pack:{paymentId}', 'רכישת חבילת קרדיטים ({credits})')` (המספר בסוגריים, בלי צורת רבים שתלויה בו; הסכום מופיע גם בעמודת השינוי ביומן).
 
 ### 3.2 סדר הצריכה (תזכורת לחוזה של חלק 04 §10)
 
@@ -250,16 +282,16 @@ export function grantWindow(anchor: Date, k: number) {           // monthly gran
 ### 4.1 רכישה ראשונה (קופה ← webhook ← הפעלה)
 
 1. **`POST /api/billing/checkout {kind:"subscription", planId, cycle}`** (חוזה ושגיאות: חלק 04 §21.1–§21.2). בדיקות עסקיות, לפי הסדר: הדגל `billing_checkout` פעיל ו-`app_settings.maintenance_mode.enabled` כבוי (אחרת ‏503 `MAINTENANCE {until:null, scope:"checkout"}`); `billing_profiles` קיים (אחרת ‏400 `INVALID_INPUT {reason:"billing_profile_required"}`); הדגל `annual_billing` פעיל למנוי שנתי (אחרת `{reason:"annual_disabled"}`); אין מנוי חי (אחרת `{reason:"use_plan_change"}`, והממשק פותח את דיאלוג שינוי התוכנית); בדיקות הונאה (§7.2: ‏403 `FORBIDDEN {reason:"checkout_temporarily_blocked"}`, ‏429 `RATE_LIMITED {scope:"checkout"}` או `{scope:"topup_daily"}`).
-2. יצירת `checkout_sessions` (`amount_ils` = חודשי, או `price_annual_monthly_ils × 12`), ואז `provider.createHostedCheckout({ saveToken: true, description, customer, successUrl, cancelUrl, webhookUrl })`. תיאור החיוב (מופיע בעמוד התשלום ובדף החיוב של הכרטיס): **"{{BRAND_NAME}} — מנוי תוכנית {planName} ({cycleHe})"**, כש-`cycleHe` = "חודשי" / "שנתי".
+2. יצירת `checkout_sessions` (`amount_ils` = חודשי, או `price_annual_monthly_ils × 12`), ואז `provider.createHostedCheckout({ sessionId, amountAg: toAgorot(session.amount_ils), saveToken: true, description, customer, successUrl, cancelUrl, webhookUrl })`. תיאור החיוב (מופיע בעמוד התשלום ובדף החיוב של הכרטיס): **"{{BRAND_NAME}} — מנוי תוכנית {planName} ({cycleHe})"**, כש-`cycleHe` = "חודשי" / "שנתי".
 3. **גילוי לפני תשלום** (עסקת מכר מרחוק — §10.1): הדיאלוג שלפני ההפניה מציג, מעל הכפתור, את הבלוק הזה (מחרוזות `billing.disclosure.*`):
    - **"₪{price} {cycleSuffix}, כולל מע״מ. החיוב מתחדש אוטומטית עד שתבטלו."** (`cycleSuffix` = "לחודש" / "לשנה")
-   - **"ביטול בכל רגע, בלחיצה, בעמוד החיוב. אחרי ביטול לא יהיו חיובים נוספים."**
-   - **"ב-14 הימים הראשונים אפשר לבטל ולקבל החזר, בניכוי שווי הקרדיטים שנוצלו ודמי ביטול של עד 5% (ולא יותר מ-₪100)."**
-   - **"חשבונית מס/קבלה תישלח למייל {billingEmail}."**
-   - תיבת סימון **לא מסומנת** וחובה: **"קראתי את {תנאי השימוש} ואת {מדיניות הביטול}, והם מקובלים עליי."** ← שורת `consents` מסוג `terms` עם `source = 'checkout'` והגרסה הנוכחית. בלי סימון הכפתור מושבת, ומתחת מופיע **"כדי להמשיך לתשלום צריך לאשר את התנאים."** אותו בלוק ואותה תיבה מופיעים גם ב-`TopUpDialog` וב-`PlanChangeDialog` (חלק 03 §15.2–§15.3).
+   - **"אפשר לבטל בכל רגע: בעמוד החיוב, במייל או בטלפון. אחרי ביטול לא יהיו חיובים נוספים."**
+   - **"ב-14 הימים הראשונים אפשר לבטל ולקבל החזר, בניכוי שווי הקרדיטים שנוצלו ודמי ביטול של עד 5% (ולא יותר מ-{feeCap})."**
+   - **"חשבונית מס תישלח למייל {billingEmail}."**
+   - תיבת סימון **לא מסומנת** וחובה: **"קראתי את {תנאי השימוש} ואת {מדיניות הביטול}, והם מקובלים עליי."** ← שורת `consents` מסוג `terms` עם `source = 'checkout'` והגרסה הנוכחית, שנכתבת בשרת בנתיב הקופה (`recordConsent()`, §11.4). בלי סימון הכפתור מושבת, ומתחת מופיע **"כדי להמשיך לתשלום צריך לאשר את התנאים."** אותו בלוק ואותה תיבה מופיעים גם ב-`TopUpDialog` וב-`PlanChangeDialog` (חלק 03 §15.2–§15.3).
    - בחבילת קרדיטים — אותו בלוק בלי שורת החידוש, ועם **"קרדיטים מחבילה לא פגים."**
 4. **Webhook** (`/api/webhooks/payments/grow` — מופע של ה-Route Handler האחד `app/api/webhooks/payments/[provider]/route.ts`, חלק 04 §22.4) ← `adapter.parseWebhook(raw, req.headers, new URL(req.url))` (אימות `?k=&s=` ושאילתה חוזרת, §8.2) ← `billingEngine.handlePaymentEvent(ev)`.
-5. `handlePaymentEvent` לאירוע `payment.succeeded` קורא לפונקציית SQL אטומית אחת, `billing_apply_payment` (חתימה: חלק 04 §10.8), שמתנהגת לפי `checkout_sessions.kind` ומחזירה `{payment_id, subscription_id, credits_granted, status: 'succeeded'|'amount_mismatch'|'duplicate'}`. בסשן מנוי (`subscription`), בטרנזקציה אחת:
+5. `handlePaymentEvent` לאירוע `payment.succeeded` קורא לפונקציית SQL אטומית אחת, `billing_apply_payment` (חתימה: חלק 04 §10.8; הסכום נשלח כ-`p_amount_ils = fromAgorot(ev.amountAg)`, בשקלים עשרוניים), שמתנהגת לפי `checkout_sessions.kind` ומחזירה `{payment_id, subscription_id, credits_granted, status: 'succeeded'|'amount_mismatch'|'duplicate'}`. בסשן מנוי (`subscription`), בטרנזקציה אחת:
    - מאמתת שהסכום שהתקבל = `checkout_sessions.amount_ils` (אי־התאמה ← `payments.failure_reason = 'amount_mismatch'`, בלי הענקה, התראה לאדמין);
    - מכניסה `payments` (`kind = subscription_initial`, `status = succeeded`, מע״מ מפוצל לפי `vatRateAt(now)`, `idempotency_key = checkout:{sessionId}`);
    - שומרת `payment_methods` (אסימון מוצפן ב-AES-256-GCM, §15.5; `is_default = true`; הקודם — `deleted_at`);
@@ -296,7 +328,7 @@ export async function runBillingCron(now = clock.now()) {
 **חידוש מנוי בודד (`chargeOne`):**
 1. `insert into payments (… status 'pending', kind 'subscription_renewal', idempotency_key 'renew:{subId}:{periodEndISO}') on conflict do nothing`. התנגשות ← השורה הקיימת קובעת: `succeeded` ← דילוג; `pending` מעל 15 דקות ← שאילתת סטטוס אצל הספק (כלל 6 ב-1.3).
 2. סכום: `subscriptions.price_ils` (נעול). מע״מ: לפי `vatRateAt(now)`; אם השיעור השתנה מאז הנעילה — §9.7.
-3. `provider.chargeToken({ tokenRef: decrypt(token_enc), amountIls, description: "{{BRAND_NAME}} — חידוש מנוי תוכנית {planName}", idempotencyKey })`.
+3. `provider.chargeToken({ tokenRef: decrypt(token_enc), amountAg: toAgorot(sub.price_ils), description: "{{BRAND_NAME}} — חידוש מנוי תוכנית {planName}", idempotencyKey })`.
 4. הצלחה ← RPC `billing_apply_renewal(p_payment, p_txn, p_payload)` (חלק 04 §10.8): `payments.status = succeeded`; התקופה מתקדמת (`current_period_start = old end`, `current_period_end = periodBounds(anchor, cycle, n+1).end`); `next_charge_at = current_period_end`; `retry_count = 0`; `past_due_since = null`; הענקת המכסה (2.3); במנוי שנתי `next_grant_at = addMonths(new start, 1)`. אחר כך `invoicePayment(paymentId)` ואירוע השרת `subscription_renewed {plan_id, cycle}`.
 5. כישלון ← §6. תשובה עמומה (`ok: "unknown"`) ← השורה נשארת `pending`, וההחלטה מחכה לשאילתת הסטטוס (כלל 6 ב-1.3, צעד 1 בריצה הבאה).
 
@@ -353,11 +385,18 @@ export async function runBillingCron(now = clock.now()) {
 ```ts
 // lib/billing/proration.ts
 export type PlanChangeQuote = {
-  immediate: boolean; effectiveAt: Date; chargeNow: Agorot; creditsGrantedNow: number; newPrice: Agorot;
+  immediate: boolean; effectiveAt: Date; chargeNowAg: Agorot; creditsGrantedNow: number; newPriceAg: Agorot;
   newCycle: BillingCycle; downgradeImpacts: Array<{ limit: "seats" | "brand_kits" | "client_workspaces"; current: number; allowed: number }>;
   blockedReason: null | "past_due" | "same_plan" | "annual_disabled";
 };
 export async function quotePlanChange(sub: SubscriptionRow, to: { planId: PlanId; cycle: BillingCycle; when?: "now" | "period_end" }, now: Date): Promise<PlanChangeQuote>;
+// DB/RPC boundary (part 04 §10.8): decimal-shekel strings, never a raw TS object in jsonb
+export const quoteToDb = (q: PlanChangeQuote) => ({ charge_now_ils: fromAgorot(q.chargeNowAg), new_price_ils: fromAgorot(q.newPriceAg),
+  credits_granted_now: q.creditsGrantedNow, effective_at: q.effectiveAt.toISOString(), new_cycle: q.newCycle });
+// API boundary (part 04 §21.2 PlanChangeResponse keeps chargeNowIls / newPriceIls)
+export const toApiPlanChange = (q: PlanChangeQuote) => ({ effectiveAt: q.effectiveAt.toISOString(), chargeNowIls: toIlsNumber(q.chargeNowAg),
+  creditsGrantedNow: q.creditsGrantedNow, immediate: q.immediate, newCycle: q.newCycle, newPriceIls: toIlsNumber(q.newPriceAg),
+  downgradeImpacts: q.downgradeImpacts });
 
 // lib/billing/engine.ts
 export async function changePlan(i: { workspaceId: string; actorId: string; planId: PlanId; cycle: BillingCycle; when?: "now" | "period_end"; requestKey: string }) {
@@ -366,22 +405,23 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
   const q = await quotePlanChange(sub, i, now);
   if (q.blockedReason) throw new ApiError("INVALID_INPUT", { reason: q.blockedReason });
   if (!q.immediate) return scheduleChange(sub, i, q);                     // scheduled_change + email plan_change_scheduled + audit billing.plan_change
-  if (q.chargeNow > 0) {
+  if (q.chargeNowAg > 0) {
     const pay = await insertPendingPayment({ kind: "plan_change", idempotencyKey: `plan_change:${sub.id}:${i.planId}:${i.requestKey}`,
-                                             amount: q.chargeNow, quote: q });   // the quote is kept in provider_payload.quote for reconciliation
-    const res = await provider.chargeToken({ tokenRef: decryptToken(sub.payment_method.token_enc), amountIls: Number(fromAgorot(q.chargeNow)),
+                                             amountAg: q.chargeNowAg, quote: quoteToDb(q) });   // amount_ils = fromAgorot(amountAg); the DB-form quote is kept in provider_payload.quote for reconciliation
+    const res = await provider.chargeToken({ tokenRef: decryptToken(sub.payment_method.token_enc), amountAg: q.chargeNowAg,
                                              description: `{{BRAND_NAME}} — שדרוג לתוכנית ${getPlan(i.planId).name_he}`, idempotencyKey: pay.idempotency_key });
     const final = res.ok === "unknown" ? await resolveUnknownCharge(pay) : res;    // getTransactionStatus, up to 3 polls in ~10 s
     if (final === "still_unknown") throw new ApiError("PROVIDER_UNAVAILABLE");    // row stays pending; the hourly reconcile applies it later
     if (final.ok !== true) return handlePlanChangeFailure(pay, final);           // PAYMENT_FAILED, nothing changes
-    await rpc("billing_apply_plan_change", { p_subscription: sub.id, p_payment: pay.id, p_txn: final.providerTxnId, p_quote: q, p_actor: i.actorId });
+    await rpc("billing_apply_plan_change", { p_subscription: sub.id, p_payment: pay.id, p_txn: final.providerTxnId, p_quote: quoteToDb(q), p_actor: i.actorId });
     await startWorkflow("invoicePayment", pay.id);
   } else {
-    await rpc("billing_apply_plan_change", { p_subscription: sub.id, p_payment: null, p_txn: null, p_quote: q, p_actor: i.actorId });
+    await rpc("billing_apply_plan_change", { p_subscription: sub.id, p_payment: null, p_txn: null, p_quote: quoteToDb(q), p_actor: i.actorId });
   }
 }
 ```
 
+- **התשובה ב-API:** `POST /api/billing/plan-change` מחזיר `toApiPlanChange(q)` (גם ב-`dryRun`), כך ש-`chargeNowIls` ו-`newPriceIls` הם שקלים עשרוניים (חלק 04 §21.2); בתוך המנוע הכול ב-`…Ag`.
 - **`requestKey`** = הכותרת `Idempotency-Key` שהממשק שולח בכל אישור; בלעדיה — `sha256(subscriptionId, planId, cycle, when, current_period_start)`, כך שלחיצה כפולה לא מחייבת פעמיים.
 - **תשובה עמומה בחיוב:** אחרי 3 שאילתות סטטוס בלי תשובה מפורשת, הלקוח מקבל ‏503 `PROVIDER_UNAVAILABLE`, ושורת `payments` נשארת `pending` עם ההצעה. הריצה הבאה של `billing-renewals` שואלת את הספק (שורות `pending` מעל 15 דקות, 4.2 צעד 1): הצלחה ← `billing_apply_plan_change` עם ההצעה השמורה וחשבונית; כישלון ← `failed`, ושום דבר לא משתנה.
 - אחרי הצלחה: `audit_logs` ‏`billing.plan_change` ואירוע השרת `plan_changed {from_plan, to_plan, immediate}`.
@@ -390,7 +430,7 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 
 ### 5.4 החלת שנמוך מתוזמן (`applyScheduledChanges`)
 
-רץ ב-cron **לפני** החיוב: לכל מנוי שה-`scheduled_change` שלו הגיע (`current_period_end <= now`), קורא ל-`billing_apply_plan_change(p_subscription, null, null, quote, scheduled_change.requested_by)`, שמעדכן תוכנית, מחזור ו-`price_ils` (המחיר הציבורי הנוכחי של התוכנית החדשה), ובמעבר מחזור — `anchor_at = current_period_end`, ואז מפעיל את `enforce_plan_limits`. אחר כך החידוש הרגיל מחייב במחיר החדש. השפעות על המגבלות (נאכפות בזמן ריצה, לא במחיקה):
+רץ ב-cron **לפני** החיוב: לכל מנוי שה-`scheduled_change` שלו הגיע (`current_period_end <= now`), קורא ל-`billing_apply_plan_change(p_subscription, null, null, quoteToDb(quote), scheduled_change.requested_by)`, שמעדכן תוכנית, מחזור ו-`price_ils` (המחיר הציבורי הנוכחי של התוכנית החדשה), ובמעבר מחזור — `anchor_at = current_period_end`, ואז מפעיל את `enforce_plan_limits`. אחר כך החידוש הרגיל מחייב במחיר החדש. השפעות על המגבלות (נאכפות בזמן ריצה, לא במחיקה):
 
 | מגבלה | מה קורה | איפה |
 |---|---|---|
@@ -398,21 +438,22 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 | `brand_kits` | הערכה הדיפולטית + הוותיקות ביותר עד המגבלה זמינות; השאר נשמרות לקריאה ולא מוצעות לסרטונים חדשים | `lib/workspace/limits.ts` (`availableBrandKits()`) |
 | `client_workspaces` | סביבות לקוח עוברות לקריאה בלבד (אין יצירה, יש צפייה והורדה); `generate` ו-`render` מחזירים ‏403 `PLAN_LIMIT {limit:"client_workspaces", reason:"client_workspace_read_only"}` | `canGenerate(ws)` ב-`lib/workspace/limits.ts`, נבדק ב-`generate` וב-`render` (חלק 04 §19.8) |
 | `max_formats`, `quality_tiers`, `max_duration_sec` | חלים על יצירות חדשות; פרויקטים קיימים נשמרים | `estimate` ו-`generate` (חלק 05) |
+| `white_label` | הסתרת המיתוג לא נשמרת בקישור: היא נקבעת בכל הצגה ובכל שליחה לפי `effective_white_label(ws)` (חלק 04 §9). שנמוך לתוכנית בלי White label (או כיבוי המתג) מחזיר מיד את המיתוג לקישורי שיתוף ואישור קיימים ולמיילי אישור שנשלחים מעכשיו, וחזרה לתוכנית עם White label מסתירה אותו שוב — כך המשפט של חלק 03, "חל על קישורים חדשים ועל קישורים קיימים", נכון | `resolveShareBranding(link)` ב-`lib/share/branding.ts`, שנקרא ב-`/v/[token]`, ב-`/approve/[token]` ובמיילי האישור (§12.1) |
 
 ### 5.5 קופי (משלים את `PlanChangeDialog` של חלק 03 §15.3)
 
 - **מעבר מחודשי לשנתי** — בורר שני מצבים (RadioGroup בשם **"מתי לעבור?"**, ממופה ל-`when`):
-  - **"מסוף החודש"** (`period_end`) — **"לא תחויבו עכשיו. ב-{periodEnd} יתבצע חיוב שנתי של ₪{annualTotal}, ומאז תקבלו {credits} קרדיטים בכל חודש."** (ברירת מחדל)
-  - **"מעכשיו"** (`now`) — **"תחויבו עכשיו ב-₪{annualTotal} על שנה שמתחילה היום, ותקבלו מיד {credits} קרדיטים. הקרדיטים שכבר קיבלתם החודש נשארים, אבל על הימים שנותרו בחודש הנוכחי אין החזר."**
+  - **"מסוף החודש"** (`period_end`) — **"לא תחויבו עכשיו. ב-{periodEnd} יתבצע חיוב שנתי של ₪{annualTotal}, ומאז תקבלו {credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} בכל חודש."** (ברירת מחדל)
+  - **"מעכשיו"** (`now`) — **"תחויבו עכשיו ב-₪{annualTotal} על שנה שמתחילה היום, ותקבלו מיד {credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}. הקרדיטים שכבר קיבלתם החודש נשארים, אבל על הימים שנותרו בחודש הנוכחי אין החזר."**
   - כפתור: **"מעבר לשנתי"** / **"מעבר לשנתי · ₪{annualTotal}"**.
-- **שדרוג שנתי** — **"תחויבו עכשיו ב-₪{chargeNow} על הזמן שנותר עד {periodEnd}, ותקבלו {credits} קרדיטים נוספים כבר החודש. מהחודש הבא תקבלו {newMonthlyCredits} קרדיטים בכל חודש."**
+- **שדרוג שנתי** — **"תחויבו עכשיו ב-₪{chargeNow} על הזמן שנותר עד {periodEnd}, ותקבלו {credits, plural, one {קרדיט אחד נוסף} two {שני קרדיטים נוספים} other {# קרדיטים נוספים}} כבר החודש. מהחודש הבא תקבלו {newMonthlyCredits} קרדיטים בכל חודש."**
 - **חיוב מתחת לסף** — **"השדרוג נכנס לתוקף מיד, בלי חיוב נוסף עד החידוש הבא."**
 - **חסום ב-`past_due`** — **"אי אפשר לשנות תוכנית כשיש חיוב שלא עבר. עדכנו אמצעי תשלום, ואז נוכל לשנות."**
 
 ### קריטריוני קבלה
 - [ ] כל שורות 5.2 עוברות בבדיקות יחידה עם שעון קבוע.
 - [ ] שדרוג עם כרטיס שנדחה מחזיר `PAYMENT_FAILED`, ולא משנה תוכנית, מחיר או קרדיטים.
-- [ ] `dryRun: true` מחזיר בדיוק את מה שהביצוע יעשה (אותו `chargeNow`, אותם קרדיטים) — בדיקה שמשווה בין השניים.
+- [ ] `dryRun: true` מחזיר בדיוק את מה שהביצוע יעשה (אותו `chargeNowAg`, ובתשובה אותו `chargeNowIls`, אותם קרדיטים) — בדיקה שמשווה בין השניים.
 - [ ] שנמוך מתוזמן מוחל לפני החידוש, והחידוש מחויב במחיר של התוכנית החדשה.
 - [ ] אחרי שנמוך מעסק לבסיס עם 3 חברים: הבעלים נשאר, שני האחרונים שהצטרפו הופכים לצופים, ויש שורת `audit_logs` לכל אחד.
 
@@ -433,7 +474,7 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 
 - **בזמן `past_due`** החשבון ממשיך לעבוד עם מגבלות התוכנית ששולמה ועם הקרדיטים שכבר ביתרה (תקופת חסד של עד 7 ימים). **המכסה של התקופה החדשה לא מוענקת** עד שהחיוב עובר — ואז היא מוענקת מיד, לתקופה שמתחילה ב-`D`, עם התוקף הרגיל (סוף התקופה + חודש, 2.3), כך שאין "פרס" על איחור ואין קנס.
 - **הצלחה בכל ניסיון** ← `billing_apply_renewal` כרגיל (התקופה נמדדת מ-`D`, לא מיום התשלום), `past_due_since = null`, מייל `payment_receipt`, הבאנר נעלם.
-- **עדכון כרטיס** (`checkout {kind:"update_card"}`): עמוד התשלום של הספק שומר אסימון חדש **בלי לגבות כסף** — אימות כרטיס בלי סכום, ואם הספק לא תומך בזה, עסקת J5 (בדיקת מסגרת של ₪1 שלא נגבית). שתי האפשרויות נבדקות בספייק M0 (§8.2, נקודה 9) [M0-verify]; אם אף אחת מהן לא קיימת ב-Grow, זה חוסם באותה מידה כמו היכולות 4–7 שם. בעסקת J5 הדיאלוג מציג לפני ההפניה: **"כדי לאמת את הכרטיס, חברת האשראי תבצע בדיקת מסגרת של ₪1. הסכום לא ייגבה."**
+- **עדכון כרטיס** (`checkout {kind:"update_card"}`): עמוד התשלום של הספק שומר אסימון חדש **בלי לגבות כסף** — אימות כרטיס בלי סכום, ואם הספק לא תומך בזה, עסקת J5 (בדיקת מסגרת של ₪1 שלא נגבית). שתי האפשרויות נבדקות בספייק M0 (§8.2, נקודה 9) [M0-verify]; אם אף אחת מהן לא קיימת ב-Grow, זה חוסם באותה מידה כמו היכולות 4–7 שם. בעסקת J5 הדיאלוג מציג לפני ההפניה: **"כדי לאמת את הכרטיס, חברת האשראי תבצע בדיקת מסגרת של {verifyAmount}. הסכום לא ייגבה."**
 - **עדכון כרטיס ב-`past_due`:** אחרי שה-webhook שמר את הכרטיס (4.1, סשן `update_card`), `handlePaymentEvent` מתחיל מיד את `retryPastDueNow(subscriptionId)`, שמבצע `chargeToken` אחד על התקופה שבחוב, עם אותו מפתח `renew:{subscriptionId}:{periodEndISO}` (כך שלא ייתכן חיוב כפול מול ניסיון חוזר של ה-cron); הצלחה ← `billing_apply_renewal`; כישלון ← לא מקדם את `retry_count`, הלוח הרגיל ממשיך (עכשיו עם הכרטיס החדש), והכרטיס נשאר שמור. דף החזרה מציג את התוצאה (חלק 03 §15.4).
 - **סיבת הדחייה** ממופה לניסוח ידידותי (לא מציגים קודים של חברת האשראי):
 
@@ -525,7 +566,7 @@ export type VerifiedPaymentEvent = {
   sessionRef: string | null;           // our checkout_sessions.id, echoed back via a custom field
   providerSessionRef: string | null;
   providerTxnId: string | null;
-  amountIls: Agorot | null;
+  amountAg: Agorot | null;             // the gateway's decimal sum → toAgorot() inside the adapter
   installments: number;
   method: "card" | "bit" | "apple_pay" | "google_pay" | "other";
   card: CardMeta | null;
@@ -534,12 +575,14 @@ export type VerifiedPaymentEvent = {
   raw: unknown;                        // redacted (no token, no PAN fragments beyond last4) → payments.provider_payload
 };
 
+// money in = Agorot (…Ag): a plain number (shekels) is not assignable to the brand. Each adapter converts to its own wire
+// format (Grow: fromAgorot(amountAg) → "98.17").
 export interface PaymentProvider {
   readonly name: "grow" | "mock";
-  createHostedCheckout(i: { sessionId: string; amountIls: number; description: string; customer: BillingCustomer; saveToken: boolean;
+  createHostedCheckout(i: { sessionId: string; amountAg: Agorot; description: string; customer: BillingCustomer; saveToken: boolean;
     successUrl: string; cancelUrl: string; webhookUrl: string; methods?: Array<"card" | "bit"> }): Promise<{ redirectUrl: string; providerSessionRef: string }>;
-  chargeToken(i: { tokenRef: string; amountIls: number; description: string; idempotencyKey: string; customer?: BillingCustomer }): Promise<ChargeResult>;
-  refund(i: { providerTxnId: string; amountIls: number; reason: string; idempotencyKey?: string }): Promise<RefundResult>;
+  chargeToken(i: { tokenRef: string; amountAg: Agorot; description: string; idempotencyKey: string; customer?: BillingCustomer }): Promise<ChargeResult>;
+  refund(i: { providerTxnId: string; amountAg: Agorot; reason: string; idempotencyKey?: string }): Promise<RefundResult>;
   parseWebhook(rawBody: string, headers: Headers, url?: URL): Promise<VerifiedPaymentEvent>;   // ★ url: for the ?k=&s= token (part 04 §22.4 passes new URL(req.url))
   getTransactionStatus(i: { providerSessionRef?: string; providerTxnId?: string; idempotencyKey?: string }): Promise<VerifiedPaymentEvent | null>;   // ★
   deleteToken?(tokenRef: string): Promise<void>;                                                // ★ optional; used on account deletion
@@ -554,19 +597,19 @@ Grow (לשעבר משולם) מתעד במרכז המפתחים הרשמי של�
 
 | פעולה בממשק | קריאה מועמדת ב-Grow [M0-verify] | פרמטרים עיקריים | מה לוקחים מהתשובה |
 |---|---|---|---|
-| `createHostedCheckout` | `POST {GROW_API_BASE_URL}/createPaymentProcess` (form-data) | `userId`, `pageCode`, אימות (`apiKey`), `sum`, `paymentNum=1`, `description`, `successUrl`, `cancelUrl`, `notifyUrl`, `pageField[fullName]`, `pageField[email]`, `pageField[phone]`, `cField1=sessionId`, `cField2=workspaceId`, דגל שמירת אסימון | `data.url` (הפניה), `data.processId`, `data.processToken` → `provider_session_ref` |
-| `parseWebhook` | notify (POST) שמגיע ל-`notifyUrl` | `data.transactionId`, `data.processId`, `data.sum`, `data.cardSuffix`, `data.cardBrand`, `data.cardExp`, `data.customFields.cField1`, אסימון הכרטיס | **לא סומכים על התוכן.** מאמתים `?k=` ושואלים את Grow מחדש (שורה הבאה) |
+| `createHostedCheckout` | `POST {GROW_API_BASE_URL}/createPaymentProcess` (form-data) | `userId`, `pageCode`, אימות (`apiKey`), `sum` (= `fromAgorot(amountAg)`, למשל `"98.17"`), `paymentNum=1`, `description`, `successUrl`, `cancelUrl`, `notifyUrl` (ב-preview וב-staging עם פרמטר ה-bypass, §19.1), `pageField[fullName]`, `pageField[email]`, `pageField[phone]`, `cField1=sessionId`, `cField2=workspaceId`, דגל שמירת אסימון | `data.url` (הפניה), `data.processId`, `data.processToken` → `provider_session_ref` |
+| `parseWebhook` | notify (POST) שמגיע ל-`notifyUrl` | `data.transactionId`, `data.processId`, `data.sum` (← `toAgorot` ← `amountAg`), `data.cardSuffix`, `data.cardBrand`, `data.cardExp`, `data.customFields.cField1`, אסימון הכרטיס | **לא סומכים על התוכן.** מאמתים `?k=` ושואלים את Grow מחדש (שורה הבאה) |
 | (אימות ואישור) | `getPaymentProcessInfo` / `getTransactionInfo`, ו-`approveTransaction` אם Grow דורש אישור סופי אחרי notify | `processId`, `processToken` / `transactionId` | סטטוס, סכום, מזהה עסקה, אסימון — מקור האמת |
-| `chargeToken` | נקודת "חיוב לפי אסימון" של Grow (token billing) | אסימון, `sum`, תיאור, מזהה ההזמנה שלנו (`idempotencyKey`) בשדה מותאם | `transactionId` או קוד דחייה |
-| `refund` | `refundTransaction` | `transactionId`, `refundSum` (תומך בהחזר חלקי) | מזהה ההחזר |
+| `chargeToken` | נקודת "חיוב לפי אסימון" של Grow (token billing) | אסימון, `sum` (= `fromAgorot(amountAg)`), תיאור, מזהה ההזמנה שלנו (`idempotencyKey`) בשדה מותאם | `transactionId` או קוד דחייה |
+| `refund` | `refundTransaction` | `transactionId`, `refundSum` (= `fromAgorot(amountAg)`; תומך בהחזר חלקי) | מזהה ההחזר |
 | `getTransactionStatus` | שאילתה לפי `processId` / `transactionId`, ואם אפשר לפי השדה המותאם שלנו | — | אירוע מנורמל או `null` |
 | Bit | עמוד תשלום נפרד (`GROW_PAGE_CODE_BIT` ★) או פרמטר אמצעי תשלום | — | רק בחבילות (בלי אסימון), ורק כש-`GROW_PAGE_CODE_BIT` מוגדר; אחרת `bitEnabled = false` והאתר מציג את גרסאות "כרטיס בלבד" (3.1) |
 | אימות כרטיס (`update_card`) | עמוד שמירת כרטיס בלי סכום, או עסקת J5 (בדיקת מסגרת של ₪1 שלא נגבית) | `saveToken`, סכום 0 או J5 | אסימון + פרטי כרטיס, בלי `transactionId` נגבה (6.1) |
 
 **כללי המתאם:**
-1. **כתובת ה-notify** כוללת סוד: `${SITE_URL}/api/webhooks/payments/grow?k=${hmacSign(secrets[0], sessionId)}&s=${sessionId}`, כש-`secrets` הוא `GROW_WEBHOOK_SECRET` מפוצל לפי פסיקים (רוטציה: R12). האימות ב-`hmacVerifyAny(secrets, sessionId, k)` (‏`timingSafeEqual` מול כל ערך, §15.5). אם Grow שולח גם חתימה בכותרת [M0-verify] — מאמתים גם אותה.
+1. **כתובת ה-notify** כוללת סוד: `${SITE_URL}/api/webhooks/payments/grow?k=${hmacSign(secrets[0], sessionId)}&s=${sessionId}`, כש-`secrets` הוא `GROW_WEBHOOK_SECRET` מפוצל לפי פסיקים (רוטציה: R12). האימות ב-`hmacVerifyAny(secrets, sessionId, k)` (‏`timingSafeEqual` מול כל ערך, §15.5). אם Grow שולח גם חתימה בכותרת [M0-verify] — מאמתים גם אותה. ב-`preview` וב-`staging` נוסף לכתובת גם `&x-vercel-protection-bypass=${VERCEL_AUTOMATION_BYPASS_SECRET}` (§19.1), כדי שה-notify יעבור את Vercel Authentication; בפרודקשן — לעולם לא.
 2. **מקור האמת הוא השאילתה החוזרת**, לא גוף ה-notify: סכום, סטטוס ומזהה עסקה נלקחים מהתשובה של Grow לשאילתה. אי־התאמה בין השניים ← `WEBHOOK_INVALID_SIGNATURE` ושורת `webhook_events` עם `signature_valid=false`.
-3. **אימות כפול של סכום:** סכום שאושר ≠ `checkout_sessions.amount_ils` ← לא מעניקים (4.1).
+3. **אימות כפול של סכום:** סכום שאושר (`ev.amountAg`) ≠ `toAgorot(checkout_sessions.amount_ils)` ← לא מעניקים (4.1; בתוך ה-SQL ההשוואה היא על `p_amount_ils = fromAgorot(ev.amountAg)`).
 4. **אסימון הכרטיס** מוצפן מיד (`encryptToken`) ולעולם לא נכתב ל-`provider_payload`, ללוג או ל-Sentry. `redactGrowPayload()` מסיר `cardToken`, `token`, ושדות כרטיס מלבד ארבע ספרות אחרונות ותוקף.
 5. **זמני תגובה:** timeout של 15 שניות ליצירת עמוד ולחיוב; `ok: "unknown"` על timeout או 5xx בחיוב; לעולם לא ניסיון חוזר עיוור.
 6. **שגיאות:** קודי דחייה ממופים ל-`ChargeResult.kind` בטבלה `GROW_DECLINE_MAP` שנבנית בספייק M0 מתוך תשובות אמיתיות של ה-sandbox.
@@ -616,15 +659,16 @@ webhook שהלך לאיבוד לא אמור להשאיר לקוח ששילם ב�
 
 ```ts
 // lib/invoicing/types.ts
-export type InvoiceLine = { descriptionHe: string; quantity: number; unitPriceGross: Agorot };   // gross per unit, incl. VAT
+export type InvoiceLine = { descriptionHe: string; quantity: number; unitPriceGrossAg: Agorot };   // gross per unit, incl. VAT
 export type PaymentRecord = {
-  id: string; kind: PaymentKind; amountIls: Agorot; netIls: Agorot; vatIls: Agorot; vatRate: number; paidAt: Date;
+  id: string; kind: PaymentKind; amountAg: Agorot; netAg: Agorot; vatAg: Agorot; vatRate: number; paidAt: Date;   // toAgorot(payments.*_ils)
   method: "card" | "bit" | "apple_pay" | "google_pay" | "other"; card: { brand: string; last4: string } | null;
   installments: number; providerTxnId: string;
 };
 export interface InvoiceProvider {
   readonly name: "morning" | "mock";
-  issue(i: { doc: "tax_invoice_receipt" | "receipt" | "credit_invoice"; payment: PaymentRecord; customer: BillingCustomer; lines: InvoiceLine[];
+  // amounts arrive as Agorot (…Ag); the Morning adapter sends fromAgorot(…) as income[].price / payment[].price
+  issue(i: { doc: "tax_invoice_receipt" | "credit_invoice"; payment: PaymentRecord; customer: BillingCustomer; lines: InvoiceLine[];
              vatRate: number; requestAllocationNumber: boolean;
              linkedProviderDocId?: string | null;    // ★ credit_invoice → the original document
              reference: string }):                    // ★ "invoice:{paymentId}:{docType}" — written to the document's internal remarks, used to find it after a timeout
@@ -638,10 +682,11 @@ export interface InvoiceProvider {
 
 | אירוע | מסמך (`invoice_doc_type`) | הערות |
 |---|---|---|
-| כל תשלום מוצלח (מנוי, חידוש, שדרוג, חבילה) | `tax_invoice_receipt` (חשבונית מס/קבלה) | כש-`app_settings.business_tax_status` (חלק 04 §16.4) = `licensed` (עוסק מורשה / חברה) — ברירת המחדל |
-| אותו דבר, כשהעסק עוסק פטור | `receipt` (קבלה), בלי פיצול מע״מ | `business_tax_status = 'exempt'`; ⚖️ רו״ח — עסק עם הכנסות כאלה יחרוג מהר מתקרת הפטור |
+| כל תשלום מוצלח (מנוי, חידוש, שדרוג, חבילה) | `tax_invoice_receipt` (חשבונית מס-קבלה) | תמיד: העסק הוא עוסק מורשה או חברה |
 | החזר כספי | `credit_invoice` (חשבונית זיכוי) מקושרת למסמך המקורי | על סכום ההחזר בלבד |
 | תשלום של 0 (חיוב יחסי מתחת לסף) | אין מסמך | אין תשלום |
+
+**עוסק פטור לא נתמך:** האתר, הקופה ותנאי השימוש מבטיחים חשבונית מס על כל תשלום ומחירים כולל מע״מ, ולכן אין מצב שמפיק `receipt` (קבלה בלבד). ערך ה-enum `receipt` שמור ולא מונפק. מעבר לעוסק פטור מחייב החלטת מוצר ⚖️ (רו״ח + עו״ד צרכנות) ושינוי של כל הנוסחים האלה.
 
 **עיתוי:** המסמך מופק מיד אחרי שהתשלום אושר (workflow `invoicePayment`, יעד: פחות מ-2 דקות), ונשלח במייל `payment_receipt` עם PDF מצורף. המסמך הוא גם **אישור העסקה בכתב** שחוק הגנת הצרכן דורש בעסקת מכר מרחוק (§10.1), ולכן המייל שמלווה אותו כולל את פרטי העסק, השירות, המחיר, תנאי החיוב ותנאי הביטול (§12.5).
 
@@ -649,10 +694,10 @@ export interface InvoiceProvider {
 
 | `payment_kind` | `descriptionHe` |
 |---|---|
-| `subscription_initial` / `subscription_renewal` (חודשי) | **"מנוי {{BRAND_NAME}} — תוכנית {planName}, חודשי, {periodStart}–{periodEnd} ({credits} קרדיטים)"** |
-| אותו דבר (שנתי) | **"מנוי {{BRAND_NAME}} — תוכנית {planName}, שנתי, {periodStart}–{periodEnd} ({credits} קרדיטים בכל חודש)"** |
-| `plan_change` | **"שדרוג מנוי {{BRAND_NAME}} לתוכנית {planName} — חיוב יחסי ל-{periodStart}–{periodEnd} ({credits} קרדיטים)"** |
-| `topup` | **"חבילת {credits} קרדיטים ל-{{BRAND_NAME}}"** |
+| `subscription_initial` / `subscription_renewal` (חודשי) | **"מנוי {{BRAND_NAME}} — תוכנית {planName}, חודשי, {periodStart}–{periodEnd} ({credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}})"** |
+| אותו דבר (שנתי) | **"מנוי {{BRAND_NAME}} — תוכנית {planName}, שנתי, {periodStart}–{periodEnd} ({credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} בכל חודש)"** |
+| `plan_change` | **"שדרוג מנוי {{BRAND_NAME}} לתוכנית {planName} — חיוב יחסי ל-{periodStart}–{periodEnd} ({credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}})"** |
+| `topup` | **"חבילת {credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} ל{{BRAND_NAME}}"** |
 | `credit_invoice` | **"זיכוי בגין ביטול עסקה — {originalDescription}"** |
 
 תאריכים בפורמט `dd.MM.yyyy`. שורה אחת לכל מסמך, כמות 1. שם הלקוח, מספר עוסק/ח״פ/ת״ז, מייל וכתובת — מ-`billing_profiles` **ברגע התשלום** (תמונת מצב נשמרת ב-`invoices.customer`; שינוי מאוחר בפרטים לא משנה מסמך שהופק, כפי שחלק 03 §15.1 מבטיח). בלי `billing_profiles` מלא אי אפשר להגיע לקופה (חלק 04 §21.2).
@@ -694,7 +739,7 @@ async function issueWithLookup(ctx: InvoiceContext) {
 ```
 
 - **30 דקות בלי חשבונית:** בדיקת ההתראות (§16.4, "תשלום בלי חשבונית") שולחת ללקוח את `payment_receipt` בוריאנט `invoicePending` (§12.5) עם אותו מפתח `payment_receipt:{paymentId}`, ומעדכנת `payments.confirmation_sent_at` (זה מסמך הגילוי, §10.1). כשהמסמך מופק בהמשך, הצעד האחרון של ה-workflow רואה שהקבלה כבר נשלחה ושולח במקומה את `invoice_ready` עם ה-PDF.
-- **אחרי 5 כישלונות:** התשלום מופיע ב-`/admin/billing` תחת **"תשלומים בלי חשבונית"** (חלק 03 §22.15) ונשלחת התראת אדמין. מסמך שהופק ידנית בממשק של Morning משויך דרך **"צירוף חשבונית שהופקה ידנית"** (`POST /api/admin/billing/payments/[id]/invoice`, ‏multipart: ‏PDF, ‏`docNumber`, ‏`allocationNumber?`, ‏`docType`; חלק 04 §24.1): שורת `invoices` עם `provider = 'manual'`, ‏`provider_doc_id = 'manual:{docNumber}'`, ה-PDF ב-`invoices/{ws}/{invoiceId}.pdf`, ‏audit `invoice.attach` ומייל `invoice_ready`. ה-PDF עולה בגוף הבקשה, ולכן הוא מוגבל ל-4MB (מגבלת הגוף של Vercel היא 4.5MB, §19.6); חשבוניות של Morning קטנות בהרבה. Runbook R5.
+- **אחרי 5 כישלונות:** התשלום מופיע ב-`/admin/billing` תחת **"תשלומים בלי חשבונית"** (חלק 03 §22.15) ונשלחת התראת אדמין. מסמך שהופק ידנית בממשק של Morning משויך דרך **"צירוף חשבונית שהופקה ידנית"** (`POST /api/admin/billing/payments/[id]/invoice`, ‏multipart: ‏PDF, ‏`docNumber`, ‏`allocationNumber?`, ‏`docType`; חלק 04 §24.1): שורת `invoices` עם `provider = 'manual'`, ‏`provider_doc_id = 'manual:{docNumber}'`, ה-PDF ב-`invoices/{ws}/{invoiceId}.pdf`, ‏audit `invoice.attach` ומייל `invoice_ready`. ה-PDF עולה בגוף הבקשה, ולכן הוא מוגבל ל-4MB (מגבלת הגוף של Vercel היא 4.5MB, §19.6): מעל 4MB ← ‏400 `INVALID_INPUT` ‏`{ reason: "too_large" }`, והממשק חוסם קובץ כזה עוד לפני השליחה (חלק 04 §18.1, §24.1; חלק 03 §22.15). חשבוניות של Morning קטנות בהרבה. Runbook R5.
 - **סכומים:** אנחנו מחשבים נטו ומע״מ (`splitGross`) ושולחים ל-Morning את המחיר הכולל עם סימון "כולל מע״מ" [M0-verify שם השדה: `vatType` ברמת השורה/המסמך]. אחרי ההפקה משווים את סכומי המסמך לשלנו; פער של יותר מאגורה אחת ← התראה ותיקון ידני (לא מפיקים מסמך שני אוטומטית).
 
 ### 9.6 מתאם Morning (`lib/invoicing/morning.ts`) — מה לבנות ומה לאמת
@@ -706,7 +751,7 @@ async function issueWithLookup(ctx: InvoiceContext) {
 | כתובות בסיס | ייצור `https://api.greeninvoice.co.il/api/v1`; sandbox נפרד — שניהם דרך `MORNING_API_BASE_URL`, לא בקוד. כל הנתיבים בטבלה יחסיים לכתובת הזו |
 | אימות | `POST ${MORNING_API_BASE_URL}/account/token` עם `{ id: MORNING_API_KEY_ID, secret: MORNING_API_KEY_SECRET }` ← `{ token, expires }`; מטמון בזיכרון עד דקה לפני התפוגה; `Authorization: Bearer` |
 | הפקת מסמך | `POST ${MORNING_API_BASE_URL}/documents` עם `type`, `lang: "he"`, `currency: "ILS"`, `client { name, taxId, emails, address, city, zip, country: "IL", add: false }`, `income [{ description, quantity, price, currency, vatType }]`, `payment [{ type, price, date, cardType, cardNum, dealType, numPayments }]`, `remarks` (המפתח שלנו), ולזיכוי — `linkedDocumentIds` |
-| קודי סוג מסמך | 320 = חשבונית מס/קבלה · 400 = קבלה · 330 = חשבונית זיכוי (ו-305 = חשבונית מס, לא בשימוש) |
+| קודי סוג מסמך | 320 = חשבונית מס-קבלה · 330 = חשבונית זיכוי (305 = חשבונית מס ו-400 = קבלה — לא בשימוש) |
 | אמצעי תשלום במסמך | 3 = כרטיס אשראי (עם `cardType` ו-4 ספרות); Bit — קוד "אפליקציית תשלום" או "אחר" לפי מה שהספייק יראה |
 | תשובה | `{ id, number, url: { he, origin } }` ← `providerDocId`, `docNumber`, `pdfUrl` |
 | שליחת מייל של Morning ללקוח | **כבויה** — המייל שלנו מצרף את ה-PDF (מונע כפילות) |
@@ -725,7 +770,7 @@ async function issueWithLookup(ctx: InvoiceContext) {
 לקוחות מחוץ לישראל (ייצוא שירותים בשיעור אפס) — כולם מטופלים כלקוחות ישראלים; נרשם ב-`DECISIONS.md`. מע״מ על שירותים מיובאים (OpenRouter וספקים בדולרים) — טיפול חשבונאי של רו״ח, לא בקוד.
 
 ### קריטריוני קבלה
-- [ ] תשלום ב-sandbox של Morning מפיק חשבונית מס/קבלה עם מע״מ 18% שסכומיה זהים ל-`splitGross` עד האגורה.
+- [ ] תשלום ב-sandbox של Morning מפיק חשבונית מס-קבלה עם מע״מ 18% שסכומיה זהים ל-`splitGross` עד האגורה.
 - [ ] רכישת סוכנות שנתי ללקוח עסקי עם מספר עוסק מבקשת מספר הקצאה; אותה רכישה ללקוח פרטי — לא.
 - [ ] שינוי `allocation_threshold_schedule` בבדיקה (תאריך הפקה 2026-03-01, נטו ₪8,054) לא מבקש מספר (סף ₪10,000 אז), ובתאריך 2026-07-01 — מבקש.
 - [ ] timeout מדומה בהפקה לא יוצר שני מסמכים (`findByReference`).
@@ -780,31 +825,36 @@ async function issueWithLookup(ctx: InvoiceContext) {
 
 ```ts
 export type RefundReason = "distance_14d" | "extended_4m" | "technical" | "goodwill" | "annual_prorata";
-export type RefundQuote = { paymentId: string; reasonCode: RefundReason; paidIls: Agorot; creditsConsumed: number;
-  consumedValueIls: Agorot; feeIls: Agorot; refundIls: Agorot; creditsToRevoke: number; accessEndsAt: Date };
+export type RefundQuote = { paymentId: string; reasonCode: RefundReason; paidAg: Agorot; creditsConsumed: number;
+  consumedValueAg: Agorot; feeAg: Agorot; refundAg: Agorot; creditsToRevoke: number; accessEndsAt: Date };
 
 export function quoteRefund(i: {
-  payment: { id: string; kind: PaymentKind; amount: Agorot; refunded: Agorot; createdAt: Date; confirmationSentAt: Date | null };
+  payment: { id: string; kind: PaymentKind; amountAg: Agorot; refundedAg: Agorot; createdAt: Date; confirmationSentAt: Date | null };   // toAgorot(amount_ils / refunded_ils)
   creditsInPurchase: number;             // monthly: monthly_credits · annual: 12 × monthly_credits · topup: pack credits · plan_change: prorated grant
   creditsConsumed: number;               // Σ (amount − remaining) over the grants created from this payment (annual: all grants of the term)
   creditsRemaining: number;              // Σ remaining over those grants
   reason: RefundReason; now: Date;
   annual?: { monthlyPriceAg: Agorot; monthsStarted: number; currentWindowEnd: Date };
 }): RefundQuote {
-  const paid = ag(i.payment.amount - i.payment.refunded);
-  const base = { paymentId: i.payment.id, reasonCode: i.reason, paidIls: paid, creditsConsumed: i.creditsConsumed };
+  const paid = ag(i.payment.amountAg - i.payment.refundedAg);
+  const base = { paymentId: i.payment.id, reasonCode: i.reason, paidAg: paid, creditsConsumed: i.creditsConsumed };
   if (i.reason === "annual_prorata") {
     const keep = ag(i.annual!.monthlyPriceAg * i.annual!.monthsStarted);          // the current month counts as started
-    return { ...base, consumedValueIls: keep, feeIls: ag(0), refundIls: ag(Math.max(0, paid - keep)),
+    return { ...base, consumedValueAg: keep, feeAg: ag(0), refundAg: ag(Math.max(0, paid - keep)),
              creditsToRevoke: 0, accessEndsAt: i.annual!.currentWindowEnd };       // future monthly grants simply stop
   }
-  const unit = i.creditsInPurchase > 0 ? i.payment.amount / i.creditsInPurchase : 0;   // price per credit in THIS purchase
+  const unit = i.creditsInPurchase > 0 ? i.payment.amountAg / i.creditsInPurchase : 0;   // price per credit in THIS purchase
   const consumedValue = ag(Math.min(paid, roundHalfUp(i.creditsConsumed * unit)));
   const fee = i.reason === "technical" || i.reason === "goodwill" ? ag(0)
-            : ag(Math.min(roundHalfUp(i.payment.amount * CANCEL_FEE_RATE), CANCEL_FEE_CAP_AG));   // 5% or ₪100, the lower
-  return { ...base, consumedValueIls: consumedValue, feeIls: fee,
-           refundIls: ag(Math.max(0, paid - consumedValue - fee)), creditsToRevoke: i.creditsRemaining, accessEndsAt: i.now };
+            : ag(Math.min(roundHalfUp(i.payment.amountAg * CANCEL_FEE_RATE), CANCEL_FEE_CAP_AG));   // 5% or ₪100, the lower
+  return { ...base, consumedValueAg: consumedValue, feeAg: fee,
+           refundAg: ag(Math.max(0, paid - consumedValue - fee)), creditsToRevoke: i.creditsRemaining, accessEndsAt: i.now };
 }
+// API boundary (part 04 §21.2 RefundQuote keeps …Ils): GET /api/billing/cancel/quote, POST /api/billing/cancel and
+// POST /api/billing/refund-request return toApiRefundQuote(q) — e.g. refundAg 9817 → refundIls 98.17
+export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, reasonCode: q.reasonCode, paidIls: toIlsNumber(q.paidAg),
+  creditsConsumed: q.creditsConsumed, consumedValueIls: toIlsNumber(q.consumedValueAg), feeIls: toIlsNumber(q.feeAg),
+  refundIls: toIlsNumber(q.refundAg) });
 ```
 
 הקבועים (`CANCEL_FEE_RATE = 0.05`, ‏`CANCEL_FEE_CAP_AG = 10_000` אגורות, ‏`DISTANCE_DAYS = 14`, ‏`EXTENDED_DAYS = 122`) הם הגבלות חוקיות ולא מחירים, ולכן מותרים בקוד — אבל מוגדרים פעם אחת ב-`lib/billing/legal.ts`, עם הערה שמפנה לסעיף בחוק.
@@ -827,8 +877,8 @@ export function quoteRefund(i: {
 
 1. `refund_requests` נוצרת בסטטוס `approved` (בקשה עצמית מסוג `distance_14d` או `annual_prorata`, כשהחישוב תואם להצעה שהוצגה) או `requested` (ידנית — מחכה לאדמין).
 2. **קודם מסירים קרדיטים** (שלא ינוצלו בזמן ההחזר): `revoke_grant_remaining(grantId, 'revoke:{refundRequestId}:{grantId}', 'הסרת קרדיטים בעקבות החזר כספי', actorId)` (חלק 04 §10.3) לכל דלי שנוצר מהתשלום (`ref_type = 'payment'`, ‏`ref_id = paymentId`; שורת `adjustment` שלילית). קרדיטים שמורים לעבודה פתוחה כבר מחוץ ל-`remaining`, ולכן עבודות שרצות לא נפגעות.
-3. `provider.refund({ providerTxnId, amountIls: refund, reason, idempotencyKey: 'refund:{refundRequestId}' })`; כישלון ← 3 ניסיונות חוזרים (5 ד׳, 30 ד׳, 2 ש׳), ואז התראת אדמין (R3). החוק נותן 14 יום; היעד שלנו — אותו יום.
-4. שורת `payments` חדשה מסוג `refund` (`status = succeeded`, הסכום החיובי, `provider_txn_id` = מזהה ההחזר); בתשלום המקורי `refunded_ils += refund` ו-`status = refunded` / `partially_refunded`.
+3. `provider.refund({ providerTxnId, amountAg: quote.refundAg, reason, idempotencyKey: 'refund:{refundRequestId}' })` (מתאם Grow שולח `refundSum: fromAgorot(amountAg)`, למשל `"98.17"`); כישלון ← 3 ניסיונות חוזרים (5 ד׳, 30 ד׳, 2 ש׳), ואז התראת אדמין (R3). החוק נותן 14 יום; היעד שלנו — אותו יום.
+4. שורת `payments` חדשה מסוג `refund` (`status = succeeded`, הסכום החיובי `amount_ils = fromAgorot(quote.refundAg)`, `provider_txn_id` = מזהה ההחזר); בתשלום המקורי `refunded_ils += fromAgorot(quote.refundAg)` ו-`status = refunded` / `partially_refunded`.
 5. `invoicePayment` על שורת ה-`refund` ← `credit_invoice` מקושרת למסמך המקורי.
 6. המנוי: `distance_14d` / `extended_4m` / `technical` של תשלום מנוי ← `status = canceled`, `current_period_end = now`, `workspaces.plan_id = 'free'`, ‏`enforce_plan_limits(ws)`, בלי `resume`. החזר על חבילה לא משנה את המנוי. `annual_prorata` ← `cancel_at_period_end = true`, `current_period_end = accessEndsAt` (סוף חלון ההענקה הנוכחי), `next_grant_at = null`.
 7. `refund_requests.status = 'paid'`, `handled_at`; מייל `refund_processed` עם חשבונית הזיכוי מצורפת; `audit_logs` ‏`payment.refund` (מבצע: המערכת או האדמין); אירוע השרת `refund_requested {reason_code}` נשלח בזמן הבקשה, ו-`refund_completed {reason_code}` כאן (§14).
@@ -840,6 +890,7 @@ export function quoteRefund(i: {
 
 ### קריטריוני קבלה
 - [ ] כל שורות 10.5 עוברות ב-`tests/unit/billing/refunds.test.ts`, וההצעה ב-`GET /api/billing/cancel/quote` זהה לביצוע.
+- [ ] החזר של ₪98.17 (השורה הראשונה ב-10.5): `provider.refund` מקבל `amountAg: 9817`, בקשת Grow נשלחת עם `refundSum: "98.17"`, ו-`toApiRefundQuote(q).refundIls === 98.17` (בדיקת יחידה).
 - [ ] החזר עצמי בתוך 14 יום: הקרדיטים שנותרו מוסרים **לפני** הקריאה לספק, נוצרת שורת `payments` מסוג `refund`, חשבונית זיכוי, מייל, והמנוי נסגר מיד.
 - [ ] ביטול במייל שהאדמין רשם עם `cancel_channel='email'` שולח את אותו מייל אישור עם הערוץ הנכון.
 - [ ] בקשה ידנית שלא טופלה תוך 2 ימי עסקים מסומנת באדום בתור ומייצרת התראה.
@@ -856,7 +907,7 @@ export function quoteRefund(i: {
 
 | מזהה | תחום | דרישה | מימוש | בדיקה | חוסם השקה |
 |---|---|---|---|---|---|
-| L-01 | נגישות | ת״י 5568 (= WCAG 2.0 AA) לפי תקנה 35; אנחנו בונים ובודקים ל-WCAG 2.2 AA | חלק 01 §13 | axe בכל דף (§18.6) + ביקורת ידנית של מורשה נגישות | ✓ |
+| L-01 | נגישות | ת״י 5568 (= WCAG 2.0 AA) לפי תקנה 35; אנחנו בונים ובודקים ל-WCAG 2.2 AA | חלק 01 §13 | axe בכל דף (§18.5) + ביקורת ידנית של מורשה נגישות | ✓ |
 | L-02 | נגישות | הצהרת נגישות עם רמה, פערים ידועים, תאריך ביקורת ופרטי רכז הנגישות | `/legal/accessibility` (חלק 02 §10.6) | משתני `{{A11Y_COORDINATOR_*}}` הוחלפו | ✓ |
 | L-03 | נגישות | כתוביות לכל וידאו שיווקי, עצירת תנועה, בלי תוסף נגישות צף | חלק 01, חלק 02 | Playwright: לכל `<video>` שיווקי יש `<track srclang="he">` | ✓ |
 | L-04 | פרטיות | הודעת איסוף לפי ס׳ 11 המתוקן (זהות ופרטי קשר, מטרות, חובה או רשות, תוצאות סירוב, נמענים, העברה לחו״ל, זכויות) | `/legal/privacy` | בדיקת עורך דין | ✓ |
@@ -864,14 +915,14 @@ export function quoteRefund(i: {
 | L-06 | פרטיות | עיון, תיקון, ייצוא ומחיקה | §11.6 | e2e של ייצוא ומחיקה | ✓ |
 | L-07 | פרטיות | אבטחת מידע לפי התקנות (2017): מסמך הגדרות מאגר, נוהל אבטחה, בקרת גישה, תיעוד, סקר סיכונים, דיווח על אירוע חמור | `docs/security/*` + §15 | המסמכים קיימים וחתומים | ✓ |
 | L-08 | פרטיות | הסכמי עיבוד מידע (DPA) עם כל ספק משנה | רשימה ב-`docs/legal/subprocessors.md` (זהה לחלק 02 §10.3) | DPA חתום או מאושר לכל ספק | ✓ |
-| L-09 | פרטיות | אזור אחסון מתועד (EU-Frankfurt) והעברה לחו״ל לפי תקנות 2001 | Supabase `eu-central-1`, Vercel `fra1`, Sentry, PostHog ו-Upstash באיחוד האירופי; ספקים בארה״ב (OpenRouter, ספקי המודלים, Resend) מפורטים במדיניות הפרטיות; אזור ה-Sandbox של הרינדור [M0-verify] | בדיקת הגדרות | ✓ |
+| L-09 | פרטיות | אזור אחסון מתועד (EU-Frankfurt) והעברה לחו״ל לפי תקנות 2001 | Supabase `eu-central-1`, Vercel `fra1`, Sentry, PostHog ו-Upstash באיחוד האירופי; ספקים בארה״ב (OpenRouter, ספקי המודלים, Resend) מפורטים במדיניות הפרטיות; הרכבת הסרטונים ב-Vercel Sandbox רצה באזור ש-Sandbox מאפשר, ייתכן שבארצות הברית [M0-verify ספייק 18] — וכך היא מופיעה בטבלת ספקי המשנה (חלק 02 §10.3, סעיף 6) וב-`docs/legal/subprocessors.md`; אם יתברר שהאזור הוא `fra1`, מעדכנים את שלושתם | בדיקת הגדרות | ✓ |
 | L-10 | פרטיות | `data_collection: "deny"` בכל בקשה ל-OpenRouter (המדיניות מתחייבת לכך); בנקודות המדיה [M0-verify] — אם נקודה דוחה את השדה, משמיטים אותו רק בה, מתעדים ב-`DECISIONS.md` ומעדכנים באותו PR את ניסוח מדיניות הפרטיות | חלק 05 §4 | בדיקת חוזה על גוף הבקשה | ✓ |
 | L-11 | עוגיות | אנליטיקה רק בהסכמה, בלי טעינה לפני בחירה, GPC | חלק 02 §11 | Playwright על רשת ועוגיות | ✓ |
 | L-12 | ספאם | הסכמה מפורשת לא מסומנת מראש, "פרסומת" בנושא, פרטי שולח, הסרה בלחיצה | §11.8, §12 | בדיקות יחידה על שליחת דיוור | ✓ |
-| L-13 | צרכנות | ביטול בלחיצה, קישור בפוטר, אישור במייל, 3 ימי עסקים | §10 | e2e ביטול | ✓ |
+| L-13 | צרכנות | ביטול אונליין (שתי לחיצות, בלי שיחת שימור), קישור בפוטר, אישור במייל, 3 ימי עסקים | §10 | e2e ביטול | ✓ |
 | L-14 | צרכנות | גילוי לפני עסקה, מסמך גילוי אחריה, ביטול 14 יום ודמי ביטול | §4.1, §10 | בדיקות יחידה + e2e | ✓ |
 | L-15 | צרכנות | מחירים כולל מע״מ | `Price` | בדיקת snapshot לעמוד המחירים | ✓ |
-| L-16 | מס | חשבונית מס/קבלה לכל תשלום, מספר הקצאה מעל הסף, מע״מ קונפיגורבילי | §9 | בדיקות sandbox | ✓ |
+| L-16 | מס | חשבונית מס-קבלה לכל תשלום, מספר הקצאה מעל הסף, מע״מ קונפיגורבילי | §9 | בדיקות sandbox | ✓ |
 | L-17 | AI | תווית "נוצר באמצעות AI" אופציונלית, צ׳קליסט ייצוא, מטא־דאטה | §11.9 | e2e על הצ׳קליסט | ✓ |
 | L-18 | דמות וקול | בלי שיבוט קול/אווטאר בהשקה; כשיופעלו — זרימת הסכמה מתועדת | §11.10 | הדגלים כבויים בפרודקשן | ✓ |
 | L-19 | העלאות | הצהרת הסכמה בהעלאת צילומים של אנשים, ובקטינים — הסכמת הורים | חלק 03, `assets.metadata.consent_attested` | e2e | ✓ |
@@ -908,11 +959,14 @@ export function quoteRefund(i: {
 | `terms` | כל רכישה (קופה, חבילה, שינוי תוכנית בתשלום) | `checkout` | גרסת תנאי השימוש (מדיניות הביטול היא חלק מהתנאים בהפניה, ולכן כל שינוי בה מעלה גם את גרסת התנאים) | תיבה לא מסומנת (§4.1) |
 | `ai_content_policy` | יצירה ראשונה (שורה בדיאלוג האישור: **"ביצירה אתם מאשרים את {מדיניות השימוש ההוגן ב-AI}."**) | `generate` | גרסת `/legal/ai-policy` | נרשם **בשרת** בתוך `POST /api/projects/[id]/generate` (חלק 04 §19.8) כשאין למשתמש שורה בגרסה הנוכחית; `ConsentBody` הציבורי לא מקבל `generate`. השורה בדיאלוג בלי תיבת סימון (חלק 03 §6.10) |
 | `marketing_email` | תיבה בהרשמה, בהגדרות, או אישור כפול בניוזלטר | `signup` / `settings` / `newsletter` | גרסת מדיניות הפרטיות | ביטול = שורה חדשה `granted=false` + `email_suppressions` |
-| `analytics_cookies` | בחירה בבאנר העוגיות | `cookie_banner` | גרסת `/legal/cookies` | אנונימי מותר (חלק 04 §21.4) |
+| `marketing_email`, `marketing_sms`, `marketing_whatsapp` (ביטול) | קישור ההסרה במייל: POST חד-קליקי (RFC 8058) או הטופס של `/unsubscribe` (`POST /api/unsubscribe`, חלק 04 §21.4) | `unsubscribe` | גרסת מדיניות הפרטיות | שלוש שורות `granted=false`, אחת לכל סוג, אחרי שורת `email_suppressions` שנכתבת קודם ובנפרד; התשובה תמיד 200. נרשם **בשרת** בלבד; `ConsentBody` הציבורי לא מקבל `unsubscribe` |
+| `analytics_cookies` | בחירה בבאנר העוגיות, או שינוי בהגדרות הפרטיות | `cookie_banner` / `settings` | גרסת `/legal/cookies` | אנונימי מותר (חלק 04 §21.4) |
 | `marketing_sms`, `marketing_whatsapp` | לא בשימוש בהשקה | — | — | שמורים ל-v2 |
 | `biometric_voice`, `biometric_likeness` | זרימת הדמות והקול (v2) | `likeness_flow` | גרסת `/legal/likeness-consent` | `evidence_path` = הקלטת ההצהרה |
 
-כל שורה כוללת `ip` ו-`user_agent`. שורות לא מתעדכנות (חוץ מ-`revoked_at`); ביטול = שורה חדשה. שורות של משתמש קיים לא נמחקות לעולם. אחרי סגירת חשבון `user_id` מתאפס (`on delete set null`), והשורה נשמרת בלי פרופיל ובלי תוכן עד שעברו 7 שנים מיום הרישום (תקופת ההתיישנות); אז `purge_support_data()` מוחקת אותה (חלק 04 §15). אותו כלל חל על שורות אנונימיות של באנר העוגיות.
+**מי כותב:** כל שורת `consents` נכתבת בשרת דרך `recordConsent()` (`lib/consents/record.ts`, בלקוח הסודי); אין INSERT ישיר מהדפדפן (הטבלה ברשימת "כתיבה רק מהשרת" ואין לה policy של insert, חלק 04 §12.2, §12.4). השרת קובע `ip` (`ipAddress(req)`), `user_agent`, `created_at = now()` ו-`version = LEGAL_VERSIONS[kind]`; גרסה שהלקוח שלח ושונה מהנוכחית ← 400 `INVALID_INPUT {reason:"version_mismatch"}`. `POST /api/consents` (חלק 04 §21.4) מקבל רק את הצירופים האלה של (`kind`, `source`): `marketing_email` / `marketing_sms` / `marketing_whatsapp` עם `signup` / `settings` / `newsletter`, ו-`analytics_cookies` עם `cookie_banner` / `settings`; כל צירוף אחר ← 400 `INVALID_INPUT`. שאר הסוגים נכתבים רק בשרת: `terms`/`privacy` בהרשמה — `ensureFirstLogin`; `terms` עם `source = 'checkout'` — נתיב הקופה; `ai_content_policy` — `generate`; ביטול `marketing_*` מקישור הסרה (`source = 'unsubscribe'`) — `POST /api/unsubscribe`; `biometric_*` — נתיב הדמות והקול (v2).
+
+כל שורה כוללת `ip` ו-`user_agent`. שורות לא מתעדכנות (חוץ מ-`revoked_at` ומ-`subject_closed_at`, שנחתם בסגירת החשבון); ביטול = שורה חדשה. שורות של משתמש קיים לא נמחקות לעולם. בסגירת חשבון `prepare_user_deletion` חותמת `consents.subject_closed_at`, ואחר כך `user_id` מתאפס (`on delete set null`); השורה נשמרת בלי פרופיל ובלי תוכן עד שעברו **7 שנים מסגירת החשבון** (תקופת ההתיישנות), ואז `purge_support_data()` מוחקת אותה (חלק 04 §11.4, §15). הסכמה בלי חשבון (מייל בלבד, למשל ניוזלטר) נשמרת 7 שנים **מביטול ההסכמה** (או מהשורה המאוחרת שהחליפה אותה); שורות אנונימיות של באנר העוגיות, שאי אפשר לקשר לבחירה מאוחרת — 7 שנים מהרישום.
 
 ### 11.5 תקופות שמירה (מקור אמת: הטבלה הזו; חלק 02 §10.3 מציג אותה בעברית פשוטה)
 
@@ -929,17 +983,17 @@ export function quoteRefund(i: {
 | `email_messages` (יומן שליחות) | 24 חודשים | אותה משימה |
 | `audit_logs` | 36 חודשים; פעולות `payment.*`, ‏`invoice.*`, ‏`refund_request.*`, ‏`subscription.*`, ‏`billing.*`, ‏`credits.*` — 7 שנים | pg_cron `purge-audit-logs` (חודשי, חלק 04 §15; הטריגר `prevent_audit_mutation` מתיר רק לה למחוק, חלק 04 §10.6) |
 | תשלומים, חשבוניות (כולל ה-PDF), יומן הקרדיטים, בקשות החזר | 7 שנים לפחות (דיני מס) | לא נמחקים; בסביבה שנמחקה השורות נשמרות בלי פרטים מזהים מעבר לנדרש (חלק 04 §9.6) |
-| `consents` | שורות של משתמשים קיימים — לא נמחקות; אחרי סגירת החשבון (ובשורות אנונימיות של באנר העוגיות) — 7 שנים מיום הרישום | `purge-support-data` (11.4) |
+| `consents` | כל עוד החשבון קיים, ועוד 7 שנים אחרי סגירת החשבון (`subject_closed_at`) או ביטול ההסכמה; הסכמה בלי חשבון (מייל בלבד) — 7 שנים מביטולה; שורות אנונימיות של באנר העוגיות — 7 שנים מהרישום | `purge-support-data` (11.4; חלק 04 §11.4) |
 | `trial_claims` (גיבוב בלבד) | 5 שנים | אותה משימה |
 | PostHog | 12 חודשים | הגדרת הפרויקט ב-PostHog |
 | Sentry | 90 יום | הגדרת הארגון |
-| גיבויים | גיבוי יומי + PITR של 7 ימים (Supabase); גיבוי לוגי שבועי — 30 יום, והגיבוי האחרון של כל חודש — 12 חודשים; עותק של bucket החשבוניות — 7 שנים | §15.11 |
+| גיבויים | מסד הנתונים: גיבוי יומי + PITR של 7 ימים (Supabase); גיבוי לוגי שבועי — 30 יום, והגיבוי האחרון של כל חודש — 12 חודשים. קבצים (`brand-assets`, `uploads`, `renders`): סנכרון שבועי ל-S3 עם גרסאות; גרסה שנמחקה או הוחלפה נשמרת 30 יום, כך שקובץ שנמחק בשירות נעלם מהגיבוי לכל המאוחר 37 ימים אחרי המחיקה. עותק של bucket החשבוניות — 7 שנים | §15.11 |
 
 ### 11.6 בקשות של נושאי מידע
 
 - **בשירות עצמי:** ייצוא (`POST /api/account/export` ← קובץ ZIP, בדרך כלל תוך שעה; הקובץ זמין 7 ימים) ומחיקה (`POST /api/account/delete`) — חלק 04 §21.3.
 - **במייל ל-privacy@{{DOMAIN}}:** עיון, תיקון, התנגדות לדיוור, שאלות. האדמין פותח `data_requests` ידני; **SLA: 30 יום** (יעד: 7). זיהוי: הבקשה חייבת להגיע מכתובת המייל של החשבון, או שהמבקש מאשר קישור שנשלח אליה.
-- **מחיקה אצל ספקים:** Resend — מחיקת איש קשר; PostHog — מחיקת ה-person (`DELETE https://eu.posthog.com/api/projects/{posthogProjectId}/persons/{personId}` או `posthog-node` [M0-verify]); Sentry — אין PII (§16.1); Grow — מחיקת אסימון אם קיים API [M0-verify]; Morning — רשומת הלקוח נשמרת לפי דיני מס; OpenRouter — אין שמירה (`data_collection: "deny"`).
+- **מחיקה אצל ספקים:** Resend — מחיקת איש קשר; PostHog — מחיקת ה-person (`DELETE https://eu.posthog.com/api/projects/{posthogProjectId}/persons/{personId}` או `posthog-node` [M0-verify]); Sentry — אין PII (§16.1); Grow — מחיקת אסימון אם קיים API [M0-verify]; Morning — רשומת הלקוח נשמרת לפי דיני מס; OpenRouter — `data_collection: "deny"`: ניתוב רק לספקים שלא אוספים ולא מאמנים על הנתונים, ככל שהספק מאפשר (זו לא התחייבות לאפס שמירה).
 - כל בקשה נרשמת ב-`audit_logs` (`privacy.request`) עם סוג, תאריך ותוצאה.
 
 ### 11.7 עוגיות
@@ -956,12 +1010,12 @@ export function quoteRefund(i: {
 ### 11.8 חוק הספאם (חוק התקשורת, ס׳ 30א)
 
 - **חל על:** מייל, SMS, פקס, חיוג אוטומטי — וככל הנראה גם וואטסאפ והודעות מיידיות (לא אומת במחקר; מתייחסים אליהן כאילו החוק חל ⚖️). **פיצוי בלי הוכחת נזק: עד ₪1,000 להודעה**, ותביעות ייצוגיות נפוצות.
-- **מה נחשב דיוור שיווקי אצלנו:** הניוזלטר "5 הוקים לשבוע", הודעות על פיצ׳רים, מבצעים והטבות. **מה לא:** קבלות, סרטון מוכן, כשלי חיוב, אישורי ביטול, הזמנות לצוות, אישור לקוח, `low_credits` (עובדתי, בלי הנחות ובלי מבצעים — ואפשר לכבות אותו).
+- **מה נחשב דיוור שיווקי אצלנו:** הניוזלטר "5 הוקים לשבוע", הודעות על פיצ׳רים, מבצעים והטבות. **מה לא:** קבלות, סרטון מוכן, כשלי חיוב, אישורי ביטול, הזמנות לצוות, אישור לקוח, `low_credits` — הודעת שירות עובדתית: יתרה, מועד חידוש וקישור לעמוד החיוב, בלי מחירים, בלי חבילה או תוכנית מוצעת ובלי כפתור רכישה ⚖️ (ואפשר לכבות אותה בהגדרות ההתראות; §25).
 - **כללים שהקוד אוכף** (`lib/email/send.ts`):
   1. תבנית מסוג `marketing` נשלחת רק לכתובת עם הסכמה `marketing_email` בתוקף (השורה האחרונה `granted = true`) ושאינה ב-`email_suppressions`.
   2. הנושא חייב להתחיל ב-**"פרסומת:"** — אחרת `sendEmail` זורק שגיאה (בדיקת יחידה).
   3. בגוף: שם השולח ({{LEGAL_ENTITY_NAME}}), כתובת ({{LEGAL_ADDRESS}}) ומייל ליצירת קשר, וקישור הסרה ברור שהטקסט שלו מתאר את היעד: **"הסרה מרשימת התפוצה"**; בכותרות: `List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058).
-  4. הסרה מטופלת מיד (`email_suppressions` + שורת `consents` עם `granted=false`) ומסונכרנת ל-Resend.
+  4. הסרה מטופלת מיד ומסונכרנת ל-Resend (`POST /api/unsubscribe`, חלק 04 §21.4): קודם, ובנפרד מכל השאר, שורת `email_suppressions` (`reason = 'unsubscribe'`); אחר כך `recordConsent({ …, granted: false, source: 'unsubscribe' })` לכל אחד מ-`marketing_email`, `marketing_sms` ו-`marketing_whatsapp` (§11.4). כשל ברישום ההסכמה לא מבטל את ההסרה, והתשובה לנמען תמיד 200.
   5. לא משתמשים בחריג "לקוח קיים" ולא בבקשת הסכמה חד־פעמית לעסקים — רק הסכמה מפורשת.
   6. וואטסאפ ו-SMS שיווקיים — לא בהשקה (§13).
 - **הלקוחות שלנו כמפרסמים:** כשמשתמש משתף סרטון בוואטסאפ או מפרסם מודעה, הוא המפרסם. תנאי השימוש מחייבים אותו לעמוד בחוק (חלק 02 §10.2).
@@ -975,13 +1029,13 @@ export function quoteRefund(i: {
 
 ### 11.10 דמות, קול והסכמה (v2, מאחורי `avatar` / `voice_clone`)
 
-לפני הפעלת הדגלים בפרודקשן חייבים: (1) הערכה משפטית וייעוץ לגבי DPO; (2) זרימת `likeness_flow`: הקלטת הצהרה בקול של האדם עצמו — **"אני, {fullName}, מאשר או מאשרת ל-{{BRAND_NAME}} ליצור קול דיגיטלי שלי, לשימוש העסק {businessName} בלבד. אני יודע או יודעת שאפשר לבטל את ההסכמה בכל עת."** — נשמרת ב-bucket פרטי (`consents.evidence_path`). זו הצהרה בגוף ראשון שהאדם מקריא, ולכן הכפל "מאשר או מאשרת" מותר בה (בדומה לטופס ההסכמה ב-PDF, חלק 02 §10.8); באפליקציה הטקסט מוצג ב-ICU `select` לפי `ui_gender_form` כשהוא לא `plural`, כך שכל אחד מקריא רק את הצורה שלו. בנוסף, תיבת סימון נפרדת ולא מסומנת: **"אני האדם שמופיע בהקלטה, והתנאים במדיניות ההסכמה לשימוש בדמות ובקול מקובלים עליי."** ההקלטה בדפדפן דורשת להתיר מיקרופון (ובאווטאר גם מצלמה) רק בנתיב הזרימה הזו: `Permissions-Policy` של הנתיב הזה הוא `microphone=(self), camera=(self)` (§15.3); (3) חסימת דמויות ציבוריות וקטינים; (4) ביטול שמוחק את הקול/הדמות אצל הספק ומסמן `likeness_profiles.revoked_at`; (5) תיעוד כל יצירה (מי, מתי, מה) לטיפול בתלונות.
+לפני הפעלת הדגלים בפרודקשן חייבים: (1) הערכה משפטית וייעוץ לגבי DPO; (2) זרימת `likeness_flow`: הקלטת הצהרה בקול של האדם עצמו — **"אני, {fullName}, מאשר או מאשרת ל{{BRAND_NAME}} ליצור קול דיגיטלי שלי, לשימוש העסק {businessName} בלבד. אני יודע או יודעת שאפשר לבטל את ההסכמה בכל עת."** — נשמרת ב-bucket פרטי (`consents.evidence_path`). זו הצהרה בגוף ראשון שהאדם מקריא, ולכן הכפל "מאשר או מאשרת" מותר בה (בדומה לטופס ההסכמה ב-PDF, חלק 02 §10.8); באפליקציה הטקסט מוצג ב-ICU `select` לפי `ui_gender_form` כשהוא לא `plural`, כך שכל אחד מקריא רק את הצורה שלו. בנוסף, תיבת סימון נפרדת ולא מסומנת: **"אני האדם שמופיע בהקלטה, והתנאים במדיניות ההסכמה לשימוש בדמות ובקול מקובלים עליי."** ההקלטה בדפדפן דורשת להתיר מיקרופון (ובאווטאר גם מצלמה) רק בנתיב הזרימה הזו: `Permissions-Policy` של הנתיב הזה הוא `microphone=(self), camera=(self)` (§15.3); (3) חסימת דמויות ציבוריות וקטינים; (4) ביטול שמוחק את הקול/הדמות אצל הספק ומסמן `likeness_profiles.revoked_at`; (5) תיעוד כל יצירה (מי, מתי, מה) לטיפול בתלונות.
 
 ### 11.11 בחירות לכנסת (2026-10-27) וימים רגישים
 
 - תעמולת בחירות אינה שימוש נתמך. **תמיד** (לא רק בבחירות): `moderation.brief.v1` חוסם תוכן קמפיין ופוליטיקאים אמיתיים; נישה פוליטית (`compliance_flag = 'political'`) לא פעילה.
 - **מצב בחירות** (`app_settings.election_mode = { enabled: true, until: "2026-10-28T23:59:00+02:00" }`): כל קטגוריה פוליטית מחזירה `ELECTION_POLICY_BLOCKED` (451) עם ההסבר של חלק 03. אחרי התאריך המצב כבה מעצמו (ההשוואה בקוד, לא פעולה ידנית); המדיניות הקבועה נשארת.
-- `/legal/ai-policy` מפנה לכללים שוועדת הבחירות המרכזית פרסמה ב-2026 (התשפ״ו), שמחייבים הודעה בכתב או סמל על תעמולת בחירות שנוצרה ב-AI (זיוף עמוק). השם הרשמי ומועד התחולה של הכללים לא אומתו במחקר ⚖️.
+- `/legal/ai-policy` מפנה ל**כללי הבחירות (דרכי תעמולה) (קיום חובת הגילוי לגבי תעמולת בחירות שהיא זיוף עמוק), התשפ״ו-2026**, שמחייבים הודעה בכתב או סמל על תעמולת בחירות שנוצרה ב-AI (זיוף עמוק); הסמל לא תקף לתוכן קולי. מועד התחולה של הכללים לא אומת במחקר ⚖️.
 - ימי שקט (יום השואה, יום הזיכרון): באנר, בלי הצעות עונתיות, בלי דיוור שיווקי (תזמון הניוזלטר מדלג עליהם).
 
 ### 11.12 קבלת תנאים וגרסאות
@@ -993,6 +1047,8 @@ export function quoteRefund(i: {
 ### קריטריוני קבלה
 - [ ] כל 25 שורות 11.1 מסומנות בקובץ `docs/legal/launch-checklist.md` עם קישור לראיה (בדיקה, צילום, מסמך חתום).
 - [ ] `sendEmail` עם תבנית `marketing` ונושא שלא מתחיל ב"פרסומת:" נכשל; לכתובת בלי הסכמה — לא נשלח ונרשם `skipped_no_consent`.
+- [ ] INSERT ישיר של `authenticated` ל-`consents` נדחה (pgTAP); `POST /api/consents` עם `kind: "terms"`, עם `source: "checkout"` או עם `source: "unsubscribe"` מחזיר 400.
+- [ ] הסרה בלחיצה אחת (`POST /api/unsubscribe?token=`, בלי עוגיות ובלי `Origin`) מחזירה 200 וכותבת שורת `email_suppressions` אחת ו-3 שורות `consents` עם `granted=false` ו-`source='unsubscribe'` (pgTAP: ה-insert הזה מצליח כ-`service_role`; בדיקת API: חלק 04 §25.5); כשרישום ההסכמה נכשל — עדיין 200, וההסרה נשמרה.
 - [ ] משימות הניקוי של pg_cron (`purge-ai-generation-meta`, ‏`purge-ai-generations`, ‏`purge-support-data`, ‏`purge-audit-logs`; חלק 04 §15) קיימות ונבדקות עם נתונים מתוארכים: שורת `audit_logs` מסוג `invoice.attach` בת 4 שנים שורדת, ושורת `consents` של משתמש קיים בת 8 שנים לא נמחקת.
 - [ ] אחרי 2026-10-28 23:59 שעון ישראל `ELECTION_POLICY_BLOCKED` לא מוחזר, אבל בריף של קמפיין עדיין נחסם ב-`MODERATION_BLOCKED`.
 - [ ] שינוי `material: true` בגרסת התנאים מציג את דיאלוג הקבלה מחדש פעם אחת ונרשם ב-`consents`.
@@ -1015,7 +1071,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 ```
 
 - **רישום התבניות** (`lib/email/templates/index.ts`): לכל `key` — רכיב React Email, `category` (`auth` · `transactional` · `notification` · `marketing` · `internal`), `notificationKind` (אם יש — מכבד את `profiles.notification_prefs.kinds.{kind}.email`; מפתח חסר = פעיל; `payment_failed` ו-`invite` נשלחים תמיד, חלק 04 §4), `subject(data)`, `preheader(data)`, `from`.
-- **שולחים:** מערכת — `EMAIL_FROM` (`{{BRAND_NAME}} <hello@{{DOMAIN}}>`), עם `Reply-To` = `EMAIL_REPLY_TO` (חיוב: `billing@{{DOMAIN}}`); אישור לקוח — `"{agencyName} דרך {{BRAND_NAME}}" <approvals@{{DOMAIN}}>` (ב-White label: `"{agencyName}"`), עם `Reply-To` = מי שיצר את קישור האישור; דיוור — `{{BRAND_NAME}} <news@mail.{{DOMAIN}}>` מתת־דומיין נפרד, כדי שמוניטין הדיוור לא יפגע במיילי המערכת. כל הכתובות מ-`BRAND.emails.*` (`lib/constants.ts`).
+- **שולחים:** מערכת — `EMAIL_FROM` (`{{BRAND_NAME}} <hello@{{DOMAIN}}>`), עם `Reply-To` = `EMAIL_REPLY_TO` (חיוב: `billing@{{DOMAIN}}`); אישור לקוח — `"{agencyName} דרך {{BRAND_NAME}}" <approvals@{{DOMAIN}}>` (כש-`resolveShareBranding(link).whiteLabel`: `"{agencyName}"`), עם `Reply-To` = מי שיצר את קישור האישור. `{agencyName}` = `resolveShareBranding(link).senderName`: שם סביבת החיוב (הסוכנות) כשהקישור שייך לסביבת לקוח, ואחרת שם העסק של הסביבה; השם והמיתוג נקבעים בזמן השליחה, לא בזמן יצירת הקישור (חלק 04 §20.5); דיוור — `{{BRAND_NAME}} <news@mail.{{DOMAIN}}>` מתת־דומיין נפרד, כדי שמוניטין הדיוור לא יפגע במיילי המערכת. כל הכתובות מ-`BRAND.emails.*` (`lib/constants.ts`).
 - **DNS:** SPF ו-DKIM (Resend) לשני הדומיינים; DMARC `p=none` בשבועיים הראשונים עם דוחות, ואז `p=quarantine`.
 - **יומן שליחות** `email_messages` (חלק 04 §8): `id`, ‏`template_key` (= `EmailKey`), ‏`to_email citext`, ‏`user_id NULL`, ‏`workspace_id NULL`, ‏`idempotency_key text unique`, ‏`resend_id NULL`, ‏`status` — `queued|sent|delivered|bounced|complained|failed|skipped_suppressed|skipped_no_consent|skipped_pref|skipped_allowlist`, ‏`error NULL`, ‏`created_at`, ‏`updated_at`. ‏`skipped_duplicate` הוא רק ערך החזרה של `sendEmail`: המפתח הייחודי מונע שורה שנייה. היומן משמש כהוכחה (למשל שאישור הביטול נשלח), למניעת כפילויות ולתצוגה באדמין (קריאה למנהלי פלטפורמה בלבד, כתיבה רק מהשרת). ה-webhook של Resend (חלק 04 §22.6) מעדכן `status`. נשמר 24 חודשים (§11.5).
 - **חסימות:** `bounce` ← לא שולחים כלום לכתובת; `complaint` ← לא שולחים דיוור והתראות, אבל כן מיילים שהחוק או החשבון מחייבים (קבלות, אישורי ביטול, כשל חיוב, מחיקת חשבון, ייצוא מידע); `unsubscribe` ← רק דיוור נחסם.
@@ -1043,9 +1099,9 @@ export async function sendEmail<K extends EmailKey>(i: {
 
 - **כותרת:** הלוגו (`alt="{{BRAND_NAME}}"`), מקושר ל-`https://{{DOMAIN}}`.
 - **כרטיס תוכן:** כותרת (H1), פסקאות, טבלת פרטים (אופציונלי), כפתור אחד ראשי לכל היותר, הערה קטנה.
-- **תחתית מערכת:** **"המייל נשלח לכתובת {email} בקשר לחשבון ב-{{BRAND_NAME}}."** · במיילים מסוג `notification`: קישור **"ניהול ההתראות"** (`/app/settings/notifications`) · **"{{LEGAL_ENTITY_NAME}} · {{LEGAL_ADDRESS}}"** · **"שאלות? אפשר פשוט להשיב למייל הזה."**
-- **תחתית דיוור:** כל שורות תחתית המערכת, ובנוסף: **"קיבלתם את המייל כי נרשמתם לעדכונים מ-{{BRAND_NAME}} ב-{consentDate}."** + קישור **"הסרה מרשימת התפוצה"** (ל-`/unsubscribe?token=`) ושורת יצירת קשר: **"hello@{{DOMAIN}} · {{SUPPORT_PHONE}}"**.
-- **תחתית לנמען חיצוני (אישור לקוח):** **"המייל נשלח לבקשת {agencyName}. לא ציפיתם למייל הזה? אפשר להתעלם ממנו."** ובלי White label גם **"נשלח באמצעות {{BRAND_NAME}}."**
+- **תחתית מערכת:** **"המייל נשלח לכתובת {email} בקשר לחשבון ב{{BRAND_NAME}}."** · במיילים מסוג `notification`: קישור **"ניהול ההתראות"** (`/app/settings/notifications`) · **"{{LEGAL_ENTITY_NAME}} · {{LEGAL_ADDRESS}}"** · **"שאלות? אפשר פשוט להשיב למייל הזה."**
+- **תחתית דיוור:** כל שורות תחתית המערכת, ובנוסף: **"קיבלתם את המייל כי נרשמתם לעדכונים מ{{BRAND_NAME}} ב-{consentDate}."** + קישור **"הסרה מרשימת התפוצה"** (ל-`/unsubscribe?token=`) ושורת יצירת קשר: **"hello@{{DOMAIN}} · {{SUPPORT_PHONE}}"**.
+- **תחתית לנמען חיצוני (אישור לקוח):** **"המייל נשלח לבקשת {agencyName}. לא ציפיתם למייל הזה? אפשר להתעלם ממנו."** וכש-`resolveShareBranding(link).whiteLabel` כבוי, גם **"נשלח באמצעות {{BRAND_NAME}}."**
 
 ### 12.4 קטלוג התבניות
 
@@ -1086,19 +1142,19 @@ export async function sendEmail<K extends EmailKey>(i: {
 **מוסכמת סכומים בנוסח (מחייבת לכל החלק):** `₪{amount}` בנוסח שכאן מסמן משתנה סכום. ב-`messages/he.json` כותבים רק `{amount}`, והערך מגיע מעוצב מ-`formatAgorot` (כבר עם ₪ בתחילתו). אסור לכתוב ₪ בקובץ ההודעות ליד משתנה (חלק 01 §2.1; ₪ כפול הוא באג שבדיקת ה-snapshot תופסת). גם סכומים קבועים שמופיעים בנוסח — תקרת דמי הביטול ₪100 (`CANCEL_FEE_CAP_AG`), מחיר החבילה הזולה ₪59 (מה-seed), בדיקת המסגרת ₪1 — מגיעים כמשתנים (`{feeCap}`, `{minPackPrice}`, `{verifyAmount}`), כדי ששינוי במחיר או בחוק לא ידרוש עריכת מחרוזות.
 
 #### `welcome`
-- **נושא:** ברוכים הבאים ל-{{BRAND_NAME}}
+- **נושא:** ברוכים הבאים ל{{BRAND_NAME}}
 - **Preheader:** {trialCredits} קרדיטים לניסיון כבר בחשבון. ככה מתחילים.
 - **H1:** החשבון מוכן
 - **גוף:**
   - שלום {firstName},
-  - טוב שהגעתם. בחשבון כבר מחכים {trialCredits} קרדיטים לניסיון — מספיק לשני סרטונים קצרים, בלי כרטיס אשראי.
+  - טוב שהגעתם. בחשבון כבר מחכים {trialCredits} קרדיטים לניסיון — מספיק בערך {trialVideos, plural, one {לסרטון קצר אחד} two {לשני סרטונים קצרים} other {ל-# סרטונים קצרים}} באיכות טיוטה, עם סימן מים, בלי כרטיס אשראי. (`trialVideos` = `videosLeft(trialCredits, "free")`, §2.6; 2 עם ה-seed.)
   - ככה יוצרים את הסרטון הראשון:
     1. בוחרים נישה ומדביקים קישור לאתר או לאינסטגרם של העסק. אין אתר? מספיק לתאר את העסק במשפט.
     2. בוחרים הוק — משפט פתיחה שעוצר גלילה — מתוך ההצעות לנישה.
     3. מאשרים את התסריט ומקבלים סרטון עם קריינות וכתוביות בעברית.
 - **כפתור:** ליצירת הסרטון הראשון ← `/app/create`
 - **הערה:** לפני כל יצירה מוצג כמה קרדיטים היא עולה, ויצירה שנכשלה מחזירה את הקרדיטים אוטומטית.
-- **וריאנט בלי קרדיטי ניסיון** (`trial_status ≠ granted`) — הפסקה השנייה מוחלפת: "טוב שהגעתם. הפעם החשבון נפתח בלי קרדיטי ניסיון, כי {reasonHe}. אפשר להתחיל עם חבילה של {minPackCredits} קרדיטים ב-₪{minPackPrice}, או לבחור תוכנית." · `reasonHe`: `already_claimed` — "כתובת המייל הזו כבר קיבלה קרדיטים לניסיון"; `disposable_email` — "כתובות מייל זמניות לא מקבלות קרדיטי ניסיון". הכפתור: **"לרכישת קרדיטים"** ← `/app/billing?topup=pack-150`. ב-`no_identifier` (הרשמה בלי כתובת מייל, חלק 03 §3.5) אין למי לשלוח, ולכן `welcome` לא נשלח.
+- **וריאנט בלי קרדיטי ניסיון** (`trial_status ≠ granted`) — הפסקה השנייה מוחלפת: "טוב שהגעתם. הפעם החשבון נפתח בלי קרדיטי ניסיון, כי {reasonHe}. פרטים על קרדיטים ותוכניות נמצאים בעמוד החיוב." · `reasonHe`: `already_claimed` — "כתובת המייל הזו כבר קיבלה קרדיטים לניסיון"; `disposable_email` — "כתובות מייל זמניות לא מקבלות קרדיטי ניסיון". הכפתור: **"לעמוד החיוב"** ← `/app/billing` (בלי הצעת רכישה, כמו ב-`low_credits`). ב-`no_identifier` (הרשמה בלי כתובת מייל, חלק 03 §3.5) אין למי לשלוח, ולכן `welcome` לא נשלח.
 
 #### `video_ready`
 - **נושא:** הסרטון "{projectTitle}" מוכן
@@ -1109,64 +1165,66 @@ export async function sendEmail<K extends EmailKey>(i: {
   - הסרטון "{projectTitle}" מוכן לצפייה ולהורדה {formatsHe}, עם כתוביות צרובות וקובץ כתוביות נפרד (SRT).
   - (תמונת הפוסטר, מקושרת לפרויקט, `alt="פוסטר הסרטון {projectTitle}"`)
 - **כפתור:** לצפייה בסרטון ← `/app/projects/{projectId}`
-- **בלוק סצנות שהוחלפו** (רק כש-`degradedCount > 0`): שימו לב: {degradedCount} סצנות נבנו מתמונה בתנועה במקום מקליפ וידאו, והקרדיטים על הקליפים האלה ({refundedCredits} קרדיטים) חזרו ליתרה. אפשר ליצור אותן מחדש בעורך.
+- **בלוק סצנות שהוחלפו** (רק כש-`degradedCount > 0`): שימו לב: {degradedCount, plural, one {סצנה אחת נבנתה} two {שתי סצנות נבנו} other {# סצנות נבנו}} מתמונה בתנועה במקום מקליפ וידאו, {refundedCredits, plural, one {והקרדיט ששמרנו לווידאו חזר ליתרה} other {ו-# הקרדיטים ששמרנו לווידאו חזרו ליתרה}}. אפשר ליצור {degradedCount, plural, one {אותה} other {אותן}} מחדש בעורך.
 - **לפני שמפרסמים:**
   - לבדוק שהמחירים, הטלפון והכתובת בסרטון נכונים.
   - סרטון עם אנשים או מקומות שנראים אמיתיים? באינסטגרם, בטיקטוק וביוטיוב צריך לסמן אותו כתוכן שנוצר ב-AI.
   - באתר העסק כדאי להעלות גם את קובץ הכתוביות — זה חלק מהנגשת הסרטון.
-- **הערה:** היצירה עלתה {credits} קרדיטים. ביתרה נשארו {balance}.
+- **הערה:** היצירה עלתה {credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}. {balance, plural, =0 {היתרה ריקה} one {ביתרה נשאר קרדיט אחד} two {ביתרה נשארו שני קרדיטים} other {ביתרה נשארו # קרדיטים}}.
 - `formatsHe` הוא הביטוי כולו, עם יחסי המסך עטופים ב-`<Ltr>`: כמה פורמטים — "בפורמטים 9:16, 1:1 ו-16:9" (מחוברים ב"," וב"ו-"); פורמט יחיד — "בפורמט 9:16". ב-Preheader הוא מופיע בתחילת המשפט כמו שהוא.
 
 #### `video_failed_refunded`
 - **נושא:** היצירה של "{projectTitle}" לא הושלמה. הקרדיטים חזרו
-- **Preheader:** כל {credits} הקרדיטים חזרו ליתרה. ניסיון חוזר ישתמש במה שכבר נוצר.
+- **Preheader:** {credits, plural, one {הקרדיט חזר ליתרה} other {כל # הקרדיטים חזרו ליתרה}}. ניסיון חוזר ישתמש במה שכבר נוצר.
 - **H1:** היצירה לא הושלמה
 - **גוף:**
   - שלום {firstName},
   - היצירה של "{projectTitle}" נעצרה בשלב {stageHe}, בגלל {reasonHe}.
-  - **כל {credits} הקרדיטים שנשמרו ליצירה חזרו ליתרה. לא חויבתם על כלום.**
+  - **{credits, plural, one {הקרדיט שנשמר ליצירה חזר ליתרה} other {כל # הקרדיטים שנשמרו ליצירה חזרו ליתרה}}. לא בוצע חיוב.**
   - בניסיון חוזר נשתמש בכל מה שכבר הצליח, כמו הקריינות והתמונות, כך שהוא יהיה מהיר יותר ולא יחייב שוב על החלקים האלה.
 - **כפתור:** לניסיון חוזר ← `/app/projects/{projectId}/jobs/{jobId}`
 - **הערה:** אם זה קורה שוב, אפשר פשוט להשיב למייל הזה ונבדוק מה קרה.
 - `stageHe` (לפי `jobs.stage`): `queued` "ההתחלה" · `voice` "הקריינות" · `captions` "הכתוביות" · `keyframes`/`clips` "יצירת הסצנות" · `music` "המוזיקה" · `render` "ההרכבה" · `finalize` "הסיום".
-- `reasonHe` (לפי `error_code`): `PROVIDER_UNAVAILABLE` "עומס זמני אצל ספק הווידאו" · `PROVIDER_TIMEOUT` "חריגה מזמן היצירה המרבי" · `TTS_FAILED` "תקלה ביצירת הקריינות" · `RENDER_FAILED` "תקלה בהרכבת הסרטון" · `VIDEO_JOB_FAILED` "תקלה ביצירת הסצנות" · אחר — "תקלה טכנית אצלנו".
+- `reasonHe` (לפי `error_code`): `PROVIDER_UNAVAILABLE` "עומס זמני אצל ספקי ה-AI" · `PROVIDER_TIMEOUT` "חריגה מזמן היצירה המרבי" · `TTS_FAILED` "תקלה ביצירת הקריינות" · `RENDER_FAILED` "תקלה בהרכבת הסרטון" · `VIDEO_JOB_FAILED` "תקלה ביצירת התמונות לסצנות" · אחר — "תקלה טכנית אצלנו".
 
 #### `payment_receipt`
-- **נושא:** חשבונית מס/קבלה {docNumber} מ-{{BRAND_NAME}} · וריאנט `invoicePending`: התשלום ל-{{BRAND_NAME}} התקבל
+- **נושא:** {docTypeHe} {docNumber} מ{{BRAND_NAME}} · וריאנט `invoicePending`: התשלום ל{{BRAND_NAME}} התקבל
 - **Preheader:** ₪{amount} כולל מע״מ · {lineShort}
 - **H1:** התשלום התקבל, תודה
 - **גוף:**
   - שלום {customerName},
   - לפי סוג התשלום:
-    - מנוי חודשי ראשון: המנוי לתוכנית {planName} פעיל. {credits} קרדיטים כבר ביתרה, ובכל חודש יתווספו עוד {credits}. החיוב הבא: {nextChargeDate}, ₪{nextAmount} כולל מע״מ.
-    - מנוי שנתי: המנוי השנתי לתוכנית {planName} פעיל עד {periodEnd}. {credits} קרדיטים כבר ביתרה, ובכל חודש יתווספו עוד {credits}.
-    - חידוש: המנוי לתוכנית {planName} חודש לתקופה {periodStart}–{periodEnd}, ו-{credits} קרדיטים נוספו ליתרה.
-    - שדרוג: השדרוג לתוכנית {planName} נכנס לתוקף, ו-{credits} קרדיטים נוספו ליתרה. מ-{nextChargeDate} החיוב יהיה ₪{nextAmount} {cycleSuffix}.
-    - חבילה: {credits} קרדיטים נוספו ליתרה. קרדיטים מחבילה לא פגים.
-    - תשלום ראשון אי־פעם (תוספת): סימן המים הוסר מהסרטונים הבאים.
+    - מנוי חודשי ראשון: המנוי לתוכנית {planName} פעיל. {monthlyCredits} קרדיטים כבר ביתרה, ובכל חודש יתווספו עוד {monthlyCredits}. החיוב הבא: {nextChargeDate}, ₪{nextAmount} כולל מע״מ.
+    - מנוי שנתי: המנוי השנתי לתוכנית {planName} פעיל עד {periodEnd}. {monthlyCredits} קרדיטים כבר ביתרה, ובכל חודש יתווספו עוד {monthlyCredits}.
+    - חידוש: המנוי לתוכנית {planName} חודש לתקופה {periodStart}–{periodEnd}, ו-{monthlyCredits} קרדיטים נוספו ליתרה.
+    - שדרוג: השדרוג לתוכנית {planName} נכנס לתוקף. {credits, plural, one {קרדיט אחד נוסף ליתרה} two {שני קרדיטים נוספו ליתרה} other {# קרדיטים נוספו ליתרה}}. מ-{nextChargeDate} החיוב יהיה ₪{nextAmount} {cycleSuffix}.
+    - חבילה: {credits, plural, one {קרדיט אחד נוסף ליתרה} two {שני קרדיטים נוספו ליתרה} other {# קרדיטים נוספו ליתרה}}. קרדיטים מחבילה לא פגים.
+    - תשלום ראשון אי-פעם (תוספת): סימן המים הוסר מהסרטונים הבאים.
   - **פרטי העסקה** (טבלה):
 
     | | |
     |---|---|
-    | מסמך | חשבונית מס/קבלה {docNumber} |
+    | מסמך | {docTypeHe} {docNumber} |
     | מספר הקצאה | {allocationNumber} (רק כשיש) |
     | תאריך | {paidAt} |
     | פירוט | {lineDescription} |
     | לפני מע״מ | ₪{net} |
     | מע״מ ({vatPercent}%) | ₪{vat} |
     | סה״כ ששולם | ₪{amount} |
-    | אמצעי תשלום | {cardBrandHe} שמסתיים ב-{last4} · או: Bit |
+    | אמצעי תשלום | כרטיס {cardBrandHe} שמסתיים ב-{last4} · או: Bit |
     | העסק | {{LEGAL_ENTITY_NAME}}, ח״פ {{COMPANY_ID}}, {{LEGAL_ADDRESS}} |
 
   - החשבונית מצורפת כקובץ PDF, והיא זמינה גם בעמוד החיוב. · וריאנט `invoicePending`: החשבונית תישלח במייל נפרד בשעות הקרובות.
 - **כפתור:** לעמוד החיוב ← `/app/billing`
 - **תיבת "ביטול והחזרים"** (מסמך הגילוי):
   - במנויים: אפשר לבטל את המנוי בכל רגע — בכפתור "ביטול מנוי" בעמוד החיוב, בקישור "ביטול מנוי" בתחתית האתר, במייל ל-billing@{{DOMAIN}} או בטלפון {{SUPPORT_PHONE}}. אחרי ביטול לא יהיו חיובים נוספים.
-  - בתשלום ראשון, בשדרוג ובחבילה: עד {refundDeadline} אפשר לבטל את העסקה ולקבל החזר, בניכוי שווי הקרדיטים שנוצלו ודמי ביטול של 5% (ולא יותר מ-₪100). הפרטים במדיניות הביטול. (קישור ל-`/legal/cancellation`)
-- `cardBrandHe`: ויזה · מאסטרקארד · ישראכרט · אמריקן אקספרס · דיינרס · כרטיס אשראי.
+  - בתשלום ראשון, בשדרוג ובחבילה: עד {refundDeadline} אפשר לבטל את העסקה ולקבל החזר, בניכוי שווי הקרדיטים שנוצלו ודמי ביטול של 5% (ולא יותר מ-{feeCap}). הפרטים במדיניות הביטול. (קישור ל-`/legal/cancellation`)
+- `cardBrandHe`: ויזה · מאסטרקארד · ישראכרט · אמריקן אקספרס · דיינרס · אשראי (`other`), כך שהשורה היא "כרטיס ויזה שמסתיים ב-…" או "כרטיס אשראי שמסתיים ב-…".
+- `docTypeHe` (לפי `invoices.doc_type`): ב-`payment_receipt` תמיד **"חשבונית מס-קבלה"** (`tax_invoice_receipt`; כל תשלום מקבל אותה, §9.2, ועוסק פטור לא נתמך). ב-`invoice_ready` אחרי צירוף ידני של זיכוי (חלק 04 §24.1) — **"חשבונית זיכוי"** (`credit_invoice`). אין ערך עבור `receipt`, כי הוא לא מונפק. המשתנה נשאר כדי שהנוסח יהיה במקום אחד: אותו ערך בנושא, בטבלה ובמייל `invoice_ready`.
+- `monthlyCredits` = `plans.monthly_credits` של התוכנית (קבוע מה-seed, ברשימת החריגים של כלל הרבים ב-`lint:copy`); `credits` בשדרוג ובחבילה — ICU `plural`.
 
 #### `invoice_ready`
-- **נושא:** חשבונית מס/קבלה {docNumber} מ-{{BRAND_NAME}}
+- **נושא:** {docTypeHe} {docNumber} מ{{BRAND_NAME}}
 - **H1:** החשבונית מצורפת
 - **גוף:** שלום {customerName}, · מצורפת החשבונית על התשלום מ-{paidAt} בסך ₪{amount}. · (כשעודכן מספר הקצאה) החשבונית עודכנה עם מספר ההקצאה {allocationNumber} מרשות המסים. · (כשמספר ההקצאה לא התקבל) לא קיבלנו עדיין מספר הקצאה מרשות המסים לחשבונית הזו. כדאי לוודא שמספר העוסק בפרטי החיוב נכון; נשלח חשבונית מעודכנת כשהמספר יתקבל.
 - **כפתור:** לעמוד החיוב
@@ -1174,10 +1232,10 @@ export async function sendEmail<K extends EmailKey>(i: {
 #### `payment_failed`
 | וריאנט | נושא | Preheader |
 |---|---|---|
-| `first` | החיוב על המנוי ב-{{BRAND_NAME}} לא עבר | החשבון ממשיך לעבוד. ננסה שוב ב-{nextRetryDate}. |
-| `second` | עדיין לא הצלחנו לחייב את המנוי ב-{{BRAND_NAME}} | הניסיון הבא: {nextRetryDate}. עדכון כרטיס יחייב מיד. |
-| `last_warning` | ניסיון אחרון לחידוש המנוי ב-{{BRAND_NAME}} ב-{finalDate} | אם החיוב לא יעבור, המנוי יסתיים. |
-| `final` | המנוי ב-{{BRAND_NAME}} הסתיים כי החיוב לא עבר | הפרויקטים והסרטונים נשמרו. אפשר לחדש בכל רגע. |
+| `first` | החיוב על המנוי ב{{BRAND_NAME}} לא עבר | החשבון ממשיך לעבוד. ננסה שוב ב-{nextRetryDate}. |
+| `second` | עדיין לא הצלחנו לחייב את המנוי ב{{BRAND_NAME}} | הניסיון הבא: {nextRetryDate}. עדכון כרטיס יחייב מיד. |
+| `last_warning` | ניסיון אחרון לחידוש המנוי ב{{BRAND_NAME}} ב-{finalDate} | אם החיוב לא יעבור, המנוי יסתיים. |
+| `final` | המנוי ב{{BRAND_NAME}} הסתיים כי החיוב לא עבר | הפרויקטים והסרטונים נשמרו. אפשר לחדש בכל רגע. |
 
 - **H1:** `first`/`second`: החיוב לא עבר · `last_warning`: ניסיון אחרון · `final`: המנוי הסתיים
 - **גוף (`first`, `second`, `last_warning`):**
@@ -1192,12 +1250,12 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **גוף (`final`):**
   - שלום {firstName},
   - ניסינו לחייב את הכרטיס ארבע פעמים מאז {dueDate}, ולא הצלחנו. לכן המנוי לתוכנית {planName} הסתיים, והחשבון עבר לתוכנית החינמית.
-  - לא חויבתם על התקופה שלא שולמה.
+  - על התקופה שלא שולמה לא בוצע חיוב.
   - מה נשאר בחשבון: הפרויקטים, הסרטונים וערכות המותג; קרדיטים מחבילות; וקרדיטים מהמנוי — עד {expiresAt}.
   - **כפתור:** חידוש המנוי ← `/app/billing/plans?plan={planId}&cycle={cycle}`
 
 #### `subscription_canceled`
-- **נושא:** אישור ביטול המנוי ב-{{BRAND_NAME}}
+- **נושא:** אישור ביטול המנוי ב{{BRAND_NAME}}
 - **Preheader:** לא יהיו חיובים נוספים. החשבון פעיל עד {periodEnd}. (עם החזר: ההחזר בסך ₪{refund} בטיפול.)
 - **H1:** המנוי בוטל
 - **גוף:**
@@ -1208,23 +1266,23 @@ export async function sendEmail<K extends EmailKey>(i: {
     - עד {periodEnd} החשבון ממשיך לעבוד בתוכנית {planName}, ואז יעבור לתוכנית החינמית.
     - קרדיטים מהמנוי זמינים עד {expiresAt}. קרדיטים מחבילות לא פגים.
     - הפרויקטים, הסרטונים וערכות המותג נשארים בחשבון גם בתוכנית החינמית.
-  - **בלוק החזר (14 יום):** ביקשתם החזר על התשלום מ-{paidAt}. כך הוא מחושב: שולם ₪{paid} · שווי {creditsUsed} הקרדיטים שנוצלו ₪{consumed} · דמי ביטול ₪{fee} · **סכום ההחזר ₪{refund}**. כיוון שביקשתם החזר, המנוי נסגר כבר עכשיו, והקרדיטים שנותרו מהתשלום הזה הוסרו. ההחזר יבוצע לכרטיס שבו שילמתם, בדרך כלל תוך כמה ימי עסקים ולא יאוחר מ-14 יום, ותישלח חשבונית זיכוי.
-  - **בלוק החזר יחסי (שנתי):** ביקשתם החזר יחסי על המנוי השנתי. {monthsStarted} חודשים כבר התחילו (₪{keep}), ולכן ההחזר הוא ₪{refund}. הגישה לתוכנית {planName} תסתיים ב-{accessEnds}, ואחרי התאריך הזה לא יתווספו קרדיטים חודשיים.
+  - **בלוק החזר (14 יום):** ביקשתם החזר על התשלום מ-{paidAt}. כך הוא מחושב: שולם ₪{paid} · {creditsUsed, plural, =0 {שווי הקרדיטים שנוצלו} one {שווי הקרדיט שנוצל} other {שווי # הקרדיטים שנוצלו}} ₪{consumed} · דמי ביטול ₪{fee} · **סכום ההחזר ₪{refund}**. כיוון שביקשתם החזר, המנוי נסגר כבר עכשיו, והקרדיטים שנותרו מהתשלום הזה הוסרו. ההחזר יבוצע לכרטיס שבו שילמתם, בדרך כלל תוך כמה ימי עסקים ולא יאוחר מ-14 יום, ותישלח חשבונית זיכוי.
+  - **בלוק החזר יחסי (שנתי):** ביקשתם החזר יחסי על המנוי השנתי. {monthsStarted, plural, one {חודש אחד כבר התחיל} two {חודשיים כבר התחילו} other {# חודשים כבר התחילו}} (₪{keep}), ולכן ההחזר הוא ₪{refund}. הגישה לתוכנית {planName} תסתיים ב-{accessEnds}, ואחרי התאריך הזה לא יתווספו קרדיטים חודשיים.
   - **בלוק זכאות מורחבת:** קיבלנו גם את הבקשה לתקופת ביטול מורחבת. נציג יחזור אליכם תוך 2 ימי עסקים, עד {slaDate}, כדי להשלים את ההחזר.
-  - **בלוק חידוש** (בלי החזר ולפני סוף התקופה): התחרטתם? עד {periodEnd} אפשר לחדש את המנוי בלחיצה, באותו מחיר. **כפתור:** חידוש המנוי ← `/app/billing`
+  - **בלוק חידוש** (בלי החזר ולפני סוף התקופה): התחרטתם? עד {periodEnd} אפשר לחדש את המנוי בעמוד החיוב, באותו מחיר. **כפתור:** חידוש המנוי ← `/app/billing`
 - **הערה:** כדאי לשמור את המייל הזה כאישור על הביטול.
 - `channelHe`: `app` "בעמוד החיוב באפליקציה" · `email` "במייל" · `phone` "בטלפון". `reference`: `C-{yyMMdd}-{4 תווים ראשונים של מזהה המנוי באותיות גדולות}`.
 
 #### `renewal_upcoming`
-- **נושא:** המנוי השנתי ב-{{BRAND_NAME}} יתחדש ב-{renewalDate}
-- **Preheader:** חיוב של ₪{amount} כולל מע״מ. אפשר לבטל עד אז בלחיצה.
+- **נושא:** המנוי השנתי ב{{BRAND_NAME}} יתחדש ב-{renewalDate}
+- **Preheader:** חיוב של ₪{amount} כולל מע״מ. אפשר לבטל עד אז אונליין בעמוד החיוב.
 - **H1:** תזכורת: חידוש שנתי
 - **גוף:**
   - שלום {firstName},
   - המנוי השנתי לתוכנית {planName} יתחדש אוטומטית ב-{renewalDate}, בחיוב של ₪{amount} כולל מע״מ בכרטיס שמסתיים ב-{last4}.
-  - (כשיש נתונים) בשנה האחרונה נוצרו בחשבון {videosCount} סרטונים, ונוצלו {creditsUsed} קרדיטים.
+  - (כשיש נתונים) בשנה האחרונה {videosCount, plural, one {נוצר בחשבון סרטון אחד} two {נוצרו בחשבון שני סרטונים} other {נוצרו בחשבון # סרטונים}}, {creditsUsed, plural, one {ונוצל קרדיט אחד} two {ונוצלו שני קרדיטים} other {ונוצלו # קרדיטים}}.
   - רוצים להמשיך? לא צריך לעשות כלום.
-  - לא רוצים לחדש? אפשר לבטל עד {renewalDate} בלחיצה, ולא תחויבו.
+  - לא רוצים לחדש? אפשר לבטל עד {renewalDate} אונליין בעמוד החיוב, ולא תחויבו.
 - **כפתור:** לעמוד החיוב · **קישור משני:** ביטול מנוי ← `/app/billing/cancel`
 
 #### `plan_change_scheduled`
@@ -1233,19 +1291,19 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **גוף:**
   - שלום {firstName},
   - קבענו את המעבר מתוכנית {currentPlanName} לתוכנית {newPlanName} ({cycleHe}). עד {effectiveDate} הכול נשאר כמו שהוא.
-  - מ-{effectiveDate} החיוב יהיה ₪{newPrice} {cycleSuffix} כולל מע״מ, ובכל חודש יתווספו {newCredits} קרדיטים. הקרדיטים שכבר ביתרה נשארים לפי התוקף שלהם.
+  - מ-{effectiveDate} החיוב יהיה ₪{newPrice} {cycleSuffix} כולל מע״מ, ובכל חודש {newCredits, plural, one {יתווסף קרדיט אחד} two {יתווספו שני קרדיטים} other {יתווספו # קרדיטים}}. הקרדיטים שכבר ביתרה נשארים לפי התוקף שלהם.
   - (כשיש השפעות) מה ישתנה: {impactsList} — אותם ניסוחים כמו בדיאלוג (חלק 03 §15.3).
   - שיניתם את דעתכם? אפשר לבטל את המעבר בעמוד החיוב עד {effectiveDate}.
 - **כפתור:** לעמוד החיוב
 
 #### `price_change_notice`
-- **נושא:** עדכון במחיר המנוי ב-{{BRAND_NAME}} מ-{effectiveDate}
+- **נושא:** עדכון במחיר המנוי ב{{BRAND_NAME}} מ-{effectiveDate}
 - **H1:** עדכון מחיר
 - **גוף:**
   - שלום {firstName},
   - (מע״מ) בעקבות שינוי שיעור המע״מ מ-{oldVat}% ל-{newVat}%, המחיר של תוכנית {planName} יהיה ₪{newPrice} {cycleSuffix} כולל מע״מ, במקום ₪{oldPrice}. השינוי יחול מהחיוב ב-{effectiveDate}. המחיר לפני מע״מ לא משתנה.
   - (הטבה, v2) תקופת ההטבה מסתיימת ב-{promoEnds}. מהחיוב ב-{effectiveDate} המחיר יהיה ₪{newPrice} {cycleSuffix} כולל מע״מ.
-  - אפשר להמשיך בלי לעשות כלום, או לבטל את המנוי בכל רגע בלחיצה, בלי עלות.
+  - אפשר להמשיך בלי לעשות כלום, או לבטל את המנוי בכל רגע אונליין בעמוד החיוב, בלי עלות.
 - **כפתור:** לעמוד החיוב
 
 #### `refund_request_received`
@@ -1268,12 +1326,12 @@ export async function sendEmail<K extends EmailKey>(i: {
   - הזיכוי מופיע בדרך כלל בפירוט החיובים תוך מחזור חיוב אחד או שניים, לפי חברת האשראי.
   - טבלה: שולם ₪{paid} · שווי הקרדיטים שנוצלו ₪{consumed} · דמי ביטול ₪{fee} · **הוחזר ₪{refund}**
   - חשבונית זיכוי {docNumber} מצורפת.
-  - (כשהוסרו קרדיטים) {creditsRevoked} קרדיטים שנותרו מהרכישה הוסרו מהיתרה.
+  - (כשהוסרו קרדיטים) {creditsRevoked, plural, one {קרדיט אחד שנותר מהרכישה הוסר מהיתרה} two {שני קרדיטים שנותרו מהרכישה הוסרו מהיתרה} other {# קרדיטים שנותרו מהרכישה הוסרו מהיתרה}}.
   - (במנוי) המנוי לתוכנית {planName} נסגר, והחשבון עבר לתוכנית החינמית. · (שנתי יחסי) הגישה לתוכנית {planName} תסתיים ב-{accessEnds}.
 - **כפתור:** לעמוד החיוב
 
 #### `refund_rejected`
-- **נושא:** עדכון על בקשת ההחזר ב-{{BRAND_NAME}}
+- **נושא:** עדכון על בקשת ההחזר ב{{BRAND_NAME}}
 - **H1:** בדקנו את בקשת ההחזר
 - **גוף:**
   - שלום {customerName},
@@ -1284,17 +1342,17 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **כפתור:** לעמוד החיוב
 
 #### `low_credits`
-- **נושא:** נשארו {balance} קרדיטים ב-{{BRAND_NAME}}
-- **Preheader:** בערך {videosLeft} סרטונים קצרים. ככה ממשיכים בלי הפסקה.
+- **נושא:** {balance, plural, one {נשאר קרדיט אחד} two {נשארו שני קרדיטים} other {נשארו # קרדיטים}} ב{{BRAND_NAME}}
+- **Preheader:** {videosLeft, plural, =0 {פחות מסרטון קצר אחד} one {בערך סרטון קצר אחד} other {בערך # סרטונים קצרים}}. עדכון על היתרה בחשבון.
 - **H1:** היתרה נמוכה
 - **גוף:**
   - שלום {firstName},
-  - ביתרה של "{workspaceName}" נשארו {balance} קרדיטים — בערך {videosLeft} סרטונים קצרים.
+  - ביתרה של "{workspaceName}" {balance, plural, one {נשאר קרדיט אחד} two {נשארו שני קרדיטים} other {נשארו # קרדיטים}} — {videosLeft, plural, =0 {פחות מסרטון קצר אחד} one {בערך סרטון קצר אחד} other {בערך # סרטונים קצרים}}.
   - (מנוי) המכסה החודשית ({monthlyCredits} קרדיטים) מתחדשת ב-{resetDate}. · (חינם) בתוכנית החינמית אין מכסה חודשית.
-  - כדי להמשיך בלי לחכות: חבילת קרדיטים מ-₪{minPackPrice}, שהקרדיטים בה לא פגים; או תוכנית {nextPlanName}, עם {nextPlanCredits} קרדיטים בחודש.
-- **כפתור:** רכישת קרדיטים ← `/app/billing?topup=pack-500`
+- **כפתור:** לעמוד החיוב ← `/app/billing`
 - **הערה:** לא רוצים לקבל את ההתראה הזו? אפשר לכבות אותה בהגדרות ההתראות.
-- `videosLeft = floor(balance / typical_video_credits)`; כשהוא 0, הקטע "— בערך {videosLeft} סרטונים קצרים" מוחלף ב-"— פחות מסרטון קצר אחד", וב-Preheader: "פחות מסרטון קצר אחד. ככה ממשיכים בלי הפסקה."
+- **הודעת שירות, לא דיוור** (§11.8 ⚖️, §25): בלי מחירים, בלי חבילה או תוכנית מוצעת ובלי כפתור רכישה, ולכן בלי "פרסומת:" ובלי קישור הסרה של ס׳ 30א; הכיבוי בהגדרות ההתראות נשאר. פרטים על חבילות ותוכניות נמצאים בעמוד החיוב.
+- `videosLeft` = `videosLeft(balance, planId)` מ-`lib/billing/credits.ts` (§2.6). המייל נשלח כש-`balance < lowThreshold(summary, planId)` (`/api/cron/reminders`, חלק 04 §23), לכל היותר פעם בשבוע.
 
 #### `client_approval_request`
 - **נושא:** סרטון לאישור: "{projectTitle}"
@@ -1302,35 +1360,36 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **H1:** יש סרטון שמחכה לאישור
 - **גוף:**
   - שלום {approverName}, (בלי שם: שלום,)
-  - התקבל סרטון לאישור מ-{agencyName}: "{projectTitle}".
+  - התקבל סרטון לאישור מאת {agencyName}: "{projectTitle}".
   - (כשיש) ההודעה שצורפה: {senderNote}
   - אפשר לצפות בסרטון, לאשר אותו או לבקש שינויים — בלי להירשם ובלי סיסמה.
 - **כפתור:** לצפייה ולאישור ← `https://{{DOMAIN}}/approve/{token}`
-- **הערה:** הקישור בתוקף עד {expiresAt}.
+- **הערה:** הקישור בתוקף עד {expiresAt}. (בקישור ללא תוקף — בלי השורה הזו.)
+- **מקור המשתנים:** `POST /api/share` עם `kind: "client_approval"` ו-`approverEmail` (חלק 04 §20.5) שולח את המייל מתוך הבקשה עצמה, כי הטוקן הגולמי לא נשמר: `{approverName}` ← `ShareCreateBody.approverName` (`share_links.approver_name`), `{senderNote}` ← `senderNote` (`share_links.sender_note`), `{agencyName}` ← `resolveShareBranding(link).senderName` (שם הסוכנות בסביבת לקוח, אחרת שם העסק; נקבע בזמן השליחה, §12.1), `{expiresAt}` ← `share_links.expires_at`. הנמען = `approverEmail`.
 
 #### `approval_received`
 - **נושא:** `approved` — הסרטון "{projectTitle}" אושר · `changes_requested` — התקבלה בקשת שינויים לסרטון "{projectTitle}"
 - **H1:** הסרטון אושר · יש בקשת שינויים
 - **גוף:**
   - שלום {firstName},
-  - `approved`: התקבל אישור לסרטון "{projectTitle}" מ-{approverName}, ב-{decidedAt}.
-  - `changes_requested`: התקבלה בקשת שינויים מ-{approverName}, ב-{decidedAt}. אפשר לערוך את הסצנות, להרכיב מחדש ולשלוח קישור אישור חדש.
+  - `approved`: התקבל אישור לסרטון "{projectTitle}" מאת {approverName}, ב-{decidedAt}.
+  - `changes_requested`: התקבלה בקשת שינויים מאת {approverName}, ב-{decidedAt}. אפשר לערוך את הסצנות, להרכיב מחדש ולשלוח קישור אישור חדש.
   - (כשיש) ההערה שצורפה: {comment}
 - **כפתור:** לפרויקט ← `/app/projects/{projectId}` · ב-`changes_requested`: לעורך ← `/app/projects/{projectId}/editor`
 
 #### `team_invite`
-- **נושא:** הזמנה להצטרף ל-"{workspaceName}" ב-{{BRAND_NAME}}
-- **Preheader:** הזמנה מ-{inviterName} לעבוד יחד על הסרטונים של "{workspaceName}".
+- **נושא:** הזמנה להצטרף ל"{workspaceName}" ב{{BRAND_NAME}}
+- **Preheader:** הזמנה מאת {inviterName} לעבוד יחד על הסרטונים של "{workspaceName}".
 - **H1:** הזמנה להצטרף לצוות
 - **גוף:**
   - שלום,
-  - התקבלה הזמנה מ-{inviterName} להצטרף לסביבת העבודה "{workspaceName}" ב-{{BRAND_NAME}}, בתפקיד {roleHe}.
+  - התקבלה הזמנה מאת {inviterName} להצטרף לסביבת העבודה "{workspaceName}" ב{{BRAND_NAME}}, בתפקיד {roleHe}.
   - `admin`: מנהלים יכולים לנהל את הצוות, את הקרדיטים ואת החיובים. · `editor`: עורכים יכולים ליצור ולערוך סרטונים. · `viewer`: צופים יכולים לצפות בסרטונים ולהוריד אותם.
 - **כפתור:** הצטרפות ← `https://{{DOMAIN}}/login?invite={token}&email={urlencodedEmail}&next=/app` (`email` רק ממלא מראש את השדה; `before_send` של PostHog מסיר `invite` ו-`email`; אחרי ההתחברות `/auth/callback` קורא ל-`POST /api/invites/accept`, חלק 04 §1.3)
 - **הערה:** ההזמנה בתוקף עד {expiresAt}. לא מכירים את {inviterName}? אפשר להתעלם מהמייל.
 
 #### `data_export_ready`
-- **נושא:** העותק של המידע מ-{{BRAND_NAME}} מוכן
+- **נושא:** העותק של המידע מ{{BRAND_NAME}} מוכן
 - **Preheader:** הקובץ זמין להורדה עד {expiresAt}.
 - **H1:** העותק מוכן להורדה
 - **גוף:**
@@ -1341,7 +1400,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **הערה:** הקובץ יימחק אוטומטית ב-{expiresAt}. לא ביקשתם עותק? כתבו לנו מיד ל-privacy@{{DOMAIN}}.
 
 #### `account_deleted`
-- **נושא:** החשבון ב-{{BRAND_NAME}} נמחק
+- **נושא:** החשבון ב{{BRAND_NAME}} נמחק
 - **H1:** החשבון נמחק
 - **גוף:**
   - שלום,
@@ -1353,7 +1412,7 @@ export async function sendEmail<K extends EmailKey>(i: {
   - תודה שהייתם איתנו.
 
 #### `terms_update`
-- **נושא:** עדכון ל{docTitle} של {{BRAND_NAME}}
+- **נושא:** עדכון ל"{docTitle}" של {{BRAND_NAME}}
 - **H1:** עדכנו את {docTitle}
 - **גוף:**
   - שלום {firstName},
@@ -1365,11 +1424,11 @@ export async function sendEmail<K extends EmailKey>(i: {
 - `docTitle`: "תנאי השימוש" · "מדיניות הפרטיות" · "מדיניות הביטול וההחזרים" · "מדיניות השימוש ההוגן ב-AI".
 
 #### `newsletter_confirm`
-- **נושא:** אישור ההרשמה לעדכונים מ-{{BRAND_NAME}}
+- **נושא:** אישור ההרשמה לעדכונים מ{{BRAND_NAME}}
 - **Preheader:** עוד לחיצה אחת, ומתחילים לשלוח את 5 ההוקים לשבוע.
 - **H1:** עוד צעד אחד
 - **גוף:**
-  - קיבלנו בקשה לרשום את {email} ל"5 הוקים לשבוע" ולעדכונים מ-{{BRAND_NAME}}.
+  - קיבלנו בקשה לרשום את {email} ל"5 הוקים לשבוע" ולעדכונים מ{{BRAND_NAME}}.
   - כדי שנתחיל לשלוח, צריך לאשר את ההרשמה.
 - **כפתור:** אישור ההרשמה ← `https://{{DOMAIN}}/api/newsletter/confirm?token={token}`
 - **הערה:** הקישור בתוקף 7 ימים. לא נרשמתם? אפשר להתעלם מהמייל — בלי אישור לא נשלח שום דבר.
@@ -1399,7 +1458,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 | ברוכים הבאים | ברוכה הבאה | ברוך הבא |
 | טוב שהגעתם | טוב שהגעת | טוב שהגעת |
 | שימו לב | שימי לב | שים לב |
-| לא חויבתם / ולא תחויבו | לא חויבת / ולא תחויבי | לא חויבת / ולא תחויב |
+| ולא תחויבו | ולא תחויבי | ולא תחויב |
 | ביקשתם / לבקשתכם | ביקשת / לבקשתך | ביקשת / לבקשתך |
 | שילמתם | שילמת | שילמת |
 | תנצלו | תנצלי | תנצל |
@@ -1423,7 +1482,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 - [ ] שליחה כפולה עם אותו `idempotencyKey` מחזירה `skipped_duplicate` ולא יוצרת שורה שנייה ב-`email_messages`.
 - [ ] אין ב-`messages/he.json` (`emails.*`, ‏`billing.*`) סימן ₪ צמוד למשתנה או למספר (בדיקת `lint:copy`), וה-snapshot של `payment_receipt` מכיל "₪119" ולא "₪₪".
 - [ ] כתובת עם `complaint` מקבלת `subscription_canceled` אבל לא `low_credits` ולא דיוור.
-- [ ] משתמש עם `ui_gender_form = 'female'` מקבל "לא חויבת" במקום "לא חויבתם"; נמען חיצוני תמיד מקבל רבים.
+- [ ] משתמש עם `ui_gender_form = 'female'` מקבל "ביקשת" במקום "ביקשתם"; נמען חיצוני תמיד מקבל רבים.
 - [ ] בדיקה ידנית ב-Gmail, Apple Mail ו-Outlook מתועדת בצילומים, בלי שבירת כיוון במספרים, במיילים וביחסי מסך.
 
 ---
@@ -1448,11 +1507,11 @@ export async function sendEmail<K extends EmailKey>(i: {
 
 | שם התבנית | גוף | משתנים |
 |---|---|---|
-| `verify_code_he` | קוד האימות שלכם ל-{{BRAND_NAME}}: {{1}}. הקוד תקף ל-10 דקות. לא מוסרים אותו לאף אחד. | קוד |
+| `verify_code_he` | קוד האימות שלכם ל{{BRAND_NAME}}: {{1}}. הקוד תקף ל-10 דקות. לא מוסרים אותו לאף אחד. | קוד |
 | `video_ready_he` | הסרטון "{{1}}" מוכן לצפייה ולהורדה: {{2}} | שם הפרויקט, קישור |
 | `job_failed_he` | היצירה של "{{1}}" לא הושלמה, וכל הקרדיטים חזרו ליתרה. לניסיון חוזר: {{2}} | שם, קישור |
 | `approval_received_he` | התקבלה תשובה מהלקוח על הסרטון "{{1}}": {{2}}. לפרטים: {{3}} | שם, "אושר" / "התבקשו שינויים", קישור |
-| `payment_failed_he` | החיוב על המנוי ב-{{BRAND_NAME}} לא עבר. החשבון ממשיך לעבוד, וננסה שוב ב-{{1}}. לעדכון אמצעי תשלום: {{2}} | תאריך, קישור |
+| `payment_failed_he` | החיוב על המנוי ב{{BRAND_NAME}} לא עבר. החשבון ממשיך לעבוד, וננסה שוב ב-{{1}}. לעדכון אמצעי תשלום: {{2}} | תאריך, קישור |
 
 - תשובה אוטומטית ל"הסרה" או "STOP" (בתוך חלון 24 השעות): **"הוסרתם מהתראות הוואטסאפ של {{BRAND_NAME}}. אפשר להפעיל אותן שוב בהגדרות."**
 - **שעות שקטות:** לא שולחים בין 21:00 ל-08:00, בשבת, בחגים ובימי שקט — ההודעה נדחית לחלון המותר הבא (התראות שירות אינן דחופות; המייל יוצא כרגיל).
@@ -1498,10 +1557,10 @@ export async function sendEmail<K extends EmailKey>(i: {
 | 8 | `hook_variations_requested` | `hook_id: string\|null` (‏`null` = הוקים חדשים בלי הוק מקור) | c | נספח F |
 | 9 | `hook_shared` | `hook_id`, `channel: "whatsapp"\|"link"` | c | 02 |
 | 10 | `hook_favorited` | `hook_id`, `on: boolean` | c | 03 |
-| 11 | `hooks_searched` | `q_length: int`, `results?: int`, `location: "hub"\|"landing_teaser"\|"niche_page"\|"app_hooks"` | c | 02 |
+| 11 | `hooks_searched` | `q_length: int`, `results?: int`, `location: "hub"\|"landing_teaser"\|"niche_page"\|"hook_niche_page"\|"app_hooks"` | c | 02 |
 | 12 | `hooks_filtered` | `facet: "niche"\|"type"\|"platform"\|"goal"\|"gender"\|"season"\|"featured"\|"has_video"\|"sort"`, `value: string` (ערך enum או slug בלבד) | c | 02 |
 | 13 | `savings_calculated` | `videos: int`, `price_bucket: "lt300"\|"300_700"\|"700_1500"\|"gt1500"`, `quality: "draft"\|"standard"` | c | 02 |
-| 14 | `faq_expanded` | `question_id`, `location: "landing"\|"faq_page"\|"pricing_page"\|"niche_page"` | c | 02 |
+| 14 | `faq_expanded` | `question_id`, `location: "landing"\|"faq_page"\|"pricing_page"\|"niche_page"\|"hook_niche_page"` | c | 02 |
 | 15 | `example_played` | `example_id`, `location: "landing_gallery"\|"examples"\|"niche_page"\|"template_page"` | c | 02 |
 | 16 | `contact_submitted` | `topic` (ה-enum של `ContactBody.topic`) | c | 02 |
 | 17 | `pricing_viewed` | `location: "landing"\|"pricing_page"\|"app"` | c | נספח F / 02 |
@@ -1570,8 +1629,8 @@ export const CtaLocation = z.enum(["header", "mobile_menu", "hero", "how_it_work
   "pricing_pack_150", "pricing_pack_500", "pricing_pack_1500",              // credit count, never "pricing_pack_pack-150"
   "blog_cta", "about", "not_found", "share_page", "dashboard_quickstart", "dashboard_fast_path", "dashboard_season", "app_templates"]);
 export const CheckoutKind = z.enum(["subscription", "topup", "update_card", "plan_change"]);
-// WizardStep, JobStage, ErrorCode, AspectRatio, BillingCycle, CancelReason, NotificationKind: imported from
-// lib/supabase/enums.ts and lib/errors.ts (part 04) — never re-declared here.
+// Imported, never re-declared here (part 04): WizardStep, AspectRatio — lib/api/contracts/common.ts; CancelReason —
+// lib/api/contracts/billing.ts; JobStage, BillingCycle, NotificationKind — ENUMS in lib/supabase/enums.ts; ErrorCode — lib/errors.ts.
 
 export const EVENTS = {
   signup_started: z.strictObject({ method: z.enum(["google", "magic_link", "phone"]).optional(), source: SignupSource.optional() }),
@@ -1663,23 +1722,29 @@ export async function trackServer<E extends EventName>(userId: string, event: E,
 ### 15.3 כותרות ו-CSP
 
 - **CSP עם nonce** לנתיבים דינמיים (`/app`, `/admin`, `/login`, `/auth/*`, `/v/*`, `/approve/*`, `/unsubscribe`): `proxy.ts` מייצר nonce לכל בקשה ומעביר אותו בכותרת `x-nonce` (הקוד והתנאים: חלק 04 §17.2). גם בענף הזה נכלל ה-hash של `THEME_SCRIPT_SOURCE` (חלק 01 §6.2), כי ה-root layout המשותף לא מקבל nonce.
-- **CSP סטטי** לדפי השיווק (ISR): nonce היה הופך אותם לדינמיים, ולכן הם מקבלים את ה-CSP מ-`next.config.ts`, עם ה-`sha256` של `THEME_SCRIPT_SOURCE`. סקריפטי JSON-LD הם בלוקי נתונים שהדפדפן לא מריץ, ולכן לא צריכים היתר. **[M0-verify] סקריפטי ה-inline ש-Next מזריק לדפים סטטיים** (נתוני ה-RSC, `self.__next_f.push(…)`) משתנים מדף לדף ולא ניתנים ל-hash מראש. בספייק M0 מאמתים אחת משתי דרכים, ובודקים אותה ב-e2e שמאזין ל-`securitypolicyviolation` בדף הבית ובדף נישה: (א) `experimental.sri` של Next 16 יחד עם ה-hash; או (ב) `'unsafe-inline'` בענף הסטטי בלבד, **בלי** hash (בדפדפנים מודרניים hash או nonce מבטלים את `'unsafe-inline'`), כשבדפים האלה אין קלט משתמש שמוצג בלי קידוד. ההחלטה נרשמת ב-`DECISIONS.md`, ו-`buildCsp` מקבל אותה כפרמטר `staticMode`.
+- **CSP סטטי** לדפי השיווק (ISR): nonce היה הופך אותם לדינמיים, ולכן הם מקבלים את ה-CSP מ-`next.config.ts`, עם ה-`sha256` של `THEME_SCRIPT_SOURCE`. סקריפטי JSON-LD הם בלוקי נתונים שהדפדפן לא מריץ, ולכן לא צריכים היתר. **[M0-verify] סקריפטי ה-inline ש-Next מזריק לדפים סטטיים** (נתוני ה-RSC, `self.__next_f.push(…)`) משתנים מדף לדף ולא ניתנים ל-hash מראש. בספייק M0 (ספייק 16, "M0 — יסודות וניסויי אימות") מאמתים אחת משתי דרכים, ובודקים אותה ב-e2e שמאזין ל-`securitypolicyviolation` בדף הבית ובדף נישה: (א) `experimental.sri` של Next 16 יחד עם ה-hash — ברירת המחדל; או (ב) רק אם (א) נכשלת: הכותרת **האוכפת** בדפים הסטטיים מקבלת `'unsafe-inline'` בלי hash (בדפדפנים מודרניים hash או nonce מבטלים את `'unsafe-inline'`), ולצידה נשלחת אותה מדיניות **עם** ה-hash ככותרת `Content-Security-Policy-Report-Only`, שמדווחת ל-Sentry; בדפים האלה אין קלט משתמש שמוצג בלי קידוד. כך ה-hash של `THEME_SCRIPT_SOURCE` נמצא בשני הענפים בכל מצב (חלק 01 §6.2, D-214). ההחלטה נרשמת ב-`DECISIONS.md`, ו-`staticCspHeaders` מקבלת אותה כפרמטר `mode` (`"sri_hash"` | `"unsafe_inline"`).
 
 ```ts
 // lib/security/csp.ts
-export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; staticMode?: "sri_hash" | "unsafe_inline" }) {
+// The THEME_SCRIPT_SOURCE hash is part of BOTH branches (part 01 §6.2, D-214): the nonce branch (proxy.ts) and the static
+// branch (next.config.ts). `relaxInline` exists only for the ENFORCED copy of M0 fallback (b); see staticCspHeaders below.
+// Supabase origin = the host of NEXT_PUBLIC_SUPABASE_URL (the project host, or the custom domain auth.{{DOMAIN}}, part 04 §1.2),
+// never a *.supabase.co wildcard; next.config.ts images.remotePatterns uses the same host.
+const supabaseHost = () => new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).host;
+export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; relaxInline?: boolean }) {
+  const sb = supabaseHost();
   const script = o.nonce
     ? `'self' 'nonce-${o.nonce}' '${o.themeHash}' 'strict-dynamic'`          // theme script has no nonce (shared root layout) → hash
-    : o.staticMode === "unsafe_inline" ? `'self' 'unsafe-inline'`             // M0 decision (b): no hash here, it would disable unsafe-inline
-    : `'self' '${o.themeHash}'`;                                              // M0 decision (a): experimental.sri covers Next's own scripts
+    : o.relaxInline ? `'self' 'unsafe-inline'`                                // fallback (b), enforced copy only: a hash would disable it
+    : `'self' '${o.themeHash}'`;                                              // static branch: hash (+ experimental.sri, M0 decision (a))
   return [
     `default-src 'self'`,
     `script-src ${script} https://eu-assets.i.posthog.com`,
     `style-src 'self' 'unsafe-inline'`,                                           // Radix/Motion inline styles
-    `img-src 'self' data: blob: https://*.supabase.co`,
-    `media-src 'self' blob: https://*.supabase.co`,
+    `img-src 'self' data: blob: https://${sb}`,
+    `media-src 'self' blob: https://${sb}`,
     `font-src 'self' data:`,                                                      // all fonts self-hosted, incl. caption fonts in the Player
-    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://eu.i.posthog.com https://eu-assets.i.posthog.com`,
+    `connect-src 'self' https://${sb} wss://${sb} https://eu.i.posthog.com https://eu-assets.i.posthog.com`,
     `frame-src 'none'`, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`,
     `worker-src 'self' blob:`,
     o.env === "production" ? `upgrade-insecure-requests` : ``,
@@ -1688,8 +1753,17 @@ export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; st
 }
 // every response that carries a CSP also gets: Reporting-Endpoints: csp="<sentryCspReportUrl()>"
 // sentryCspReportUrl() is derived from NEXT_PUBLIC_SENTRY_DSN: https://{host}/api/{projectId}/security/?sentry_key={publicKey}
+
+// [M0-verify, spike 16] static (ISR) marketing routes — used by next.config.ts headers(); mode = the decision in DECISIONS.md
+export function staticCspHeaders(themeHash: string, env: AppEnv, mode: "sri_hash" | "unsafe_inline" = "sri_hash") {
+  return mode === "sri_hash"
+    ? [{ key: "Content-Security-Policy", value: buildCsp({ themeHash, env }) }]
+    : [{ key: "Content-Security-Policy", value: buildCsp({ themeHash, env, relaxInline: true }) },
+       { key: "Content-Security-Policy-Report-Only", value: buildCsp({ themeHash, env }) }];   // hash kept; violations → Sentry
+}
 ```
 
+- **מקור Supabase:** `buildCsp` גוזר את `https://<host>` ואת `wss://<host>` מ-`NEXT_PUBLIC_SUPABASE_URL` (ל-`img-src`, `media-src` ו-`connect-src`), ו-`images.remotePatterns` ב-`next.config.ts` משתמש באותו host. כך דומיין מותאם (`auth.{{DOMAIN}}`, חלק 04 §1.2) עובד בלי שינוי, ואין wildcard של `*.supabase.co`.
 - Sentry נשלח דרך `tunnelRoute: "/monitoring"` (מאותו origin), ולכן לא נדרש ב-`connect-src`. עמוד התשלום של Grow נפתח בהפניה מלאה, ולא ב-iframe — `frame-src 'none'` נשמר.
 - בשבוע הראשון בפרודקשן: `Content-Security-Policy-Report-Only` עם דיווח ל-Sentry; אחרי שבוע בלי הפרות לגיטימיות — אכיפה (M7).
 - **כותרות נוספות** (כל התשובות): `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (פרודקשן בלבד) · `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()` (חריג אחד ב-v2: בנתיב זרימת ההסכמה לדמות ולקול — `microphone=(self), camera=(self)`, §11.10) · `Cross-Origin-Opener-Policy: same-origin` · `X-Frame-Options: DENY`.
@@ -1699,7 +1773,7 @@ export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; st
 
 - הרשאות בשרת תמיד (עטיפת `route()` + RLS כשכבה שנייה); הסתרה בממשק היא נוחות (חלק 03 §1.2).
 - **MFA חובה למנהלי פלטפורמה:** `/admin` דורש `is_platform_admin` **וגם** session ברמת `aal2` (TOTP של Supabase Auth). ב-SQL זה נאכף ב-`is_platform_admin()`, ו-`proxy.ts` קורא ל-`platform_admin_status()` (‏`'none' | 'needs_mfa' | 'ok'`; חלק 04 §9.2, §17.2): `none` ← 404, ‏`needs_mfa` ← הפניה ל-`/admin/mfa`, ‏`ok` ← ממשיכים. TOTP מופעל בפרויקט (`[auth.mfa.totp] enroll_enabled = true, verify_enabled = true`, חלק 04 §1.2, §1.4).
-- **`/admin/mfa`** ★ (נגיש ב-`aal1`, מופיע ברשימת נתיבי האדמין של חלק 03 §22.0): בלי factor רשום — `supabase.auth.mfa.enroll({ factorType: "totp" })` ← QR; עם factor — `mfa.challenge` ← `mfa.verify`; אחרי הצלחה רענון ה-session והפניה ל-`next` או ל-`/admin`. נוסח: כותרת **"אימות דו־שלבי למנהלים"** · בהרשמה ראשונה: **"כדי להיכנס לפאנל הניהול צריך להפעיל אימות דו־שלבי. סרקו את הקוד באפליקציית אימות (כמו Google Authenticator או 1Password) והקלידו את הקוד בן 6 הספרות."** · כשכבר יש factor: **"הקלידו את הקוד בן 6 הספרות מאפליקציית האימות."** · שדה **"קוד מהאפליקציה"** · כפתור **"הפעלה"** (בהרשמה) או **"אימות"** · שגיאה: **"הקוד לא נכון. כדאי לוודא שהשעה בטלפון מדויקת."**
+- **`/admin/mfa`** ★ (נגיש ב-`aal1`, מופיע ברשימת נתיבי האדמין של חלק 03 §22.0): בלי factor רשום — `supabase.auth.mfa.enroll({ factorType: "totp" })` ← QR; עם factor — `mfa.challenge` ← `mfa.verify`; אחרי הצלחה רענון ה-session והפניה ל-`next` או ל-`/admin`. נוסח: כותרת **"אימות דו-שלבי למנהלים"** · בהרשמה ראשונה: **"כדי להיכנס לפאנל הניהול צריך להפעיל אימות דו-שלבי. סרקו את הקוד באפליקציית אימות (כמו Google Authenticator או 1Password) והקלידו את הקוד בן 6 הספרות."** · כשכבר יש factor: **"הקלידו את הקוד בן 6 הספרות מאפליקציית האימות."** · שדה **"קוד מהאפליקציה"** · כפתור **"הפעלה"** (בהרשמה) או **"אימות"** · שגיאה: **"הקוד לא נכון. כדאי לוודא שהשעה בטלפון מדויקת."**
 - כל חשבונות הספקים (GitHub, Vercel, Supabase, OpenRouter, Grow, Morning, Resend, PostHog, Sentry, Upstash, AWS לגיבויים) — עם 2FA, הרשאות מינימליות, ורשימת בעלי גישה ב-`docs/security/access.md`.
 
 ### 15.5 סודות והצפנה
@@ -1715,7 +1789,7 @@ export function deriveKey(info: "email-tokens" | "mock-gateway" | "share-tokens"
 export function hmacHex(secret: string, data: string): string;
 export function hmacSign(secret: string, data: string): string;                  // = hmacHex; callers pass secrets[0]
 export function hmacVerifyAny(secrets: string[], data: string, mac: string): boolean;   // timingSafeEqual against every secret
-export function splitSecrets(v: string): string[];             // "new,old" → ["new","old"] (OPENROUTER_CALLBACK_TOKEN_SECRET, GROW_WEBHOOK_SECRET)
+export function secretList(v: string): string[];               // "new,old" → ["new","old"] (OPENROUTER_CALLBACK_TOKEN_SECRET, GROW_WEBHOOK_SECRET)
 export function safeEqualHex(a: string, b: string): boolean;   // crypto.timingSafeEqual on equal-length buffers
 ```
 
@@ -1781,10 +1855,11 @@ export async function safeFetch(rawUrl: string, o: { accept: "html" | "image"; m
 | Supabase | גיבוי יומי (כלול ב-Pro) | 7 ימים | — |
 | Supabase PITR | שחזור לנקודת זמן (תוספת בתשלום, מופעלת ב-M7 לפני לקוחות משלמים) | 7 ימים | RPO ≤ 5 דקות |
 | גיבוי לוגי ★ | GitHub Action `backup.yml` (ראשון 03:00 שעון ישראל; ב-cron של GitHub, שעובד ב-UTC: `0 0 * * 0`): `pg_dump -Fc` עם תפקיד הקריאה בלבד `backup_reader` (חלק 04 §15b; מחרוזת החיבור בסוד `BACKUP_DB_URL`) ← הצפנה ב-`age` ← S3 ב-`eu-central-1` עם Object Lock | שבועי, 30 יום; הגיבוי האחרון בכל חודש — 12 חודשים | הגנה מטעות אנוש ומהשבתת חשבון |
-| קבצים ★ | **גיבויי Supabase לא כוללים את Storage.** `backup-storage.yml`: סנכרון `invoices` מדי יום (נשמר 7 שנים), ו-`brand-assets`, `uploads`, `renders` מדי שבוע ל-S3 עם גרסאות | `invoices` — 7 שנים; השאר — גרסאות נשמרות 30 יום | |
+| קבצים ★ | **גיבויי Supabase לא כוללים את Storage.** `backup-storage.yml`: סנכרון `invoices` מדי יום (נשמר 7 שנים), ו-`brand-assets`, `uploads`, `renders` מדי שבוע ל-S3 עם גרסאות (`aws s3 sync --delete`; כלל lifecycle ‏`NoncurrentVersionExpiration` של 30 יום) | `invoices` — 7 שנים; השאר — גרסה שנמחקה או הוחלפה נשמרת 30 יום, כלומר קובץ שנמחק בשירות נעלם מהגיבוי לכל המאוחר 37 ימים אחרי המחיקה (הערך שמופיע ב-§11.5 ובמדיניות הפרטיות, חלק 02 §10.3) | |
 | Redis (Upstash) | לא מקור אמת (מגבלות קצב ומונה תקציב שמסונכרן מה-DB) | ללא גיבוי | |
 
 - אם הפרויקט לא מאפשר להעניק `BYPASSRLS` ל-`backup_reader` [M0-verify], ‏`backup.yml` משתמש במחרוזת החיבור של `postgres` שבסוד `SUPABASE_DB_URL_PRODUCTION`, וההחלטה נרשמת ב-`DECISIONS.md` (חלק 04 §15b).
+- **הגבלות רשת למסד הפרודקשן (Network Restrictions של Supabase): כבויות בהשקה.** `backup.yml` ו-`migrate-production` (ב-`release.yml`) רצים על runners של GitHub, שאין להם IP יציא קבוע, והגבלה לפי IP הייתה חוסמת אותם. בקרות מפצות: אכיפת SSL פעילה; סיסמת `postgres` חזקה, שמוחלפת כל רבעון ואחרי כל שינוי בצוות; `backup_reader` בהרשאות מינימליות; מחרוזות החיבור רק בסודות GitHub; אין פרטי חיבור ישירים ל-5432 במחשבי מפתחים (`supabase db` דרך התחברות ה-CLI). הפעלת ההגבלה דורשת קודם runner עם IP יציא קבוע (self-hosted או larger runner) ברשימת ההיתר. ההחלטה נרשמת ב-`DECISIONS.md`, והיא פריט פתוח ב-§25.
 - סודות הגיבוי (GitHub בלבד) ★: `BACKUP_DB_URL`, `BACKUP_S3_BUCKET`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION` (`eu-central-1`), `BACKUP_AGE_RECIPIENT` (המפתח הפרטי לפענוח נשמר אצל המייסד, מחוץ לכל מערכת).
 - **תרגיל שחזור רבעוני:** שחזור הגיבוי האחרון לפרויקט Supabase זמני (או מקומי), `pnpm db:test`, `credit_invariant_violations()` = 0, השוואת ספירות שורות; תיעוד ב-`docs/runbooks/restore-drill-{yyyy-mm}.md`. יעד RTO: 4 שעות. runbook R9.
 
@@ -1945,7 +2020,9 @@ export const log = {
 
 | מודול | מקרים |
 |---|---|
-| `lib/billing/vat.ts`, `money.ts` | טבלת 1.4; property-based (`fast-check`) — `net + vat = gross`; שיעור עתידי לפי תאריך |
+| `lib/billing/vat.ts`, `money.ts` | טבלת 1.4; property-based (`fast-check`) — `net + vat = gross`; שיעור עתידי לפי תאריך; כלל השמות של 1.3 כלל 1 (מאפיין `Agorot` מסתיים ב-`Ag`, מאפיין `…Ils` אינו `Agorot`; בדיקת טיפוסים עם `expectTypeOf`) |
+| גבולות הכסף (`money.ts`, `grow.ts`, `refunds.ts`, `proration.ts`) | החזר של ₪98.17 ← `provider.refund` מקבל `amountAg: 9817` ← בקשת Grow עם `refundSum: "98.17"`; אירוע קופה עם `amountAg: 28900` מול סשן עם `amount_ils = 289.00` ← לא `amount_mismatch`; `toApiRefundQuote(q).refundIls === 98.17`; `quoteToDb(q).charge_now_ils` הוא מחרוזת עשרונית (`"350.50"`) |
+| `lib/billing/credits.ts` | עם ה-seed: חינם ← `perVideoCredits = 30`, `videosLeft(70) = 2`, `lowThreshold = 30`; בסיס (מכסה 400) ← `lowThreshold = 60`; סוכנות (3,300) ← 495; `planAllowance = null` לא מחלק ולא נשבר |
 | `lib/billing/periods.ts` | 31 בחודש, שנה מעוברת, מעבר שעון (2026-10-25, 2027-03-26), עוגן בשעה 23:30 |
 | `lib/billing/proration.ts` | טבלת 5.2; חסימה ב-`past_due`; סף ₪5 |
 | `lib/billing/refunds.ts` | טבלת 10.5; 14 יום לפי `confirmation_sent_at`; תשלום שכבר הוחזר חלקית |
@@ -2001,7 +2078,7 @@ export const log = {
 3. `business`: **"שם העסק"**, **"אין לי אתר"**, תיאור קצר ← **"המשך"**. ‏`niche` (ממולא: נדל״ן) ← **"המשך"**. ‏`goal`: **"רילס עם הוק"**, 30 שניות, 9:16 בלבד ← **"המשך"**. ‏`hook`: ההוק מסומן ← **"המשך"**. (המשתמש חדש ובתוכנית החינמית: טיוטה, פורמט אחד, עד 30 שניות ו-70 קרדיטי ניסיון — §2.5. מסלול בתשלום עם שלושה פורמטים נבדק ב-`paid-generation.spec.ts`.)
 4. `script`: תסריט בזרם (fixture מנספח D) — הטקסט מכיל את ההוק; `MissingFactsPanel` דורש למלא **{מחיר}** ← מילוי ← **"המשך"**.
 5. `style` (טיוטה, משולב, פופ) ← `voice` ← `music` (ספרייה) ← `preview`: נגן האנימטיק גלוי; `CostBadge` שווה בדיוק לתשובת `/estimate` (50 קרדיטים, כמו `SAMPLE_PRESETS.draft30`).
-6. **"צרו את הסרטון · {n} קרדיטים"** ← `ConfirmGenerateDialog` ← אישור ← עמוד ההתקדמות: `StageList` מתקדם; תוך 3 דקות — **"מוכן"**.
+6. **"צרו את הסרטון · {n, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}"** (כאן: "צרו את הסרטון · 50 קרדיטים") ← `ConfirmGenerateDialog` ← אישור ← עמוד ההתקדמות: `StageList` מתקדם; תוך 3 דקות — **"מוכן"**.
 7. היתרה ירדה בדיוק בסכום שנלכד (`credits_captured`); מייל `video_ready` עם הנושא הנכון ב-Mailpit.
 8. עמוד הפרויקט: הורדת MP4 של 9:16 (`content-type: video/mp4`; לפי `@remotion/media-parser` המשך בין 27 ל-36 שניות — היעד ועוד כרטיס הסיום, בחלון −10%/+20% של נספח F §8.1), סימן מים בפינה, SRT עם טקסט עברי וחותמות זמן, VTT.
 9. בכל שלב: axe בלי הפרות `serious`/`critical`, ו-`<html dir="rtl">`. בדיקת כיוון: בפוטר האשף, ה-x של **"הקודם"** גדול מזה של **"המשך"** (התחלה = ימין).
@@ -2068,13 +2145,14 @@ export const log = {
 | סביבה | Vercel | Supabase | תשלום / חשבוניות | OpenRouter | תזמור / רינדור | מייל | הגנה |
 |---|---|---|---|---|---|---|---|
 | `local` | `pnpm dev` | `supabase start` | `mock` / `mock` | שרת mock מקומי, או מפתח dev עם מגבלה של $5 ליום | `inline` / `local` | `smtp` ← Mailpit | — |
-| `preview` | פריסת Preview לכל PR | פרויקט staging | `mock` / `mock` | מפתח preview (מגבלה $20 ליום) | `vercel-workflow` / `vercel-sandbox` | Resend, רק לכתובות ב-★ `EMAIL_ALLOWLIST` | Vercel Authentication |
-| `staging` | סביבה מותאמת `staging` ב-`staging.{{DOMAIN}}` | פרויקט staging | Grow sandbox / Morning sandbox | מפתח staging | כמו פרודקשן | Resend, עם allowlist | Vercel Authentication |
+| `preview` | פריסת Preview לכל PR | פרויקט staging | `mock` / `mock` | מפתח preview (מגבלה $20 ליום) | `vercel-workflow` / `vercel-sandbox` | Resend, רק לכתובות ב-★ `EMAIL_ALLOWLIST` | Vercel Authentication + Protection Bypass for Automation |
+| `staging` | סביבה מותאמת `staging` ב-`staging.{{DOMAIN}}` | פרויקט staging | Grow sandbox / Morning sandbox | מפתח staging | כמו פרודקשן | Resend, עם allowlist | Vercel Authentication + Protection Bypass for Automation |
 | `production` | Production ב-`{{DOMAIN}}` | פרויקט production | `grow` / `morning` | מפתח פרודקשן | `vercel-workflow` / `vercel-sandbox` | Resend | ציבורי |
 
 - `APP_ENV` ★ (`local` | `test` | `preview` | `staging` | `production`) קובע התנהגויות: חסימת `mock`, הצגת `/dev/*`, `EMAIL_ALLOWLIST`, דגימת Sentry, HSTS.
 - **`EMAIL_ALLOWLIST`** (רשימת סיומות וכתובות, למשל `@{{DOMAIN}},qa.inbox@gmail.com`): מחוץ לפרודקשן, מייל לכתובת שלא ברשימה לא נשלח, ונרשם `skipped_allowlist` — כך preview לא ישלח בטעות מייל ללקוח אמיתי.
 - סביבת staging משמשת גם לבדיקות עומס, לבדיקות sandbox של תשלומים ולתרגיל השחזור.
+- **webhooks ו-cron מאחורי ההגנה:** כש-`APP_ENV` הוא `preview` או `staging`, כל כתובת callback שאנחנו נותנים לספק מקבלת `x-vercel-protection-bypass=${VERCEL_AUTOMATION_BYPASS_SECRET}`: `callbackUrlFor` של OpenRouter (ב-staging מחזיר כתובת; ב-preview עדיין `null`, וה-sweeper עושה polling), `notifyUrl` של Grow (§8.2), וכתובות ה-webhook של Resend ו-Morning שנרשמות ל-staging. בפרודקשן לעולם לא: `lib/env.ts` מתעלם מהמשתנה כש-`APP_ENV=production` (`callbackBypassParam()` מחזיר אז מחרוזת ריקה). Vercel Cron רץ רק בפריסות פרודקשן, ולכן ב-staging ה-crons מופעלים מ-`staging-crons.yml` (§19.3) עם `CRON_SECRET_STAGING` וכותרת ה-bypass; `smoke-staging` קורא בעצמו ל-`/api/cron/billing-renewals` אם רכישת ה-sandbox לא הוחלה תוך 60 שניות. [M0-verify ספייק 12: Vercel Cron רק בפרודקשן; POST של Grow, OpenRouter ו-Resend עובר עם פרמטר ה-bypass]
 
 ### 19.2 ענפים ו-PR
 
@@ -2163,14 +2241,15 @@ jobs:
 |---|---|---|
 | `ci.yml` | PR, push ל-`main` | כמתואר |
 | `preview-checks.yml` | `deployment_status` (Preview הצליח) | LHCI + Playwright `@smoke` מול כתובת ה-preview, עם ★ `VERCEL_AUTOMATION_BYPASS_SECRET` לעקיפת ההגנה |
-| `release.yml` | push ל-`main` אחרי ש-`ci` עבר | `migrate-staging` ← `deploy-staging` ← `smoke-staging` (`@smoke` + `@billing-sandbox`) ← **אישור ידני** (GitHub Environment `production` עם reviewer) ← `migrate-production` ← `deploy-production` (`vercel build --prod` + `vercel deploy --prebuilt --prod`) ← `smoke-production` (`@readonly`) ← שחרור ב-Sentry ותגית `v0.{m}.{patch}` |
-| `backup.yml` / `backup-storage.yml` | cron שבועי / יומי | §15.11 |
+| `release.yml` | push ל-`main` אחרי ש-`ci` עבר | `migrate-staging` ← `deploy-staging` ← `smoke-staging` (`@smoke` + `@billing-sandbox`; אם רכישת ה-sandbox לא הוחלה תוך 60 שניות, הוא קורא בעצמו ל-`/api/cron/billing-renewals`) ← **אישור ידני** (GitHub Environment `production` עם reviewer) ← `migrate-production` (על runner של GitHub בלי IP קבוע, ולכן הגבלות הרשת של המסד כבויות, §15.11) ← `deploy-production` (`vercel build --prod` + `vercel deploy --prebuilt --prod`) ← `smoke-production` (`@readonly`) ← שחרור ב-Sentry ותגית `v0.{m}.{patch}` |
+| `backup.yml` / `backup-storage.yml` | cron שבועי / יומי | §15.11 (רצים על runners של GitHub; מחרוזות החיבור רק בסודות) |
+| `staging-crons.yml` ★ | cron `*/10 * * * *` | קורא ל-`/api/cron/{sweep-jobs,billing-renewals,reminders,cleanup,hook-of-the-day}` ב-`staging.{{DOMAIN}}` עם `Authorization: Bearer ${CRON_SECRET_STAGING}` וכותרת `x-vercel-protection-bypass` (Vercel Cron רץ רק בפרודקשן, §19.1) |
 | `contract-live.yml` | cron שבועי | §18.3 |
 | `eval-prompts.yml` | cron לילי + `workflow_dispatch` | `pnpm eval:prompts` מול הנתיבים הפעילים, תקציב $5 להרצה, עם סוד `OPENROUTER_API_KEY` של staging (חלק 05 §23.5) |
 | `codeql.yml` | הגדרת ברירת המחדל של GitHub | סריקת קוד |
 
 - `vercel.json` כולל `"git": { "deploymentEnabled": { "main": false } }`, כדי ש-push ל-`main` **לא** יפרוס לפרודקשן לבד; הפריסה עוברת רק דרך `release.yml`, אחרי המיגרציות והאישור. פריסות Preview ל-PR נשארות אוטומטיות [M0-verify את המפתח ואת פריסת הסביבה המותאמת `staging` ב-CLI].
-- כל ה-Actions מקובעות ל-SHA. סודות ה-CI ★: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `SENTRY_AUTH_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET`, וסודות הגיבוי (§15.11). ‏`contract-live.yml` ו-`eval-prompts.yml` רצים ב-GitHub Environment ‏`staging`, עם מפתחות ה-sandbox וה-staging תחת אותם שמות כמו בזמן ריצה (`OPENROUTER_API_KEY`, ‏`GROW_*`, ‏`MORNING_*`).
+- כל ה-Actions מקובעות ל-SHA. סודות ה-CI ★: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `SENTRY_AUTH_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET`, `CRON_SECRET_STAGING` (= `CRON_SECRET` של staging, ל-`staging-crons.yml`), וסודות הגיבוי — `BACKUP_DB_URL` ו-`BACKUP_*` (§15.11, §20). ‏`contract-live.yml` ו-`eval-prompts.yml` רצים ב-GitHub Environment ‏`staging`, עם מפתחות ה-sandbox וה-staging תחת אותם שמות כמו בזמן ריצה (`OPENROUTER_API_KEY`, ‏`GROW_*`, ‏`MORNING_*`).
 
 ### 19.4 מיגרציות בפריסה
 
@@ -2192,20 +2271,21 @@ jobs:
 | נושא | העובדה | מה זה אומר אצלנו |
 |---|---|---|
 | תוכנית Vercel | Hobby מיועד לשימוש לא מסחרי בלבד; Pro עולה $20 למושב, עם $20 שימוש כלול | כל הסביבות על **Vercel Pro**, באזור `fra1` (ליד Supabase `eu-central-1`) |
-| משך ריצה של פונקציה | Hobby עד 300 שניות; Pro — ברירת מחדל 300, מקסימום 800 (GA), ומדרגת 1,800 שניות (30 דקות) ב-beta עם Fluid Compute | לא נשענים על 1,800: נתיבי AI אינטראקטיביים 120 שניות, `generate`/`render` 60, cron ‏300 (חלק 04 §18.5); עבודה ארוכה רצה בצעדי Vercel Workflows (צעד יכול לרוץ עד 30 דקות כשמפעילים זאת במפורש) |
+| משך ריצה של פונקציה | Hobby עד 300 שניות; ב-Pro ברירת המחדל 300 שניות, ואפשר להגדיר עד 800 (GA); משך מורחב של עד 30 דקות (1,800 שניות) רק ב-opt-in | נתיבי API לא עוברים 300: נתיבי AI אינטראקטיביים 300 עם תקציב זמן פנימי של 240 שניות (חלק 05 §2.2), `generate`/`render` 60, cron ‏300 (חלק 04 §18.5). עבודה ארוכה רצה בצעדי Vercel Workflows; צעד הרינדור משתמש במשך המורחב של עד 30 דקות (opt-in), שמוגדר ב-`vercel.json → functions` לנתיבי הצעדים של WDK (`.well-known/workflow/*`) |
 | גודל גוף בקשה ותשובה | 4.5MB, מגבלה קשיחה בכל התוכניות | העלאות עוברות ישירות ל-Supabase Storage בכתובות חתומות או ב-TUS (חלק 04 §20.2); מדיה לא חוזרת לדפדפן כ-base64 (חלק 05 §1.3); ה-PDF של חשבונית ידנית — עד 4MB (§9.5); webhooks — עד 1MB |
 | Vercel Workflows | GA מ-2026-04-16; ‏$0.02 לכל 1,000 אירועי Workflow, ‏$0.50 ל-GB שנכתב, ‏$0.50 ל-GB לחודש שנשמר | עלות תשתית שמופיעה בלוח העלויות באדמין, ולא נכנסת ל-COGS לקרדיט |
-| Vercel Sandbox | ‏1 vCPU או מספר זוגי בין 2 ל-32 (לפי התוכנית), ‏2GB לכל vCPU; תקרות 45 דקות / 5 שעות | רינדור Remotion עם 4 vCPU ו-20 דקות (`REMOTION_SANDBOX_VCPUS`, ‏`REMOTION_SANDBOX_TIMEOUT_MS`); אזור הריצה [M0-verify] (משפיע על מדיניות הפרטיות) |
+| Vercel Sandbox | ‏1 vCPU או מספר זוגי בין 2 ל-32 (לפי התוכנית), ‏2GB לכל vCPU; תקרות 45 דקות / 5 שעות | רינדור Remotion עם 4 vCPU ו-20 דקות (`REMOTION_SANDBOX_VCPUS`, ‏`REMOTION_SANDBOX_TIMEOUT_MS`); אזור הריצה [M0-verify ספייק 18] — ייתכן שבארצות הברית. ל-Sandbox עוברים ה-`PromoProps` (כתובות חתומות ל-6 שעות לקטעים, לקריינות, ללוגו ולהעלאות, ופרטי העסק שבכרטיס הסיום), ולכן מיקום הנתונים מתועד כך במדיניות הפרטיות (חלק 02 §10.3, סעיף 6), ב-L-09 (§11.1) ובחלק 05 §19.2 |
 | Supabase | Pro ‏$25 לחודש; PITR הוא תוספת בתשלום; המפתחות הישנים (`anon`/`service_role`) יוצאים משימוש בסוף 2026 | רק `sb_publishable_…` ו-`sb_secret_…` (§20); PITR מופעל ב-M7 לפני לקוחות משלמים (§15.11) |
 | רישיון Remotion | חינם לארגון של עד 3 עובדים. מעל זה — רישיון חברה: Creators ‏$25 למושב לחודש, Automators ‏$0.01 לרינדור עם מינימום $100 לחודש, Enterprise מ-$500 לחודש | בהשקה (עד 3 עובדים) אין תשלום. ביום שהחברה עוברת 3 עובדים — רוכשים רישיון Automators (רינדור אוטומטי בשרת הוא בדיוק המקרה הזה), מגדירים `REMOTION_LICENSE_KEY` [M0-verify איך המפתח מועבר ל-`@remotion/vercel`], ומוסיפים את העלות לעלויות הקבועות (נספח F §10.5). ההחלטה והתאריך נרשמים ב-`DECISIONS.md` |
 | סליקה | Stripe לא תומך בעסקים שרשומים בישראל (נכון ליולי 2026); ל-Grow יש מרכז מפתחים רשמי עם חיוב לפי אסימון ומנויים מנוהלים | Grow מאחורי `PaymentProvider` (§8), עם חלופות Cardcom / Sumit / PayPlus |
 
 ### קריטריוני קבלה
-- [ ] פרויקט ה-Vercel בתוכנית Pro, ואף פונקציה לא מגדירה `maxDuration` מעל 300 (בדיקת יחידה `tests/unit/route-config.test.ts` שסורקת את `app/api/**/route.ts`).
+- [ ] פרויקט ה-Vercel בתוכנית Pro, ואף `app/api/**/route.ts` לא מגדיר `maxDuration` מעל 300; החריג היחיד הוא נתיבי הצעדים של WDK (`.well-known/workflow/*`), שמוגדרים ב-`vercel.json → functions` (בדיקת יחידה `tests/unit/route-config.test.ts` שסורקת רק את `app/api/**/route.ts`).
 - [ ] אין נתיב API שמקבל או מחזיר גוף מעל 4MB (בדיקת חוזה עם קובץ של 5MB ← 413 או העלאה ישירה ל-Storage).
 - [ ] push ל-`main` לא פורס לפרודקשן בלי אישור ידני, והמיגרציות של פרודקשן רצות רק מתוך `release.yml`.
 - [ ] preview לא שולח מייל לכתובת מחוץ ל-`EMAIL_ALLOWLIST` (בדיקה עם כתובת דמה).
 - [ ] `smoke-staging` כולל רכישת חבילה מול Grow sandbox וחשבונית מ-Morning sandbox.
+- [ ] ב-staging, `staging-crons.yml` מריץ את ה-crons, ו-notify של Grow sandbox ו-webhook של OpenRouter מגיעים דרך פרמטר ה-bypass; בפרודקשן אף כתובת callback לא מכילה `x-vercel-protection-bypass`.
 - [ ] תרגיל rollback אחד בוצע ב-staging ותועד.
 
 ---
@@ -2249,7 +2329,8 @@ jobs:
 | `SMTP_URL` ★ | שרת | ✓ | — | — | — | Mailpit/Inbucket מקומי |
 | `EMAIL_ALLOWLIST` ★ | שרת | — | ✓ | ✓ | — | נמענים מותרים מחוץ לפרודקשן |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | שרת | ✓ | ✓ | ✓ | ✓ | הגבלות קצב, נעילות, מונה תקציב (אזור EU) |
-| `CRON_SECRET` | שרת | ✓ | ✓ | ✓ | ✓ | Bearer של Vercel Cron |
+| `CRON_SECRET` | שרת | ✓ | ✓ | ✓ | ✓ | Bearer של Vercel Cron (ב-staging: של `staging-crons.yml`, שמחזיק את אותו ערך בסוד `CRON_SECRET_STAGING`) |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` ★ | שרת (משתנה מערכת של Vercel) | — | ✓ | ✓ | **מתעלמים** | Protection Bypass for Automation: נוסף כ-`x-vercel-protection-bypass` לכתובות callback ו-webhook ב-preview וב-staging (§19.1); `lib/env.ts` מתעלם ממנו כש-`APP_ENV=production` |
 | `REVALIDATE_SECRET` | שרת | ✓ | ✓ | ✓ | ✓ | revalidate מהאדמין |
 | `TRIAL_HASH_PEPPER` | שרת | ✓ | ✓ | ✓ | ✓ | זהה לסוד ה-Vault `trial_hash_pepper` |
 | `ADMIN_EMAILS` | שרת | ✓ | ✓ | ✓ | ✓ | מנהלי פלטפורמה בכניסה ראשונה + נמעני התראות |
@@ -2260,8 +2341,9 @@ jobs:
 | `FEATURE_*` | שרת | ✓ | ✓ | — | **מתעלמים** | עקיפה מקומית של `feature_flags` (מתעלמים כש-`APP_ENV=production`, §21.2) |
 | `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_GIT_COMMIT_SHA` | מסופק על ידי Vercel (קריאה בלבד) | — | ✓ | ✓ | ✓ | `VERCEL_GIT_COMMIT_SHA` ← `release` ב-Sentry, ב-PostHog וב-`/api/health` |
 | `SUPABASE_AUTH_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_GOOGLE_SECRET` | Supabase CLI מקומי בלבד (`env()` ב-`supabase/config.toml`, חלק 04 §1.4) | ✓ | — | — | — | Google OAuth בפיתוח מקומי; בפרויקטים המנוהלים הוא מוגדר ב-Dashboard |
-| `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET` | סודות GitHub (CI בלבד) | — | — | — | — | מיגרציות, פריסה ובדיקות על preview (§19.3) |
-| `BACKUP_DB_URL`, `BACKUP_S3_BUCKET`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_AGE_RECIPIENT` | סודות GitHub (CI בלבד) | — | — | — | — | גיבויים (§15.11) |
+| `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET`, `CRON_SECRET_STAGING` | סודות GitHub (CI בלבד) | — | — | — | — | מיגרציות, פריסה, בדיקות על preview ו-crons של staging (§19.3) |
+| `BACKUP_DB_URL` ★ | סוד GitHub (CI בלבד) | — | — | — | — | מחרוזת חיבור Postgres של פרויקט הפרודקשן עם התפקיד לקריאה בלבד `backup_reader` (חלק 04 §15b), ל-`pg_dump -Fc` ב-`backup.yml`; לא נכנס ל-`lib/env.ts` ולא ל-Vercel. אם `BYPASSRLS` לא ניתן ל-`backup_reader` [M0-verify], ‏`backup.yml` משתמש ב-`SUPABASE_DB_URL_PRODUCTION` במקומו (§15.11) |
+| `BACKUP_S3_BUCKET`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_AGE_RECIPIENT` | סודות GitHub (CI בלבד) | — | — | — | — | גיבויים ל-S3 ב-`eu-central-1` והצפנה ב-`age` (§15.11) |
 
 ```ts
 // lib/env.ts (server part, excerpt)
@@ -2275,6 +2357,7 @@ const Server = z.object({
   EMAIL_PROVIDER: z.enum(["resend", "smtp", "log"]).default("resend"),
   ORCHESTRATOR: z.enum(["vercel-workflow", "inline"]),
   RENDER_PROVIDER: z.enum(["vercel-sandbox", "lambda", "local"]),
+  VERCEL_AUTOMATION_BYPASS_SECRET: z.string().optional(),   // read only via callbackBypassParam(), which returns "" when APP_ENV=production (§19.1)
   // …
 }).superRefine((e, ctx) => {
   if (e.APP_ENV !== "production") return;
@@ -2293,14 +2376,14 @@ Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגד�
 
 ### 20.1 משתני תוכן שהבעלים ממלא (`{{…}}`)
 
-אלה אינם משתני סביבה: הם קבועים ב-`lib/constants.ts` (`BRAND.*`), שהבעלים ממלא לפני ההשקה. `scripts/check-content.ts --launch` (חלק 02) מכשיל את פריסת הפרודקשן אם נשאר אחד מהם בלי ערך.
+אלה אינם משתני סביבה: הם קבועים ב-`lib/constants.ts` (`BRAND.*`), שהבעלים ממלא לפני ההשקה. `scripts/check-content.ts --launch` (חלק 02) מכשיל את פריסת הפרודקשן אם נשאר אחד מהם בלי ערך (חוץ מ-`{{DPO_NAME}}` ו-`{{VERCEL_TEAM_SLUG}}`, ראו למטה).
 
 | משתנה | שימוש |
 |---|---|
 | `{{BRAND_NAME}}`, `{{BRAND_NAME_EN}}`, `{{DOMAIN}}` | שם המותג בעברית ובאנגלית, הדומיין |
 | `{{LEGAL_ENTITY_NAME}}`, `{{COMPANY_ID}}`, `{{LEGAL_ADDRESS}}` | פרטי העסק בחשבוניות, במיילים ובדפים המשפטיים |
 | `{{LEGAL_EFFECTIVE_DATE}}`, `{{JURISDICTION_CITY}}` | תנאי השימוש |
-| `{{DPO_NAME}}` | מדיניות הפרטיות (§11.3) |
+| `{{DPO_NAME}}` | מדיניות הפרטיות (§11.3). ריק מותר: אז המשפט על בעל התפקיד מוסתר, ו-`check-content --launch` לא נכשל עליו |
 | `{{A11Y_COORDINATOR_NAME}}`, `{{A11Y_COORDINATOR_TITLE}}`, `{{A11Y_COORDINATOR_PHONE}}`, `{{A11Y_COORDINATOR_EMAIL}}`, `{{A11Y_STATEMENT_DATE}}`, `{{A11Y_AUDIT_DATE}}`, `{{A11Y_AUDITOR}}` | הצהרת הנגישות (L-02) |
 | `{{WHATSAPP_NUMBER}}`, `{{SUPPORT_PHONE}}` | יצירת קשר, ביטול בטלפון (§10.2) |
 | `{{VERCEL_TEAM_SLUG}}` | רק ברשימת כתובות ההפניה המותרות של Supabase Auth (חלק 04 §1.2); לא נקרא בזמן ריצה ולא נמצא ב-`BRAND` |
@@ -2309,7 +2392,7 @@ Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגד�
 - [ ] `pnpm check-env --example` נכשל כשמוסיפים משתנה ל-`lib/env.ts` בלי להוסיף אותו ל-`.env.example`.
 - [ ] עלייה עם `APP_ENV=production` ו-`EMAIL_PROVIDER=log` נכשלת עם הודעה ברורה.
 - [ ] אין משתנה עם `NEXT_PUBLIC_` שמכיל סוד (בדיקה על רשימת השמות).
-- [ ] `check-content --launch` נכשל כשנשאר ב-`lib/constants.ts` או בדפים המשפטיים משתנה מ-20.1 בלי ערך (חוץ מ-`{{VERCEL_TEAM_SLUG}}`, שלא נמצא בקוד).
+- [ ] `check-content --launch` נכשל כשנשאר ב-`lib/constants.ts` או בדפים המשפטיים משתנה מ-20.1 בלי ערך, חוץ מ-`{{DPO_NAME}}` (ריק מותר; המשפט שמזכיר אותו מוסתר) ו-`{{VERCEL_TEAM_SLUG}}` (לא נמצא בקוד).
 - [ ] עלייה עם `OPENROUTER_CALLBACK_TOKEN_SECRET="new,old"` חותמת ב-`new` ומאמתת גם `?t=` שנחתם ב-`old`.
 
 ---
@@ -2344,7 +2427,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
     const o = process.env[`FEATURE_${key.toUpperCase()}`];
     if (o === "1" || o === "0") return o === "1";                    // local/dev override only
   }
-  const f = await getFlag(key);                                      // in-memory cache 30 s; revalidateTag("flags") on admin update
+  const f = await getFlag(key);                                      // in-memory cache 30 s; revalidateTag("flags", "max") on admin update
   if (!f) return false;
   if (ctx.workspaceId && f.workspace_ids?.includes(ctx.workspaceId)) return true;   // explicit allow-list wins
   if (!f.enabled) return false;
@@ -2375,7 +2458,6 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | `rollover_cap_multiplier` | `1` | תקרת הגלגול (§2.4) |
 | `free_trial_credits` | `70` | §2.5 |
 | `allocation_threshold_schedule` | `[{"from":"2026-01-01","ils":10000},{"from":"2026-06-01","ils":5000}]` | §9.4 |
-| `business_tax_status` | `"licensed"` (`licensed` \| `exempt`) | §9.2 |
 | `dunning_retry_days` | `[1, 3, 7]` | §6.1 |
 | `non_business_days` | תאריכי החגים בישראל ל-12 החודשים הבאים (ISO) | §10.2, R11 |
 | `renewals_paused` | `false` | עצירת חיובי חידוש בזמן תקלה אצל הספק (R3) |
@@ -2412,7 +2494,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | זיהוי | התראות "שגיאות OpenRouter" ו"אחוז הצלחה נמוך"; עמוד הסטטוס של OpenRouter; קפיצה ב-429/5xx ב-`ai_generations` |
 | אבחון | האם התקלה במודל או ספק אחד (מסננים לפי `model_served`) או ב-OpenRouter כולו? |
 | מודל/ספק אחד | `/admin/models` ← החלפת ה-primary בנתיב לגיבוי הבא (נרשם `model.route_update`) ← "בדיקה" לנתיב (חלק 05 §6.4) ← באנר `aiSlow` אם יש האטה |
-| OpenRouter כולו | `or:halt` (עוצר התחלות חדשות לפני שמירת קרדיטים) ← באנר `aiOutage`. עבודות שרצות: ניסיונות חוזרים של Workflows; קליפים ממתינים ממשיכים ב-polling; עבודה שעוברת 60 דקות נכשלת ומחזירה קרדיטים אוטומטית |
+| OpenRouter כולו | `or:halt` (עוצר התחלות חדשות לפני שמירת קרדיטים) ← באנר `aiOutage`. עבודות שרצות: ניסיונות חוזרים של Workflows; קליפים ממתינים ממשיכים ב-polling; עבודה שעוברת 120 דקות מ-`started_at` נכשלת ומחזירה קרדיטים אוטומטית |
 | התאוששות | הסרת `or:halt` והבאנר; ברשימת העבודות שנכשלו בחלון התקלה — **"ניסיון חוזר"** מהאדמין (`job.retry`, משתמש בנכסים שהצליחו) או מייל ללקוחות; קרדיטים שפגו בחלון התקלה — שחזור כדלי `rollover` עם `scripts/restore-expired-credits.ts` (§2.4) |
 | אחרי | סיכום אירוע; בדיקה אם צריך לשנות סדר גיבויים או timeouts |
 
@@ -2467,7 +2549,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | בלימה (שעה ראשונה) | רוטציה של המפתח שנחשף (R12) · `auth.admin.signOut(…, "global")` למשתמשים שנפגעו · השבתת חשבונות שנפרצו · `maintenance_mode` אם צריך · שמירת ראיות (ייצוא לוגים, `audit_logs`, צילום מסד) לפני שינויים |
 | הערכה | איזה מידע, כמה נושאי מידע, מאיזו תקופה, האם מוצפן |
 | דיווח | ברשות להגנת הפרטיות — באירוע חמור, ללא דיחוי ולפי התקנות (2017) ותיקון 13 ⚖️; לספקים רלוונטיים (Grow אם אסימונים בסיכון); לנפגעים — כשנדרש |
-| הודעה לנפגעים | נושא: **"הודעה על אירוע אבטחת מידע ב-{{BRAND_NAME}}"** · גוף: **"שלום {firstName}, ב-{date} זיהינו {whatHappened}. המידע שעלול היה להיחשף: {dataTypes}. מה עשינו: {actions}. מה כדאי לעשות: {userActions}. אנחנו מצטערים על כך, וממשיכים לבדוק. לשאלות: privacy@{{DOMAIN}}."** (תבנית `security_notice` ★, נשלחת ידנית אחרי אישור עורך דין) |
+| הודעה לנפגעים | נושא: **"הודעה על אירוע אבטחת מידע ב{{BRAND_NAME}}"** · גוף: **"שלום {firstName}, ב-{date} זיהינו {whatHappened}. המידע שעלול היה להיחשף: {dataTypes}. מה עשינו: {actions}. מה כדאי לעשות: {userActions}. אנחנו מצטערים על כך, וממשיכים לבדוק. לשאלות: privacy@{{DOMAIN}}."** (תבנית `security_notice` ★, נשלחת ידנית אחרי אישור עורך דין) |
 | אחרי | סיכום אירוע, עדכון סקר הסיכונים ונוהל האבטחה |
 
 ### R8 — מיילים לא נשלחים / קפיצה בחזרות
@@ -2537,7 +2619,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | מפתחות אידמפוטנטיות | `{action}:{ids}` (§1.5, נספח F §6.4) | `renew:{subId}:{periodEndISO}` |
 | מפתחות Upstash | רק מהרשימה של חלק 04 §18.6 | `checkout:fail:{ws}` |
 
-TypeScript: `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`; אין `any` (ESLint `no-explicit-any` כשגיאה); אין `default export` מלבד קבצי Next (`page`, `layout`, `opengraph-image` וכו׳), קובצי הגדרה (`*.config.ts`) ותבניות React Email (שרת התצוגה דורש אותו); `console.*` אסור (יש `log`); `no-restricted-imports` מונע ייבוא של `lib/**/server*` ו-`lib/billing/**` מרכיבי לקוח.
+TypeScript: `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`; אין `any` (ESLint `no-explicit-any` כשגיאה); אין `default export` מלבד קבצי Next (`page`, `layout`, `opengraph-image` וכו׳), קובצי הגדרה (`*.config.ts`) ותבניות React Email (שרת התצוגה דורש אותו); `console.*` אסור (יש `log`); `no-restricted-imports` מונע ייבוא של `lib/**/server*` ו-`lib/billing/**` מרכיבי לקוח, חוץ מ-`lib/billing/credits.ts` (טהור, בלי סודות, §2.6).
 
 ### 23.2 קומיטים וענפים
 
@@ -2609,7 +2691,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 
 ### קריטריוני קבלה
 - [ ] `commitlint` ב-CI דוחה כותרת PR שלא בפורמט.
-- [ ] ESLint נכשל על `console.log`, על `any` ועל ייבוא של `lib/billing` מרכיב `"use client"`.
+- [ ] ESLint נכשל על `console.log`, על `any` ועל ייבוא של `lib/billing` מרכיב `"use client"` (חוץ מ-`lib/billing/credits.ts`).
 - [ ] `pnpm check-decisions` ירוק ב-M0 (כל פריט מהרשימה נסגר).
 
 ---
@@ -2623,9 +2705,9 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 **משימות:**
 1. ריפו pnpm, Next 16 (≥ 16.1), React 19.2, TypeScript strict; Tailwind 4.3 עם הטוקנים של חלק 01; shadcn ‏`radix-nova` עם `rtl: true`; `DirectionProvider`; גופנים; next-intl עם `he`; `lib/constants.ts` (`BRAND`).
 2. `lib/env.ts` + `.env.example` + `check-env`; ESLint, Prettier, `lint:rtl`, `lint:copy`, `lint:billing`; Vitest, Playwright, MSW; Sentry (EU, tunnel); שלד `ci.yml`.
-3. Vercel Pro (`fra1`; Hobby אסור לשימוש מסחרי, §19.6) עם preview/staging/production והגנת Vercel Authentication; Supabase staging ו-production (`eu-central-1`, מפתחות חדשים); Upstash (EU); דומיין שולח ב-Resend; ריפו ב-GitHub עם branch protection.
+3. Vercel Pro (`fra1`; Hobby אסור לשימוש מסחרי, §19.6) עם preview/staging/production והגנת Vercel Authentication + Protection Bypass for Automation; Supabase staging ו-production (`eu-central-1`, מפתחות חדשים); Upstash (EU); דומיין שולח ב-Resend; ריפו ב-GitHub עם branch protection.
 4. `DECISIONS.md`, `CHANGELOG.md`, `README.md` (עברית קצרה), `docs/m0-verify.md` (כל תגיות `[M0-verify]` מכל החלקים).
-5. **ספייקים** (`scripts/spikes/*.ts`, כל אחד עם רשומה ב-`DECISIONS.md`): (1) נעילת AI SDK והספק; (2) צ׳אט OpenRouter עם `json_schema` ו-`models[]`; (3) `/videos` ← פורמט חתימת ה-webhook המדויק ← הורדה מאומתת; (4) מבנה המילים של Scribe ‏`verbose_json` בעברית; (5) Eleven v4 בעברית עם רמזי ניקוד; (6) hooks ו-sleep של WDK; (7) `@remotion/vercel` עם fixture כתוביות בעברית; (8) `next/og` בעברית; (9) Grow (10 הנקודות של §8.2) ו-Morning (§9.6); ובנוסף ★: (10) Resend — `Idempotency-Key`, צרופות, תצוגה ב-Gmail/Outlook; (11) Supabase CLI — קידומות מיגרציה ו-API של Mailpit/Inbucket; (12) Vercel — `git.deploymentEnabled` ופריסה לסביבה מותאמת מה-CLI; (13) נתוני גודל bundle של Turbopack; (14) נקודת יתרה של OpenRouter; (15) מטא־דאטה `comment=ai-generated` ב-MP4; (16) CSP סטטי מול סקריפטי ה-inline של Next 16 (`experimental.sri` או `'unsafe-inline'`, §15.3); (17) WhatsApp — זמינות תבנית Authentication בעברית (v2, אפשר לדחות עד הפעלת הדגל); (18) אופן העברת `REMOTION_LICENSE_KEY` ל-`@remotion/vercel` ואזור הריצה של Sandbox (§19.6).
+5. **ספייקים** (`scripts/spikes/*.ts`, כל אחד עם רשומה ב-`DECISIONS.md`): (1) נעילת AI SDK והספק; (2) צ׳אט OpenRouter עם `json_schema` ו-`models[]`; (3) `/videos` ← פורמט חתימת ה-webhook המדויק ← הורדה מאומתת; (4) מבנה המילים של Scribe ‏`verbose_json` בעברית; (5) Eleven v4 בעברית עם רמזי ניקוד; (6) hooks ו-sleep של WDK; (7) `@remotion/vercel` עם fixture כתוביות בעברית; (8) `next/og` בעברית; (9) Grow (10 הנקודות של §8.2) ו-Morning (§9.6); ובנוסף ★: (10) Resend — `Idempotency-Key`, צרופות, תצוגה ב-Gmail/Outlook; (11) Supabase CLI — קידומות מיגרציה ו-API של Mailpit/Inbucket; (12) Vercel — `git.deploymentEnabled`, פריסה לסביבה מותאמת מה-CLI, Vercel Cron רק בפריסות פרודקשן, ו-POST של Grow, OpenRouter ו-Resend שעובר את Vercel Authentication עם פרמטר ה-bypass (§19.1); (13) נתוני גודל bundle של Turbopack; (14) נקודת יתרה של OpenRouter; (15) מטא־דאטה `comment=ai-generated` ב-MP4; (16) CSP סטטי מול סקריפטי ה-inline של Next 16 (`experimental.sri` עם ה-hash, או החלופה של `'unsafe-inline'` בכותרת האוכפת + ה-hash ב-Report-Only, §15.3); (17) WhatsApp — זמינות תבנית Authentication בעברית (v2, אפשר לדחות עד הפעלת הדגל); (18) אופן העברת `REMOTION_LICENSE_KEY` ל-`@remotion/vercel` ואזור הריצה של Sandbox (§19.6).
 6. **פריטי `[M0-verify]` מהחלקים האחרים** שנכנסים ל-`docs/m0-verify.md` ונסגרים כמו השאר: `realtime.send` (חלק 04 §14; חלופה `broadcast_changes`); `BYPASSRLS` ל-`backup_reader` (חלק 04 §15b); שמות הקולות של `tts_fallback_voices` (חלק 05); `data_collection: "deny"` בנקודות המדיה של OpenRouter (חלק 05 §4); `input_references` ב-`/images` ו-`/images/models` (חלק 05 §4.1); Batch API של OpenRouter (חלק 05); ואימות כרטיס בלי סכום או J5 ב-Grow (§6.1).
 
 **קריטריוני קבלה:**
@@ -2763,7 +2845,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] גילוי לפני עסקה, תיבת תנאים לא מסומנת בקופה, ומסמך גילוי (`payment_receipt`) אחרי.
 - [ ] החזר 14 יום ודמי ביטול (5% / ₪100) לפי `refunds.ts`; תקופה מורחבת של 4 חודשים בטיפול ידני.
 - [ ] מחירים כולל מע״מ בכל מקום; מע״מ קונפיגורבילי.
-- [ ] חשבונית מס/קבלה לכל תשלום; מספר הקצאה מעל הסף לעסקים; חשבונית זיכוי לכל החזר.
+- [ ] חשבונית מס-קבלה לכל תשלום; מספר הקצאה מעל הסף לעסקים; חשבונית זיכוי לכל החזר.
 - [ ] מדיניות פרטיות עם רכיבי ס׳ 11 המתוקן; DPA עם כל ספקי המשנה; מסמכי אבטחת המידע קיימים.
 - [ ] יומן הסכמות מלא (תנאים, פרטיות, AI, דיוור, עוגיות) עם גרסה, IP ומקור.
 - [ ] דיוור: "פרסומת:" בנושא, פרטי שולח, הסרה בלחיצה (RFC 8058), רק עם הסכמה.
@@ -2788,9 +2870,12 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 | 10 | מילת האישור "מחיקה" בדיאלוג מחיקת החשבון | עו״ד | חלק 04 §21.3; חלק 03 §16.4 |
 | 11 | כל הדפים המשפטיים (תנאים, פרטיות, ביטול, נגישות, AI, דמות וקול, עוגיות) | עו״ד | חלק 02 §10 |
 | 12 | הניסוח על Bit בתנאי השימוש ("אם האפשרות מוצגת בעמוד התשלום") | עו״ד | חלק 02 §10.2 (6.2); §3.1, §8.2 |
-| 13 | סוג המסמך (`business_tax_status`: עוסק מורשה מול פטור) ושורות החשבונית | רו״ח | §9.2–§9.3 |
+| 13 | סוג המסמך (חשבונית מס-קבלה בלבד; עוסק פטור לא נתמך) ושורות החשבונית | רו״ח | §9.2–§9.3 |
 | 14 | נוהל בקשת מספר הקצאה בדיעבד, ועיכוב חשבונית מעל יום עסקים | רו״ח | §9.4, R5 |
-| 15 | וואטסאפ כ"דבר פרסומת" לפי ס׳ 30א, ונוסח כללי הבחירות על זיוף עמוק (לא אומתו במחקר) | עו״ד | §11.8, §11.11, §13 |
+| 15 | וואטסאפ כ"דבר פרסומת" לפי ס׳ 30א, ומועד התחולה של כללי הבחירות על זיוף עמוק (שניהם לא אומתו במחקר) | עו״ד | §11.8, §11.11, §13 |
+| 16 | `low_credits` כהודעת שירות ולא "דבר פרסומת": בלי מחירים, בלי חבילה או תוכנית מוצעת ובלי כפתור רכישה, ולכן בלי הסכמה, בלי "פרסומת:" ובלי קישור הסרה של ס׳ 30א (הכיבוי בהגדרות ההתראות נשאר) | עו״ד | §11.8, §12.5 (`low_credits`) |
+
+**פריט פתוח (לא משפטי):** הגבלות הרשת של מסד הפרודקשן כבויות בהשקה (§15.11). הפעלתן מחכה ל-runner עם IP יציא קבוע ברשימת ההיתר, וההחלטה רשומה ב-`DECISIONS.md`.
 
 **אבטחה ופרטיות**
 - [ ] RLS על כל טבלה, ובדיקות בידוד ירוקות; סביבה זרה מקבלת 404.
@@ -2803,6 +2888,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] הגבלות קצב פעילות, ותקרות יומיות ומגן תקציב נבדקו.
 - [ ] בדיקת חדירות (או ASVS L1) הושלמה בלי ממצאים חמורים פתוחים.
 - [ ] PITR פעיל, גיבויים שבועיים מוצפנים ל-S3, ותרגיל שחזור תועד.
+- [ ] אכיפת SSL במסד הפרודקשן פעילה; הגבלות הרשת כבויות בהשקה עם הבקרות המפצות של §15.11, והפריט הפתוח רשום ב-`DECISIONS.md`.
 
 **ביצועים**
 - [ ] LCP < 2.5 ש׳, CLS < 0.05, INP < 200ms בדפי השיווק (נייד).
@@ -2872,7 +2958,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] Sentry עם מפות מקור, Cron Monitors ו-Uptime; כל ההתראות של §16.4 מחוברות.
 - [ ] 13 runbooks קיימים, ו-R1, R3, R9 תורגלו.
 - [ ] Remotion: רישיון מתאים לגודל החברה (חינם עד 3 עובדים; מעבר לזה Automators, §19.6), ו-`REMOTION_LICENSE_KEY` מוגדר כשצריך.
-- [ ] אף נתיב לא מגדיר `maxDuration` מעל 300 שניות, ואף גוף בקשה לא עובר 4MB (§19.6).
+- [ ] אף `app/api/**/route.ts` לא מגדיר `maxDuration` מעל 300 (החריג היחיד: נתיבי הצעדים של WDK, `.well-known/workflow/*`, שמוגדרים ב-`vercel.json → functions`), ואף גוף בקשה לא עובר 4MB (§19.6).
 - [ ] מגבלת אשראי לכל מפתח OpenRouter; יתרה מספיקה ל-7 ימים.
 - [ ] `README.md` מסביר התקנה, סביבות ופריסה; `DECISIONS.md` ו-`CHANGELOG.md` שלמים.
 - [ ] ערכת ההשקה (Product Hunt) מוכנה, וסרטוני הדוגמה באתר הם רינדורים אמיתיים של המוצר.

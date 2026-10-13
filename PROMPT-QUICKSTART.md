@@ -7,7 +7,7 @@
 > | `{{BRAND_NAME}}` | שם המותג בעברית: ממשק, אתר, מיילים, סרטונים | קדימון |
 > | `{{BRAND_NAME_EN}}` | שם המותג באותיות לטיניות: כותרות OpenRouter, שם השולח, Product Hunt | Kdimon |
 > | `{{DOMAIN}}` | הדומיין הראשי, בלי `https://` | `kdimon.co.il` |
-> | `{{LEGAL_ENTITY_NAME}}` · `{{COMPANY_ID}}` · `{{LEGAL_ADDRESS}}` | הישות המשפטית, ח״פ או מספר עוסק, כתובת רשומה | אין, חובה לפני ההשקה |
+> | `{{LEGAL_ENTITY_NAME}}` · `{{COMPANY_ID}}` · `{{LEGAL_ADDRESS}}` | הישות המשפטית; `{{COMPANY_ID}}` — ח״פ או מספר עוסק מורשה. עוסק פטור לא נתמך: האתר מבטיח חשבונית מס ומחירים כולל מע״מ; כתובת רשומה | אין, חובה לפני ההשקה |
 > | `{{LEGAL_EFFECTIVE_DATE}}` · `{{JURISDICTION_CITY}}` | תחולת התנאים, עיר השיפוט | תאריך ההשקה · נקבע עם עורך הדין |
 > | `{{DPO_NAME}}` | הממונה על הגנת הפרטיות | ריק (המשפט שמזכיר אותו לא מוצג) |
 > | `{{A11Y_COORDINATOR_NAME}}` · `{{A11Y_COORDINATOR_TITLE}}` · `{{A11Y_COORDINATOR_PHONE}}` · `{{A11Y_COORDINATOR_EMAIL}}` | רכז או רכזת הנגישות: שם, תואר, טלפון, מייל | אדם אמיתי · "רכז הנגישות" או "רכזת הנגישות" · הערך של `{{SUPPORT_PHONE}}` · `accessibility@kdimon.co.il` |

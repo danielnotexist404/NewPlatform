@@ -17,12 +17,12 @@
 | עמוד תווך | מה זה אומר בפועל בעיצוב |
 |---|---|
 | **נישה** | המשתמש מתחיל מ"מה העסק שלכם", לא מבחירת מנוע. אייקוני נישה, תוויות נישה על כל סרטון לדוגמה, דוגמאות מהנישה שלו בכל מקום שאפשר. |
-| **עברית מושלמת** | כל טקסט עברי — בממשק ובסרטון — נראה כאילו ישראלי עיצב אותו: יישור, פיסוק, מספרים, כתוביות. RTL נכון הוא סימן פרימיום, כי רוב הכלים הגלובליים מזייפים אותו. |
+| **עברית טבעית** | כל טקסט עברי — בממשק ובסרטון — נראה כאילו ישראלי עיצב אותו: יישור, פיסוק, מספרים, כתוביות. RTL נכון הוא סימן פרימיום, כי רוב הכלים הגלובליים מזייפים אותו. |
 | **תוצאה מוגמרת** | מראים סרטונים מוגמרים עם כתוביות עבריות צרובות, לא "אמנות AI". כל כפתור יצירה מציג עלות. כל כישלון מסביר מה הוחזר. |
 
 ### 1.2 אישיות
 
-{{BRAND_NAME}} מתנהג כמו **במאי־מפיק ותיק שעובד בשבילכם**: יודע מה עובד ברשתות, מדבר בגובה העיניים, לא מתרברב, לא מבלבל במונחים טכניים, ותמיד אומר כמה זה עולה.
+{{BRAND_NAME}} מתנהג כמו **במאי-מפיק ותיק שעובד בשבילכם**: יודע מה עובד ברשתות, מדבר בגובה העיניים, לא מתרברב, לא מבלבל במונחים טכניים, ותמיד אומר כמה זה עולה.
 
 | אנחנו | אנחנו לא |
 |---|---|
@@ -65,26 +65,26 @@
 4. **כשאפשר — ניסוח לא אישי** שעוקף מגדר: "אפשר לנסות שוב", "כדאי להוסיף לוגו", "נשאר רק לבחור מוזיקה".
 5. **כל שגיאה עונה על שלוש שאלות**: מה קרה, מה קרה לכסף/לקרדיטים, מה עושים עכשיו. בלי קודים טכניים בטקסט (הקוד נשמר ב-`details` ובלוגים).
 6. **כל כפתור שעולה קרדיטים מציג את העלות** ("צרו את הסרטון · 107 קרדיטים") דרך `CostBadge` (§10.8).
-7. **מספרים, מחירים, אחוזים, טלפונים ותאריכים בספרות** — תמיד דרך `Num`/`Price` (§10.1–10.2), עם ספרות טבלאיות ובידוד `<bdi>`.
+7. **מספרים, מחירים, אחוזים, טלפונים ותאריכים בספרות** — תמיד דרך `Num`/`Price` (§10.1–10.2), עם ספרות טבלאיות ובידוד `<bdi>`. כל משתנה שסופר שם עצם עובר דרך `plural` של ICU עם `one`/`two`/`other` ("קרדיט אחד", "שני קרדיטים", "# קרדיטים"); התבניות הקנוניות נמצאות ב-`common` (§19), ו-`lint:copy` נכשל על "{n} הוקים" מחוץ ל-`plural` (§2.6).
 8. **פיסוק עברי תקני**: גרשיים ״ (U+05F4) בראשי תיבות (מע״מ, נדל״ן, עו״ד, ש״ח), גרש ׳ (U+05F3) בקיצורים (שנ׳, דק׳) ובאותיות לועזיות (ג׳, צ׳). מירכאות לציטוט: `"…"` רגילות. שלוש נקודות: התו `…` (U+2026). קו מפריד בין משפטים: ` – ` (en dash עם רווחים). מפריד בין פריטים בשורה: ` · `.
 9. **כתיב מלא** ("תוכנית", "צהריים", "מבצע") ו"הכול" (לא "הכל").
 10. **סימן קריאה אחד לכל היותר במסך**, ורק ברגע של הצלחה אמיתית. אף פעם לא "!!".
 11. **בלי ביטויים מתורגמים וקלישאות.** הרשימה המלאה היא `BANNED_PHRASES` (נספח E §5.2, מיוצאת מ-`lib/ai/prompts/style-data.ts`) — אותה רשימה משמשת את `pnpm lint:copy` (§2.6) ואת מדריך הסגנון של הפרומפטים. אלה דוגמאות: "קחו את העסק לשלב הבא", "פתרון חדשני ומקיף", "בעולם של היום", "זה הזמן ל…", "האם ידעת ש…", "אתה לא תאמין", "חוויית משתמש מושלמת".
 12. **בלי אנגלית כשיש עברית טובה**: "יצירה" ולא "Generate", "הורדה" ולא "Download". מילים לועזיות שהשתרשו מותרות: רילס, טיקטוק, הוק, לידים, אינסטגרם, וואטסאפ.
-13. **תחילית + מספר לא נשברים בין שורות**: "ב-30 שניות", "ל-3 פורמטים" — דרך `Num` עם `hePrefix` (§10.1).
+13. **תחילית + מספר לא נשברים בין שורות**: "ב-30 שניות", "ל-3 פורמטים" — דרך `Num` עם `hePrefix` (§10.1). המקף אחרי אות שימוש בא רק לפני ספרות, אותיות לטיניות, כתובות מייל ותאריכים מעוצבים ("ב-14 באוקטובר", "ל-dana@x.co"). לפני `{{BRAND_NAME}}` (`BRAND.nameHe`, תמיד עברית) האות נצמדת בלי מקף: "נוצר ב{{BRAND_NAME}}", "ברוכים הבאים ל{{BRAND_NAME}}"; בקוד — `BRAND.nameHeWith` ו-`BRAND.watermarkHe` (מוגדרים ב-`BRAND`, חלק 02 §1.2, ונבנים ב-`withPrefix()` מ-`lib/hebrew/text.ts`, חלק 02 §5.8), ומחרוזות ICU מקבלות משתנה מחובר מראש (`{inBrand}`, `{toBrand}`, `{fromBrand}`). משתנה של טקסט עברי שנקבע בזמן ריצה (`{name}`, `{inviterName}`, `{approverName}`, `{agencyName}`, `{senderName}`, `{ownerName}`, `{workspaceName}`, `{seasonName}`) לא מקבל אות שימוש בכלל, לא צמודה ולא עם מקף — מנסחים עם מילה עצמאית: "הזמנה מאת {inviterName}", "להעביר את הבעלות אל {name}". שם בתוך מירכאות מותר: `ל"{workspaceName}"`.
 14. **מילת הפעולה קודם**: "הורדת הסרטון" ולא "הסרטון — להורדה".
 15. **אורכים**: כותרת מסך ≤ 6 מילים; תיאור ≤ 2 שורות; טקסט כפתור ≤ 4 מילים (בלי העלות); טוסט ≤ 12 מילים.
 16. **"…" רק למצבים שבאמת נמשכים** ("מנתחים את האתר…"), לא כקישוט.
 17. **אישור לפני הרס**: שאלה שמזכירה את שם הפריט ואת ההשלכה, וכפתור שמתאר את הפעולה ("מחיקה", לא "כן").
 18. **אימוג׳י**: לא בממשק ולא בהודעות מערכת. מותר רק בתוכן שהמשתמש עצמו כותב.
 19. **שעות ותאריכים בפורמט ישראלי**: "13 באוקטובר 2026", "14:30", "לפני 5 דקות", "מחר ב-09:00"; השבוע מתחיל ביום ראשון.
-20. **מחיר תמיד עם ₪ לפני המספר, בלי רווח, ועם "כולל מע״מ"** בכל מקום שבו מוצג מחיר לצרכן ("₪119 לחודש · כולל מע״מ", "₪95.50", סכום שלילי "−₪50" עם מינוס U+2212). הכלל חל על הממשק, האתר השיווקי, הבלוג, הדפים המשפטיים, המיילים, הודעות הוואטסאפ, מסכי האדמין ושורות החשבונית שאנחנו מנסחים. המימוש: רק `formatIls` / `Price` / `Num` (§2.5, §10.1–10.2) — לעולם לא `Intl.NumberFormat` עם `style: "currency"`, ולעולם לא ₪ שנכתב ידנית ליד מספר ב-`messages/he.json` (משתנה ICU שמעוצב ב-`formatIls`). **החריגים** (פירוט בנספח E §6.1): טקסט ההוקים ב-seed ובפלט של פרומפטי `hooks.*` נכתב "349 ₪" / "{מחיר} ₪"; טקסט שנכנס לסרטון (כותרת ההוק, טקסט על המסך, כתוביות, כרטיס סיום, טקסט הפוסט) עוקב אחרי `brand_kits.shekel_format`; טקסט מוקרא (`vo_tts_he`) לא מכיל ₪ ולא ספרות; מסמכי Morning בפורמט שלהם. המקום היחיד בממשק עם סכום ₪ מילולי: שתי התוויות של בורר הפורמט בעורך ערכת המותג — "₪120" · "120 ₪".
+20. **מחיר תמיד עם ₪ לפני המספר, בלי רווח, ועם "כולל מע״מ"** בכל מקום שבו מוצג מחיר לצרכן ("₪119 לחודש · כולל מע״מ", "₪95.50", סכום שלילי "−₪50" עם מינוס U+2212). הכלל חל על הממשק, האתר השיווקי, הבלוג, הדפים המשפטיים, המיילים, הודעות הוואטסאפ, מסכי האדמין ושורות החשבונית שאנחנו מנסחים. המימוש: רק `formatIls` / `Price` / `Num` (§2.5, §10.1–10.2) — לעולם לא `Intl.NumberFormat` עם `style: "currency"`, ולעולם לא ₪ שנכתב ידנית ליד מספר ב-`messages/he.json` (משתנה ICU שמעוצב ב-`formatIls`). **החריגים** (פירוט בנספח E §6.1): טקסט ההוקים ב-seed ובפלט של פרומפטי `hooks.*` נכתב "349 ₪" / "{מחיר} ₪"; טקסט שנכנס לסרטון (כותרת ההוק, טקסט על המסך, `vo_he`/`vo_full_he` וטקסט התצוגה של הכתוביות, כרטיס סיום, טקסט הפוסט) עוקב אחרי `brand_kits.shekel_format`; טקסט מוקרא (`vo_tts_he`) לא מכיל ₪ ולא ספרות; מסמכי Morning בפורמט שלהם. המקום היחיד בממשק עם סכום ₪ מילולי: שתי התוויות של בורר הפורמט בעורך ערכת המותג — "₪120" · "120 ₪".
 
 ### 2.2 פנייה מגדרית בתוך האפליקציה (`profiles.ui_gender_form`)
 
 המשתמש יכול לבחור בהגדרות איך הממשק פונה אליו: רבים (ברירת מחדל), נקבה או זכר. המנגנון:
 
-- כל מחרוזת נכתבת קודם ברבים. מחרוזות **באפליקציה** שפונות ישירות למשתמש (כותרות שלבים באשף, ברכה בדשבורד, מצבים ריקים, CTA ראשי) כוללות `select` של ICU על הפרמטר `g`:
+- כל מחרוזת נכתבת קודם ברבים. מחרוזות **באפליקציה** שפונות ישירות למשתמש (כותרות שלבים באשף, ברכה בדף הראשי, מצבים ריקים, CTA ראשי) כוללות `select` של ICU על הפרמטר `g`:
 
 ```json
 {
@@ -126,7 +126,7 @@
 | ביטול מנוי | הקפאה, עצירת חיוב | הכפתור תמיד בשם הזה |
 | כולל מע״מ / לפני מע״מ | +מע"מ | |
 | חשבונית מס | קבלה (כשמדובר בחשבונית מס-קבלה) | |
-| מנוע | מודל, API | "מנועי ה-AI המובילים" |
+| מנוע | מודל, API | "מנועי AI כמו Veo ו-Kling" |
 
 סוגי סרטון, תוכניות, רמות איכות ותמהיל ויז׳ואל — בדיוק לפי התוויות בחלק 00 ובנספח F. התוויות של כל ערכי ה-enum מרוכזות במודול אחד, `lib/labels.ts` (מפתחות `common.labels.*`, חלק 02 §1.2), שמשמש את האתר, האפליקציה והאדמין: `brand_promo` סרטון תדמית · `reel_hook` רילס עם הוק · `offer` מבצע / חג · `testimonial` המלצה · `launch` השקה · `recruiting` גיוס עובדים · `explainer` הסבר שירות; `free` חינם · `starter` בסיס · `business` עסק · `agency` סוכנות.
 
@@ -141,7 +141,7 @@
 | הצלחה | "הפעולה בוצעה בהצלחה" | "נשמר" / "הסרטון מוכן" |
 | כפתור יצירה | "צור" | "צרו את הסרטון · 107 קרדיטים" |
 | יצירה מחדש של סצנה | "Regenerate" | "יצירה מחדש · 6 קרדיטים" |
-| מחיקה | "האם אתה בטוח?" | "למחוק את הפרויקט "מבצע חנוכה"? אי אפשר לשחזר אותו." |
+| מחיקה | "האם אתה בטוח?" | "למחוק את הפרויקט "מבצע חנוכה"? אפשר לשחזר אותו תוך 30 יום דרך התמיכה." |
 | כפתור במחיקה | "כן" / "לא" | "מחיקה" / "ביטול" |
 | מצב ריק | "אין נתונים" | "עוד אין פרויקטים. אפשר להתחיל בסרטון הראשון." |
 | לוכסן מגדרי | "הזן/י את המייל" | "הזינו את המייל" |
@@ -174,7 +174,7 @@ export function formatDecimal(n: number, digits?: number): string; // 1.25
 export function formatPercent(fraction: number, digits?: number): string; // 0.2 -> "20%"
 export function formatSigned(n: number): string;                  // +70 / −50 (U+2212 minus)
 export function formatCompact(n: number): string;                 // 12.5K -> "12.5 אלף"
-export function formatIls(amount: number, opts?: { agorot?: "auto" | "always" }): string; // "₪119" / "₪1,140" / "₪95.50"
+export function formatIls(amount: number, opts?: { agorot?: "auto" | "always" }): string; // DECIMAL shekels (`…Ils`): 119 -> "₪119" / "₪1,140" / 95.5 -> "₪95.50"; never pass Agorot
 export function formatDuration(totalSec: number): string;          // 30 -> "0:30", 75 -> "1:15"
 export function formatDurationWords(totalSec: number): string;     // 30 -> "30 שנ׳", 90 -> "דקה וחצי"
 export function formatTimecode(ms: number): string;                // 12400 -> "00:12.4" (mono)
@@ -185,7 +185,7 @@ export function formatPhoneIL(raw: string): string;                // "+97250123
 export function normalizePhoneIL(raw: string): string | null;      // -> E.164 "+972501234567" or null
 ```
 
-כללים: `formatIls` מחזיר תמיד ₪ לפני המספר (לא דרך `style: "currency"`, שב-he-IL שם את הסימן אחרי המספר ומוסיף תווי כיווניות), בלי אגורות כשהסכום שלם (`agorot: "always"` מציג תמיד שתי ספרות); ריווח אלפים בפסיק; מינוס טיפוגרפי (U+2212) לפני הסימן בסכומים שליליים ("−₪50"). זו הפונקציה היחידה שמציגה סכום בשקלים. חלק 06 משתמש ב-`formatAgorot(a, opts)` מ-`lib/billing/money.ts`, שעוטפת את הפונקציה הזו (`formatIls(a / 100, opts)`) — קוד חיוב, מיילים ושורות חשבונית קוראים לה; רכיבי React משתמשים ב-`Price`. `formatRelative` משתמש ב-`Intl.RelativeTimeFormat('he', { numeric: 'auto' })` ("אתמול", "מחר"); מעל 7 ימים — תאריך מלא. date-fns v4 עם הלוקאל `he` משמש לחישובים (תחילת שבוע = ראשון), לא לטקסט.
+כללים: `formatIls` מחזיר תמיד ₪ לפני המספר (לא דרך `style: "currency"`, שב-he-IL שם את הסימן אחרי המספר ומוסיף תווי כיווניות), בלי אגורות כשהסכום שלם (`agorot: "always"` מציג תמיד שתי ספרות); ריווח אלפים בפסיק; מינוס טיפוגרפי (U+2212) לפני הסימן בסכומים שליליים ("−₪50"). זו הפונקציה היחידה שמציגה סכום בשקלים. **יחידות:** `formatIls` מקבלת **שקלים עשרוניים** — היחידה של עמודות `*_ils` במסד, של שדות `…Ils` ב-API וב-UI (`Price.amountIls`); אסור להעביר לה אגורות. סכום מסוג `Agorot` (מספר שלם, שדות `…Ag`, רק בקוד החיוב ובממשקי ספקי התשלום והחשבוניות, חלק 06) מוצג **רק** דרך `formatAgorot(a, opts)` מ-`lib/billing/money.ts`, שעוטפת את הפונקציה הזו (`formatIls(a / 100, opts)`) — זו נקודת הכניסה היחידה ל-`Agorot`; קוד חיוב, מיילים ושורות חשבונית קוראים לה; רכיבי React משתמשים ב-`Price`. `formatRelative` משתמש ב-`Intl.RelativeTimeFormat('he', { numeric: 'auto' })` ("אתמול", "מחר"); מעל 7 ימים — תאריך מלא. date-fns v4 עם הלוקאל `he` משמש לחישובים (תחילת שבוע = ראשון), לא לטקסט.
 
 ### 2.6 `pnpm lint:copy` (`scripts/lint-copy.ts`)
 
@@ -194,17 +194,22 @@ export function normalizePhoneIL(raw: string): string | null;      // -> E.164 "
 | כלל | מה נתפס | רמה |
 |---|---|---|
 | ביטויים אסורים | כל ביטוי מ-`BANNED_PHRASES` (מיובא מ-`lib/ai/prompts/style-data.ts` — אין רשימה מקומית) | שגיאה |
-| מגדר | לוכסן בין אותיות עבריות (`[א-ת]/[א-ת]`), נקודה מגדרית (`·ות`, `.ות`), סוגריים מגדריים (`(ה)`, `(ות)`, `(ית)`), כפילויות "X או Xת"/"X או Xה" — חוץ ממפתחות ברשימת החריגים של §2.1 סעיף 1 | שגיאה |
+| מגדר | לוכסן בין אותיות עבריות (`[א-ת]/[א-ת]`), נקודה מגדרית (`·ות`, `.ות`), סוגריים מגדריים (`(ה)`, `(ות)`, `(ית)`), כפילויות "X או Xת"/"X או Xה" — חוץ ממפתחות ברשימת החריגים של §2.1 סעיף 1 ומבלוקי הטופס שבשורת "חריג קובץ לכפילויות" | שגיאה |
+| חריג קובץ לכפילויות | בלוקי הטופס בלבד של `content/legal/likeness-consent.mdx` ו-`content/legal/voice-declaration.mdx` — הטקסט שבין `{/* form:start */}` ל-`{/* form:end */}` (הצהרה בגוף ראשון שאדם חותם עליה או מקריא אותה, §2.1 סעיף 1) — פטורים מבדיקת הכפילויות של שורת "מגדר". שאר הקובץ, ושאר הכללים בתוך הבלוק, נבדקים כרגיל | פטור |
+| אותיות שימוש לפני משתנה | `[ובלמהשכ]-\{\{BRAND_NAME\}\}` (מקף בין אות שימוש לשם המותג; כותבים "נוצר ב{{BRAND_NAME}}") ו-`[ובלמהשכ]-?\{[A-Za-z]*(Name\|name\|Title\|title)\}` (אות שימוש, צמודה או עם מקף, לפני משתנה של טקסט עברי בזמן ריצה, למשל האות "מ" ומקף לפני `{inviterName}`), חוץ מבתוך קריאה ל-`withPrefix` (§2.1 סעיף 13) | שגיאה |
+| ספירה בלי plural | `\{[a-zA-Z]+\}\s+(COUNT_NOUNS)(?![א-ת])` מחוץ לבלוק `plural` של ICU (למשל `{n}` ואחריו "הוקים", או `{balance}` ואחריו "קרדיטים"). הכלל בודק את **שם העצם הנספר**, לא כל מילה שמסתיימת ב-ים/ות, ולכן פועל או שם עצם אחר אחרי משתנה ("לתוכנית {planName} תסתיים", "{agencyName} מבקשים", "{phone} הודעות שירות") לא נתפס. `COUNT_NOUNS` הוא `COUNT_NOUNS_HE.join("\|")`; `COUNT_NOUNS_HE` מיוצא מ-`lib/hebrew/count-nouns.ts`, ו-`lint-copy.ts` מייבא אותו (אין רשימה מקומית): קרדיטים, סרטונים, הוקים, סצנות, דקות, שניות, ימים, שבועות, חודשים, מילים, פרויקטים, ערכות, משתמשים, פורמטים, גרסאות, תמונות, קליפים, יצירות, שקלים, פעמים, פרטים, נתונים, תווים, פיקסלים, מקומות, סביבות. סוף המילה נבדק ב-`(?![א-ת])` ולא ב-`\b`: ב-RegExp של JavaScript ‏`\b` מוגדר רק מול `\w` של ASCII, ולכן אחרי אות עברית הוא לא מתאים לפני רווח, פיסוק או סוף מחרוזת, והכלל לא היה נתפס אף פעם. רשימת היתר: הקבועים שנזרעים ותמיד ≥ 3 — `trialCredits`, `monthlyCredits`, `allowance`, `draftCredits`, `standardCredits`, `freeVideoCredits`, `newMonthlyCredits`, `starterVideos`, `businessVideos`, `agencyVideos` | שגיאה |
+| מקף עברי | התו U+05BE (מקף עליון) ב-`messages/he.json`, ב-MDX ובתבניות המייל; כותבים "-" או מנסחים מחדש ("דו-שלבי", "אי-פעם") | שגיאה |
 | פיסוק | `!!`, `...` במקום `…`, מירכאות ASCII `"` בתוך מילה עברית (נדל"ן), "הכל" | שגיאה |
-| מטבע | ₪ צמוד לספרה בטקסט קבוע (חוץ משתי תוויות `shekel_format`, §2.1 סעיף 20); "ש״ח"/"ש"ח" אחרי מספר | שגיאה |
+| מטבע | ההיקף שונה לפי סוג הקובץ. **ב-`messages/he.json` ובתבניות המייל:** כל ₪ צמוד לספרה או למשתנה בטקסט קבוע הוא שגיאה (חוץ משתי תוויות `shekel_format`, §2.1 סעיף 20), כי הסכום מגיע כמשתנה שכבר עוצב ב-`formatIls`/`Price`. **ב-`content/**/*.{mdx,json}`** (דפים משפטיים, בלוג, תוכן סטטי): סכום מילולי מותר, כי לרכיבי ה-MDX אין `Price`/`Num` (חלק 02 §8), ולכן "₪119", "₪2,772" ו-"₪5,000 עד ₪60,000" עוברים; נתפס רק סדר הפוך — `\d\s?₪` (למשל "119 ₪"). **בכל הקבצים:** "ש״ח"/"ש"ח" אחרי מספר | שגיאה |
 | מע״מ | "18%" או "17%" כתובים ידנית (שיעור המע״מ מגיע מ-`app_settings.vat_rate`, חלק 06) | שגיאה |
 | טקסט זמני | התאמה לביטויים `\bT[B]D\b`, `\blor[e]m\b` (בלי רגישות לאותיות) ו-`\bTODO\b`, וטקסט בסוגריים מרובעים בערכים (חוץ מקובצי `*.example.json`, ש-`scripts/check-content.ts` של חלק 02 בודק) | שגיאה |
 | אנגלית | ערך ב-`messages/he.json` בלי אף אות עברית, חוץ מרשימת היתר (שמות מותג ומנועים, "Black Friday", קודי מקשים) | אזהרה |
 
 ### קריטריוני קבלה
-- [ ] `pnpm lint:copy` ירוק על הריפו, ונכשל על פיקסצ׳ר שמכיל כל אחד מהכללים בטבלה (`tests/fixtures/copy-lint/*.json`).
+- [ ] `pnpm lint:copy` ירוק על הריפו, ונכשל על פיקסצ׳ר שמכיל כל אחד מהכללים בטבלה (`tests/fixtures/copy-lint/*.{json,mdx}`), כולל מקף בין "ב" ל-`{{BRAND_NAME}}`, האות "מ" לפני `{inviterName}`, `{n}` ואחריו "הוקים" מחוץ ל-`plural` (גם בסוף מחרוזת וגם לפני פסיק או נקודה — הוכחה שהגבול `(?![א-ת])` עובד), "119 ₪" בקובץ MDX, ₪ צמוד לספרה ב-`messages/he.json`, ו-"דו" + U+05BE + "שלבי" (נכתב בפיקסצ׳ר כ-`"דו\u05BEשלבי"`); `{trialCredits}` ואחריו "קרדיטים", `{businessVideos}` ואחריו "סרטונים", "לתוכנית {planName} תסתיים", "₪119 ל-400 קרדיטים" בקובץ MDX, `{n, plural, one {…} two {…} other {# הוקים}}` ו-"מסכים או מסכימה" בתוך בלוק `form:start`/`form:end` של `likeness-consent.mdx` עוברים.
+- [ ] `COUNT_NOUNS_HE` מיוצא מ-`lib/hebrew/count-nouns.ts` בלבד, ו-`lint-copy.ts` מייבא אותו ולא מחזיק רשימה משלו.
 - [ ] `lint-copy.ts` מייבא את `BANNED_PHRASES` ולא מחזיק רשימה משלו (grep על ביטוי מהרשימה בתוך `scripts/`).
-- [ ] כל `select` על `g` כולל `female`/`male`/`other`; בפרופיל עם `ui_gender_form='female'` הדשבורד והאשף פונים בנקבה.
+- [ ] כל `select` על `g` כולל `female`/`male`/`other`; בפרופיל עם `ui_gender_form='female'` הדף הראשי והאשף פונים בנקבה.
 - [ ] אין ב-`components/` אף מחרוזת עברית ישירה (ESLint `no-literal-string` לעברית; חריג: משתני המותג).
 - [ ] `lib/format` מכוסה בבדיקות יחידה לכל פונקציה, כולל ₪ שלילי ("−₪50"), 0, אלפים, אגורות (`agorot: "always"`), אחוזים ו-`formatPhoneIL` עם `+972`, `972` ו-`05X`; `formatAgorot(9550)` מחזיר "₪95.50".
 
@@ -677,7 +682,7 @@ const fredoka = Fredoka({ subsets: ["hebrew", "latin"], weight: ["600"], display
 const assistant = Assistant({ subsets: ["hebrew", "latin"], weight: ["700", "800"], display: "swap", preload: false, variable: "--font-assistant" });
 const secularOne = Secular_One({ subsets: ["hebrew", "latin"], weight: ["400"], display: "swap", preload: false, variable: "--font-secular-one" });
 
-/** Same keys as FONTS in remotion/fonts.ts (Part 05) and as the brand-kit font list. Values = real CSS family names. */
+/** Same keys as FONT_FAMILIES in remotion/fonts.ts (Part 05 §20.9) and as the brand-kit font list. Values = real CSS family names. */
 export const CAPTION_FONT_FAMILIES = {
   Heebo: heebo.style.fontFamily,
   Rubik: rubik.style.fontFamily,
@@ -692,7 +697,7 @@ export type CaptionFontKey = keyof typeof CAPTION_FONT_FAMILIES;
 export const captionFontsClassName = [rubik, suezOne, fredoka, assistant, secularOne].map((f) => f.variable).join(" ");
 ```
 
-- `CaptionPreview` ממפה את `font.family` של `CAPTION_PRESETS` (§16.2) דרך `CAPTION_FONT_FAMILIES`. בנגן Remotion בדפדפן (`LivePreviewPhone`, נגן העורך) הקומפוזיציה מקבלת את אותה מפה במקום `FONTS` של `remotion/fonts.ts` — הקומפוזיציה עצמה לא קוראת ל-`loadFont` בדפדפן (המימוש בחלק 05 §20.9).
+- `CaptionPreview` ממפה את `font.family` של `CAPTION_PRESETS` (§16.2) דרך `CAPTION_FONT_FAMILIES`. בנגן Remotion בדפדפן (`LivePreviewPhone`, נגן העורך) הקומפוזיציה מקבלת את אותה מפה במקום `FONT_FAMILIES` של `remotion/fonts.ts` — הקומפוזיציה עצמה לא קוראת ל-`loadFont` בדפדפן: הגופנים של `@remotion/google-fonts` נטענים רק ב-`loadRenderFonts()`, ורק כש-`getRemotionEnvironment().isRendering` (המימוש בחלק 05 §20.9).
 - לתמונות OG נשמרים קובצי TTF סטטיים של Heebo 600/800 ב-`public/fonts/` (ל-`next/og`).
 
 ### 5.2 סולם הטיפוגרפיה
@@ -929,7 +934,7 @@ export function useTheme(): ThemeContextValue;
    ה-alias `hooks` מצביע על `lib/react-hooks` כדי שלא יתבלבל עם `components/hooks/` (רכיבי ספריית ההוקים של המוצר). אף קובץ לא מייבא מ-`@/hooks` (כלל ESLint `no-restricted-imports`). מודולים של חלקים אחרים שהם React hooks לפי שמם (`lib/realtime/use-job-channel.ts`, `lib/ai/client/use-ndjson-object.ts`) נשארים במקומם.
 3. **מחיקת הטוקנים של shadcn:** ה-CLI מוסיף ל-`globals.css` בלוקים `:root { --background: oklch(…) }`, `.dark { … }`, `@theme inline { --color-background: var(--background) … }` ו-`@custom-variant dark (&:is(.dark *))`. מוחקים את כולם — הגשר שלנו (§4.2) מחליף אותם.
 4. **ספק כיוון:** עוטפים את האפליקציה ב-`DirectionProvider` של shadcn עם `direction="rtl"` (מתווסף דרך ה-CLI לפי מדריך ה-RTL של shadcn ל-Next.js). אם הרכיב לא זמין בגרסה המותקנת — עוטפים ב-`Direction.Provider dir="rtl"` מהחבילה `radix-ui`. הספק לא קובע את ה-attribute של ה-HTML, ולכן `dir` ו-`lang` נשארים על `<html>`. מתעדים ב-`DECISIONS.md` [M0-verify].
-5. **הוספת הפרימיטיבים** (§8.3) עם `shadcn add`, ואחרי כל הוספה: `pnpm lint:rtl` + סקירת diff ידנית, כי ההמרה האוטומטית לא מושלמת.
+5. **הוספת הפרימיטיבים** (§8.3) עם `shadcn add`, ואחרי כל הוספה: `pnpm lint:rtl` + סקירת diff ידנית, כי ההמרה האוטומטית לא תמיד מדויקת.
 6. **רכיבים מבחוץ** (Magic UI, Aceternity) מותקנים דרך ה-registry של shadcn. אחרי ההתקנה מריצים פעם אחת `pnpm dlx shadcn@latest migrate rtl <path>` על הקבצים החדשים (הפקודה לא אידמפוטנטית לגמרי — מריצים פעם אחת וסוקרים את ה-diff), ואז עוברים ידנית על כל `left/right/ml/mr/pl/pr/text-left/text-right/translate-x`; אנימציות כיווניות עוברות למשתני הכיוון (`--marquee-shift` ב-§4.2, `slideFromStart`/`stepTransition` ב-§12.2).
 7. **בדיקת עשן:** דף `/admin/design` (גלריית רכיבים) מציג כל פרימיטיב בכל variant ומצב, בשתי הערכות. הגישה כמו לכל `/admin`: `platform_admin_status() = 'ok'` (מנהל פלטפורמה עם אימות דו-שלבי, חלק 04 §9.2 ו-§17.2); אחרת 404 או הפניה ל-`/admin/mfa`. Playwright מצלם אותו ב-RTL ומריץ עליו axe (בסביבת הבדיקה, עם משתמש אדמין של ה-seed).
 
@@ -1198,7 +1203,7 @@ export interface PriceProps {
 | `xl` | 56px/800 (Heebo, לא Karantina) | 0.55em, מיושר לעליון | שורה מתחת, `text-small` |
 
 - מבנה: `[₪119][לחודש]` · `[כולל מע״מ]`. הספרות והסימן בתוך `<bdi dir="ltr" class="num">`, כך שהתצוגה היא תמיד "₪119".
-- קוראי מסך: החלק החזותי `aria-hidden`, ולצידו `sr-only` במבנה "119 שקלים לחודש, כולל מע״מ" (ועם `compareAtIls`: "95 שקלים לחודש במקום 119, בחיוב שנתי של 1,140 שקלים, כולל מע״מ").
+- קוראי מסך: החלק החזותי `aria-hidden`, ולצידו `sr-only` במבנה "119 שקלים לחודש, כולל מע״מ" (ועם `compareAtIls`: "95 שקלים לחודש במקום 119, בחיוב שנתי של 1,140 שקלים, כולל מע״מ"). הסכום נבנה מ-`common.price.srAmount`/`srInstead` (§19) עם שני משתנים: `amount` (המספר, לבחירת צורת היחיד והזוגי) ו-`amountText` (אותו סכום ב-`formatDecimal`, בלי ₪, עם אגורות כשיש).
 - `compareAtIls` מוצג כ-`<del>` בצבע `muted` לפני המחיר.
 - אין עיגול: המחיר מוצג כפי שהוא בטבלת `plans`/`credit_packs`.
 
@@ -1373,18 +1378,22 @@ export interface CostBadgeProps {
 ```ts
 // components/billing/credits-meter.tsx
 export interface CreditSummary {           // camelCase mapping of the get_credit_summary() row (Part 04 §10.5)
-  balance: number; reserved: number; planAllowance: number | null; expiring30d: number; nextResetAt: string | null;
+  balance: number;
+  reserved: number;
+  planAllowance: number | null;            // null = no monthly allowance (free; get_credit_summary maps 0 -> null)
+  expiring30d: number;
+  nextResetAt: string | null;
 }
 export interface CreditsMeterProps {
   summary: CreditSummary | null;           // null = loading
   variant?: "pill" | "card";               // pill in TopBar; card on /app/billing
-  lowThreshold?: number;                   // default: 15% of planAllowance, or 30 credits when planAllowance is null
+  lowThreshold?: number;                   // default: lowThreshold(summary, planId) from lib/billing/credits.ts (Part 06 §2.6), computed on the server by the /app layout and passed down
   onTopUp?: () => void;                    // opens TopUpDialog
 }
 ```
 
-- **pill:** `Zap` + `Num` (היתרה) + טבעת התקדמות SVG (24px, `balance / planAllowance`, בצבע `primary-text`, עם כיוון השעון, לא מתהפכת). מצב נמוך: הטבעת והמספר ב-`rose`; אפס: "0" ב-`rose`. טעינה: skeleton בצורת pill. כפתור עם `aria-label="יתרת קרדיטים: 240. לפירוט"`.
-- **הפופאובר / card:** "יתרה" · "שמורים ליצירות שרצות עכשיו" · "יפוגו ב-30 הימים הקרובים" · "המכסה החודשית מתחדשת ב-1 בנובמבר" · כפתורים "רכישת קרדיטים" (primary) ו"כמה עולה כל סרטון?" (link).
+- **pill:** `Zap` + `Num` (היתרה) + טבעת התקדמות SVG (24px, `balance / planAllowance`, בצבע `primary-text`, עם כיוון השעון, לא מתהפכת). הטבעת מרונדרת רק כש-`planAllowance != null`; אחרת (התוכנית החינמית, בלי מכסה חודשית) — המספר בלבד. מצב נמוך (`balance < lowThreshold`): הטבעת (אם יש) והמספר ב-`rose`; אפס: "0" ב-`rose`. טעינה: skeleton בצורת pill. כפתור עם `aria-label="יתרת קרדיטים: 240. לפירוט"`.
+- **הפופאובר / card:** "יתרה" · "שמורים ליצירות שרצות עכשיו" · "יפוגו ב-30 הימים הקרובים" · "המכסה החודשית מתחדשת ב-1 בנובמבר" (רק כש-`planAllowance != null`) · כפתורים "רכישת קרדיטים" (primary) ו"כמה עולה כל סרטון?" (link).
 - שינוי יתרה (אחרי יצירה או החזר) מונפש עם `Num animate`. ירידה מתחת לסף לא חוסמת יצירה שכבר רצה, אף פעם.
 
 ### 10.10 `StatusBadge` — סטטוס עם אייקון וטקסט (לעולם לא צבע בלבד)
@@ -1415,7 +1424,7 @@ export type StatusBadgeProps =
 
 | kind | ערך → תווית (גוון) |
 |---|---|
-| project | `draft` טיוטה (neutral) · `brief` בהכנה (neutral) · `script` תסריט מוכן (neutral) · `storyboard` סטוריבורד מוכן (neutral) · `voice`/`captions`/`assets`/`render` בתהליך יצירה (progress) · `done` מוכן (success) · `failed` נכשל · הקרדיטים הוחזרו (danger) |
+| project | `draft` טיוטה (neutral) · `brief` בהכנה (neutral) · `script` תסריט מוכן (neutral) · `storyboard` הסצנות מוכנות (neutral) · `voice`/`captions`/`assets`/`render` בתהליך יצירה (progress) · `done` מוכן (success) · `failed` נכשל · הקרדיטים הוחזרו (danger) |
 | job | `queued` בתור (waiting) · `running` בתהליך (progress) · `waiting_external` ממתין למנוע (progress) · `succeeded` הושלם (success) · `failed` נכשל (danger) · `canceled` בוטל (neutral) |
 | step | `pending` ממתין (neutral) · `running` בעבודה (progress) · `waiting_external` ממתין למנוע (progress) · `succeeded` הושלם (success) · `failed` נכשל (danger) · `skipped` דולג (neutral) · `canceled` בוטל (neutral) · `degraded` הושלם חלקית (warning) |
 | scene | `pending` ממתינה (neutral) · `generating` נוצרת… (progress) · `ready` מוכנה (success) · `failed` נכשלה (danger) · `degraded` תמונה בתנועה (warning) |
@@ -1442,7 +1451,7 @@ export interface EmptyStateProps {
 }
 ```
 
-ברירות מחדל לקופי (`common.empty.*`, §19; חלק 03 רשאי לדייק לכל מסך באותה רוח, ואם הנוסח שלו פונה ישירות למשתמש — עם `select` לפי §2.2): "עוד אין פרויקטים. אפשר להתחיל בסרטון הראשון." · "לא מצאנו תוצאות. אפשר לנסות מילה אחרת או לנקות את הסינון." · "אין התראות חדשות." · "עוד אין הוקים שמורים. כוכב על הוק שומר אותו כאן."
+ברירות מחדל לקופי (`common.empty.*`, §19; חלק 03 רשאי לדייק לכל מסך באותה רוח, ואם הנוסח שלו פונה ישירות למשתמש — עם `select` לפי §2.2): "עוד אין פרויקטים. אפשר להתחיל בסרטון הראשון." · "לא מצאנו תוצאות. אפשר לנסות מילה אחרת או לנקות את הסינון." · "אין התראות חדשות." · "עוד אין הוקים שמורים. לחיצה על הכוכב בכרטיס של הוק שומרת אותו כאן."
 
 ### 10.12 `CaptionPreview` — תצוגת סגנון כתוביות בלי Remotion
 
@@ -1520,13 +1529,13 @@ import type { HookLocation } from "@/lib/analytics/events";             // Part 
 export interface HookCardProps {
   hook: HookCardDTO;
   variant: "library" | "compact" | "featured" | "picker";
-  // library  = full card (all zones; Part 02 calls it "default") · compact = type + niche chips, text, copy (+ "צרו סרטון" only when onCreateVideo is passed)
+  // library  = full card (all zones; the same name in Part 02 §5.2) · compact = type + niche chips, text, copy (+ "צרו סרטון" only when onCreateVideo is passed)
   // featured = hook of the day (text in h3 size, soft glow) · picker = selectable card inside the wizard (HookPicker)
   selected?: boolean;                                // picker: multi-select (variants)
   personalization?: Partial<Record<PlaceholderName, string>> | null; // fills {placeholders} live via lib/hebrew/placeholders.ts (prefix grammar)
   strength?: 1 | 2 | 3 | 4 | 5 | null;               // only for AI-written workspace_hooks ("חוזק 4 מתוך 5")
   aiWritten?: boolean;                               // tag "נכתב בשבילכם" (workspace_hooks)
-  showVideo?: boolean;                               // sample_video_url as VideoTile (hover / tap)
+  showVideo?: boolean;                               // sample_video_url as VideoTile, poster = sample_poster_url (hover / tap)
   onCopy?: (text: string) => void;                   // copies the personalized text; event hook_copied {hook_id, niche, location}
   onCreateVideo?: () => void;                        // "צרו סרטון מההוק"
   onFavorite?: (on: boolean) => void;                // signed-in only; event hook_favorited {hook_id, on}
@@ -1537,10 +1546,25 @@ export interface HookCardProps {
 }
 ```
 
-- אנטומיה (הקופי, המונים והגייטינג המלאים — חלק 02 §5.2): צ׳יפ לימון עם שם סוג ההוק (`bg-lemon text-on-primary`, 15.17:1) · צ׳יפים של פלטפורמות **בטקסט** (רילס · טיקטוק · שורטס · פייסבוק · יוטיוב · וואטסאפ; לא לוגואים) · טקסט ההוק ב-`<blockquote>` (Heebo 700, 20px, `dir="rtl"`) — placeholder שלא מולא מוצג כ-`PlaceholderChip` במרקר לימון עם שם השדה ("עיר"), ומולא — בטקסט רגיל עם קו תחתון מנוקד · "מה רואים ב-3 השניות הראשונות" (`visual_direction_he`, `text-small`, `text-2`) · הערת ציות כשקיימת · פעולות: "העתקה" ("הועתק" למשך 2 שניות, והכרזה דרך `useAnnounce`), "צרו סרטון מההוק", כוכב, ושאר הפעולות שהועברו ב-props.
+- אנטומיה (הקופי, המונים והגייטינג המלאים — חלק 02 §5.2): צ׳יפ לימון עם שם סוג ההוק (`bg-lemon text-on-primary`, 15.17:1) · צ׳יפים של פלטפורמות **בטקסט** (התוויות רק מ-`common.labels.platform.*` דרך `lib/labels.ts`, חלק 02 §1.2 — למשל "רילס", "טיקטוק", "יוטיוב שורטס", "סטטוס וואטסאפ"; לא לוגואים) · טקסט ההוק ב-`<blockquote>` (Heebo 700, 20px, `dir="rtl"`) — placeholder שלא מולא מוצג כ-`PlaceholderChip` במרקר לימון עם שם השדה ("עיר"), ומולא — בטקסט רגיל עם קו תחתון מנוקד · "מה רואים ב-3 השניות הראשונות" (`visual_direction_he`, `text-small`, `text-2`) · הערת ציות כשקיימת · פעולות: "העתקה" ("הועתק" למשך 2 שניות, והכרזה דרך `useAnnounce`), "צרו סרטון מההוק", כוכב, ושאר הפעולות שהועברו ב-props.
+- **מיפוי שדות לאזורים** (`HookCardDTO` שטוח, חלק 04 §20.3 — אין אובייקטים מקוננים `type`/`niche`/`season`):
+
+  | אזור בכרטיס | שדות |
+  |---|---|
+  | צ׳יפ סוג ההוק (לימון) | `hook_type_name_he` |
+  | צ׳יפ נישה (רק מחוץ לעמוד הנישה) | `NicheIcon name={niche_icon}` + `niche_short_name_he ?? niche_name_he`; כש-`niche_slug === null` — "לכל עסק" |
+  | צ׳יפ עונה (רק כשיש) | `season_name_he` |
+  | צ׳יפי פלטפורמה, מטרה ופנייה | `platforms`, `goal`, `gender` (רק כשהוא לא `neutral`) דרך `lib/labels.ts` |
+  | טקסט ההוק | `text_he` + `placeholders` |
+  | "מה רואים ב-3 השניות הראשונות" | `visual_direction_he` |
+  | "למה זה עובד:" (לא מוצג כשהערך `null`) | `why_it_works_he` |
+  | הערת ציות | `compliance_note_he` |
+  | סרטון לדוגמה (`showVideo`, רק כש-`sample_video_url` קיים) | `VideoTile src={sample_video_url} poster={sample_poster_url}` |
+  | מונים (לפי הספים של חלק 02 §5.2) | `copies_count`, `generations_count` |
+
 - `picker`: הכרטיס הוא checkbox (`role="checkbox"`, `aria-checked`); כש-`strength` קיים — מד "חוזק" (1–5 נקודות + הטקסט "חוזק 4 מתוך 5", הנקודות `aria-hidden`).
 - `compact` בתוך מרקיז (`HooksTeaser`): בלי `onCreateVideo`, כלומר טקסט + צ׳יפים + העתקה בלבד; העותק המשוכפל של המרקיז `aria-hidden` + `inert` (§9.5).
-- `HookFilters` (`components/hooks/hook-filters.tsx`): chips מרובי-בחירה לכל פאסט (סוג · פלטפורמה · מטרה · פנייה · עונה), שורת חיפוש, מיון, ו"ניקוי הסינון". במובייל — Sheet מתחתית עם כפתור "הצגת {n} הוקים". הסנכרון ל-URL ושמות הפאסטים — חלק 02.
+- `HookFilters` (`components/hooks/hook-filters.tsx`): chips מרובי-בחירה לכל פאסט (סוג · פלטפורמה · מטרה · פנייה · עונה), שורת חיפוש, מיון, ו"ניקוי הסינון". במובייל — Sheet מתחתית עם כפתור `"{n, plural, one {הצגת הוק אחד} two {הצגת שני הוקים} other {הצגת # הוקים}}"`. הסנכרון ל-URL ושמות הפאסטים — חלק 02.
 
 ### 10.16 `SectionHeading`, `GlowCard`, `LegalPage`, `Breadcrumbs`, `JsonLd`
 
@@ -1585,12 +1609,12 @@ export interface HookCardProps {
 | `HooksTeaser` | 2 שורות מרקיז RTL בכיוונים מנוגדים של `HookCard marquee` + חיפוש → `/hooks?q=` + CTA | — | paused ב-hover/focus/כפתור · reduced → שתי שורות גלילה ידנית | העותק המשוכפל `aria-hidden` + `inert`; כפתור "עצירת התנועה" |
 | `ShowcaseGallery` | Masonry (CSS columns) של `VideoTile playMode="hover"` + chips סינון (נישה · פורמט · מטרה); במובייל לחיצה פותחת `Drawer` עם `VideoPlayer` ו"צרו סרטון כזה" | — | loading · מסונן-ריק · לא מרונדר כשלא מתקיים כלל ההצגה של חלק 02 §3.10 | `examples` מפורסמים; פריט הדגמה (מדוגמאות נספח D) רק עם התווית "הדגמה", ודוגמה אמיתית מחליפה אותו באותו מקום כשהיא מתפרסמת |
 | `Testimonials` | קרוסלת Embla RTL: תמונה, עסק, ציטוט, תוצאה | — | **לא מרונדר בכלל** כשאין המלצות אמיתיות | `items`; קרוסלה נגישה (§9.5) |
-| `PricingCards` | 4 כרטיסים; `ToggleGroup` חודשי/שנתי ("חסכו 20%"); מתג "מחירים לעסקים (לפני מע״מ)"; `business` מודגש: גבול זהב + badge "הכי פופולרי" | monthly · annual · b2b | — | `Price size="xl"`; רשימת פיצ׳רים עם `Check` (לא מתהפך); ה-CTA מתאר את התוכנית ("בחירה בתוכנית עסק") |
+| `PricingCards` | 4 כרטיסים; `ToggleGroup` "חודשי" · "שנתי · חיסכון של 20%"; מתג "מחירים לעסקים (לפני מע״מ)"; התוכנית עם `plans.is_highlighted` (בהשקה `business`) מודגשת: גבול זהב + badge "מומלץ" (בלי טענת פופולריות שאין מאחוריה נתונים, חלק 02 §7.2) | monthly · annual · b2b | — | `Price size="xl"`; רשימת פיצ׳רים עם `Check` (לא מתהפך); ה-CTA מתאר את התוכנית ("בחרו בעסק") |
 | `CreditCostTable` | טבלה: סוג סרטון · משך · איכות · קרדיטים; במובייל כרטיסים | — | — | מספרים ב-`Num`; `caption` לטבלה |
 | `FaqAccordion` | Accordion (`type="multiple"`); chevron בסוף השורה | — | — | `items: { id: string; q_he: string; a_he: string }[]` (אותו מבנה כמו `niches.faq` ו-`faqPage()` ב-`lib/seo/jsonld.ts`; בעמודים סטטיים הערכים נשלפים מ-`marketing.faq.items.{id}.q/.a`), `location` לאירוע `faq_expanded`; כמה פריטים יכולים להיות פתוחים; הכותרת היא כפתור בתוך `<h3>`; JSON-LD דרך `JsonLd` |
 | `FinalCtaBand` | פס ברוחב מלא עם `bg-projector` חזק, H2 בגופן תצוגה, `NichePicker combobox` + CTA | — | — | H2 עם `display` (Karantina) — רגע התצוגה היחיד בדף מלבד ה-hero |
 | `MarketingFooter` | 4–5 עמודות: מוצר · נישות · הוקים · משאבים · חברה ומשפטי (כולל "הצהרת נגישות" ו"ביטול מנוי"); ניוזלטר עם צ׳קבוקס הסכמה **לא מסומן** | — | שליחת ניוזלטר: idle · submitting · success · error | `footer` עם `nav aria-label="קישורים בתחתית"`; `LtrInput kind="email"` |
-| `MobileStickyCta` | פס 72px `glass` מתחת ל-`md`: בהתחלה CTA "צרו סרטון חינם", בסוף כפתור וואטסאפ | — | מופיע אחרי שה-hero יוצא מהמסך; נעלם כשה-footer נראה | `WhatsAppIcon` + `aria-label="דברו איתנו בוואטסאפ"`; `z-40`; `scroll-padding-bottom` |
+| `MobileStickyCta` | פס 72px `glass` מתחת ל-`md`: בהתחלה CTA "צרו סרטון בחינם", בסוף כפתור וואטסאפ | — | מופיע אחרי שה-hero יוצא מהמסך; נעלם כשה-footer נראה | `WhatsAppIcon` + `aria-label="דברו איתנו בוואטסאפ"`; `z-40`; `scroll-padding-bottom` |
 
 ### 11.3 רכיבי האפליקציה (`components/layout|wizard|editor|video|billing|brand|team/`)
 
@@ -1601,7 +1625,7 @@ export interface HookCardProps {
 | `TopBar` | 56px: `WorkspaceSwitcher` (התחלה) · טריגר ⌘K במרכז ("חיפוש נישה, הוק או פרויקט" + `Kbd`) · בסוף: `CreditsMeter`, `NotificationBell`, `UtilityMenu`, תפריט אווטאר | — | — | `header`; במובייל: לוגו + `CreditsMeter` + התראות בלבד |
 | `WorkspaceSwitcher` | Popover + Command: הסביבה הנוכחית (אות ראשונה + שם `dir="auto"`), קבוצות "הסביבה שלי" / "לקוחות"; "סביבת לקוח חדשה" לסוכנות | — | טוען · ריק | מחליף את עוגיית `ws` דרך השרת; `aria-label="החלפת סביבת עבודה"` |
 | `CommandMenu` | cmdk ב-Dialog: פעולות · פרויקטים · נישות · הוקים · הגדרות | — | ריק (`common.empty.search`: "לא מצאנו תוצאות. אפשר לנסות מילה אחרת או לנקות את הסינון.") · טוען | Ctrl+K / ⌘K; `dir="rtl"`; הפריט הנבחר מוכרז |
-| `MobileTabBar` | 64px: בית · פרויקטים · ＋ · הוקים · חשבון; ＋ עיגול זהב 52px | — | — | תוויות תמיד גלויות; `aria-current`; ＋ `aria-label="סרטון חדש"` |
+| `MobileTabBar` | 64px: ראשי · פרויקטים · ＋ · הוקים · חשבון; ＋ עיגול זהב 52px | — | — | תוויות תמיד גלויות; `aria-current`; ＋ `aria-label="סרטון חדש"` |
 | `WizardStepper` | 9 שלבים (`business · niche · goal · hook · script · style · voice · music · preview`) ב-`<ol>`; שלב 1 מימין; שלבים שהושלמו לחיצים | desktop · compact ("שלב 3 מתוך 9 · …" + פס התקדמות) | הושלם · נוכחי · עתידי (לא לחיץ) | `aria-current="step"`; תוויות השלבים — חלק 03 |
 | `WizardFooter` | פס דביק: "הקודם" (התחלה, secondary, `DirIcon back`) · מחוון שמירה · "המשך" (סוף, primary, `DirIcon forward`, `cost` כשהשלב מוציא קרדיטים) | — | saving ("שומרים…") · saved ("נשמר") · error ("לא נשמר. ננסה שוב בעוד רגע") | `z-40`; Enter בשדה אחרון (לא textarea) = "המשך" רק כשהשלב תקין |
 | `LivePreviewPhone` | `PhoneFrame` + Remotion Player (טעינה עצלה) + `VideoControls`; `ToggleGroup` 9:16/1:1/16:9; `SafeZoneToggle`; `CostBadge chip` + משך משוער | desktop (5 עמודות בסוף, sticky) · mobile (מיני-טלפון צף בפינה התחתונה-סופית → `Drawer`) | ריק (גרדיאנט בצבעי המותג + "התצוגה המקדימה תופיע כאן") · טוען · מנגן · reduced (בלי autoplay) | `aria-label="תצוגה מקדימה של הסרטון"`; גופני הכתוביות מ-`caption-fonts.ts` (§5.1), לא מ-`@remotion/google-fonts` |
@@ -1614,7 +1638,7 @@ export interface HookCardProps {
 | `MusicPicker` | chips של מצב רוח; שורות רצועה: נגן · שם · מצב רוח · משך · גל קול (LTR); "מוזיקה מקורית לסרטון" עם `cost`; "בלי מוזיקה" | — | מנגן · נעול לפי תוכנית | רק רצועה אחת מתנגנת בכל רגע |
 | `CaptionPresetPicker` | 6 כרטיסים עם `CaptionPreview` (לופ ב-hover/focus): פופ · קופסה נקייה · קריוקי · פוסטר · חדשות · רך; בורר צבע הדגשה; מיקום (תחתון / אמצע) | — | נבחר · reduced (סטטי) | RadioGroup; טוען את `caption-fonts.ts` |
 | `SafeZoneToggle` | Switch "הצגת אזורים בטוחים" + Tooltip הסבר | — | — | שולט ב-`PhoneFrame.showSafeZones` |
-| `ConfirmGenerateDialog` | סיכום (פורמטים, משך, איכות, ויז׳ואל, גרסאות) · `CostBadge` עם פירוט · שורה משנית "כולל התסריט שכבר נוצר: {total} קרדיטים בסך הכול" · "אחרי היצירה יישארו 202 קרדיטים" · הבטחת ההחזר · שורת מדיניות ה-AI מעל הכפתורים (קישור ל-`/legal/ai-policy` בלשונית חדשה, בלי צ׳קבוקס) · "צרו את הסרטון · 107 קרדיטים" / "חזרה לעריכה" (הנוסחים המלאים — חלק 03 §6.10) | — | insufficient (הראשי הופך ל"רכישת קרדיטים") · חסום מדיניות (בחירות / יום שקט) · submitting | פוקוס ראשוני על כפתור "חזרה לעריכה" (פעולה שעולה כסף לא מקבלת פוקוס אוטומטי) |
+| `ConfirmGenerateDialog` | סיכום (פורמטים, משך, איכות, ויז׳ואל, גרסאות) · `CostBadge` עם פירוט · שורה משנית "כולל התסריט שכבר נוצר: {total, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} בסך הכול" · "אחרי היצירה יישארו 202 קרדיטים" · הבטחת ההחזר · שורת מדיניות ה-AI מעל הכפתורים (קישור ל-`/legal/ai-policy` בלשונית חדשה, בלי צ׳קבוקס) · "צרו את הסרטון · 107 קרדיטים" / "חזרה לעריכה" (הנוסחים המלאים — חלק 03 §6.10) | — | insufficient (הראשי הופך ל"רכישת קרדיטים") · חסום מדיניות (בחירות / יום שקט) · submitting | פוקוס ראשוני על כפתור "חזרה לעריכה" (פעולה שעולה כסף לא מקבלת פוקוס אוטומטי) |
 | `RenderProgress` | טלפון במרכז עם התוצר המתקדם ביותר; `Progress variant="ai"` + זמן משוער; `StageList`; `SceneStrip`; "אפשר לסגור את הדף. נשלח לכם מייל כשהסרטון מוכן." | — | running · waiting_external · degraded (הודעה לכל סצנה) · failed (כרטיס danger + פעולות) · succeeded (נגן + הורדות; קונפטי רק בלי reduce) | הכרזות `aria-live` לפי §13.3 |
 | `StageList` | `<ol>` של שלבים: ✓ · נקודה פועמת · שעון · ✕, עם זמן שעבר | vertical · compact | — | `aria-current="step"` על הפעיל |
 | `SceneStrip` | שורה אופקית (RTL) של מיני-כרטיסי 9:16: skeleton → keyframe מטושטש (`blur-md` + `shimmer-ai`) → קליפ מתנגן | — | failed · degraded (badge "תמונה בתנועה") | כל כרטיס `aria-label="סצנה 3: מוכנה"` |
@@ -1775,7 +1799,7 @@ export interface WordRevealProps {
 ### 13.1 עקרונות
 
 - **הבסיס החוקי** בישראל הוא תקנה 35 ות״י 5568 (WCAG 2.0 ברמה AA). **בונים ובודקים לפי WCAG 2.2 AA**, שמכסה את 2.0 ומוסיף את מה שבודקים מקצועיים מחפשים היום.
-- **אין ווידג׳ט נגישות צף ואין "תוסף נגישות".** הנגישות מובנית בקוד. מה שמשתמשים מחפשים בווידג׳טים כאלה זמין אצלנו כהגדרות אמיתיות: ערכת צבעים (כהה/בהירה), "עצירת אנימציות", כתוביות גדולות יותר בנגן (`/app/settings/accessibility`), וזום של הדפדפן שעובד עד 200% בלי שבירה.
+- **אין ווידג׳ט נגישות צף ואין "תוסף נגישות".** הנגישות מובנית בקוד. מה שמשתמשים מחפשים בווידג׳טים כאלה זמין אצלנו כהגדרות אמיתיות: ערכת נושא (כהה, בהירה או לפי המכשיר), "עצירת אנימציות", כתוביות גדולות יותר בנגן (`/app/settings/accessibility`), וזום של הדפדפן שעובד עד 200% בלי שבירה.
 - **הצהרת נגישות** ב-`/legal/accessibility` (התוכן — חלק 02 §10.6): יעד WCAG 2.2 AA ועמידה בת״י 5568, פערים ידועים, תאריך הבדיקה האחרונה, ופרטי הקשר לפניות בנושא נגישות (`{{A11Y_COORDINATOR_TITLE}}`, `{{A11Y_COORDINATOR_NAME}}`, `{{A11Y_COORDINATOR_PHONE}}`, `{{A11Y_COORDINATOR_EMAIL}}`). קישור אליה ב-footer, ב-`UtilityMenu` ובתפריט האווטאר.
 - **מסמכים להורדה:** PDF שאנחנו מפיקים בעצמנו (טופס ההסכמה לשימוש בדמות, חלק 02 §10.8) הוא PDF מתויג — שפת מסמך `he`, כותרות מסומנות, סדר קריאה נכון וטקסט אמיתי (לא תמונה) — לפי ת״י 5568 חלק 2 (נגישות מסמכים דיגיטליים, 2023). חשבוניות מ-Morning הן מסמכי צד שלישי.
 - **ערך למשתמשים שלנו:** כל ייצוא כולל SRT ו-VTT, כדי שהעסקים יעמדו בת״י 5568 באתרים שלהם.
@@ -1880,7 +1904,7 @@ export const sceneDndA11y = (t: (k: string, v?: Record<string, unknown>) => stri
 
 ### 13.7 בדיקות
 
-- **אוטומטי:** `pnpm test:a11y` — `@axe-core/playwright` על כל תבניות הדפים הציבוריים (בית, `/niches`, `/niches/[niche]`, `/hooks`, `/hooks/[niche]`, `/hooks/types/[type]`, `/pricing`, `/examples`, `/blog/[slug]`, כל דפי `/legal/*`, `/v/[token]`, `/approve/[token]`) ועל מסכי מפתח באפליקציה (דשבורד, כל 9 שלבי האשף, `ConfirmGenerateDialog`, `RenderProgress`, עורך, חיוב, ביטול מנוי), **בשתי ערכות הנושא** וגם עם `reducedMotion`. אפס הפרות serious/critical.
+- **אוטומטי:** `pnpm test:a11y` — `@axe-core/playwright` על כל תבניות הדפים הציבוריים (דף הבית `/`, `/niches`, `/niches/[niche]`, `/hooks`, `/hooks/[niche]`, `/hooks/types/[type]`, `/pricing`, `/examples`, `/blog/[slug]`, כל דפי `/legal/*`, `/v/[token]`, `/approve/[token]`) ועל מסכי מפתח באפליקציה (דשבורד, כל 9 שלבי האשף, `ConfirmGenerateDialog`, `RenderProgress`, עורך, חיוב, ביטול מנוי), **בשתי ערכות הנושא** וגם עם `reducedMotion`. אפס הפרות serious/critical.
 - **ידני (בכל אבן דרך מ-M2, ומלא ב-M7):** NVDA + Chrome ו-VoiceOver + Safari ב-iOS על: הרשמה, אשף מלא, יצירה עד הורדה, רכישה, ביטול מנוי. מעבר מקלדת-בלבד. זום 200%. 320px. Windows High Contrast (`forced-colors`).
 - **בדיקת עברית לקוראי מסך:** מחירים נקראים "119 שקלים לחודש", מספרים בתוך משפט לא מתהפכים, "POV:" לא קופץ לסוף המשפט.
 
@@ -1908,7 +1932,7 @@ export const sceneDndA11y = (t: (k: string, v?: Record<string, unknown>) => stri
 
 | מושג | אייקון | | מושג | אייקון |
 |---|---|---|---|---|
-| בית | `House` | | קרדיטים | `Zap` |
+| ראשי (`/app`) | `House` | | קרדיטים | `Zap` |
 | סרטון חדש / הוספה | `Plus` | | יצירה (פעולת AI) | `Wand` |
 | פרויקטים | `FolderOpen` | | יצירה מחדש | `RefreshCw` |
 | תבניות | `LayoutTemplate` | | קריינות / קול | `Mic` |
@@ -2112,7 +2136,7 @@ export const CAPTION_PRESETS: Record<CaptionPresetId, CaptionPresetStyle> = {
 
 - **רוחב בלוק הכתוביות:** ב-9:16 — בין 6% מהקצה השמאלי ל-16% מהקצה הימני (רוחב 78%, ממורכז בתוך האזור) כדי לא לגעת בעמודת הכפתורים של הרשת; ב-1:1 וב-16:9 — 80% ממורכז. הטקסט ממורכז בתוך הבלוק.
 - **סימן AI** ("נוצר באמצעות AI", אם הופעל) — chip קטן בפינה העליונה-ימנית (ב-9:16 ב-8% גובה, inset 5%), Heebo 600 בגודל 26px, לבן 90% על `rgb(8 8 12 / .62)`, רדיוס מלא. הניגודיות מחושבת למקרה הגרוע — פריים לבן לגמרי מתחת ל-chip: 5.03:1 (עם `.45` היא הייתה 2.90:1 בלבד).
-- **סימן המים של התוכנית החינמית** ("נוצר ב-{{BRAND_NAME}}") — בפינה העליונה-שמאלית (8% גובה, inset 5%), `BrandLogo` סמל 28px + טקסט Heebo 600 26px, לבן 90% על `rgb(8 8 12 / .62)` (אותו חישוב). שני הסימנים לא נוגעים באזור ההוק ובאזור הכתוביות.
+- **סימן המים של התוכנית החינמית** ("נוצר ב{{BRAND_NAME}}", הטקסט מ-`BRAND.watermarkHe`, חלק 02 §1.2) — בפינה העליונה-שמאלית (8% גובה, inset 5%), `BrandLogo` סמל 28px + טקסט Heebo 600 26px, לבן 90% על `rgb(8 8 12 / .62)` (אותו חישוב). שני הסימנים לא נוגעים באזור ההוק ובאזור הכתוביות.
 
 ### 16.4 ניגודיות וצבעי מותג
 
@@ -2143,7 +2167,7 @@ export const CAPTION_PRESETS: Record<CaptionPresetId, CaptionPresetStyle> = {
 
 | מפתח | מוטיב | איפה |
 |---|---|---|
-| `projects` | שלוש מסגרות 9:16 ריקות בשורה, האמצעית עם ▶ | `/app/projects`, דשבורד |
+| `projects` | שלוש מסגרות 9:16 ריקות בשורה, האמצעית עם ▶ | `/app/projects`, הדף הראשי (`/app`) |
 | `library` | ערימת תמונות + חץ העלאה | `/app/library` |
 | `brand` | פלטת צבעים + מסגרת לוגו מקווקוות | `/app/brand` |
 | `hooks-favorites` | מגנט + כוכב | `/app/hooks` (מועדפים) |
@@ -2154,7 +2178,7 @@ export const CAPTION_PRESETS: Record<CaptionPresetId, CaptionPresetStyle> = {
 | `invoices` | קבלה מגולגלת עם ₪ | `InvoiceList` |
 | `ledger` | עמודת מטבעות + ברק | `LedgerTable` |
 | `templates` | גריד 2×2 של מסגרות | `/app/templates` |
-| `queue` | קלאפר סגור + שעון | תור היצירות הריק בדשבורד |
+| `queue` | קלאפר סגור + שעון | תור היצירות הריק בדף הראשי |
 | `approval-done` | מסגרת 9:16 עם וי גדול | `/approve/[token]` אחרי החלטה |
 | `error` | סליל פילם קרוע (קו שבור) | `error.tsx`, כשלים |
 | `offline` | אנטנה עם קו חוצה | אין חיבור |
@@ -2230,7 +2254,7 @@ export interface BrandLogoProps {
 
 ## §19. מחרוזות הבסיס: `messages/he.json` → `common`
 
-ה-namespace `common` שייך לחלק הזה ומשמש את כל הרכיבים המשותפים. חלקים 02–06 מוסיפים namespaces משלהם — הרשימה המלאה: `common`, `marketing`, `hooks`, `wizard`, `editor`, `billing`, `errors`, `emails`, `legal`, `auth`, `app`, `admin`, `ops` (`ops.banners`, `ops.whatsapp`) — ומשתמשים במפתחות כאן במקום לשכפל אותם. שני תתי-מפתחות של `common` מוגדרים בחלקים אחרים: `common.labels.*` (תוויות ה-enum, `lib/labels.ts`, חלק 02 §1.2) ו-`common.deletedUser` (חלק 03; הערך מופיע כאן). מספרים מוצגים דרך התגית `<num>` (§9.4), וסכומים בשקלים — רק כמשתנה שעוצב ב-`formatIls` (§2.1 סעיף 20).
+ה-namespace `common` שייך לחלק הזה ומשמש את כל הרכיבים המשותפים. חלקים 02–06 מוסיפים namespaces משלהם — הרשימה המלאה: `common`, `marketing`, `hooks`, `wizard`, `editor`, `billing`, `errors`, `emails`, `legal`, `auth`, `app`, `admin`, `ops` (`ops.banners`, `ops.whatsapp`) — ומשתמשים במפתחות כאן במקום לשכפל אותם. שני תתי-מפתחות של `common` מוגדרים בחלקים אחרים: `common.labels.*` (תוויות ה-enum, `lib/labels.ts`, חלק 02 §1.2) ו-`common.deletedUser` (חלק 03; הערך מופיע כאן). אין `common.platforms`: תוויות הפלטפורמות באות רק מ-`common.labels.platform.*` (`lib/labels.ts`). מספרים מוצגים דרך התגית `<num>` (§9.4), וסכומים בשקלים — רק כמשתנה שעוצב ב-`formatIls` (§2.1 סעיף 20). **תבניות הספירה הקנוניות** (ICU `plural` עם `one`/`two`/`other`, §2.1 סעיף 7) הן `common.credits.count` (קרדיטים), `common.credits.remaining`, `common.credits.refunded` (טוסט ההחזר), `common.credits.videosLeft` (סרטונים), `common.time.daysLeft` (ימים), `common.time.minutesLeft` (דקות) ו-`common.live.scenesBuilt` (סצנות). חלקים 02, 03 ו-06 משתמשים בהן, או מעתיקים את הנוסח שלהן בדיוק, ולא כותבים ספירה בלי `plural`.
 
 ```json
 {
@@ -2267,7 +2291,7 @@ export interface BrandLogoProps {
       "playThis": "ניגון הסרטון"
     },
     "theme": {
-      "label": "ערכת צבעים",
+      "label": "ערכת נושא",
       "dark": "כהה",
       "light": "בהירה",
       "system": "לפי המכשיר"
@@ -2299,13 +2323,13 @@ export interface BrandLogoProps {
       "previewEmpty": "התצוגה המקדימה תופיע כאן"
     },
     "credits": {
-      "count": "{count, plural, one {קרדיט אחד} other {<num>#</num> קרדיטים}}",
-      "cost": "עלות: {count, plural, one {קרדיט אחד} other {<num>#</num> קרדיטים}}",
+      "count": "{count, plural, one {קרדיט אחד} two {שני קרדיטים} other {<num>#</num> קרדיטים}}",
+      "cost": "עלות: {count, plural, one {קרדיט אחד} two {שני קרדיטים} other {<num>#</num> קרדיטים}}",
       "free": "חינם",
       "freeSr": "חינם, בלי קרדיטים",
       "estimating": "מחשבים עלות…",
-      "missing": "{missing, plural, one {חסר קרדיט אחד} other {חסרים <num>#</num>}}",
-      "insufficientSr": "עלות: {count, plural, one {קרדיט אחד} other {# קרדיטים}}. {missing, plural, one {חסר קרדיט אחד} other {חסרים # קרדיטים}} ביתרה.",
+      "missing": "{missing, plural, one {חסר קרדיט אחד} two {חסרים שני קרדיטים} other {חסרים <num>#</num>}}",
+      "insufficientSr": "עלות: {count, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}. {missing, plural, one {חסר קרדיט אחד} two {חסרים שני קרדיטים} other {חסרים # קרדיטים}} ביתרה.",
       "breakdown": "פירוט העלות",
       "total": "סך הכול",
       "meterLabel": "יתרת קרדיטים: {balance}. לפירוט",
@@ -2313,7 +2337,10 @@ export interface BrandLogoProps {
       "reserved": "שמורים ליצירות שרצות עכשיו",
       "expiring": "יפוגו ב-30 הימים הקרובים",
       "resetsOn": "המכסה החודשית מתחדשת ב-{date}",
-      "afterGeneration": "{balance, plural, one {אחרי היצירה יישאר קרדיט אחד} other {אחרי היצירה יישארו <num>#</num> קרדיטים}}",
+      "afterGeneration": "{balance, plural, =0 {אחרי היצירה לא יישארו קרדיטים} one {אחרי היצירה יישאר קרדיט אחד} two {אחרי היצירה יישארו שני קרדיטים} other {אחרי היצירה יישארו <num>#</num> קרדיטים}}",
+      "remaining": "{balance, plural, =0 {לא נשארו קרדיטים} one {נשאר קרדיט אחד} two {נשארו שני קרדיטים} other {נשארו # קרדיטים}}",
+      "refunded": "{n, plural, one {הקרדיט חזר ליתרה} two {שני הקרדיטים חזרו ליתרה} other {# קרדיטים חזרו ליתרה}}",
+      "videosLeft": "{n, plural, =0 {פחות מסרטון קצר אחד} one {בערך סרטון קצר אחד} two {בערך שני סרטונים קצרים} other {בערך # סרטונים קצרים}}",
       "low": "הקרדיטים עומדים להיגמר",
       "topUp": "רכישת קרדיטים",
       "costTable": "כמה עולה כל סרטון?",
@@ -2326,8 +2353,8 @@ export interface BrandLogoProps {
       "oneTime": "תשלום חד-פעמי",
       "vatIncluded": "כולל מע״מ",
       "vatExcluded": "לפני מע״מ",
-      "srAmount": "{amount} שקלים",
-      "srInstead": "במקום {amount} שקלים"
+      "srAmount": "{amount, plural, one {שקל אחד} two {שני שקלים} other {{amountText} שקלים}}",
+      "srInstead": "במקום {amount, plural, one {שקל אחד} two {שני שקלים} other {{amountText} שקלים}}"
     },
     "actions": {
       "save": "שמירה",
@@ -2358,7 +2385,7 @@ export interface BrandLogoProps {
       "backToEdit": "חזרה לעריכה"
     },
     "status": {
-      "project": { "draft": "טיוטה", "brief": "בהכנה", "script": "תסריט מוכן", "storyboard": "סטוריבורד מוכן", "inProgress": "בתהליך יצירה", "done": "מוכן", "failed": "נכשל · הקרדיטים הוחזרו" },
+      "project": { "draft": "טיוטה", "brief": "בהכנה", "script": "תסריט מוכן", "storyboard": "הסצנות מוכנות", "inProgress": "בתהליך יצירה", "done": "מוכן", "failed": "נכשל · הקרדיטים הוחזרו" },
       "job": { "queued": "בתור", "running": "בתהליך", "waiting_external": "ממתין למנוע", "succeeded": "הושלם", "failed": "נכשל", "canceled": "בוטל" },
       "step": { "pending": "ממתין", "running": "בעבודה", "waiting_external": "ממתין למנוע", "succeeded": "הושלם", "failed": "נכשל", "skipped": "דולג", "canceled": "בוטל", "degraded": "הושלם חלקית" },
       "scene": { "pending": "ממתינה", "generating": "נוצרת…", "ready": "מוכנה", "failed": "נכשלה", "degraded": "תמונה בתנועה" },
@@ -2371,7 +2398,7 @@ export interface BrandLogoProps {
       "projects": "עוד אין פרויקטים. אפשר להתחיל בסרטון הראשון.",
       "search": "לא מצאנו תוצאות. אפשר לנסות מילה אחרת או לנקות את הסינון.",
       "notifications": "אין התראות חדשות.",
-      "favorites": "עוד אין הוקים שמורים. כוכב על הוק שומר אותו כאן.",
+      "favorites": "עוד אין הוקים שמורים. לחיצה על הכוכב בכרטיס של הוק שומרת אותו כאן.",
       "selectScene": "אפשר לבחור סצנה ולערוך אותה כאן"
     },
     "hookCard": {
@@ -2383,15 +2410,6 @@ export interface BrandLogoProps {
       "strength": "חוזק {value} מתוך 5",
       "mustFill": "צריך למלא",
       "demo": "הדגמה"
-    },
-    "platforms": {
-      "reels": "רילס",
-      "tiktok": "טיקטוק",
-      "shorts": "שורטס",
-      "facebook": "פייסבוק",
-      "youtube": "יוטיוב",
-      "whatsapp": "וואטסאפ",
-      "linkedin": "לינקדאין"
     },
     "captions": {
       "sample": "ככה ייראו הכתוביות בסרטון שלכם",
@@ -2423,6 +2441,7 @@ export interface BrandLogoProps {
       "musicReady": "המוזיקה מוכנה",
       "renderStarted": "ההרכבה התחילה",
       "sceneDegraded": "סצנה {n} נבנתה מתמונה בתנועה. הקרדיטים על הקליפ חזרו ליתרה.",
+      "scenesBuilt": "{n, plural, one {סצנה אחת נבנתה} two {שתי סצנות נבנו} other {# סצנות נבנו}}",
       "done": "הסרטון מוכן. אפשר לצפות ולהוריד.",
       "failed": "היצירה נכשלה. כל הקרדיטים חזרו ליתרה.",
       "scriptReady": "התסריט מוכן לעריכה",
@@ -2436,7 +2455,9 @@ export interface BrandLogoProps {
       "seconds": "{n} שנ׳",
       "minutes": "{n} דק׳",
       "approxSeconds": "כ-{n} שנ׳",
-      "durationOf": "{current} מתוך {target}"
+      "durationOf": "{current} מתוך {target}",
+      "daysLeft": "{n, plural, one {עוד יום אחד} two {עוד יומיים} other {עוד # ימים}}",
+      "minutesLeft": "{n, plural, one {נשארה בערך דקה} two {נשארו בערך שתי דקות} other {נשארו בערך # דקות}}"
     }
   }
 }
@@ -2445,16 +2466,17 @@ export interface BrandLogoProps {
 ### קריטריוני קבלה
 - [ ] כל מפתח שרכיבי §10–§11 משתמשים בו קיים ב-`common` (טסט שמחפש `t("common.…")` בקוד ומוודא קיום).
 - [ ] אין כפילויות: חלקים אחרים לא מגדירים מחדש "שמירה", "ביטול", "הועתק" וכו׳ (grep על ערכים זהים מחוץ ל-`common`, עם רשימת חריגים).
-- [ ] `count`, `cost`, `missing`, `insufficientSr` ו-`afterGeneration` ב-`credits` מציגים צורת יחיד עבור 1 ("קרדיט אחד", "חסר קרדיט אחד", "יישאר קרדיט אחד") ו-"2 קרדיטים" עבור 2 (טסט ICU עם לוקאל `he`, כולל הקטגוריה `two` שנופלת ל-`other`).
+- [ ] כל מחרוזת שסופרת שם עצם משתמשת ב-plural עם `one`/`two`/`other`. טסט ICU עם לוקאל `he` עובר על כל `plural` ב-`messages/he.json`, `content/**` ותבניות המייל ומוודא שיש בו `one` ו-`other`, ושיש `two` בכל מקום שבו "2" + צורת הרבים לא טבעית ("שני קרדיטים", "יומיים", "שתי דקות"). ב-`common` כל תבניות הספירה כוללות את שלושת הענפים: `count`, `cost`, `missing`, `insufficientSr`, `afterGeneration`, `remaining`, `refunded` ו-`videosLeft` ב-`credits`, `daysLeft` ו-`minutesLeft` ב-`time`, `scenesBuilt` ב-`live` ו-`srAmount`/`srInstead` ב-`price` מציגים צורת יחיד עבור 1 ("קרדיט אחד", "חסר קרדיט אחד", "יישאר קרדיט אחד", "עוד יום אחד") וצורת זוגי עבור 2 ("שני קרדיטים", "עוד יומיים", "נשארו בערך שתי דקות", "שתי סצנות נבנו").
+- [ ] אין `common.platforms` ב-`messages/he.json`; כל תווית פלטפורמה בממשק מגיעה מ-`common.labels.platform.*` (grep).
 
 ---
 
 ## תלויות בין חלקים
 
 - **נספח F:** הסטיות של החלק הזה מנספח F — מחרוזות בפנייה ניטרלית ("דילוג לתוכן הראשי", "עצירת אנימציות", "צרו את הסרטון · 107 קרדיטים"), הטוקנים הנוספים (`--color-on-danger`, `--color-link`, `--color-glass`, `--color-overlay`, `--color-frame`), ערכת נושא דרך סקריפט חוסם במקום קריאת עוגייה בשרת, ומידות `poster` (132/112/88) — רשומות בתיבת התיקונים של נספח F, והחלק הזה גובר.
-- **חלק 02:** משתמש ברכיבים, בטוקנים וב-`common` כמו שהם. `HookCard variant="library"` הוא מה שחלק 02 §5.2 מתאר כ-"default"; ב-`HooksTeaser` — `compact` בלי `onCreateVideo`. `HookPersonalizer` מעביר ערכים לפי שם ה-placeholder (`personalization`). `FaqAccordion` מקבל `{ id, q_he, a_he }`. תוויות ה-enum ב-`lib/labels.ts` (`common.labels.*`, §1.2 שם). מדיה של הדגמה: `content/demo-wall.json` (§3.3.6) והתווית "הדגמה"; `ShowcaseGallery` לפי כלל ההצגה של §3.10. תוכן הצהרת הנגישות (§10.6) וה-PDF המתויג של טופס ההסכמה (§10.8).
+- **חלק 02:** משתמש ברכיבים, בטוקנים וב-`common` כמו שהם. `HookCard variant="library"` הוא הכרטיס המלא של חלק 02 §5.2, באותו שם בשני החלקים (אין וריאנט בשם אחר); ב-`HooksTeaser` — `compact` בלי `onCreateVideo`. חלק 02 מייבא את `HookCardDTO` מ-`@/lib/api/contracts/hooks` ולא מגדיר טיפוס משלו. `BRAND.nameHeWith` ו-`BRAND.watermarkHe` (§1.2 שם, נבנים ב-`withPrefix()` של §5.8) משמשים את §2.1 סעיף 13 ואת סימן המים (§16.3). `HookPersonalizer` מעביר ערכים לפי שם ה-placeholder (`personalization`). `FaqAccordion` מקבל `{ id, q_he, a_he }`. תוויות ה-enum ב-`lib/labels.ts` (`common.labels.*`, §1.2 שם). מדיה של הדגמה: `content/demo-wall.json` (§3.3.6) והתווית "הדגמה"; `ShowcaseGallery` לפי כלל ההצגה של §3.10. תוכן הצהרת הנגישות (§10.6) וה-PDF המתויג של טופס ההסכמה (§10.8).
 - **חלק 03:** הנוסחים המלאים של המסכים (`ConfirmGenerateDialog` §6.10, `TopUpDialog` §15.2, `CancelSubscriptionFlow` §15.5, `BrandKitEditor` §12.2 עם 7 הגופנים הפתוחים), ענפי `select` לפי `ui_gender_form`, `common.deletedUser`, `errors.*`, ו-`larger_captions` = הגדלת `::cue` ל-140% בנגן בלבד. `/admin/design` ברשימת נתיבי האדמין (§22.0).
-- **חלק 04:** `Enums<…>` ו-`ENUMS` מ-`lib/supabase/enums.ts` (§17.4); `HookCardDTO` (§20.3); `get_credit_summary()` (ממופה ל-camelCase); `errors.validation.*` (§18.3); `platform_admin_status()` ו-`proxy.ts` לגישה ל-`/admin/design` (§9.2, §17.2); עמודות `profiles.theme`, `reduce_motion`, `larger_captions`, `ui_gender_form`; `POST /api/projects/[id]/estimate` ל-`CostBadge`.
+- **חלק 04:** `Enums<…>` ו-`ENUMS` מ-`lib/supabase/enums.ts` (§17.4); `HookCardDTO` (§20.3, שטוח, כולל `niche_icon`, `niche_short_name_he`, `why_it_works_he`, `season_name_he`, `sample_poster_url`); `get_credit_summary()` (ממופה ל-camelCase; `planAllowance` הוא `null` כשאין מכסה חודשית); `errors.validation.*` (§18.3); `platform_admin_status()` ו-`proxy.ts` לגישה ל-`/admin/design` (§9.2, §17.2); עמודות `profiles.theme`, `reduce_motion`, `larger_captions`, `ui_gender_form`; `POST /api/projects/[id]/estimate` ל-`CostBadge`.
 - **חלק 05:** קורא את `CAPTION_PRESETS` (§16.2, כולל `fallbackUnderline` של `news`), את האזורים הבטוחים ואת `AiLabel`/`Watermark` (§16.3, chip ב-`.62`), ואת `onColor`/`ensureContrast` מ-`lib/format/contrast.ts`; בנגן בדפדפן — `CAPTION_FONT_FAMILIES` מ-`components/video/caption-fonts.ts` (§5.1) ולא `@remotion/google-fonts` (חלק 05 §20.9); מוסיף עזרי כתוביות ל-`lib/hebrew/bidi.ts`; מספק `HOOK_PLACEHOLDERS` (`lib/hebrew/placeholders.ts`), `BANNED_PHRASES` (`lib/ai/prompts/style-data.ts`, לפי נספח E §5.2) ואת קומפוזיציית `Animatic` לסרטוני ההדגמה.
-- **חלק 06:** ה-sha256 של `THEME_SCRIPT_SOURCE` נכלל בשני ה-CSP של §15.3 (גם בענף ה-nonce של `buildCsp`); `font-src 'self' data:`; העוגיות `theme`, `motion`, `sidebar_state` ברשימת העוגיות ההכרחיות (§11.7); האירועים `theme_changed`, `motion_toggled` ומאפייני-העל `theme`, `reduced_motion` (§14); `formatAgorot` עוטפת את `formatIls`; `lint:rtl` ו-`lint:copy` בסקריפטים וב-CI (§23.6); סקירת הלשון של M7 (`docs/qa/hebrew-review.md`).
+- **חלק 06:** ה-sha256 של `THEME_SCRIPT_SOURCE` נכלל בשני ה-CSP של §15.3 (גם בענף ה-nonce של `buildCsp`); `font-src 'self' data:`; העוגיות `theme`, `motion`, `sidebar_state` ברשימת העוגיות ההכרחיות (§11.7); האירועים `theme_changed`, `motion_toggled` ומאפייני-העל `theme`, `reduced_motion` (§14); `formatAgorot` עוטפת את `formatIls` והיא נקודת הכניסה היחידה ל-`Agorot`; `lowThreshold(summary, planId)` מ-`lib/billing/credits.ts` (§2.6) לסף של `CreditsMeter`; `lint:rtl` ו-`lint:copy` בסקריפטים וב-CI (§23.6); סקירת הלשון של M7 (`docs/qa/hebrew-review.md`).
 - **נספחים D ו-E:** כלל ה-₪ והחריגים שלו (E §6.1), `BANNED_PHRASES` (E §5.2), חמש הדוגמאות של נספח D כאנימטיק עם התווית "הדגמה" (D §9).

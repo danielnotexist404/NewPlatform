@@ -146,7 +146,7 @@ export class OpenRouterError extends Error {
   ) { super(message); this.name = "OpenRouterError"; }
 }
 
-const POLICY: Record<OrEndpoint, { timeoutMs: number; maxAttempts: number; retryNetwork: boolean }> = {
+export const POLICY: Record<OrEndpoint, { timeoutMs: number; maxAttempts: number; retryNetwork: boolean }> = {
   chat:             { timeoutMs: 110_000, maxAttempts: 3, retryNetwork: true },
   images:           { timeoutMs:  90_000, maxAttempts: 2, retryNetwork: true },
   "videos.submit":  { timeoutMs:  30_000, maxAttempts: 1, retryNetwork: false }, // a submit spends money: never auto-retry
@@ -159,6 +159,18 @@ const POLICY: Record<OrEndpoint, { timeoutMs: number; maxAttempts: number; retry
   "images.models":  { timeoutMs:  30_000, maxAttempts: 3, retryNetwork: true },
   generation:       { timeoutMs:  15_000, maxAttempts: 3, retryNetwork: true },
 };
+
+/** Interactive AI routes: maxDuration = 300 and an internal budget of 240 s — RunContext.deadlineAt = request start
+ *  + INTERACTIVE_BUDGET_MS (part 04 §19.5 step 6). Per-attempt timeout = min(policy timeout, deadlineAt − now − 5 s);
+ *  with less than 30 s left there is no new attempt and no repairOnce (§3.2): the route fails and refunds (§3.4).
+ *  Pipeline steps pass no deadline: the step timeout (§18.3) governs. */
+export const INTERACTIVE_BUDGET_MS = 240_000;
+export const MIN_ATTEMPT_WINDOW_MS = 30_000;
+export function attemptTimeoutMs(policyMs: number, deadlineAt?: number): number | null {
+  if (deadlineAt === undefined) return policyMs;
+  const left = deadlineAt - Date.now();
+  return left < MIN_ATTEMPT_WINDOW_MS ? null : Math.min(policyMs, left - 5_000);
+}
 
 export function orHeaders(extra?: HeadersInit): Headers {
   const h = new Headers(extra);
@@ -192,13 +204,18 @@ export function orUrl(pathOrUrl: string): string {
 export async function orFetch(
   endpoint: OrEndpoint,
   path: string,
-  init: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal; accept?: string } = {},
+  init: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal; accept?: string; deadlineAt?: number } = {},
 ): Promise<Response> {
   const p = POLICY[endpoint];
   let lastErr: OpenRouterError | null = null;
   for (let attempt = 1; attempt <= p.maxAttempts; attempt++) {
+    const timeoutMs = attemptTimeoutMs(p.timeoutMs, init.deadlineAt);   // min(policy, deadlineAt − now − 5 s); null = < 30 s left
+    if (timeoutMs === null) {                                            // no time for a (new) attempt → the caller fails and refunds
+      lastErr ??= new OpenRouterError(endpoint, null, "timeout", "deadline reached before the request", false, null, null, false);
+      break;
+    }
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort("timeout"), p.timeoutMs);
+    const timer = setTimeout(() => ctrl.abort("timeout"), timeoutMs);
     const signal = init.signal ? AbortSignal.any([init.signal, ctrl.signal]) : ctrl.signal;
     try {
       const res = await fetch(orUrl(path), {
@@ -214,12 +231,13 @@ export async function orFetch(
       lastErr = init.signal?.aborted
         ? new OpenRouterError(endpoint, null, "aborted", "aborted by caller", false, null)
         : ctrl.signal.aborted
-          ? new OpenRouterError(endpoint, null, "timeout", `timeout after ${p.timeoutMs}ms`, p.retryNetwork, null)
+          ? new OpenRouterError(endpoint, null, "timeout", `timeout after ${timeoutMs}ms`, p.retryNetwork, null)
           : new OpenRouterError(endpoint, null, "network", String(e), p.retryNetwork, null, null, isPreSend(e) ? false : true);
     } finally { clearTimeout(timer); }
 
     if (!lastErr.retryable || attempt === p.maxAttempts) break;
     const wait = backoffMs(attempt, lastErr.retryAfterMs);
+    if (init.deadlineAt !== undefined && init.deadlineAt - (Date.now() + wait) < MIN_ATTEMPT_WINDOW_MS) break;   // no retry past the budget
     log.warn("openrouter.retry", { endpoint, attempt, code: lastErr.code, status: lastErr.status, waitMs: wait });
     await new Promise((r) => setTimeout(r, wait));
   }
@@ -233,6 +251,8 @@ export function backoffMs(attempt: number, retryAfterMs: number | null): number 
   return Math.round(exp * (0.5 + Math.random() * 0.5));
 }
 ```
+
+**תקציב זמן בנתיבים אינטראקטיביים:** נתיבי ה-AI האינטראקטיביים (`/hooks`, `/script`, `/storyboard`, `/api/hooks/variations`, השכתובים ו-`brand/extract`) מוגדרים עם `maxDuration = 300`, ומעבירים `deadlineAt` = תחילת הבקשה + `INTERACTIVE_BUDGET_MS` (240 שניות) ל-`orFetch` ול-`runStructured` (§3.2). ה-timeout של כל ניסיון הוא `min(POLICY[endpoint].timeoutMs, deadlineAt − now − 5 000)`, וכשנשארו פחות מ-30 שניות אין ניסיון חדש ואין `repairOnce`: הנתיב נכשל ומחזיר את הקרדיטים (§3.4; חלק 04 §19.5 שלב 6). כך הפונקציה לא נקטעת בידי Vercel באמצע קריאה, וה-catch שמחזיר את הקרדיטים תמיד רץ. **כל קריאה של AI SDK** (`generateText`/`streamText`, וגם `generateObject`/`streamObject` אם עוברים אליהם) נשלחת עם `maxRetries: 0` ועם `abortSignal: AbortSignal.any([req.signal, AbortSignal.timeout(…)])`: ברירת המחדל של ה-SDK היא שני ניסיונות חוזרים שלא מכירים את התקציב, והניסיונות החוזרים אצלנו הם רק של הלולאה של `orFetch` ושל `models[]` ב-OpenRouter (§2.4). צעדי הצנרת לא מעבירים `deadlineAt`; שם קובע ה-timeout של הצעד (§18.3).
 
 ### 2.3 טקסונומיית השגיאות
 
@@ -264,6 +284,7 @@ export function backoffMs(attempt: number, retryAfterMs: number | null): number 
 ### קריטריוני קבלה
 - [ ] MSW שמחזיר 429 עם `Retry-After: 2` ואז 200: `orFetch("chat")` מצליח אחרי ~2 שניות ורושם `openrouter.retry` אחד.
 - [ ] `orFetch("videos.submit")` שנופל על timeout לא שולח בקשה שנייה (MSW סופר בקשה אחת), וזורק `OpenRouterError` עם `retryable=false`.
+- [ ] `orFetch("chat", …, { deadlineAt })` עם שעון מזויף: כשנשארו 60 שניות, ה-timeout של הניסיון הוא 55 שניות (ולא 110); כשנשארו 25 שניות לא נשלחת בקשה ונזרק `OpenRouterError` עם `code = "timeout"`; 429 עם `Retry-After` שחוצה את סף 30 השניות לא מקבל ניסיון נוסף.
 - [ ] 401 מגדיר `or:halt` ב-Redis, ו-`POST /api/projects/[id]/generate` הבא מחזיר `503 PROVIDER_UNAVAILABLE` בלי לפנות ל-OpenRouter.
 - [ ] עם `OPENROUTER_BASE_URL=https://openrouter.ai/api/v1`: ‏`polling_url` יחסי שהחזירה OpenRouter (`"/api/v1/videos/abc"`) נפתר ל-`https://openrouter.ai/api/v1/videos/abc`; עם שרת ה-mock של e2e (`http://localhost:4010/api/v1`) — לאותו נתיב על `http://localhost:4010`; ‏`orUrl("https://evil.example/x")` זורק.
 - [ ] בדיקת MSW: גוף של `/images`, `/videos`, `/audio/speech` ו-`/audio/transcriptions` כולל `provider.data_collection = "deny"`, חוץ מנקודות שב-`OR_ENDPOINTS_WITHOUT_DATA_COLLECTION`.
@@ -311,11 +332,13 @@ export function chatModel(route: ResolvedRoute) {
 // lib/ai/run.ts
 import "server-only";
 import { streamText, generateText, Output, jsonSchema } from "ai";
+import { POLICY, attemptTimeoutMs } from "./openrouter/http";
 
 export interface RunContext {
   workspaceId: string | null; jobId?: string | null; stepId?: string | null;
   qualityTier?: "draft" | "standard" | "premium";
-  signal?: AbortSignal;
+  signal?: AbortSignal;                         // interactive routes: req.signal; pipeline: the step's signal (§18.3)
+  deadlineAt?: number;                          // interactive routes only: request start + INTERACTIVE_BUDGET_MS (240 s; maxDuration 300), §2.2
   onPartial?: (partial: unknown) => void;       // when set → streaming
 }
 
@@ -329,8 +352,12 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
     validate: (v) => { const r = tpl.schema.safeParse(v); return r.success ? { success: true, value: r.data } : { success: false, error: r.error }; },
   });
   const started = Date.now();
+  const callTimeoutMs = attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt);   // min(110 s, deadlineAt − now − 5 s)
+  if (callTimeoutMs === null) throw new AppError("PROVIDER_TIMEOUT", { phase: "call" }); // < 30 s left: no call; the route refunds (§3.4)
   const common = {
-    model: chatModel(route), messages, abortSignal: ctx.signal,
+    model: chatModel(route), messages,
+    abortSignal: AbortSignal.any([...(ctx.signal ? [ctx.signal] : []), AbortSignal.timeout(callTimeoutMs)]),
+    maxRetries: 0,                                                // AI SDK default is 2 — retries are OpenRouter models[] only (§2.2)
     temperature: tpl.temperature ?? route.params.temperature,
     maxOutputTokens: tpl.maxOutputTokens,
     output: Output.object({ schema, name: tpl.schemaName }),    // → response_format json_schema strict [M0-verify]
@@ -347,8 +374,11 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
       raw = res.output; meta = await readMeta(res);
     }
     const issues = tpl.validate?.(raw, input) ?? [];               // semantic validation (§11.3)
-    const output = issues.some((i) => i.severity === "error")
-      ? await repairOnce(tpl, input, route, messages, raw, issues, ctx)   // one repair round, non-streamed
+    const needsRepair = issues.some((i) => i.severity === "error");
+    if (needsRepair && attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt) === null)
+      throw new AppError("PROVIDER_TIMEOUT", { phase: "repair" });          // < 30 s left: no repair round; the route refunds (§3.4)
+    const output = needsRepair
+      ? await repairOnce(tpl, input, route, messages, raw, issues, ctx)   // one repair round, non-streamed, same maxRetries: 0
       : raw;
     await recordLlm({ ...ctx, tpl, route, meta, latencyMs: Date.now() - started, status: "ok" });   // maps to record() §7.1
     return { output, modelServed: meta.modelServed, fallbackUsed: meta.modelServed !== route.primary.slug, usage: meta.usage, generationId: meta.id };
@@ -362,7 +392,8 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
 
 - **`readMeta()`** קורא מה-provider את `model` שהגיש, את `id` (`gen-…`) ואת `usage` של OpenRouter (`prompt_tokens`, `completion_tokens`, `prompt_tokens_details.cached_tokens`, `cost`). ב-v2 של ה-provider זה זמין ב-`providerMetadata.openrouter` [M0-verify]. `usage.cost` מגיע תמיד בצ׳אט (גם בסטרימינג — בהודעת ה-SSE האחרונה); לא שולחים את `usage: {include: true}` ולא את `stream_options.include_usage`, שהוצאו משימוש ואין להם השפעה. תשובה בלי `usage.cost` נרשמת כעלות לא ידועה (`NULL`), לעולם לא 0.
 - **ה-API של AI SDK v6:** `generateText`/`streamText` עם `output: Output.object(...)` (ה-API המומלץ ב-v6; `generateObject`/`streamObject` עדיין קיימים אבל מסומנים כמיושנים). אם בגרסה הנעולה רק `streamObject` מעביר `json_schema` strict כמו שצריך — משתמשים בו מאחורי אותה פונקציה [M0-verify].
-- **`repairOnce()`**: בקשה אחת נוספת, בלי סטרימינג, לאותו נתיב: ההודעות המקוריות + הודעת `assistant` עם ה-JSON שנכשל + הודעת `user`: "התשובה לא עברה בדיקה. השגיאות: {רשימה}. החזירו את אותו JSON מתוקן, בלי לשנות שדות תקינים." אם גם התיקון נכשל — `PROVIDER_UNAVAILABLE` (המשתמש מקבל החזר, §3.4). שתי הקריאות נרשמות.
+- **`repairOnce()`**: בקשה אחת נוספת, בלי סטרימינג, לאותו נתיב: ההודעות המקוריות + הודעת `assistant` עם ה-JSON שנכשל + הודעת `user`: "התשובה לא עברה בדיקה. השגיאות: {רשימה}. החזירו את אותו JSON מתוקן, בלי לשנות שדות תקינים." התיקון רץ **רק אם נשארו לפחות 30 שניות** עד `ctx.deadlineAt` (`deadlineAt − now ≥ 30 000`); אחרת `runStructured` זורק `PROVIDER_TIMEOUT`, והנתיב מחזיר את הקרדיטים (§3.4). גם הקריאה של התיקון נשלחת עם `maxRetries: 0` ועם timeout שמחושב מחדש ב-`attemptTimeoutMs`. אם גם התיקון נכשל — `PROVIDER_UNAVAILABLE` (המשתמש מקבל החזר, §3.4). שתי הקריאות נרשמות.
+- **`maxRetries: 0` בכל קריאה של AI SDK:** ברירת המחדל של `generateText`/`streamText`/`generateObject`/`streamObject` היא שני ניסיונות חוזרים, שהיו מכפילים את זמן הקריאה מעבר ל-`maxDuration`. אצלנו הגיבוי בצ׳אט הוא `models[]` של OpenRouter בתוך אותה בקשה, וב-pipeline — מדיניות הניסיונות של הצעד (§18.2). בדיקת יחידה עם spy על `generateText`/`streamText` מוודאת `maxRetries: 0` ו-`abortSignal` בכל קריאה.
 
 ### 3.3 הגוף שנשלח בפועל (לבדיקה מול ספייק M0)
 
@@ -390,12 +421,12 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
 
 | נקודה | פעולת קרדיטים | בכשל |
 |---|---|---|
-| `POST /api/projects/[id]/hooks`, `POST /api/hooks/variations` | `spend_credits(ws, credits('hooks.generate'), 'hooks.generate', ref, 'spend:hooks:{Idempotency-Key}:{attempt}', plan.daily_credit_cap)` **לפני** הקריאה | `refund_reservation(resId, 'refund:'||resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')` |
+| `POST /api/projects/[id]/hooks`, `POST /api/hooks/variations` | `begin_spend(ws, credits('hooks.generate'), 'hooks.generate', ref, 'spend:hooks:{Idempotency-Key}:{attempt}', plan.daily_credit_cap)` → `resId` לפני הקריאה (שמירה פתוחה, עוד לא נצרך כלום); `commit_spend(resId, 'spend:hooks:{Idempotency-Key}:{attempt}')` (capture מלא ו-settle) רק אחרי ששמירת הגרסה או ההוקים הצליחה | `refund_reservation(resId, 'refund:'||resId, 'הפעולה נכשלה. הקרדיטים הוחזרו.')`; פונקציה שנקטעה (ה-catch לא רץ) ← ה-sweeper מחזיר את השמירה הפתוחה אחרי 6 דקות (`sweep_orphaned_spends`, §19.4) |
 | `POST /api/projects/[id]/script` | אותו דבר עם `script.generate` (2) | אותו דבר |
 | `POST /api/projects/[id]/storyboard` | `storyboard.generate` (1) | אותו דבר |
 | `POST /api/brand/extract`, `…/scenes/[sceneId]/rewrite`, `…/script/beats/[index]/rewrite`, `…/script/inflect`, `POST /api/hooks/inflect`, `POST /api/projects/[id]/post-caption` (`post.caption.v1`), `POST /api/projects/[id]/edit-plan` (v2), ו-`tts.normalize`/`captions.emphasis` שרצים בתוך הצנרת | 0 קרדיטים; מגבלות קצב לפי הדליים של חלק 04 §18.6 (`brand_extract`, `rewrite`, `inflect`) | — |
 
-השערים שלפני `spend_credits` (תקציב, מצב בחירות, מודרציה, שער עובדות) ומפתחות האידמפוטנטיות מוגדרים בחלק 04 §19.5 ו-§18.7. אחרי הצלחה נשלחים אירועי השרת `script_generated` / `storyboard_generated` `{model_served, ms}` (חלק 06 §14.2).
+השערים שלפני `begin_spend` (תקציב, מצב בחירות, מודרציה, שער עובדות), תקציב הזמן (`maxDuration = 300`, `deadlineAt` של 240 שניות, §2.2) ומפתחות האידמפוטנטיות מוגדרים בחלק 04 §19.5 ו-§18.7. הזרימה: שערים ← `begin_spend` ← קריאות המודל ← שמירת הגרסה/ההוקים ← `commit_spend` ← `complete_idempotency_key`; כל חריגה בדרך ← `refund_reservation`. אם הפונקציה נקטעה אחרי השמירה ולפני `commit_spend`, המשתמש מקבל את התוצר בחינם — כשל בטוח בכוונה. אחרי הצלחה נשלחים אירועי השרת `script_generated` / `storyboard_generated` `{model_served, ms}` (חלק 06 §14.2).
 
 "כשל" = כל חריגה מ-`runStructured()` (כולל כישלון התיקון), ניתוק של הלקוח **לפני** שהתקבל JSON שלם ותקין, או `MODERATION_BLOCKED` על הפלט. ניתוק של הדפדפן **אחרי** שהשרת קיבל JSON תקין לא מחזיר קרדיטים — הגרסה נשמרת והמשתמש יראה אותה כשיחזור.
 
@@ -427,7 +458,9 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 ### קריטריוני קבלה
 - [ ] ספייק M0 מספר 2 שמור ב-`scripts/spikes/02-chat-json-schema.ts` ותוצאתו ב-`DECISIONS.md`: הגוף שנשלח מכיל את כל השדות של §3.3.
 - [ ] תסריט שחוזר עם `beats` שסכום המשכים שלהם רחוק ב-25% מהיעד עובר תיקון אחד; אם התיקון תקין — נשמר; שתי שורות ב-`ai_generations`.
-- [ ] כשל ב-`/script` אחרי `spend_credits` מחזיר בדיוק 2 קרדיטים (שורת `refund` אחת ביומן), ושליחה חוזרת עם אותו `Idempotency-Key` לא מחייבת פעמיים.
+- [ ] כשל ב-`/script` אחרי `begin_spend` מחזיר בדיוק 2 קרדיטים (שורת `refund` אחת ביומן), ושליחה חוזרת עם אותו `Idempotency-Key` לא מחייבת פעמיים. בהצלחה, `capture` ו-`settle` נרשמים רק אחרי שהגרסה נשמרה (`commit_spend`).
+- [ ] נתיב שנקטע (מדומה: הפונקציה נעצרת אחרי `begin_spend` ולפני ה-catch) משאיר שמירה `open`; ריצת `sweep-jobs` אחרי 6 דקות מחזירה אותה במלואה (`refund_reservation`, "הפעולה לא הושלמה. הקרדיטים הוחזרו.") ומעבירה את מפתח האידמפוטנטיות ל-`failed`.
+- [ ] עם `deadlineAt` שנשארו בו 20 שניות, `runStructured` לא שולח בקשה וזורק `PROVIDER_TIMEOUT`; תסריט שנכשל בוולידציה כשנשארו פחות מ-30 שניות לא עובר `repairOnce`, ובשני המקרים הקרדיטים חוזרים.
 - [ ] הטוקן הראשון של תסריט מגיע לדפדפן תוך פחות מ-3 שניות ב-p50 (מדידה ב-Playwright מול preview עם מפתח אמיתי, מסומנת `@live`).
 - [ ] `model_served` ו-`fallback_used` נרשמים נכון כשה-MSW מחזיר `model: "openai/gpt-6.1-sol"` לבקשה שהראשי בה הוא Claude.
 
@@ -615,24 +648,42 @@ export const callbackTokenFor = (id: string): string => hmacSign(secrets()[0], i
 export const verifyCallbackToken = (id: string, token: string): boolean => hmacVerifyAny(secrets(), id, token);   // timingSafeEqual vs every secret
 export function callbackUrlFor(stepId: string): string | null {
   if (env.APP_ENV === "local" || env.APP_ENV === "preview") return null;       // not reachable from OpenRouter → polling only
-  return `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/openrouter/video?t=${callbackTokenFor(stepId)}&s=${stepId}`;
+  const url = `${env.NEXT_PUBLIC_SITE_URL}/api/webhooks/openrouter/video?t=${callbackTokenFor(stepId)}&s=${stepId}`;
+  // staging sits behind Vercel Deployment Protection: append the automation bypass (Vercel system variable, preview/staging
+  // only). lib/env.ts drops VERCEL_AUTOMATION_BYPASS_SECRET when APP_ENV=production, and production never appends it.
+  return env.APP_ENV === "staging" && env.VERCEL_AUTOMATION_BYPASS_SECRET
+    ? `${url}&x-vercel-protection-bypass=${encodeURIComponent(env.VERCEL_AUTOMATION_BYPASS_SECRET)}`
+    : url;
 }
 ```
 
-ב-`local` וב-`preview` הכתובת לא נגישה מבחוץ (localhost סגור, ו-preview מוגן ב-Vercel Deployment Protection), ולכן `callbackUrlFor` מחזיר `null`, הבקשה נשלחת בלי `callback_url`, והצנרת מסתמכת על לולאת ה-polling שב-`waitForVideo` (§18.2). ב-`test` (e2e) שרת ה-mock של OpenRouter (חלק 06 §19) שולח webhooks חתומים לכתובת המקומית, וב-`staging`/`production` OpenRouter שולח אותם לכתובת הציבורית.
+ב-`local` וב-`preview` הכתובת לא נגישה מבחוץ (localhost סגור, ו-preview מוגן ב-Vercel Deployment Protection), ולכן `callbackUrlFor` מחזיר `null`, הבקשה נשלחת בלי `callback_url`, והצנרת מסתמכת על לולאת ה-polling שב-`waitForVideo` (§18.2). ב-`test` (e2e) שרת ה-mock של OpenRouter (חלק 06 §19) שולח webhooks חתומים לכתובת המקומית. ב-`staging` OpenRouter שולח אותם לכתובת הציבורית של `staging.{{DOMAIN}}`, שגם היא מוגנת ב-Deployment Protection, ולכן הכתובת נושאת גם `&x-vercel-protection-bypass=${VERCEL_AUTOMATION_BYPASS_SECRET}` (משתנה מערכת של Vercel, רק ב-preview/staging; חלק 06 §20) [M0-verify: POST של OpenRouter עובר את ההגנה עם הפרמטר]. ב-`production` אין עקיפה: `lib/env.ts` מתעלם מהמשתנה כש-`APP_ENV=production`, ו-`callbackUrlFor` מוסיף אותו רק ב-`staging`. אותו כלל חל על כתובת ה-webhook של Remotion Lambda (§19.2), אם עוברים לחלופה.
 
 ### 5.2 אימות החתימה
 
 ```ts
-/** X-OpenRouter-Signature: "t=<unix>,v1=<hex HMAC-SHA256>" — exact signed string confirmed in M0 spike 3. */
-export function verifyOpenRouterSignature(rawBody: string, header: string | null, secret: string, nowMs = Date.now()): boolean {
+import { createHmac, timingSafeEqual } from "node:crypto";
+/** X-OpenRouter-Signature: "t=<unix>,v1=<hex HMAC-SHA256>[,v1=<hex>…]" — exact signed string confirmed in M0 spike 3.
+ *  The ONE canonical signature (part 04 §22.2 only imports it). EVERY v1= value is parsed, and the signature is accepted
+ *  if any of them matches (several v1 values appear during key rotation); t must be within toleranceSec (default 300 s). */
+export function verifyOpenRouterSignature(
+  rawBody: string, header: string | null, secret: string,
+  opts: { nowMs?: number; toleranceSec?: number } = {},
+): boolean {
   if (!header) return false;
-  const parts = Object.fromEntries(header.split(",").map((kv) => kv.trim().split("=") as [string, string]));
-  const t = Number(parts.t); const v1 = parts.v1;
-  if (!Number.isFinite(t) || !v1 || !/^[0-9a-f]{64}$/i.test(v1)) return false;
-  if (Math.abs(nowMs - t * 1000) > 5 * 60_000) return false;                       // 5-minute replay window
-  const expected = createHmac("sha256", secret).update(signedPayload(t, rawBody)).digest("hex");
-  return timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(v1, "hex"));
+  const { nowMs = Date.now(), toleranceSec = 300 } = opts;
+  let t = Number.NaN; const v1s: string[] = [];
+  for (const part of header.split(",")) {
+    const i = part.indexOf("="); if (i < 0) continue;
+    const k = part.slice(0, i).trim(); const v = part.slice(i + 1).trim();
+    if (k === "t") t = Number(v);
+    else if (k === "v1" && /^[0-9a-f]{64}$/i.test(v)) v1s.push(v);           // malformed v1 values are ignored, not fatal
+  }
+  if (!Number.isFinite(t) || v1s.length === 0) return false;
+  if (Math.abs(nowMs - t * 1000) > toleranceSec * 1000) return false;          // replay window
+  const expected = createHmac("sha256", secret).update(signedPayload(t, rawBody)).digest();   // 32 bytes
+  // compare against every candidate (no early exit), each in constant time; both buffers are 32 bytes
+  return v1s.reduce((ok, v) => timingSafeEqual(expected, Buffer.from(v, "hex")) || ok, false);
 }
 /** ONE format in production. Candidates for the spike: `${t}.${raw}` (Stripe-style) or `${t}${raw}`. */
 const signedPayload = (t: number, raw: string) => `${t}.${raw}`;   // [M0-verify] replace if the spike proves otherwise
@@ -657,9 +708,10 @@ const signedPayload = (t: number, raw: string) => `${t}.${raw}`;   // [M0-verify
 - [ ] גוף עם חתימה תקינה וטוקן תקין → `204`, שורה אחת ב-`webhook_events` עם `processed`, והצנרת ממשיכה.
 - [ ] אותו משלוח פעמיים → `204` בשתיהן, שורה אחת, `resume` אחד (MSW/spy).
 - [ ] חתימה ישנה מ-6 דקות → `401 WEBHOOK_INVALID_SIGNATURE` + שורה עם `signature_valid=false`.
+- [ ] כותרת עם שני ערכי `v1` (`t=…,v1=<שגוי>,v1=<נכון>` וגם בסדר ההפוך) מתקבלת; כותרת שכל ערכי ה-`v1` בה שגויים נדחית; `toleranceSec: 60` דוחה חתימה בת 2 דקות (בדיקות יחידה של `verifyOpenRouterSignature`).
 - [ ] טוקן `t` של צעד אחר → `401`.
 - [ ] רוטציה: עם `OPENROUTER_CALLBACK_TOKEN_SECRET="new,old"`, טוקן שנחתם ב-`old` מתקבל, וטוקן חדש נחתם ב-`new`.
-- [ ] `callbackUrlFor()` מחזיר `null` כש-`APP_ENV` הוא `local` או `preview`, והבקשה ל-`/videos` נשלחת בלי `callback_url`.
+- [ ] `callbackUrlFor()` מחזיר `null` כש-`APP_ENV` הוא `local` או `preview`, והבקשה ל-`/videos` נשלחת בלי `callback_url`; ב-`staging` הכתובת כוללת `x-vercel-protection-bypass`, וב-`production` לא (גם כשהמשתנה מוגדר בטעות בסביבה).
 - [ ] webhook שמגיע לפני שה-hook נוצר לא הולך לאיבוד: בדיקת אינטגרציה עם `inline` שמשהה את יצירת ה-hook ומוודאת שהצנרת מסיימת בלי לחכות ל-polling.
 
 ---
@@ -705,7 +757,7 @@ export interface RouteContext {
 }
 
 export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<ResolvedRoute> {
-  const { routes, models } = await registrySnapshot();          // in-memory 60s cache + revalidateTag("ai:registry") on admin change
+  const { routes, models } = await registrySnapshot();          // in-memory 60s cache + revalidateTag("ai:registry", "max") on admin change
   const r = routes.get(taskKey);
   if (!r) throw new AppError("PROVIDER_UNAVAILABLE", { taskKey, reason: "no_route" });
   const usable = (m: RegistryModel | undefined): m is RegistryModel =>
@@ -1005,7 +1057,7 @@ user       buildUser(input) + fewShots(input)
 - slang: צעיר, מהיר ובשפת הרשת. "וייב", "פצצה", "מטורף", "דיל", "POV" (על המסך), במינון. בלי גסויות ובלי עלבונות. מתאים לברברשופ, לחיי לילה ולכושר לצעירים. דוגמה (פנייה לגברים): "POV: קמת מהכיסא ולא זיהית את עצמך."
 
 4. מספרים, מחירים ותאריכים
-- בטקסט שעל המסך (onscreen) ובטקסט לתצוגה (vo_he, vo_full_he): ספרות. מחיר עם ₪ לפי shekel_format שבהקשר: prefix נכתב "₪120", suffix נכתב "120 ₪". מפריד אלפים: "12,000". אחוז צמוד: "50%". מקף אחרי אות שימוש לפני ספרות: "ב-2026", "ל-3 חודשים".
+- בטקסט שעל המסך (onscreen) ובטקסט לתצוגה (vo_he, vo_full_he): ספרות. מחיר עם ₪ לפי shekel_format שבהקשר: prefix נכתב "₪120", suffix נכתב "120 ₪". הדוגמאות שבהקשר (few-shots) עוקבות אחרי אותו כלל, אבל מיקום ה-₪ אצלכם נקבע רק לפי shekel_format שבהקשר, לא לפי הדוגמה. מפריד אלפים: "12,000". אחוז צמוד: "50%". מקף אחרי אות שימוש לפני ספרות: "ב-2026", "ל-3 חודשים".
 - בטקסט להקראה (vo_tts_he) כל מספר נכתב במילים, בהתאמת מין לשם העצם:
   - "3 שעות" → "שלוש שעות"; "3 ימים" → "שלושה ימים"; "2 דקות" → "שתי דקות".
   - צורות זוגיות כשיש: שעתיים, יומיים, שבועיים, חודשיים, שנתיים, פעמיים.
@@ -1049,7 +1101,7 @@ user       buildUser(input) + fewShots(input)
 - אם בהקשר יש תגית <compliance>, הכללים שבה מחייבים: הסתייגויות שחובה להוסיף, ניסוחים אסורים ודגלים.
 - תמיד: בלי הבטחת תוצאות ברפואה, במשפט ובפיננסים. בלי "הכי טוב", "המוביל", "מספר 1" לעורכי דין ולרופאים.
 - בלי פנייה שמניחה מצב בריאותי, כלכלי, גיל או מאפיין אישי של הצופה ("סובלים מחרדה?", "יש לכם חובות?"). מנסחים בגוף שלישי: "הרבה אנשים עם חרדה…".
-- לפני/אחרי ברפואה, באסתטיקה ובירידה במשקל: רק עם הסתייגות ודגל.
+- "לפני ואחרי" ברפואה, באסתטיקה ובירידה במשקל: רק עם הסתייגות ודגל.
 - "כשר", "באישור משרד הבריאות", "ללא כאב", "מובטח": רק אם זה מופיע בעובדות.
 
 10. תרבות ורגישות
@@ -1145,7 +1197,7 @@ user       buildUser(input) + fewShots(input)
 | 1 | אימות כתובת | **"פותחים את האתר…"** | `http`/`https` בלבד; הוספת `https://` אם חסר; דחיית IP פרטי/לופבק/link-local/metadata (`10/8`, `172.16/12`, `192.168/16`, `127/8`, `169.254/16`, `::1`, `fc00::/7`) — אחרי פענוח DNS **ובכל הפניה** (עד 3); פורט 80/443 בלבד |
 | 2 | הורדה | — | `lib/ai/web/fetch-site.ts`: timeout 8 שניות, עד 2MB HTML, `User-Agent: {{BRAND_NAME_EN}}Bot/1.0 (+https://{{DOMAIN}}/bot)`, `Accept-Language: he-IL,he;q=0.9`; כבוד ל-`robots.txt` (אם חסום — עוצרים עם הודעה) |
 | 3 | דפים נוספים | — | עד 3 קישורים פנימיים שהטקסט שלהם מתאים ל-`/אודות|עלינו|צור קשר|צרו קשר|שירותים|מחירון|about|contact|services|pricing/i` |
-| 4 | חילוץ | **"מצאנו לוגו"** / **"זיהינו {n} שירותים"** / **"מצאנו טלפון ווואטסאפ"** (לפי מה שנמצא) | `<title>`, `meta description`, `og:*`, `theme-color`, JSON-LD (`LocalBusiness`, `Organization`: `name`, `telephone`, `address`, `aggregateRating`), כותרות h1–h3, טקסט גלוי (בלי `nav`/`footer`/`script`/`style`) עד 12,000 תווים, קישורי `tel:`/`wa.me`/`api.whatsapp.com`/`mailto:`; צבעים: `theme-color`, משתני CSS (`--primary`, `--brand…`), ו-hex תכופים בסגנונות inline (עד 6); לוגו: `link[rel~=icon]` הגדול, `apple-touch-icon`, `og:image`, `img` עם `logo` ב-`src|alt|class` (עד 4 מועמדים) |
+| 4 | חילוץ | **"מצאנו לוגו"** / **"{n, plural, one {זיהינו שירות אחד} two {זיהינו שני שירותים} other {זיהינו # שירותים}}"** (`services_found`) / **"מצאנו טלפון ווואטסאפ"** (לפי מה שנמצא) | `<title>`, `meta description`, `og:*`, `theme-color`, JSON-LD (`LocalBusiness`, `Organization`: `name`, `telephone`, `address`, `aggregateRating`), כותרות h1–h3, טקסט גלוי (בלי `nav`/`footer`/`script`/`style`) עד 12,000 תווים, קישורי `tel:`/`wa.me`/`api.whatsapp.com`/`mailto:`; צבעים: `theme-color`, משתני CSS (`--primary`, `--brand…`), ו-hex תכופים בסגנונות inline (עד 6); לוגו: `link[rel~=icon]` הגדול, `apple-touch-icon`, `og:image`, `img` עם `logo` ב-`src|alt|class` (עד 4 מועמדים) |
 | 5 | ניתוח | **"מזהים את הטון…"** | `runStructured(brand.extract.v1)` על `llm.cheap` |
 | 6 | תוצאה | — | `{type:"result", profile: BrandProfileV1}`; הלוגו שנבחר מורד, נבדק (סוג, גודל, SVG מנוקה כמו בחלק 04 §13.2) ונשמר ב-`brand-assets` רק אחרי שהמשתמש מאשר את הכרטיס |
 
@@ -1263,7 +1315,7 @@ export async function moderateText(i: ModerationInput): Promise<ModerationVerdic
 המשימה: לכתוב סט הוקים לפרויקט אחד, לפי ההקשר שבהודעה: נישה, עסק, מטרה, קהל, פנייה, רמת שפה, פלטפורמות ועונה.
 
 כללים:
-1. כל הוק עד 12 מילים. המסר מגיע במילה הראשונה. בלי ברכה, בלי שם העסק ובלי הצגה עצמית.
+1. כל הוק עד 12 מילים. המסר מגיע במילה הראשונה. בלי ברכה, בלי שם העסק ובלי הצגה עצמית. בלי סוגריים: פסיק, נקודתיים או משפט שני במקומם.
 2. לכל הוק סוג אחד מתוך <hook_types> בשדה hook_type_slug, בדיוק כמו ברשימה, ולכל היותר סוג משני אחד ב-secondary_type_slug (אחרת null).
 3. גיוון: לפחות 6 סוגים שונים בכל 10 הוקים, ולא יותר משני הוקים מאותו סוג. גם סט קטן יותר מגוון באותו יחס.
 4. פנייה: לפי audience_gender שבהקשר. בשדה gender כותבים plural, female או male לפי הפנייה בפועל, ו-neutral כשההוק לא פונה לאף אחד ("הדירה הזאת נמכרה תוך 9 ימים"). לא מערבבים פניות בתוך הוק.
@@ -1301,7 +1353,7 @@ fewShots: async (i) => tag("examples", (await pickHookExamples(i.niche.slug, i.g
 ```
 
 - **`pickHookExamples`**: עד 12 הוקים מפורסמים של הנישה (קודם `is_featured`, ואז לפי `hook_popularity`), לכל היותר 2 מכל סוג, ועוד 3 אוניברסליים (`universal-*`) שהסוג שלהם לא מכוסה. כשיש `source_hook` (וריאציות להוק קיים) — ההוק המקורי לא נכנס לדוגמאות, וכלל 13 חל עליו במפורש: הווריאציות צריכות להיות שונות ממנו.
-- **ולידציה סמנטית:** `hook_type_slug` ∈ 27 הסוגים; גיוון לפי כלל 3; כל `{…}` בטקסט ∈ `HOOK_PLACEHOLDERS` ותואם ל-`placeholders`; `HE010` (עד 12 מילים); בלי ביטויים אסורים; `platforms` ⊂ פלטפורמות הפרויקט; דמיון trigram מעל 0.6 לאחת הדוגמאות → הוק נפסל. הוקים שנפסלו מוסרים (לא תיקון), ואם נשארו פחות מ-6 — תיקון אחד.
+- **ולידציה סמנטית:** `hook_type_slug` ∈ 27 הסוגים; גיוון לפי כלל 3; כל `{…}` בטקסט ∈ `HOOK_PLACEHOLDERS` ותואם ל-`placeholders`; `HE010` (עד 12 מילים); `HE025` (בלי סוגריים); בלי ביטויים אסורים; `platforms` ⊂ פלטפורמות הפרויקט; דמיון trigram מעל 0.6 לאחת הדוגמאות → הוק נפסל. הוקים שנפסלו מוסרים (לא תיקון), ואם נשארו פחות מ-6 — תיקון אחד.
 - **אחרי השמירה:** כל הוק נשמר ב-`workspace_hooks` (`source_hook_id` כשיש), ו-`detectFactSlots` (חלק 03 §6.12) מסמן מספרים. המזהים חוזרים ב-`done.workspaceHookIds` (§3.5).
 - **שלושה מקורות קריאה, תבנית אחת:** `POST /api/projects/[id]/hooks` (הקשר הפרויקט); `POST /api/hooks/variations` עם `sourceHookId` (וריאציות להוק קיים); ו-`POST /api/hooks/variations` **בלי** `sourceHookId` — "הוקים חדשים" על פרופיל העסק של הסביבה, עם `nicheSlug` ו-`topicHe` (תגית `<topic>`), בלי פרויקט (`workspace_hooks.project_id = null`). המחיר זהה (`hooks.generate`, קרדיט אחד), ו-`topicHe` הוא טקסט חופשי שלעולם לא נשלח לאנליטיקה (חלק 04 §20.3).
 
@@ -1341,7 +1393,7 @@ validate: (o, i) => o.variants.flatMap((v) => sameTokens(placeholdersOf(v.text_h
 אתם כותבי ההוקים של ספריית ההוקים הציבורית בעברית. הספרייה משרתת אלפי עסקים באותה נישה, ולכן כל הוק צריך להתאים לעסקים רבים, לא לעסק מסוים.
 
 כללים:
-1. כל כללי ההוקים: עד 12 מילים, המסר במילה הראשונה, בלי ברכה ובלי שם עסק, מובן בלי סאונד.
+1. כל כללי ההוקים: עד 12 מילים, המסר במילה הראשונה, בלי ברכה ובלי שם עסק, בלי סוגריים, מובן בלי סאונד.
 2. כתבו בדיוק את מספר ההוקים שב-<count>, מכסים את הסוגים שב-<focus_types> (לפחות הוק אחד לכל סוג ברשימה), ועוד סוגים לבחירתכם מתוך <hook_types>.
 3. placeholders מותרים מתוך <allowed_placeholders> בלבד, כדי שכל עסק יוכל להתאים את ההוק לעצמו ({עיר}, {שירות}, {מחיר}). מספר שהוא טענה (מחיר, זמן, תוצאה) תמיד כ-placeholder, או כמספר לדוגמה עם compliance_note_he שאומר שהוא לדוגמה.
 4. ברירת המחדל לפנייה היא רבים. אפשר עד שני הוקים בלשון נקבה לנישות שהקהל בהן ברובו נשים, ועד שניים בלשון זכר לנישות שהקהל בהן ברובו גברים.
@@ -1362,7 +1414,7 @@ buildUser: (i) => [
 ].join("\n\n"),
 ```
 
-בקשת אדמין (`POST /api/admin/hooks/batch { nicheSlug, count (10..60), typeMix? }`, חלק 04 §24.1) מתפצלת לבקשות של 10 (`HookBatchV1` מוגבל ל-10 לבקשה), כל אחת עם `focus_types` אחרים — כך שכל 27 הסוגים מתחלקים בין הבקשות. הבקשות נשלחות דרך `llm.batch` (Batch API, בטא) [M0-verify את מבנה הבקשה ואת סטטוס `validating`]; אם ה-Batch API לא זמין, הן רצות ברצף על `llm.cheap` בתור רקע (`/api/admin/hooks/batch` מחזיר `202` עם מזהה אצווה). התוצאות עוברות את אותה ולידציה של §10.3, ובנוסף `lib/hebrew/lint.ts` המלא, ונכנסות כ-`status = draft`, `source = ai_batch`, עם `id` הבא בתור (`{niche}-{nn}`).
+בקשת אדמין (`POST /api/admin/hooks/batch { nicheSlug, count (10..60), typeMix? }`, חלק 04 §24.1) מתפצלת לבקשות של 10 (`HookBatchV1` מוגבל ל-10 לבקשה), כל אחת עם `focus_types` אחרים — כך שכל 27 הסוגים מתחלקים בין הבקשות. הבקשות נשלחות דרך `llm.batch` (Batch API, בטא) [M0-verify את מבנה הבקשה ואת סטטוס `validating`]; אם ה-Batch API לא זמין, הן רצות ברצף על `llm.cheap` בתור רקע (`/api/admin/hooks/batch` מחזיר `202` עם מזהה אצווה). התוצאות עוברות את אותה ולידציה של §10.3 (כולל `HE010` ו-`HE025`), ובנוסף `lib/hebrew/lint.ts` המלא, ונכנסות כ-`status = draft`, `source = ai_batch`, עם `id` הבא בתור (`{niche}-{nn}`).
 
 ### 10.6 `script.generate.v1` — התסריט
 
@@ -1464,7 +1516,7 @@ validate: validateScriptV1,                                       // §11.3
 23. transition_in: בסצנת ההוק "cut". ברוב הסצנות cut. whip או zoom בשינוי אנרגיה, flash לחשיפה (לפני ואחרי), slide לרשימות, fade לטון רגוע או רשמי. לכל היותר מעבר אחד שאינו cut בכל שלוש סצנות.
 24. sfx: בסצנת ההוק impact, whoosh או pop כשמתאים. sizzle לאוכל, cash לחשיפת מחיר, camera_shutter לצילום, click לממשק, riser לפני חשיפה. none ברוב הסצנות; לכל היותר אפקט אחד בכל שתי סצנות.
 25. music: mood לפי <music_mood> כשהוא קיים, אחרת לפי הנישה והטון. energy ו-bpm_hint לפי הקצב. beat_drop_at_sec קרוב לסוף סצנת ההוק, או null.
-26. end_card: headline_he עד 6 מילים, לרוב cta.text_he של התסריט. cta_type כמו בתסריט. show_logo=true. contact_fields מתוך <contact> בלבד, לפי הרלוונטיות להנעה לפעולה.
+26. end_card: headline_he עד 6 מילים ועד 30 תווים, לרוב cta.text_he של התסריט (ואם הוא ארוך יותר, גרסה מקוצרת שלו). cta_type כמו בתסריט. show_logo=true. contact_fields מתוך <contact> בלבד, לפי הרלוונטיות להנעה לפעולה.
 ```
 
 ```ts
@@ -1609,13 +1661,13 @@ buildUser: (i) => [
 אתם עורכי התוכן של ספריית ההוקים בעברית. אתם כותבים טיוטה לדף "הוקים לסרטונים" של נישה אחת. עורך אנושי יבדוק אותה לפני פרסום.
 
 כללים:
-1. seo_title_he: עד 60 תווים, עם הביטוי שאנשים מחפשים ("הוקים לרילס ל{name}", "משפטי פתיחה לסרטונים ל{name}").
+1. seo_title_he: עד 60 תווים, עם הביטוי שאנשים מחפשים (בנישת רופאי השיניים, למשל: "הוקים לרילס לרופאי שיניים", "משפטי פתיחה לסרטונים לרופאי שיניים").
 2. seo_description_he: עד 155 תווים, משפט שמסביר מה יש בדף ולמה כדאי להיכנס.
 3. seo_intro_he: בין 180 ל-260 מילים, ייחודי לנישה. מה מאפיין סרטונים טובים בנישה הזאת, אילו סוגי הוקים עובדים בה ולמה (עם שתיים-שלוש דוגמאות מתוך <hooks>), מה רגיש בה מבחינת פרסום, ואיך משתמשים בהוקים בדף. בלי סטטיסטיקות מומצאות, בלי "מחקרים מראים", ובלי הבטחות להצלחה.
 4. faq: 4 עד 6 שאלות שבעלי עסקים בנישה באמת שואלים על סרטונים קצרים. q_he שאלה קצרה, a_he תשובה של 40 עד 90 מילים, מעשית ובלי המצאות.
 5. פנייה ברבים, רמת שפה warm, כתיב מלא.
 6. landing_intro_he: טקסט לדף הנישה באתר (לא לדף ההוקים), בין 250 ל-400 מילים, ב-3 עד 5 פסקאות שמופרדות בשורה ריקה. למי השירות מתאים, אילו סרטונים עסק בנישה צריך ולמה, איך נראה תהליך העבודה, ומה צריך להכין מראש. בלי לחזור על משפטים מ-seo_intro_he.
-7. short_name_he: שם קצר לנישה, מילה אחת עד ארבע ועד 40 תווים, בצורת רבים שאפשר לכתוב אחרי ל־ ("רופאי שיניים" ← "לרופאי שיניים", "מספרות", "יועצי משכנתאות").
+7. short_name_he: שם קצר לנישה, מילה אחת עד ארבע ועד 40 תווים, בצורת רבים שאפשר להצמיד אליה את האות ל ("רופאי שיניים" ← "לרופאי שיניים", "מספרות", "יועצי משכנתאות").
 ```
 
 ```ts
@@ -1802,7 +1854,7 @@ buildUser: (i) => [                                  // + one image_url content 
       "beat_drop_at_sec":{"type":["number","null"]}}},
   "end_card":{"type":"object","additionalProperties":false,"required":["headline_he","cta_type","show_logo","contact_fields"],
     "properties":{
-      "headline_he":{"type":"string"},
+      "headline_he":{"type":"string","description":"End-card headline: up to 6 words, max 30 chars"},
       "cta_type":{"type":"string","enum":["whatsapp","call","link_in_bio","booking","navigate","lead_form","comment_keyword","save_share","visit_site"]},
       "show_logo":{"type":"boolean"},
       "contact_fields":{"type":"array","items":{"type":"string","enum":["phone","whatsapp","website","address","instagram"]}}}}}}
@@ -1928,6 +1980,7 @@ export type ScriptV1 = z.infer<typeof ScriptV1>;
 
 ```ts
 // lib/ai/schemas/storyboard.ts
+import { countWords } from "@/lib/hebrew/text";   // whitespace tokens that contain a letter or a digit ("–", "₪" alone don't count)
 export const VisualSource = z.enum(["ai_clip","ai_image_kenburns","user_media","user_photo_animated","brand_card","stock_broll"]);
 export const Camera = z.enum(["static","push_in","pull_out","pan_left","pan_right","tilt_up","tilt_down","handheld","orbit","drone"]);
 export const Transition = z.enum(["cut","fade","whip","zoom","slide","wipe","flash"]);
@@ -1954,7 +2007,9 @@ export const StoryboardV1 = z.object({
   scenes: z.array(StoryboardScene).min(3).max(12),
   music: z.object({ mood: MusicMood, energy: z.enum(["low","medium","high"]),
                     bpm_hint: z.number().int().min(60).max(180).nullable(), beat_drop_at_sec: z.number().min(0).max(10).nullable() }).strict(),
-  end_card: z.object({ headline_he: z.string().min(2).max(50), cta_type: CtaType, show_logo: z.boolean(),
+  end_card: z.object({ headline_he: z.string().min(2).max(30)                       // Appendix E: up to 6 words, 30 chars
+                         .refine((s) => countWords(s) <= 6, { message: "end_card.headline_he: up to 6 words" }),
+                       cta_type: CtaType, show_logo: z.boolean(),
                        contact_fields: z.array(z.enum(["phone","whatsapp","website","address","instagram"])).max(5) }).strict(),
 }).strict();
 ```
@@ -2012,7 +2067,7 @@ export const PostCaptionV1    = z.object({ post_caption_he: z.string().min(10).m
 export const SeoNicheIntroV1  = z.object({ seo_title_he: z.string().max(60), seo_description_he: z.string().max(155),
   seo_intro_he: z.string().min(900).max(2200),                 // 180–260 words
   landing_intro_he: z.string().min(1300).max(3200),            // 250–400 words, 3–5 paragraphs
-  short_name_he: z.string().min(2).max(40),                    // 1–4 words, plural, usable after ל־
+  short_name_he: z.string().min(2).max(40),                    // 1–4 words, plural, usable after the prefix letter ל
   faq: z.array(z.object({ q_he: z.string().max(120), a_he: z.string().max(700) }).strict()).min(4).max(6) }).strict();
 ```
 
@@ -2380,7 +2435,7 @@ export const SAMPLE_PRESETS = {
 export function estimateSample(p: SamplePreset, costs: CreditCostMap): number;
 ```
 
-- **`credits`** הוא מה שנשמר ב-`create_job_and_reserve` — **בלי** התסריט והסטוריבורד, שכבר נוכו ב-`spend_credits` באשף. `POST /api/projects/[id]/estimate` מחזיר `alreadySpent` כמספר שלם (סכום השורות של `estimate().alreadySpent`, חלק 04 §19.7), ו-`ConfirmGenerateDialog` מציג את `credits` ובשורה משנית "כולל התסריט שכבר נוצר: {total} קרדיטים בסך הכול", כש-`total = credits + alreadySpent` (הנוסח בחלק 03 §6.10).
+- **`credits`** הוא מה שנשמר ב-`create_job_and_reserve` — **בלי** התסריט והסטוריבורד, שכבר נוכו באשף (`begin_spend` ← `commit_spend`, §3.4). `POST /api/projects/[id]/estimate` מחזיר `alreadySpent` כמספר שלם (סכום השורות של `estimate().alreadySpent`, חלק 04 §19.7), ו-`ConfirmGenerateDialog` מציג את `credits` ובשורה משנית "כולל התסריט שכבר נוצר: {total, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} בסך הכול", כש-`total = credits + alreadySpent` (הנוסח בחלק 03 §6.10).
 - **הקריינות מוערכת** מספירת המילים של `vo_full_he` (`countWords`, בלי placeholders שעדיין פתוחים — אבל `POST /generate` ממילא חוסם אותם) חלקי `wps`. אם בפועל הקריינות ארוכה יותר — ההפרש נספג (`capture` לא עובר את השמירה).
 - **בדיקת עקביות מול נספח F** (§10.4) ומול `credit_costs` של חלק 04 §16.4: `images15` = 3 (טקסט) + 16 (4 × 4) + 1 (קריינות) + 3 (רינדור) = **23**; `draft30` = 3 + 12 + 30 + 2 + 3 = **50**; `standard30` = 3 + 24 + 75 + 2 + 3 = **107**; `premium60` = 3 + 70 + 396 + 4 + 5 (`render.base` ארוך) = **478**.
 
@@ -2514,7 +2569,7 @@ export function numberToHebrew(n: number, gender: "m" | "f", opts?: { year?: boo
 3. **מהירות:** `voice_speed` (0.80–1.20) נשלח כ-`speed` אם הספייק של M0 אישר שהמודל מקבל אותו; אחרת הקול נוצר במהירות 1.0, והמהירות מיושמת ב-Remotion (`<Audio playbackRate>` עם שמירת גובה צליל) — ובמקרה הזה זמני המילים מחולקים ב-`voice_speed` לפני הכתוביות.
 4. **עיבוד:** אחרי ההורדה — חיתוך שקט בהתחלה ובסוף מעל 300ms, ונרמול עוצמה ל-−16 LUFS (`loudnorm=I=-16:TP=-1.5:LRA=11`, דרך `ffmpeg-static` בתוך הצעד). שמירה ב-`generated/{ws}/{project}/voice/v{n}.mp3` (`paths.voice`), שורת `assets` (`kind = voiceover`, `duration_ms` מ-`@remotion/media-parser`), ו-`project_versions.voiceover_asset_id`.
 5. **ולידציה:** משך הקריינות בין 40% ל-130% מהצפוי (`words / wps`); מחוץ לטווח — ניסיון חוזר אחד (לרוב סימן לקריאה שנקטעה או לשפה שגויה), ואז כישלון.
-6. **קרדיטים:** `capture_credits(res, ceil(duration_sec / 15) × voice.tts, 'capture:{jobId}:voice', 'קריינות · {n} שניות')`.
+6. **קרדיטים:** `capture_credits(res, ceil(duration_sec / 15) × voice.tts, 'capture:{jobId}:voice', 'קריינות · {seconds, plural, one {שנייה אחת} two {שתי שניות} other {# שניות}}')` (התיאור נבנה עם אותו פורמט ICU של `messages/he.json`).
 7. **השמעה לדוגמה** (`POST /api/voices/preview`, חלק 04 §20): בלי טקסט — הקובץ הקבוע `public-media/voices/{voice_id}.mp3`, בלי קריאה ל-OpenRouter; עם טקסט — אותו נרמול להקראה, `route("tts.preview")` (Eleven v4 Turbo), שמירה במטמון ב-`paths.voicePreview(ws, sha256(voiceId + text))`, ושורת `ai_generations` (`task = tts`). 0 קרדיטים, דלי `voice_preview`.
 
 ### 15.7 כיול מהירות הדיבור
@@ -2678,7 +2733,7 @@ export function lyriaPrompt(i: { mood: MusicMood; energy: "low" | "medium" | "hi
 
 ## §18. הצנרת `videoPipeline` ב-Vercel Workflows
 
-Vercel Workflows (ה-Workflow DevKit, עם ההנחיות `"use workflow"`/`"use step"`) הוא שירות GA מאז 2026-04-16. כל צעד רץ כפונקציה של Vercel ומוגבל במשך שלה: 800 שניות כברירת מחדל ב-Pro, ועד 30 דקות כשמפעילים את המשך המורחב לצעדים (opt-in, Pro/Enterprise). צעד הרינדור ב-Sandbox (עד 20 דקות) דורש את המשך המורחב; כל שאר הצעדים קצרים בהרבה. העבודה הכבדה עצמה (הרינדור) רצה ב-Vercel Sandbox, לא בתוך הפונקציה.
+Vercel Workflows (ה-Workflow DevKit, עם ההנחיות `"use workflow"`/`"use step"`) הוא שירות GA מאז 2026-04-16. כל צעד רץ כפונקציה של Vercel ומוגבל במשך שלה: ברירת מחדל 300 שניות ב-Pro, ואפשר להגדיר עד 800 (GA); צעד הרינדור משתמש במשך המורחב של עד 30 דקות (opt-in, Pro/Enterprise), שמוגדר ב-`vercel.json → functions` לנתיבי `.well-known/workflow/*`. צעד הרינדור ב-Sandbox (עד 20 דקות) דורש את המשך המורחב; כל שאר הצעדים קצרים בהרבה. נתיבי הצעדים של WDK הם החריג היחיד לכלל "אף `app/api/**/route.ts` לא מגדיר `maxDuration` מעל 300" (חלק 06). העבודה הכבדה עצמה (הרינדור) רצה ב-Vercel Sandbox, לא בתוך הפונקציה.
 
 ### 18.1 אינווריאנטים
 
@@ -2699,14 +2754,14 @@ import * as S from "./steps";
 
 export async function videoPipeline(jobId: string) {
   "use workflow";
-  const plan = await startJobStep(jobId);                 // running, started_at, immutable PipelinePlan (ids only)
+  const plan = await startJobStep(jobId);                 // running, started_at, immutable PipelinePlan (ids only) + jobs.options.scenes_digest
   try {
     // Phase A — voice ∥ keyframes
     const keyframes = keyframesPhase(jobId, plan);        // hook keyframe first when the reference chain is on (§13.7), then pool of 4
     if (plan.run.voice) await voiceStep(jobId);
     if (plan.run.captions) await captionsStep(jobId);     // sets scene start_ms / duration_ms — clip lengths depend on it
     await keyframes;
-    await guardStep(jobId);                               // cancel check + "> 50% keyframes failed" rule
+    await guardStep(jobId);                               // terminal check + "> 50% keyframes failed" → VIDEO_JOB_FAILED
     // Phase B — clips (3 in parallel) ∥ music
     const music = plan.run.music ? musicStep(jobId) : Promise.resolve();
     await pool(plan.clipSceneIds, 3, (sceneId) => clipFlow(jobId, sceneId));
@@ -2812,11 +2867,12 @@ export async function runStep<T>(
 ): Promise<T> {
   const step = await ensureStep(jobId, stepKey, opts.sceneId);            // insert … on conflict (job_id, step_key) do nothing; select
   if (step.status === "succeeded" || step.status === "skipped" || step.status === "degraded") return step.output as T;
-  if (await jobCanceled(jobId)) throw new CanceledError(jobId);
+  if (await jobTerminal(jobId)) throw new CanceledError(jobId);           // canceled_at set, or jobs.status in ('failed','canceled')
   await markRunning(step, opts.stage);                                    // status=running, attempt+1, started_at, jobs.stage/heartbeat
   const ac = new AbortController(); const timer = setTimeout(() => ac.abort("step-timeout"), opts.timeoutMs);
   try {
     const r = await fn({ step, signal: ac.signal });
+    if (await jobTerminal(jobId)) throw new CanceledError(jobId);         // failed/canceled meanwhile (sweeper, user): no capture
     if (r.credits > 0) {
       await setStepCredits(step.id, r.credits);                           // BEFORE capture (part 04 §10.7)
       await captureCredits(jobId, stepKey, r.credits, r.descriptionHe);   // idem 'capture:{jobId}:{stepKey}'
@@ -2834,14 +2890,18 @@ export async function runStep<T>(
 
 `classifyError`: `OpenRouterError.retryable` ← כמו ב-§2.3; שגיאות Supabase של רשת/`503` ← retryable; `AppError` (קוד עסקי) ← fatal; `CanceledError` ← fatal עם סימון ביטול; כל השאר ← retryable פעם אחת ואז fatal.
 
+**`jobTerminal(jobId)`** (`lib/pipeline/state.ts`) קורא את `jobs.canceled_at` ואת `jobs.status`, ומחזיר `true` כשהעבודה בוטלה או כש-`status` הוא `failed` או `canceled` (למשל אחרי שה-sweeper הכשיל אותה, §19.4). `runStep` בודק אותו לפני `markRunning` ושוב לפני `capture`, כך שריצה ישנה שממשיכה אחרי כישלון או ביטול לא מחייבת ולא מתקדמת. `cancelJob` ו-`failJob` לא עושים כלום כשהעבודה כבר במצב סופי (`failed`/`canceled`/`succeeded`), ולכן `CanceledError` שנזרק על עבודה שכבר נכשלה לא הופך אותה ל-`canceled` ולא סוגר שוב את השמירה. `finalize` עושה את אותה בדיקה (§18.10).
+
+**בדיקת `scenes_digest` (הגנה לעומק; `scenes` נכתבת רק בצד השרת, חלק 04 §12.2 ו-§19.6):** `startJob` מחשב, אחרי המודרציה של זמן היצירה (חלק 04 §19.8), את `scenes_digest` = sha256 על הרשימה של הגרסה, ממוינת לפי `index`, של `(id, index, is_hook_scene, image_prompt_en, motion_prompt_en, onscreen_text_he, vo_he)`, ושומר אותו ב-`jobs.options.scenes_digest`. הצעדים `keyframe:*`, `clip:*` (ב-`clipSubmit`, לפני ה-submit), `voice` ו-`render:*` מחשבים אותו מחדש (`assertScenesDigest(jobId)`, `lib/pipeline/state.ts`) לפני הקריאה למודל או לרינדור. אי-התאמה ← `AppError("INTERNAL_ERROR")` קטלני ← `failJob(INTERNAL_ERROR)` עם החזר מלא (`refund_reservation`) והתראת מנהלים `scenes_changed_during_job`. `start_ms` ו-`duration_ms` לא נכללים, כי צעד `captions` כותב אותם; גם `status`, מזהי הנכסים ו-`visual_source` (שהדרדרות משנה) לא נכללים.
+
 ### 18.4 טבלת הצעדים
 
 | `step_key` | `jobs.stage` | קלט | פלט (`job_steps.output`) | Timeout | ניסיונות | גיבוי מודל | קרדיטים (`capture`) | משקל התקדמות |
 |---|---|---|---|---|---|---|---|---|
-| `voice` | `voice` | `vo_full_he` → טקסט הקראה (§15.1), קול, מהירות, מילון | `{asset_id, duration_ms, model, fallback_voice, tts_hash}` | 120 שנ׳ | 3 (backoff 2/8/30 שנ׳) | `tts.default` → `tts.alt` | `voice.tts × ⌈שניות/15⌉` · "קריינות · {n} שניות" | 10 |
+| `voice` | `voice` | `vo_full_he` → טקסט הקראה (§15.1), קול, מהירות, מילון | `{asset_id, duration_ms, model, fallback_voice, tts_hash}` | 120 שנ׳ | 3 (backoff 2/8/30 שנ׳) | `tts.default` → `tts.alt` | `voice.tts × ⌈שניות/15⌉` · "קריינות · {seconds, plural, one {שנייה אחת} two {שתי שניות} other {# שניות}}" | 10 |
 | `captions` | `captions` | קובץ הקריינות, טוקנים ו-`spans` | `{source, quality, words, pages}` → `project_versions.caption_track`; `scenes.start_ms/duration_ms` | 120 שנ׳ | 2 | תמלול נכשל → יישור חלופי | 0 | 5 |
 | `keyframe:{sceneId}` | `keyframes` | `buildKeyframePrompt`, יחס, רזולוציה, seed, ייחוס | `{asset_id, model, prompt_hash, attempts}` | 120 שנ׳ | 2 לכל מודל | `image.{tier}` לפי הסדר | `image.{tier}` · "תמונה לסצנה {n}" | 15 ÷ מספר ה-keyframes |
-| `clip:{sceneId}` | `clips` | כתובת חתומה (6 שעות) של ה-keyframe, `buildMotionPrompt`, משך מעוגל (§14.1), רזולוציה, יחס, `callback_url` | `{attempts:[{n, model, video_id, status, billed_seconds, pending_submit?}], asset_id}` | submit 30 שנ׳; המתנה 15 דק׳ לניסיון; אחסון 180 שנ׳ | ניסיון חוזר אחד עם הגיבוי הבא; אחר כך `degraded` | `video.{tier}` לפי הסדר | `clip.{tier} × billed_seconds` · "קליפ לסצנה {n} · {s} שניות" | 45 ÷ מספר הקליפים |
+| `clip:{sceneId}` | `clips` | כתובת חתומה (6 שעות) של ה-keyframe, `buildMotionPrompt`, משך מעוגל (§14.1), רזולוציה, יחס, `callback_url` | `{attempts:[{n, model, video_id, status, billed_seconds, pending_submit?}], asset_id}` | submit 30 שנ׳; המתנה 15 דק׳ לניסיון; אחסון 180 שנ׳ | ניסיון חוזר אחד עם הגיבוי הבא; אחר כך `degraded` | `video.{tier}` לפי הסדר | `clip.{tier} × billed_seconds` · "קליפ לסצנה {n} · {seconds, plural, one {שנייה אחת} two {שתי שניות} other {# שניות}}" | 45 ÷ מספר הקליפים |
 | `music` | `music` | אווירה, אנרגיה, BPM, משך | `{asset_id, source: "library"|"lyria", track_id}` | 180 שנ׳ | 2 | Lyria → ספרייה | `music.generate` (5) רק ב-`generate` · "מוזיקה מקורית" | 5 |
 | `render:{aspect}` | `render` | `PromoProps` (§20.2) עם כתובות של 6 שעות | `{render_run_id, asset_id, render_ms, still_asset_id?}` | 20 דק׳ | 1 | — | ראשון: `render.base`; נוסף: `render.extra_format` · "הרכבה 9:16" / "פורמט נוסף 1:1" | 18 ÷ מספר הפורמטים |
 | `finalize` | `finalize` | כל התוצרים | `{poster_asset_id, srt_asset_id, vtt_asset_id, settled}` | 60 שנ׳ | 3 | — | 0 (כאן `settle_reservation`) | 2 |
@@ -2870,7 +2930,7 @@ export async function runStep<T>(
 |---|---|---|---|
 | קליפ של סצנה | הסצנה נבנית מה-keyframe עם Ken Burns (`degraded`) | זוג capture/refund על הקליפ | `app.project.degraded.clip`: "סצנה {n} נבנתה מתמונה בתנועה במקום וידאו. הקרדיטים על הקליפ הוחזרו." |
 | keyframe של סצנה (≤ 50% מהסצנות) | הסצנה נבנית כ-`brand_card` (רקע בצבעי המותג + הטקסט שלה); הקליפ שלה לא נוצר | זוג capture/refund על התמונה ועל הקליפ | `app.project.degraded.keyframe`: "לא הצלחנו ליצור תמונה לסצנה {n}, אז היא נבנתה כגרפיקה בצבעי המותג. הקרדיטים הוחזרו." |
-| keyframes של יותר מ-50% מהסצנות | העבודה נכשלת (`PROVIDER_UNAVAILABLE`) | `refund_reservation` — הכול | `errors.PROVIDER_UNAVAILABLE` |
+| keyframes של יותר מ-50% מהסצנות | העבודה נכשלת (`VIDEO_JOB_FAILED`) | `refund_reservation` — הכול | `errors.VIDEO_JOB_FAILED` |
 | קריינות (`no_voice = false`) | העבודה נכשלת (`TTS_FAILED`) | הכול | `errors.TTS_FAILED` |
 | תמלול | יישור חלופי, העבודה ממשיכה | — | — (באדמין: "כתוביות משוערות") |
 | מוזיקה מקורית | רצועה מהספרייה | זוג capture/refund על `music.generate` | `app.project.degraded.music`: "המוזיקה המקורית הוחלפה ברצועה מהספרייה. הקרדיטים הוחזרו." |
@@ -2884,7 +2944,7 @@ export async function runStep<T>(
 
 ### 18.7 ביטול
 
-`POST /api/jobs/[id]/cancel` → `jobs.canceled_at = now()` → `orchestrator.cancel()` (ביטול הריצה ב-WDK אם יש API לכך [M0-verify], ובכל מקרה הבדיקה ב-`runStep`). הצעד הבא זורק `CanceledError` → `cancelJob`: `jobs.status = canceled`, `settle_reservation` (מה שכבר נוצר נשאר מחויב, השאר משתחרר), `projects.stage = storyboard`, ועבודות אחים שעוד ממתינות (`options.afterJobId`) מבוטלות עם החזר מלא. אירוע האנליטיקה `generation_canceled {stage}` נשלח מהלקוח אחרי שהביטול הצליח, לא מהשרת (חלק 06 §14.2). קליפים שכבר נשלחו ל-OpenRouter ממשיכים אצלם (אין API ביטול); ה-webhooks שלהם נרשמים `ignored`.
+`POST /api/jobs/[id]/cancel` → `jobs.canceled_at = now()` → `orchestrator.cancel(jobId, run_id)` (ביטול הריצה ב-WDK אם יש API לכך [M0-verify], ובכל מקרה הבדיקה `jobTerminal` ב-`runStep`). `orchestrator.cancel` עצמו עוצר רק את הריצה ולא כותב ל-`jobs`: את `canceled_at` כותב נתיב הביטול, וכך ה-sweeper יכול לבטל ריצה מתה ולהפעיל את העבודה מחדש (§19.4) בלי שהריצה החדשה תיראה מבוטלת. הצעד הבא זורק `CanceledError` → `cancelJob`: `jobs.status = canceled`, `settle_reservation` (מה שכבר נוצר נשאר מחויב, השאר משתחרר), `projects.stage = storyboard`, ועבודות אחים שעוד ממתינות (`options.afterJobId`) מבוטלות עם החזר מלא. אירוע האנליטיקה `generation_canceled {stage}` נשלח מהלקוח אחרי שהביטול הצליח, לא מהשרת (חלק 06 §14.2). קליפים שכבר נשלחו ל-OpenRouter ממשיכים אצלם (אין API ביטול); ה-webhooks שלהם נרשמים `ignored`.
 
 ### 18.8 סוגי עבודות
 
@@ -2905,6 +2965,8 @@ export async function runStep<T>(
 
 ### 18.10 `finalize`
 
+**שמירה מפני מצב סופי:** אם `jobTerminal(jobId)` (העבודה נכשלה או בוטלה בינתיים, למשל בידי ה-sweeper), `finalize` יוצא בלי `settle_reservation`, בלי `succeeded` ובלי מייל. העדכון של שלב 4 מותנה (`update jobs set status = 'succeeded' … where id = $1 and status not in ('failed','canceled')`), כך שגם במרוץ, עבודה שכבר הוחזרה לא חוזרת למצב `succeeded`.
+
 1. הפוסטר: `stillPath` שהוחזר מרינדור הפורמט הראשי (פריים ב-1.2 שנ׳, §20.8) → `assets` (`poster`).
 2. SRT ו-VTT מ-`CaptionTrackV1` (§16.7).
 3. `settle_reservation(res, 'settle:'||res)`; `jobs.credits_captured` = סכום ה-captures פחות ההחזרים החלקיים.
@@ -2918,7 +2980,9 @@ export async function runStep<T>(
 - [ ] הרצה מחדש של אותו `videoPipeline(jobId)` אחרי הצלחה לא מייצרת אף קריאה ל-OpenRouter ואף שורת יומן חדשה.
 - [ ] קריסה מדומה של `clipSubmit` אחרי `pending_submit` ולפני החזרת המזהה: הניסיון הבא **לא** שולח לאותו מודל, עובר לגיבוי, ואין שתי בקשות submit לאותו ניסיון.
 - [ ] קליפ שנכשל פעמיים (`failed` ואז `expired`) → הסצנה `degraded`, `CreditsMeter` עולה מיד בעלות הקליפ, והעבודה מסתיימת בהצלחה.
-- [ ] כשל של 4 מתוך 6 keyframes → העבודה נכשלת, `refund_reservation` מחזיר 100%, נשלח `video_failed_refunded`.
+- [ ] כשל של 4 מתוך 6 keyframes → העבודה נכשלת עם `VIDEO_JOB_FAILED` (לא `PROVIDER_UNAVAILABLE`), `refund_reservation` מחזיר 100%, נשלח `video_failed_refunded`.
+- [ ] עבודה שה-sweeper הכשיל (`failed`, הוחזרה) בזמן שהריצה הישנה עוד חיה: הצעד הבא של הריצה הישנה לא מחייב (`capture` לא נקרא), ו-`finalize` לא משנה אותה ל-`succeeded`.
+- [ ] שינוי `vo_he` של סצנה ישירות ב-DB (בתפקיד השירות) אחרי `startJob` → הצעד הבא (`voice`/`keyframe:*`/`clip:*`/`render:*`) נכשל ב-`INTERNAL_ERROR`, החזר מלא, והתראת `scenes_changed_during_job`; עדכון `start_ms`/`duration_ms` בצעד `captions` לא מפעיל את הבדיקה.
 - [ ] ביטול באמצע שלב הקליפים → `canceled`, הקרדיטים של הצעדים שהושלמו נשארים מחויבים והשאר חוזרים, ו-webhook שמגיע אחר כך נרשם `ignored`.
 - [ ] 3 גרסאות הוק: עבודות האחים מתחילות רק אחרי שקליפי הראשית מוכנים, ולא נוצר בהן אף keyframe או קליפ חוץ מסצנת ההוק.
 
@@ -2947,8 +3011,8 @@ export const orchestrator = (): JobOrchestrator =>
 
 | מימוש | `start` | `resume` | `cancel` | `status` | מתי |
 |---|---|---|---|---|---|
-| `vercel-workflow` | `start(videoPipeline, [jobId])` מ-`workflow/api` → `run.runId` נשמר ב-`jobs.run_id` | `resumeHook(token, payload)` | ביטול הריצה ב-API של WDK [M0-verify] + `jobs.canceled_at` | `getRun(runId).status` [M0-verify] | פרודקשן ו-preview |
-| `inline` | `queueMicrotask(() => runFlow(jobId, inlineRuntime))`; ב-Vitest — `await` | כותב את האירוע ל-`webhook_events` ומעיר את ה-poller של אותה ריצה | `jobs.canceled_at` בלבד | `unknown` | `pnpm dev` בלי Vercel, בדיקות יחידה ו-e2e עם MSW |
+| `vercel-workflow` | `start(videoPipeline, [jobId])` מ-`workflow/api` → `run.runId` נשמר ב-`jobs.run_id` | `resumeHook(token, payload)` | ביטול הריצה ב-API של WDK [M0-verify]; לא כותב ל-`jobs` | `getRun(runId).status` [M0-verify] | פרודקשן ו-preview |
+| `inline` | `queueMicrotask(() => runFlow(jobId, inlineRuntime))`; ב-Vitest — `await` | כותב את האירוע ל-`webhook_events` ומעיר את ה-poller של אותה ריצה | מסמן את הריצה כמבוטלת בזיכרון (`AbortController` לפי `runId`), והצעד הבא שלה עוצר; לא כותב ל-`jobs` | `unknown` | `pnpm dev` בלי Vercel, בדיקות יחידה ו-e2e עם MSW |
 | `trigger` (v2) | `tasks.trigger("video-pipeline", { jobId }, { idempotencyKey: jobId, concurrencyKey: billingWorkspaceId })` | `wait.completeToken(token, payload)` | `runs.cancel(runId)` | `runs.retrieve(runId)` | אם WDK לא מספיק (עומס, מגבלות) |
 
 **קוד זרימה אחד:** גוף ה-workflow של §18.2 נכתב כפונקציה `runFlow(jobId, rt)` ב-`lib/pipeline/flow.ts`, שמקבלת `rt = { steps, sleep, createHook }`. `videoPipeline` ("use workflow") מעביר `rt` של WDK (העטיפות עם `"use step"`, `sleep` ו-`createHook` של `workflow`); `inline` מעביר `rt` שקורא ישירות ל-`S.*`, `sleep` של `setTimeout` (בבדיקות: שעון מזויף) ו-`createHook` שמבוסס על polling של `webhook_events`. [M0-verify] שה-WDK מתיר קריאה לפונקציה מיובאת (לא step) מתוך workflow; אם לא — הזרימה משוכפלת ב-`inline.ts`, ושני העותקים מכוסים באותן בדיקות e2e.
@@ -2982,6 +3046,8 @@ export interface RenderProvider {
 | `lambda` | `renderMediaOnLambda({ region: "eu-central-1", functionName, serveUrl: REMOTION_SERVE_URL, composition, inputProps, …, webhook: { url: env.NEXT_PUBLIC_SITE_URL + "/api/webhooks/render?t=" + callbackTokenFor(renderRunId), secret, customData: { renderRunId } } })` (כתובת מוחלטת); מעקב ב-`getRenderProgress` | S3 → העתקה ל-Supabase | מתוך `getRenderProgress().costs` |
 | `local` | `@remotion/bundler` + `@remotion/renderer` (`selectComposition`, `renderMedia`, `renderStill`) על המכונה | קובץ מקומי → Supabase | 0 |
 
+**מיקום הנתונים ברינדור:** הפונקציות והצעדים רצים ב-`fra1`, אבל ה-microVM של Vercel Sandbox רץ באזור ש-Sandbox מאפשר — ייתכן שבארצות הברית [M0-verify ספייק 18, חלק 06 §19.6]. ה-Sandbox מקבל את `PromoProps` (§20.2): כתובות חתומות ל-6 שעות לקטעים, לתמונות, לקריינות, למוזיקה, ללוגו ולהעלאות של המשתמש, ואת פרטי העסק שבכרטיס הסיום; הפלט עובר דרך Blob זמני ונמחק אחרי ההעתקה ל-Supabase. זה הנוסח שמופיע במדיניות הפרטיות (חלק 02 §10.3, סעיף 6: "הרכבת הסרטונים: באזור ש-Vercel Sandbox מאפשר, ייתכן שבארצות הברית") ובבקרה L-09 של חלק 06 §11.1; אם הספייק מראה שאפשר לקבוע `fra1`, קובעים אותו ומעדכנים את שלושת המקומות. חלופת `lambda` רצה ב-`eu-central-1`, ו-`local` רק בפיתוח.
+
 **צעד `render:{aspect}`** (`lib/pipeline/steps/render.ts`): `buildPromoProps(jobId, aspect)` → `props_hash` → אם יש `render_runs` מוצלח עם אותו `props_hash` לאותו פרויקט ופורמט (רינדור חוזר בלי שינוי) — משתמשים בו בלי לרנדר (וגם בלי לחייב: `credits = 0`) → אחרת שורת `render_runs` (`queued` → `rendering` → `uploading` → `succeeded`) → `provider.render(input, onProgress)` עם עדכון `render_runs.progress` ו-`jobs.progress` לכל היותר כל 2 שניות → שורת `assets` (`kind: render`, `aspect_ratio`, `duration_ms`, `bytes`, `width`, `height`) → `capture`.
 
 **`POST /api/webhooks/render`** (הקוד בחלק 04 §22.3): מאמת `?t=` עם `verifyCallbackToken(renderRunId, t)` (‏HMAC של המזהה עם `OPENROUTER_CALLBACK_TOKEN_SECRET`, כולל רוטציה, §5.1), ובנוסף, כשהכותרת `X-Remotion-Signature` קיימת, את חתימת Remotion (`validateWebhookSignature`). משלוח של Remotion Lambda (`type: "success" | "error" | "timeout"`, ‏`customData.renderRunId`, ‏`outputUrl`) מתורגם ל-`RenderWebhookBody` של חלק 04 לפני הוולידציה [M0-verify ספייק Lambda, רק אם עוברים לחלופה]. סטטוס סופי → `webhook_events(provider='render', external_id = renderRunId + ':' + status)` → `orchestrator.resume('render:'+renderRunId, {…})` → `204`.
@@ -2998,16 +3064,19 @@ export interface RenderProvider {
 הנעילה נלקחת במעטפת ה-cron המשותפת של חלק 04 §23 — מפתח Upstash `cron:sweep-jobs` (55 שניות) — כדי ששתי הרצות לא יחפפו; בסוף ההרצה המעטפת כותבת `cron:last:sweep-jobs`. כל סעיף מוגבל ל-50 שורות בהרצה.
 
 1. **קליפים ממתינים:** `job_steps` ב-`waiting_external` שלא עודכנו 5 דקות → `pollVideo(provider_job_id)`; מצב סופי → `orchestrator.resume(hook_token, {kind:"video", …})`; `jobs.heartbeat_at = now()`.
-2. **עבודות בלי דופק:** `jobs.status = running` עם `heartbeat_at` ישן מ-10 דקות → `orchestrator.status(run_id)`. `running` → רק דופק. מת/`unknown` → אם `error_detail.restarted` לא קיים: `orchestrator.start(jobId)` מחדש (הצעדים שהצליחו מדולגים) ו-`error_detail.restarted = true`; אחרת `failJob(PROVIDER_TIMEOUT)`.
-3. **עבודות ארוכות מדי:** `running`/`waiting_external` עם `started_at` לפני יותר מ-60 דקות → ביטול הריצה + `failJob(PROVIDER_TIMEOUT)`.
+2. **עבודות בלי דופק:** `jobs.status = running` עם `heartbeat_at` ישן מ-10 דקות → `orchestrator.status(run_id)`. `running` → רק דופק. מת/`unknown` → `orchestrator.cancel(jobId, run_id)` (ביטול הריצה הקודמת **תמיד לפני** הפעלה מחדש, כדי ששתי ריצות לא יריצו את אותם צעדים ולא ייצרו שוב את אותם טוקנים של hooks) ואז `orchestrator.start(jobId)` (הצעדים שהצליחו מדולגים; `jobs.run_id` החדש נשמר), ו-`error_detail.restarts += 1` (מספר שלם; ברירת מחדל 0). הפעלה מחדש אחת בלבד: כשהמונה מגיע ל-2 — במקום הפעלה מחדש, `failJob(PROVIDER_TIMEOUT)`.
+3. **עבודות ארוכות מדי:** `running`/`waiting_external` עם `started_at` לפני יותר מ-120 דקות → `orchestrator.cancel(jobId, run_id)` + `failJob(PROVIDER_TIMEOUT)`. התקרה נגזרת מהתקציבים של הצנרת: 2 ניסיונות קליפ × 15 דקות, ועוד 3 רינדורים × 20 דקות, ועוד השאר — כ-95 דקות במקרה הגרוע. אם הריצה הישנה ממשיכה (ביטול לא זמין, [M0-verify]), `runStep` ו-`finalize` רואים `failed` ועוצרים בלי capture ובלי `succeeded` (§18.3, §18.10).
 4. **`finalize` שנכשל:** כל צעדי הרינדור `succeeded` ו-`finalize` `failed` → הפעלה מחדש של העבודה (רק `finalize` ירוץ).
 5. **אחים יתומים:** עבודות `queued` עם `options.afterJobId` שהעבודה הראשית שלהן נכשלה או בוטלה → `failJob` עם החזר.
 6. **כל 5 דקות:** יישור מונה התקציב (§7.3).
+7. **הוצאות אינטראקטיביות יתומות:** `sweep_orphaned_spends()` (חלק 04 §10.3) — שמירות בלי `job_id` שעדיין `open` אחרי 6 דקות (`maxDuration` של 300 שניות ועוד 60; פונקציה של נתיב אינטראקטיבי שנקטעה לפני ה-catch, §3.4) → `refund_reservation(id, 'refund:'||id, 'הפעולה לא הושלמה. הקרדיטים הוחזרו.')`, ומפתחות `api_idempotency_keys` ב-`in_progress` מעל 6 דקות → `failed`. אם הפונקציה נקטעה אחרי שמירת התוצר ולפני `commit_spend`, המשתמש שומר את התוצר בחינם — כשל בטוח בכוונה.
 
 ### קריטריוני קבלה
 - [ ] `ORCHESTRATOR=inline` מריץ את אותה זרימה (אותו `runFlow`) — בדיקת e2e אחת עוברת בשני המצבים (ה-WDK ב-preview, מסומן `@live`).
 - [ ] רינדור חוזר של פרויקט בלי שינוי בנתונים מחזיר את ה-`render_runs` הקיים ולא מחייב (`props_hash` זהה).
-- [ ] עבודה שה-run שלה "מת" (מדומה) מופעלת מחדש פעם אחת ע״י ה-sweeper ומסתיימת; בפעם השנייה — `failed` עם החזר מלא.
+- [ ] עבודה שה-run שלה "מת" (מדומה) מופעלת מחדש פעם אחת ע״י ה-sweeper ומסתיימת, ו-`orchestrator.cancel` נקרא לפני `start` (spy), עם `error_detail.restarts = 1`; בפעם השנייה — `failed` עם החזר מלא.
+- [ ] עבודה של 100 דקות (שני ניסיונות קליפ ושלושה רינדורים ארוכים, שעון מזויף) לא נכשלת בגלל התקרה; עבודה שעוברת 120 דקות מ-`started_at` נכשלת עם `PROVIDER_TIMEOUT` והחזר מלא.
+- [ ] שמירה של `begin_spend` בלי `commit_spend`, בת יותר מ-6 דקות, מוחזרת בריצת ה-sweeper הבאה, ומפתח האידמפוטנטיות שלה עובר ל-`failed`.
 - [ ] webhook רינדור עם טוקן שגוי → `401`; כפול → `204` בלי `resume` נוסף.
 
 ---
@@ -3017,6 +3086,8 @@ export interface RenderProvider {
 ### 20.1 רישום הקומפוזיציות (`remotion/Root.tsx`)
 
 ```tsx
+if (getRemotionEnvironment().isRendering) loadRenderFonts();   // §20.9 — never in the browser Player (CSP font-src 'self')
+
 export const RemotionRoot: React.FC = () => (
   <>
     <Composition id="PromoVertical" component={PromoComposition} schema={PromoPropsSchema} width={1080} height={1920} fps={30}
@@ -3044,7 +3115,7 @@ export const calcPromoMetadata: CalculateMetadataFunction<PromoProps> = ({ props
 
 `calcStillMetadata` ו-`calcAnimaticMetadata` משנים `width`/`height` לפי `props.format`. אותם רכיבים רצים בדפדפן ב-`@remotion/player` (אשף, עורך, דמו בדף הבית) — בלי עלות רינדור.
 
-**טווח האורך:** אחרי היישור, `totalMs` צריך להיות בין 90% ל-120% מ-`duration_target_sec`. מעל 120% (קריינות ארוכה מדי) — הרינדור ממשיך, אבל בדף הפרויקט מוצגת הערה "הסרטון יצא ארוך מהמתוכנן ב-{n} שניות. אפשר לקצר את הקריינות בעורך."
+**טווח האורך:** אחרי היישור, `totalMs` צריך להיות בין 90% ל-120% מ-`duration_target_sec`. מעל 120% (קריינות ארוכה מדי) — הרינדור ממשיך, אבל בדף הפרויקט מוצגת הערה "{n, plural, one {הסרטון יצא ארוך מהמתוכנן בשנייה אחת} two {הסרטון יצא ארוך מהמתוכנן בשתי שניות} other {הסרטון יצא ארוך מהמתוכנן ב-# שניות}}. אפשר לקצר את הקריינות בעורך."
 
 ### 20.2 בניית ה-props (`lib/render/props.ts`)
 
@@ -3210,7 +3281,7 @@ export const CaptionsLayer: React.FC<CaptionsProps> = ({ preset, pages, words, h
 
 ### 20.7 `EndCard`, `LowerThird`, `LogoBug`, `AiLabel`, `Watermark`
 
-- **`EndCard`** (2.5 שניות **אחרי** הסצנה האחרונה, ועוד 0.3 שניות זנב; §12.1): רקע `secondary` עם אור רך בצבע `primary`; לוגו (עד 28% מהרוחב, כניסת scale .9→1 ב-300ms); `headlineHe` (Heebo 800, 84/72/60px); שורת הנעה לפעולה כ-pill בצבע `primary` עם טקסט ב-`onColor` ואייקון לפי `ctaType`; פרטי קשר (עד 3) בשורות, כל ערך LTR בתוך `<bdi>`; QR בפינה (אם הופעל); **הסתייגויות** (`disclaimersHe[]` ★ — מ-`script.compliance.disclaimers_he` + `brand_kits.end_card.disclaimer_he`) ו**שורת רישיון** (`licenseTextHe` ★ — `brand_kits.end_card.license_text_he`) בתחתית, Heebo 500 בגודל 30/28/24px, ניגודיות ≥ 4.5:1; בתוכנית החינמית — שורה "נוצר ב-{{BRAND_NAME}}" בתחתית.
+- **`EndCard`** (2.5 שניות **אחרי** הסצנה האחרונה, ועוד 0.3 שניות זנב; §12.1): רקע `secondary` עם אור רך בצבע `primary`; לוגו (עד 28% מהרוחב, כניסת scale .9→1 ב-300ms); `headlineHe` (Heebo 800, 84/72/60px); שורת הנעה לפעולה כ-pill בצבע `primary` עם טקסט ב-`onColor` ואייקון לפי `ctaType`; פרטי קשר (עד 3) בשורות, כל ערך LTR בתוך `<bdi>`; QR בפינה (אם הופעל); **הסתייגויות** (`disclaimersHe[]` ★ — מ-`script.compliance.disclaimers_he` + `brand_kits.end_card.disclaimer_he`) ו**שורת רישיון** (`licenseTextHe` ★ — `brand_kits.end_card.license_text_he`) בתחתית, Heebo 500 בגודל 30/28/24px, ניגודיות ≥ 4.5:1; בתוכנית החינמית — שורה "נוצר ב{{BRAND_NAME}}" (`BRAND.watermarkHe`) בתחתית.
 - **הסתייגות לאורך כל הסרטון** (`persistentDisclaimer()`, `disclaimer: { textHe, showOn: "end_card" | "all" } | null` ★): ‏`showOn = "all"` כברירת מחדל כשבתסריט יש דגל `before_after_medical` או `financial_disclaimer`, **וגם** בנישה עם `compliance_flag = 'financial'` כשבתסריט יש דגל `price_claim`. אז ההסתייגות הראשונה של `disclaimers_he` מוצגת כשורה קטנה קבועה (`DisclaimerStrip`, Heebo 500, ניגודיות ≥ 4.5:1) מעל אזור הכתוביות לאורך כל הסרטון, ולא רק בכרטיס הסיום. בכל מצב אחר `showOn = "end_card"`, ובלי הסתייגויות בכלל — `null`.
 - **`LowerThird`**: `glass` (רקע `rgba(18,18,25,.55)` + blur), `solid` (`secondary` 90%), `none`; משמש להצגת שם העסק/העיר בסצנה הראשונה שאחרי ההוק (2 שניות) כשיש `business_name`.
 - **`AiLabel`** ו-**`Watermark`**: מיקום, גודל וצבעים לפי חלק 01 §16.3 (AI — למעלה-ימין; סימן מים — למעלה-שמאל); לא נוגעים באזור ההוק ובאזור הכתוביות.
@@ -3243,6 +3314,8 @@ export const AudioMix: React.FC<{ audio: PromoProps["audio"]; words: CaptionWord
 ### 20.9 גופנים (`remotion/fonts.ts`)
 
 ```ts
+// remotion/fonts.ts — importing this module never loads a font; only loadRenderFonts() does, and only while rendering.
+import { getRemotionEnvironment } from "remotion";
 import { loadFont as heebo } from "@remotion/google-fonts/Heebo";
 import { loadFont as rubik } from "@remotion/google-fonts/Rubik";
 import { loadFont as karantina } from "@remotion/google-fonts/Karantina";
@@ -3250,23 +3323,38 @@ import { loadFont as suezOne } from "@remotion/google-fonts/SuezOne";
 import { loadFont as fredoka } from "@remotion/google-fonts/Fredoka";
 import { loadFont as assistant } from "@remotion/google-fonts/Assistant";
 import { loadFont as secularOne } from "@remotion/google-fonts/SecularOne";
-const S = { subsets: ["hebrew", "latin"] as const };
-export const FONTS = {
-  Heebo:        heebo("normal", { weights: ["500", "700", "800", "900"], ...S }).fontFamily,
-  Rubik:        rubik("normal", { weights: ["800"], ...S }).fontFamily,
-  Karantina:    karantina("normal", { weights: ["700"], ...S }).fontFamily,
-  "Suez One":   suezOne("normal", { weights: ["400"], ...S }).fontFamily,
-  Fredoka:      fredoka("normal", { weights: ["600"], ...S }).fontFamily,
-  Assistant:    assistant("normal", { weights: ["700", "800"], ...S }).fontFamily,
-  "Secular One": secularOne("normal", { weights: ["400"], ...S }).fontFamily,
+
+/** Family names only (safe in the browser Player). Same keys as CAPTION_FONT_FAMILIES (Part 01 §5) and the brand-kit font list. */
+export const FONT_FAMILIES = {
+  Heebo: "Heebo", Rubik: "Rubik", Karantina: "Karantina", "Suez One": "Suez One",
+  Fredoka: "Fredoka", Assistant: "Assistant", "Secular One": "Secular One",
 } as const;
+export type FontKey = keyof typeof FONT_FAMILIES;
+
+let loaded = false;
+/** Render environment only (Sandbox / Lambda / local renderer): registers the @font-face rules from Google Fonts
+ *  (each loadFont() call holds delayRender until its files are ready). A no-op everywhere else — in the browser Player
+ *  the CSP allows only font-src 'self' data: (part 06 §15.3), so the Player uses the self-hosted caption-fonts.ts. */
+export function loadRenderFonts(): void {
+  if (loaded || !getRemotionEnvironment().isRendering) return;
+  loaded = true;
+  const S = { subsets: ["hebrew", "latin"] };
+  heebo("normal", { weights: ["500", "700", "800", "900"], ...S });
+  rubik("normal", { weights: ["800"], ...S });
+  karantina("normal", { weights: ["700"], ...S });
+  suezOne("normal", { weights: ["400"], ...S });
+  fredoka("normal", { weights: ["600"], ...S });
+  assistant("normal", { weights: ["700", "800"], ...S });
+  secularOne("normal", { weights: ["400"], ...S });
+}
+// remotion/Root.tsx calls it once at module scope, before RemotionRoot: `if (getRemotionEnvironment().isRendering) loadRenderFonts();`
 ```
 
-רק משקלים שבשימוש נטענים. `@remotion/google-fonts` נטען **רק בסביבת הרינדור** (Sandbox/Lambda/local). הנגן בדפדפן (`@remotion/player` באשף, בעורך ובדף הבית) טוען את גופני הכתוביות מאותו origin דרך `components/video/caption-fonts.ts` (חלק 01), כי ה-CSP מתיר רק `font-src 'self' data:` (חלק 06 §15.3); `remotion/fonts.ts` בוחר בין השניים לפי `getRemotionEnvironment().isRendering`. גופן מותג מותאם (`@remotion/fonts` → `loadFont({ family, url })`) — רק ב-v2, כשהסביבה אישרה רישיון הטמעה בווידאו (חלק 03); ב-MVP — Heebo.
+רק משקלים שבשימוש נטענים. הקריאות ל-`@remotion/google-fonts` נמצאות **רק בתוך `loadRenderFonts()`**, והיא נקראת רק כש-`getRemotionEnvironment().isRendering` (Sandbox/Lambda/local) — מ-`remotion/Root.tsx`, שהנגן בדפדפן לא טוען. אין קריאה ל-`loadFont` ברמת המודול, ולכן ייבוא של `remotion/fonts.ts` בנגן לא מזריק `@font-face` שמצביע על `fonts.gstatic.com`. הנגן בדפדפן (`@remotion/player` באשף, בעורך ובדף הבית) טוען את גופני הכתוביות מאותו origin דרך `components/video/caption-fonts.ts` (חלק 01), כי ה-CSP מתיר רק `font-src 'self' data:` (חלק 06 §15.3). הקומפוזיציות מקבלות את שמות המשפחות ממפה אחת: `FONT_FAMILIES` ברינדור, ו-`CAPTION_FONT_FAMILIES` של חלק 01 בנגן בדפדפן (באותם מפתחות; חלק 01 §5). גופן מותג מותאם (`@remotion/fonts` → `loadFont({ family, url })`) — רק ב-v2, כשהסביבה אישרה רישיון הטמעה בווידאו (חלק 03); ב-MVP — Heebo.
 
 ### 20.10 `Animatic`, `PosterStill`, `CaptionStyleSample`
 
-- **`Animatic`** (תצוגה מקדימה חינמית, וגם לולאות ההוק של קיר הסרטונים בדף הבית — 18 אריחים מ-`content/demo-wall.json`, 4–6 שניות, 540×960, בלי קול, דרך `scripts/render-demo-videos.ts` אל `public-media/demo/wall/`; חמש הדוגמאות של נספח D מרונדרות באורך מלא ב-`PromoComposition`, אל `public-media/demo/examples/`): אותן שכבות טקסט, כתוביות (עם זמנים משוערים: `words / wps`), מוזיקה מהספרייה ולוגו — אבל במקום תמונות: `BrandCard` עם גרדיאנט בצבעי המותג, אייקון הנישה (lucide) בגדול ומספר הסצנה, ו-keyframe אמיתי ברגע שנוצר. `format` משנה את המידות.
+- **`Animatic`** (התצוגה המקדימה, שלא עולה קרדיטים נוספים מעבר לתסריט ולסטוריבורד, וגם לולאות ההוק של קיר הסרטונים בדף הבית — 18 אריחים מ-`content/demo-wall.json`, 4–6 שניות, 540×960, בלי קול, דרך `scripts/render-demo-videos.ts` אל `public-media/demo/wall/`; חמש הדוגמאות של נספח D מרונדרות באורך מלא ב-`PromoComposition`, אל `public-media/demo/examples/`): אותן שכבות טקסט, כתוביות (עם זמנים משוערים: `words / wps`), מוזיקה מהספרייה ולוגו — אבל במקום תמונות: `BrandCard` עם גרדיאנט בצבעי המותג, אייקון הנישה (lucide) בגדול ומספר הסצנה, ו-keyframe אמיתי ברגע שנוצר. `format` משנה את המידות.
 - **`PosterStill`**: פריים יחיד מ-`PromoComposition`; משמש גם לתמונות OG חלופיות לפי נישה (`public-media/og/`).
 - **`CaptionStyleSample`**: 3 שניות בלולאה, 1080×1080, לכל סגנון; מרונדר מראש לכל 6 הסגנונות כ-MP4 קטן ל-`CaptionPresetPicker`, ובבדיקות — כ-stills עם fixtures של בידי.
 
@@ -3274,7 +3362,7 @@ export const FONTS = {
 
 | תוכנית | רזולוציה | קודק / איכות | אודיו | תוספות |
 |---|---|---|---|---|
-| `free` | 720p (`scale: 2/3` על בסיס 1080) | H.264, `crf: 26` | AAC 128k | סימן מים + שורת "נוצר ב-{{BRAND_NAME}}" בכרטיס הסיום |
+| `free` | 720p (`scale: 2/3` על בסיס 1080) | H.264, `crf: 26` | AAC 128k | סימן מים + שורת "נוצר ב{{BRAND_NAME}}" בכרטיס הסיום |
 | `starter` | 1080p | H.264, `crf: 20` | AAC 192k | — |
 | `business` | 1080p | H.264, `crf: 19` | AAC 192k | — |
 | `agency` | 1080p | H.264, `crf: 18` | AAC 192k | — |
@@ -3292,7 +3380,7 @@ export const FONTS = {
 - [ ] אותו פרויקט ב-3 פורמטים: התחלות הסצנות זהות בכולם (±1 פריים), והקריינות מסונכרנת עם המעברים.
 - [ ] קליפ של 5 שניות בסצנה של 6.2 שניות מתנגן ב-`playbackRate` 0.81 בלי פריים קפוא; קליפ של 4 שניות בסצנה של 6.5 — 0.75 ואז `Freeze` של 1.2 שניות עם Ken Burns.
 - [ ] עוצמת המוזיקה בזמן דיבור ≈ 0.12 ובשקט ≈ 0.35 (בדיקה על פונקציית `musicVolume`).
-- [ ] פרויקט `free` בלי תשלום: סימן מים ושורת "נוצר ב-" מופיעים, 720p; אחרי רכישת חבילה — בלי סימן מים.
+- [ ] פרויקט `free` בלי תשלום: סימן מים ושורת "נוצר ב{{BRAND_NAME}}" מופיעים, 720p; אחרי רכישת חבילה — בלי סימן מים.
 - [ ] הסתייגות של נישת משכנתאות מופיעה בכרטיס הסיום ובשורה הקבועה לאורך הסרטון.
 
 ---
@@ -3336,7 +3424,7 @@ export const COMPLIANCE_RULES: Record<ComplianceFlag, ComplianceRule> = {
   medical: {
     rulesHe: [
       "בלי הבטחת תוצאה ובלי \"ללא כאב\" מוחלט.",
-      "לפני/אחרי רק עם הסתייגות, ועדיף להראות את התהליך.",
+      "תמונות לפני ואחרי רק עם הסתייגות, ועדיף להראות את התהליך.",
       "בלי פנייה שמניחה מצב רפואי או מראה של הצופה; מנסחים בגוף שלישי.",
       "מספר רישיון, מחיר או מספר מטופלים רק מתוך העובדות.",
     ],
@@ -3387,7 +3475,12 @@ export const NICHE_OVERRIDES: Record<string, Partial<ComplianceRule>> = {
 };
 ```
 
-**סרטון המלצה (`video_type = testimonial`):** מחייב `brief.testimonial = { quote_he, name_he, consent_attested: true }` (ציטוט אמיתי והצהרה שיש הסכמה בכתב; החוזה `ProjectBrief` בחלק 04 §19.3, והשדות בשלב `goal` בחלק 03 §6.3). התסריט משתמש בציטוט **מילה במילה**; הסצנה של הלקוח היא `user_media` (צילום אמיתי באישור) או `brand_card` עם הציטוט — לעולם לא "לקוח" שנוצר ב-AI. בלי ציטוט מאושר → `422 MISSING_FACTS { facts: ["אישור הלקוח על ההמלצה"] }`. דגל התאימות `testimonial_requires_consent` מחייב גם רשומה ב-`brief.attestations`. נישות ש-`NICHE_OVERRIDES` מכבה בהן את סוג הסרטון (למשל `therapists`) לא מציעות אותו בכלל.
+**סרטון המלצה (`video_type = testimonial`):** מחייב `brief.testimonial = { quote_he, name_he, consent_attested: true }` (ציטוט אמיתי והצהרה שיש הסכמה בכתב; החוזה `ProjectBrief` בחלק 04 §19.3, והשדות בשלב `goal` בחלק 03 §6.3). התסריט משתמש בציטוט **מילה במילה**; הסצנה של הלקוח היא `user_media` (צילום אמיתי באישור) או `brand_card` עם הציטוט — לעולם לא "לקוח" שנוצר ב-AI. נישות ש-`NICHE_OVERRIDES` מכבה בהן את סוג הסרטון (למשל `therapists`) לא מציעות אותו בכלל.
+
+**אכיפה בשרת (חלק 04 §19.8 שלב 3, ואותה בדיקה בשלב 3 של `…/scenes/[sceneId]/regenerate`)**, על התסריט של הגרסה שנוצרת (`project_versions.script`), כך שגם קריאה שעוקפת את הממשק נתפסת:
+1. `projects.video_type = 'testimonial'` מחייב **גם** `brief.testimonial.consent_attested = true` **וגם** רשומה מסוג `testimonial_requires_consent` ב-`brief.attestations`.
+2. כל דגל ב-`script.compliance.flags` שנמצא ב-`ATTESTED_FLAGS` (`testimonial_requires_consent`, `urgency_must_be_true`, `results_claim`, `price_claim`, `kashrut_claim`, `minors`) מחייב רשומה ב-`brief.attestations` עם אותו `kind` (השרת דורס את `by` במשתמש המחובר ודורש `at ≤ now()`). בתסריט שאינו `testimonial` — למשל `reel_hook` או `brand_promo` שסומן `testimonial_requires_consent` — מספיקה הרשומה, בלי `brief.testimonial`.
+3. חסר משהו → `422 MISSING_FACTS { facts: [label…] }`, עם התוויות של `ATTESTATION_LABELS_HE` (`lib/compliance/attestations.ts`), למשל "אישור בכתב מהלקוח על השימוש בהמלצה" ל-`testimonial_requires_consent` ו-"אישור שהמחיר נכון ומעודכן" ל-`price_claim`.
 
 **הסתייגות קבועה בנישות פיננסיות:** בנישה עם `compliance_flag = 'financial'` שהתסריט שלה מסומן `price_claim` (סימולציה, ריבית, החזר חודשי), או בכל תסריט עם `financial_disclaimer` או `before_after_medical`, `persistentDisclaimer()` מחזיר `showOn = "all"` — ההסתייגות מוצגת לאורך כל הסרטון, לא רק בכרטיס הסיום (§20.7).
 
@@ -3414,7 +3507,7 @@ export function stripRequestedText(en: string): string;
 ### 21.5 מצב בחירות וימי זיכרון
 
 - **`electionModeActive()`** = `app_settings.election_mode.enabled && now < until` (ב-seed: עד 2026-10-28 23:59 שעון ישראל, אחרי הבחירות לכנסת ב-2026-10-27). בזמן המצב: חסימה דטרמיניסטית (§21.2), המודרציה מחזירה 451 לכל קטגוריה פוליטית, והעונה `knesset-elections-2026` לא נכנסת לפרומפטים כעונת קידום. דף `/legal/ai-policy` (חלק 02) מפנה לכללי ועדת הבחירות על גילוי בתעמולה שנוצרה ב-AI (התשפ״ו-2026).
-- **ימי זיכרון** (`seasons.is_quiet_day` עם `starts_on`/`ends_on` שמכסים את היום בשעון ישראל): הפרומפטים מקבלים `<calendar>` ("בלי טון שיווקי ובלי מבצעים"), `hooks.generate` לא מציע `urgency-offer` ומטרת `sales`, והדשבורד מציג באנר (חלק 03). היצירה עצמה לא נחסמת — עסקים מכינים תוכן מראש.
+- **ימי זיכרון** (`seasons.is_quiet_day` עם `starts_on`/`ends_on` שמכסים את היום בשעון ישראל): הפרומפטים מקבלים `<calendar>` ("בלי טון שיווקי ובלי מבצעים"), `hooks.generate` לא מציע `urgency-offer` ומטרת `sales`, והמסך הראשי (`/app`) מציג באנר (חלק 03). היצירה עצמה לא נחסמת — עסקים מכינים תוכן מראש.
 
 ### 21.6 דמות, קול ותוכן של אנשים אמיתיים
 
@@ -3431,7 +3524,8 @@ export function stripRequestedText(en: string): string;
 - [ ] `hooks.generate` לנישת `therapists` לא מחזיר הוק מסוג `social-proof` (גם כשה-MSW מחזיר — הוא מוסר בוולידציה).
 - [ ] "מסעדה כשרה למהדרין" בתסריט בלי עובדה מתאימה נכשל ב-`S09`/`HE021`.
 - [ ] `promptOverrideEn = "a girl holding a sign that says SALE"` נחסם עם ההודעה של §21.4 (שתי בעיות).
-- [ ] סרטון `testimonial` בלי `brief.testimonial.consent_attested` נחסם ב-`422 MISSING_FACTS` עם `facts: ["אישור הלקוח על ההמלצה"]`.
+- [ ] סרטון `testimonial` בלי `brief.testimonial.consent_attested`, או בלי רשומת `testimonial_requires_consent` ב-`brief.attestations`, נחסם ב-`422 MISSING_FACTS` עם `facts: ["אישור בכתב מהלקוח על השימוש בהמלצה"]`; `reel_hook` שהתסריט שלו סומן `testimonial_requires_consent` עובר כשיש הרשומה בלבד.
+- [ ] תסריט עם הדגל `price_claim` בלי רשומה מתאימה ב-`brief.attestations` נחסם ב-`POST /generate` וגם ב-`…/scenes/[sceneId]/regenerate` עם `facts: ["אישור שהמחיר נכון ומעודכן"]`.
 - [ ] תסריט בנישת `mortgage-advisors` עם דגל `price_claim` מקבל `disclaimer.showOn = "all"` ב-`buildPromoProps`.
 
 ---
@@ -3506,6 +3600,9 @@ export function stripRequestedText(en: string): string;
 | `HE022` | טענה מספרית בלי עובדה או placeholder (`detectFactSlots`) | error |
 | `HE023` | "..." במקום "…" | warning (תיקון אוטומטי) |
 | `HE024` | רווח לפני סימן פיסוק, או שני רווחים | warning (תיקון אוטומטי) |
+| `HE025` | סוגריים בהוק, בטקסט על המסך או בקריינות (`/[()]/` ב-`text_he` של הוק, ב-`onscreen_text_he` וב-`vo_*`; מנסחים מחדש עם פסיק, נקודתיים או משפט שני) | error |
+
+`HE020`–`HE024` כבר תפוסים (ציות ופיסוק), ולכן כלל הסוגריים הוא `HE025`. הוא רץ גם בוולידציה של `hooks.generate.v1` ושל `hooks.library_batch.v1` (§10.3, §10.5), ובבדיקת ה-seed של ההוקים (`HookSeed.superRefine`, חלק 04 §16).
 
 ### 23.4 בדיקות זהב עם נספח D
 
@@ -3544,19 +3641,19 @@ export function stripRequestedText(en: string): string;
 ### קריטריוני קבלה
 - [ ] כל הסעיפים של §23.1 קיימים כ-scripts ב-`package.json` (`test`, `test:contract`, `test:pipeline`, `test:visual`, `eval:prompts`) ומתועדים ב-README.
 - [ ] `pnpm eval:prompts --dry` רץ בלי מפתח (עם MSW) ומפיק דוח בפורמט האמיתי.
-- [ ] ה-lint מזהה את כל 24 הכללים על fixture מכוון (`tests/fixtures/hebrew-lint-cases.json`), ולא מתריע על אף אחד מ-326 ההוקים בזרע ברמת error (חוץ מ-`HE022` כשאין `compliance_note_he` — אזהרה לפי חלק 03 §22.10).
+- [ ] ה-lint מזהה את כל 25 הכללים על fixture מכוון (`tests/fixtures/hebrew-lint-cases.json`), ולא מתריע על אף אחד מ-326 ההוקים בזרע ברמת error (חוץ מ-`HE022` כשאין `compliance_note_he` — אזהרה לפי חלק 03 §22.10).
 - [ ] פרוטוקול הבדיקה העיוורת (טופס הדירוג, רשימת הבריפים והתוצאות) נשמר כסעיף ב-`docs/eval/hebrew-review-m7.md` (המסמך שאבן הדרך M7 דורשת לחתום עליו, חלק 06 §24–§25), לצד מבחן ההאזנה לקולות של נספח E §13.4 (`docs/eval/listening-list.md`).
 
 ---
 
 ## תלויות בין חלקים
 
-- **חלק 04 (נתונים וחוזי API) — מה שהחלק הזה קורא וכותב:** `ai_generations` (כולל `meta`, שלא נכלל ב-grant של `authenticated`, §6/§12.2); `model_registry`/`model_routes` (מפתחות `params` הסגורים של §8; seed ב-§16.5); `jobs.options` (`afterJobId` לעבודות אחים, שלא נספרות במקביליות, §10.4); `job_steps.output` (המבנה נקבע כאן, §18.4); `projects.render_options` ו-`projects.brief` (`testimonial`, `audio_mix`, `post_caption`, `fact_answers`, `attestations`, §19.3); `project_versions.moderation` (כולל `kind`); `assets.metadata.moderation`; מפתחות `app_settings` (`hebrew_wps`, `tts_fallback_voices`, `openrouter_daily_budget_usd`, `prompt_versions`, `election_mode`) ודגלים (`premium_video`, `music_generate`, `stock_broll`, `avatar`, `chat_edit`) לפי §16.4; פונקציות הקרדיטים (`spend_credits`, `create_job_and_reserve`, `capture_credits`, `refund_credits`, `settle_reservation`, `refund_reservation`, §10); הטריגר `broadcast_job_change` (§14); `paths.*`, `public-media/sfx/*` ו-`tests/keyframe-9x16.png` (§13); דליי הקצב ומפתחות Upstash (`or:halt`, `or:spend:{date}`, `cron:sweep-jobs`, `cron:last:{name}`, `alert:{kind}:{bucket}`, §18.6).
+- **חלק 04 (נתונים וחוזי API) — מה שהחלק הזה קורא וכותב:** `ai_generations` (כולל `meta`, שלא נכלל ב-grant של `authenticated`, §6/§12.2); `model_registry`/`model_routes` (מפתחות `params` הסגורים של §8; seed ב-§16.5); `jobs.options` (`afterJobId` לעבודות אחים, שלא נספרות במקביליות, §10.4); `job_steps.output` (המבנה נקבע כאן, §18.4); `projects.render_options` ו-`projects.brief` (`testimonial`, `audio_mix`, `post_caption`, `fact_answers`, `attestations`, §19.3); `project_versions.moderation` (כולל `kind`); `assets.metadata.moderation`; מפתחות `app_settings` (`hebrew_wps`, `tts_fallback_voices`, `openrouter_daily_budget_usd`, `prompt_versions`, `election_mode`) ודגלים (`premium_video`, `music_generate`, `stock_broll`, `avatar`, `chat_edit`) לפי §16.4; פונקציות הקרדיטים (`begin_spend`, `commit_spend`, `sweep_orphaned_spends`, `create_job_and_reserve`, `capture_credits`, `refund_credits`, `settle_reservation`, `refund_reservation`, §10); הטריגר `broadcast_job_change` (§14); `paths.*`, `public-media/sfx/*` ו-`tests/keyframe-9x16.png` (§13); דליי הקצב ומפתחות Upstash (`or:halt`, `or:spend:{date}`, `cron:sweep-jobs`, `cron:last:{name}`, `alert:{kind}:{bucket}`, §18.6).
 - **חלק 04 — חוזי נתיבים שהחלק הזה מממש מאחוריהם:** NDJSON של `/hooks`, `/script`, `/api/hooks/variations` (§18.5); `post-caption` ו-`edit-plan` (§19.5); בדיקת המודרציה ב-`POST /api/uploads/complete` (§20.2); קוד ה-webhooks של OpenRouter ושל הרינדור (§22.2–§22.3, עם `verifyOpenRouterSignature`/`verifyCallbackToken` מכאן); `POST /api/admin/models/test` ו-`POST /api/admin/hooks/batch` (§24.1). שני פריטים שחלק 04 מתעד לפי החלק הזה: הנתיב `_admin-tests/{date}/{uuid}.{ext}` ב-bucket `generated` (פלט "בדיקה" של מודל, נמחק אחרי 7 ימים), והתרגום של משלוח Remotion Lambda ל-`RenderWebhookBody` (רק אם `RENDER_PROVIDER=lambda`).
 - **חלק 03 (מסכים):** משתמש ב-`useNdjsonObject`, ב-`estimate()` (`credits` + `alreadySpent`), ב-`PLACEHOLDERS` (השאלות ב-`wizard.facts.q.*`), ב-`LENGTH_LIMITS` לאזהרת אורך השורה, בהגדרות ההרכבה של הפרויקט (`render_options`, כולל `intro_style`) ובשדות ההמלצה; מחזיק את הנוסחים `errors.*` (כולל `INVALID_INPUT.byReason.no_active_voice`/`url_blocked` ו-`MODERATION_BLOCKED.promptHint` עם `{issueHe}`) ו-`app.project.degraded.*`.
 - **חלק 01 (עיצוב):** `CAPTION_PRESETS` ואזורי הבטיחות של §16 (מקור האמת לכתוביות, ל-`AiLabel` ולסימני המים), `components/video/caption-fonts.ts` לנגן בדפדפן, `onColor`/`ensureContrast`, ו-`tests/fixtures/bidi-strings.json`.
 - **חלק 02 (אתר):** מייבא את `SAMPLE_PRESETS`/`estimateSample` מ-`lib/pipeline/estimate.ts`; `HookPersonalizer` משתמש ב-17 ה-placeholders של ההוקים; `scripts/generate-niche-seo.ts` מריץ את `seo.niche_intro.v1` ואת `script.generate.v1`; ניסוח הפרטיות (§10.3) תלוי בתוצאת `data_collection` בנקודות המדיה; קיר הסרטונים והדוגמאות מרונדרים ב-`scripts/render-demo-videos.ts`.
-- **חלק 06 (חיוב, תפעול, אבטחה):** משתני הסביבה (`OPENROUTER_*`, `ORCHESTRATOR`, `RENDER_PROVIDER`, `REMOTION_*`, `APP_ENV`) ב-§20; `lib/crypto.ts` (`hmacSign`, `hmacVerifyAny`, `secretList`) לרוטציה של `OPENROUTER_CALLBACK_TOKEN_SECRET`; תבניות המייל `video_ready`, `video_failed_refunded`, `admin_alert`; אירועי האנליטיקה (`script_generated`, `storyboard_generated`, `generation_completed`, `generation_failed` מהשרת; `generation_canceled` מהלקוח) ב-§14.2; שרת ה-mock של OpenRouter ב-e2e (§18.4); ה-CSP (`font-src 'self' data:`, §15.3); סקריפטי `package.json` (`eval:prompts`, `test:pipeline`, `test:contract`, `test:visual`, `demo:render`, `upload-static-media`); ו-`docs/eval/hebrew-review-m7.md` באבן הדרך M7.
+- **חלק 06 (חיוב, תפעול, אבטחה):** משתני הסביבה (`OPENROUTER_*`, `ORCHESTRATOR`, `RENDER_PROVIDER`, `REMOTION_*`, `APP_ENV`, ו-`VERCEL_AUTOMATION_BYPASS_SECRET` ל-`callbackUrlFor` ב-staging) ב-§20; `lib/crypto.ts` (`hmacSign`, `hmacVerifyAny`, `secretList`) לרוטציה של `OPENROUTER_CALLBACK_TOKEN_SECRET`; תבניות המייל `video_ready`, `video_failed_refunded`, `admin_alert`; אירועי האנליטיקה (`script_generated`, `storyboard_generated`, `generation_completed`, `generation_failed` מהשרת; `generation_canceled` מהלקוח) ב-§14.2; שרת ה-mock של OpenRouter ב-e2e (§18.4); ה-CSP (`font-src 'self' data:`, §15.3); סקריפטי `package.json` (`eval:prompts`, `test:pipeline`, `test:contract`, `test:visual`, `demo:render`, `upload-static-media`); ו-`docs/eval/hebrew-review-m7.md` באבן הדרך M7.
 - **נספחים D ו-E:** חמש הדוגמאות (`pickSampleScript`, `fillPlaceholders`, ה-fixtures שב-`tests/fixtures/scripts/`) הן few-shots ובדיקות זהב כאן; `BANNED_PHRASES`, `TRANSLATED_PATTERNS`, `LENGTH_LIMITS` ו-`REGISTER_DEFAULTS` מגיעים מ-`lib/ai/prompts/style-data.ts` (נספח E), וסעיף 11 של `sys.hebrew_style.v1` נבנה מהם.
 - **נספח F:** החוזים הבסיסיים (§6–§8, §10.4, §12) — החלק הזה מרחיב אותם, ופריטי התיקונים 2, 8, 9, 15, 17, 23, 29 ו-30 בראש הנספח מפנים לכאן.
-- **פריטי `[M0-verify]` של החלק הזה** (נכנסים ל-`docs/m0-verify.md`): ספייק 2 (גוף הצ׳אט דרך ה-provider), 3 (פורמט החתימה של ה-webhook, צורת האירוע ושדות ה-poll כולל עלות), 4 (מבנה המילים של Scribe), 5 (ניקוד ו-`speed` ב-Eleven v4, כותרת מזהה ה-generation, ושמות הקולות של `tts.alt`), 6 (API של Vercel Workflows: hooks, `sleep`, תקציבי ניסיונות, ביטול, סטטוס ריצה ומשך מורחב), 7 (`@remotion/vercel`, bundle ו-Blob); וגם מבנה הקריאה ל-Lyria, `data_collection` בכל נקודת מדיה, `input_references` ו-`seed` ב-`/images`, קיום `/images/models`, ה-Batch API, ומבנה הבקשה של `heygen/avatar-iv`.
+- **פריטי `[M0-verify]` של החלק הזה** (נכנסים ל-`docs/m0-verify.md`): ספייק 2 (גוף הצ׳אט דרך ה-provider), 3 (פורמט החתימה של ה-webhook, צורת האירוע ושדות ה-poll כולל עלות), 4 (מבנה המילים של Scribe), 5 (ניקוד ו-`speed` ב-Eleven v4, כותרת מזהה ה-generation, ושמות הקולות של `tts.alt`), 6 (API של Vercel Workflows: hooks, `sleep`, תקציבי ניסיונות, ביטול, סטטוס ריצה ומשך מורחב), 7 (`@remotion/vercel`, bundle ו-Blob), 18 (אזור הריצה של Vercel Sandbox — מיקום הנתונים ברינדור, §19.2); וגם מבנה הקריאה ל-Lyria, `data_collection` בכל נקודת מדיה, `input_references` ו-`seed` ב-`/images`, קיום `/images/models`, ה-Batch API, מבנה הבקשה של `heygen/avatar-iv`, ו-webhook של OpenRouter שעובר את ה-Deployment Protection של staging עם `x-vercel-protection-bypass` (§5.1).
