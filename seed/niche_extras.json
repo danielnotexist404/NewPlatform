@@ -1,0 +1,290 @@
+[
+  {
+    "slug": "real-estate",
+    "short_name_he": "מתווכי נדל״ן",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "real-estate-developers",
+    "short_name_he": "יזמי נדל״ן",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "lead_form",
+    "default_music_mood": null
+  },
+  {
+    "slug": "aesthetic-clinics",
+    "short_name_he": "קליניקות אסתטיקה",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "beauty-nails",
+    "short_name_he": "מכוני יופי וציפורניים",
+    "default_register": "casual",
+    "default_audience_gender": "female",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "barbers-salons",
+    "short_name_he": "מספרות וברברשופים",
+    "default_register": "slang",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "restaurants",
+    "short_name_he": "מסעדות ובתי קפה",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "fitness-trainers",
+    "short_name_he": "מאמני כושר",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "yoga-pilates",
+    "short_name_he": "מורי יוגה ופילאטיס",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "renovation-contractors",
+    "short_name_he": "קבלני שיפוצים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "dentists",
+    "short_name_he": "רופאי שיניים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "mortgage-advisors",
+    "short_name_he": "יועצי משכנתאות",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "lead_form",
+    "default_music_mood": null
+  },
+  {
+    "slug": "event-venues",
+    "short_name_he": "אולמות וגני אירועים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "ecommerce",
+    "short_name_he": "חנויות אונליין",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "visit_site",
+    "default_music_mood": null
+  },
+  {
+    "slug": "car-dealers",
+    "short_name_he": "סוחרי רכב",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "auto-services",
+    "short_name_he": "מוסכים ודיטיילינג",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "lawyers",
+    "short_name_he": "עורכי דין",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "accountants",
+    "short_name_he": "רואי חשבון ויועצי מס",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "insurance-agents",
+    "short_name_he": "סוכני ביטוח",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "lead_form",
+    "default_music_mood": null
+  },
+  {
+    "slug": "interior-design",
+    "short_name_he": "מעצבי פנים ואדריכלים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "event-photographers",
+    "short_name_he": "צלמי אירועים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "djs-musicians",
+    "short_name_he": "דיג׳ייז ומוזיקאים",
+    "default_register": "slang",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "zimmers-boutique-hotels",
+    "short_name_he": "צימרים ומלונות בוטיק",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "tourism-attractions",
+    "short_name_he": "אטרקציות וסיורים",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  },
+  {
+    "slug": "courses-educators",
+    "short_name_he": "מורים, קורסים ומאמנים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "therapists",
+    "short_name_he": "מטפלים ופסיכולוגים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "vets-dog-grooming",
+    "short_name_he": "וטרינרים ומספרות כלבים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "driving-schools",
+    "short_name_he": "בתי ספר לנהיגה",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "kids-activities",
+    "short_name_he": "גנים, חוגים וקייטנות",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "home-services",
+    "short_name_he": "בעלי מקצוע לבית",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "call",
+    "default_music_mood": null
+  },
+  {
+    "slug": "movers-storage",
+    "short_name_he": "חברות הובלה ואחסון",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "retail-stores",
+    "short_name_he": "חנויות",
+    "default_register": "casual",
+    "default_audience_gender": "plural",
+    "default_cta": "navigate",
+    "default_music_mood": null
+  },
+  {
+    "slug": "catering-chefs",
+    "short_name_he": "קייטרינג ושפים פרטיים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "whatsapp",
+    "default_music_mood": null
+  },
+  {
+    "slug": "b2b-startups",
+    "short_name_he": "חברות B2B וסטארטאפים",
+    "default_register": "formal",
+    "default_audience_gender": "plural",
+    "default_cta": "lead_form",
+    "default_music_mood": null
+  },
+  {
+    "slug": "nonprofits",
+    "short_name_he": "עמותות",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "visit_site",
+    "default_music_mood": null
+  },
+  {
+    "slug": "local-politics",
+    "short_name_he": null,
+    "default_register": null,
+    "default_audience_gender": null,
+    "default_cta": null,
+    "default_music_mood": null
+  },
+  {
+    "slug": "physio-nutrition",
+    "short_name_he": "פיזיותרפיסטים ותזונאים",
+    "default_register": "warm",
+    "default_audience_gender": "plural",
+    "default_cta": "booking",
+    "default_music_mood": null
+  }
+]

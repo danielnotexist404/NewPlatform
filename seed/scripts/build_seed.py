@@ -3,7 +3,8 @@
 
 Single source of truth for:
   seed/niche_categories.json, seed/niches.json, seed/hook_families.json,
-  seed/hook_types.json, seed/seasons.json, seed/hooks.json
+  seed/hook_types.json, seed/seasons.json, seed/hooks.json,
+  seed/niche_extras.json (DB-only launch defaults, part 04 sec. 16.1 step 3b)
 and for the AUTO regions of docs/03-hooks-library.md.
 
 Run from anywhere:   python3 -I seed/scripts/build_seed.py
@@ -96,7 +97,7 @@ NICHES = [
          category_slug="beauty-grooming", icon="Brush", priority=1,
          description_he="המון עסקים קטנים, ולקוחות שחיים באינסטגרם. תקריבים, מהפכים וטרנדים עונתיים ממלאים את היומן.",
          video_types_he=["מהפך בתקריב", "טרנדים וצבעי העונה", "מחירון", "\"מקום פנוי השבוע\"", "ASMR של עבודה"],
-         seasonal_angles_he=["לפני החגים", "עונת הכלות", "ולנטיינז וט״ו באב", "בלאק פריידיי"],
+         seasonal_angles_he=["לפני החגים", "עונת הכלות", "ולנטיין וט״ו באב", "בלאק פריידיי"],
          compliance_flag="none", compliance_note_he=None),
     dict(slug="barbers-salons", name_he="מספרות וברברשופ", name_en="Barbershops & hair salons",
          category_slug="beauty-grooming", icon="Scissors", priority=1,
@@ -108,7 +109,7 @@ NICHES = [
          category_slug="food-hospitality", icon="UtensilsCrossed", priority=1,
          description_he="אוכל הוא התוכן הוויזואלי ביותר ברשת. סרטונים קצרים ממלאים שולחנות, משיקים מנות ומקדמים אירועים.",
          video_types_he=["תקריבי מנות", "הסיפור של השף", "קידום תפריט", "מאחורי הקלעים במטבח", "אירועים וערבי נושא"],
-         seasonal_angles_he=["חגי תשרי", "תפריט לפסח", "שבועות: מאכלי חלב", "קיץ", "ולנטיינז"],
+         seasonal_angles_he=["חגי תשרי", "תפריט לפסח", "שבועות: מאכלי חלב", "קיץ", "ולנטיין"],
          compliance_flag="other",
          compliance_note_he="הצהרת כשרות רק עם תעודה בתוקף (חוק איסור הונאה בכשרות). דירוגים, מספר ביקורות ונתונים כמו \"400 מנות בשבוע\" רק אם הם אמיתיים."),
     dict(slug="fitness-trainers", name_he="מאמני כושר וסטודיו לאימון", name_en="Fitness trainers & gyms",
@@ -159,7 +160,7 @@ NICHES = [
          video_types_he=["הדגמת מוצר", "סרטון UGC", "אנבוקסינג", "מבצע", "ביקורות לקוחות"],
          seasonal_angles_he=["בלאק פריידיי וסייבר מאנדיי", "11.11", "מתנות לחגים", "חזרה ללימודים"],
          compliance_flag="other",
-         compliance_note_he="הצגת מחיר והנחה לפי חוק הגנת הצרכן: מחיר כולל מע״מ, ו\"מחיר קודם\" רק אם הוא אמיתי. זמני משלוח, מלאי וביקורות רק אם הם אמיתיים."),
+         compliance_note_he="הצגת מחיר והנחה לפי חוק הגנת הצרכן: מחיר כולל מע״מ, ומציגים \"מחיר קודם\" רק אם הוא אמיתי. זמני משלוח, מלאי וביקורות רק אם הם אמיתיים."),
     dict(slug="car-dealers", name_he="סוחרי רכב, מגרשים וליסינג", name_en="Car dealers & leasing",
          category_slug="automotive", icon="Car", priority=1,
          description_he="כל רכב צריך סרטון, ויש הרבה רכבים. סיורים קצרים והצעות מימון מביאים נסיעות מבחן.",
@@ -189,7 +190,7 @@ NICHES = [
          compliance_note_he="מידע כללי בלבד, וכללי המס משתנים: לא מצטטים תקרות, שיעורים או מועדים בלי לוודא שהם עדכניים לשנה הנוכחית."),
     dict(slug="insurance-agents", name_he="סוכני ביטוח, פנסיה ופיננסים", name_en="Insurance & pension agents",
          category_slug="professional-finance", icon="Umbrella", priority=2,
-         description_he="תחום של הסברה ואמון. סרטונים קצרים והצעה ל\"בדיקת תיק\" מביאים פגישות.",
+         description_he="תחום של הסברה ואמון. סרטונים קצרים והצעה לבדיקת תיק הביטוח מביאים פגישות.",
          video_types_he=["הסברים", "הצעה לבדיקת תיק", "סיפורי מקרה", "השוואות", "שאלות נפוצות"],
          seasonal_angles_he=["הפקדות לפנסיה בסוף השנה", "ינואר", "חידוש ביטוח הרכב"],
          compliance_flag="financial",
@@ -262,7 +263,7 @@ NICHES = [
          compliance_note_he="צילום קטינים רק בהסכמת הורים בכתב. מומלץ לצלם ידיים, גב ופעילות, בלי פנים מזוהות."),
     dict(slug="home-services", name_he="בעלי מקצוע: חשמל, אינסטלציה ומיזוג", name_en="Home services: electricians, plumbers & A/C",
          category_slug="real-estate-home", icon="PlugZap", priority=2,
-         description_he="אמון ומהירות. טיפים קצרים ו\"עבודה של היום\" הופכים בעל מקצוע לאיש המקצוע של השכונה.",
+         description_he="אמון ומהירות. טיפים קצרים וסרטוני \"עבודה של היום\" הופכים בעל מקצוע לאיש המקצוע של השכונה.",
          video_types_he=["טיפים לבית", "\"עבודה של היום\"", "שירות חירום", "מחירון שקוף", "לפני ואחרי"],
          seasonal_angles_he=["קיץ: עומס במזגנים", "חורף: דודים ונזילות", "לפני פסח: תיקונים בבית"],
          compliance_flag="other",
@@ -277,9 +278,9 @@ NICHES = [
          category_slug="commerce", icon="Store", priority=3,
          description_he="קולקציות, מבצעים ומדריכי מתנות. סרטון קצר מביא אנשים מהפיד אל הדלת.",
          video_types_he=["השקת קולקציה", "מבצע", "מדריך מתנות", "חדש על המדף", "מאחורי הקלעים בחנות"],
-         seasonal_angles_he=["מתנות לחגים", "בלאק פריידיי", "יום המשפחה", "ולנטיינז"],
+         seasonal_angles_he=["מתנות לחגים", "בלאק פריידיי", "יום המשפחה", "ולנטיין"],
          compliance_flag="other",
-         compliance_note_he="הצגת מחירים לפי חוק הגנת הצרכן: מחיר כולל מע״מ, ו\"מחיר קודם\" או אחוז הנחה רק אם הם אמיתיים."),
+         compliance_note_he="הצגת מחירים לפי חוק הגנת הצרכן: מחיר כולל מע״מ, ומציגים \"מחיר קודם\" או אחוז הנחה רק אם הם אמיתיים."),
     dict(slug="catering-chefs", name_he="קייטרינג ושפים פרטיים", name_en="Catering & private chefs",
          category_slug="food-hospitality", icon="ChefHat", priority=3,
          description_he="אוכל ואירועים בסרטון אחד. מנות בתקריב והקמה של אירוע בטיים-לאפס מוכרות את החוויה.",
@@ -316,6 +317,59 @@ NICHES = [
          compliance_flag="medical",
          compliance_note_he="זהירות בטענות בריאות: בלי הבטחת ריפוי או ירידה במשקל, ובפרסום ממומן בלי לפנות לצופה בהנחה על מצבו הבריאותי. ברפואה משלימה, בלי טענות טיפוליות שאינן מבוססות."),
 ]
+
+# ---------------------------------------------------------------------------
+# Niche extras: DB-only launch defaults (build prompt part 04 sec. 16.1, step 3b,
+# loaded with fill_if_null so admin edits are never overwritten).
+#   short_name_he  -> part 02 sec. 1.2 (plural phrase that takes a joined "ל")
+#   register / audience_gender / cta -> appendix E sec. 3.3
+#   default_music_mood -> null at launch (admin sets it; else the storyboard picks)
+# local-politics is inactive at launch: every value is null.
+# slug: (short_name_he, default_register, default_audience_gender, default_cta)
+# ---------------------------------------------------------------------------
+REGISTERS = ["formal", "warm", "casual", "slang"]
+AUDIENCE_GENDERS = ["plural", "female", "male"]
+CTA_TYPES = ["whatsapp", "call", "link_in_bio", "booking", "navigate", "lead_form", "comment_keyword",
+             "save_share", "visit_site"]
+MUSIC_MOODS = ["energetic", "warm", "luxury", "funny", "calm", "inspiring", "urban"]
+NICHE_EXTRAS = {
+    "real-estate": ("מתווכי נדל״ן", "warm", "plural", "whatsapp"),
+    "real-estate-developers": ("יזמי נדל״ן", "formal", "plural", "lead_form"),
+    "aesthetic-clinics": ("קליניקות אסתטיקה", "warm", "plural", "booking"),
+    "beauty-nails": ("מכוני יופי וציפורניים", "casual", "female", "booking"),
+    "barbers-salons": ("מספרות וברברשופים", "slang", "plural", "booking"),
+    "restaurants": ("מסעדות ובתי קפה", "casual", "plural", "whatsapp"),
+    "fitness-trainers": ("מאמני כושר", "casual", "plural", "whatsapp"),
+    "yoga-pilates": ("מורי יוגה ופילאטיס", "warm", "plural", "booking"),
+    "renovation-contractors": ("קבלני שיפוצים", "warm", "plural", "whatsapp"),
+    "dentists": ("רופאי שיניים", "warm", "plural", "booking"),
+    "mortgage-advisors": ("יועצי משכנתאות", "formal", "plural", "lead_form"),
+    "event-venues": ("אולמות וגני אירועים", "warm", "plural", "whatsapp"),
+    "ecommerce": ("חנויות אונליין", "casual", "plural", "visit_site"),
+    "car-dealers": ("סוחרי רכב", "casual", "plural", "whatsapp"),
+    "auto-services": ("מוסכים ודיטיילינג", "casual", "plural", "whatsapp"),
+    "lawyers": ("עורכי דין", "formal", "plural", "whatsapp"),
+    "accountants": ("רואי חשבון ויועצי מס", "formal", "plural", "whatsapp"),
+    "insurance-agents": ("סוכני ביטוח", "formal", "plural", "lead_form"),
+    "interior-design": ("מעצבי פנים ואדריכלים", "warm", "plural", "whatsapp"),
+    "event-photographers": ("צלמי אירועים", "warm", "plural", "whatsapp"),
+    "djs-musicians": ("דיג׳ייז ומוזיקאים", "slang", "plural", "whatsapp"),
+    "zimmers-boutique-hotels": ("צימרים ומלונות בוטיק", "warm", "plural", "whatsapp"),
+    "tourism-attractions": ("אטרקציות וסיורים", "casual", "plural", "booking"),
+    "courses-educators": ("מורים, קורסים ומאמנים", "warm", "plural", "whatsapp"),
+    "therapists": ("מטפלים ופסיכולוגים", "warm", "plural", "whatsapp"),
+    "vets-dog-grooming": ("וטרינרים ומספרות כלבים", "warm", "plural", "whatsapp"),
+    "driving-schools": ("בתי ספר לנהיגה", "casual", "plural", "whatsapp"),
+    "kids-activities": ("גנים, חוגים וקייטנות", "warm", "plural", "whatsapp"),
+    "home-services": ("בעלי מקצוע לבית", "casual", "plural", "call"),
+    "movers-storage": ("חברות הובלה ואחסון", "casual", "plural", "whatsapp"),
+    "retail-stores": ("חנויות", "casual", "plural", "navigate"),
+    "catering-chefs": ("קייטרינג ושפים פרטיים", "warm", "plural", "whatsapp"),
+    "b2b-startups": ("חברות B2B וסטארטאפים", "formal", "plural", "lead_form"),
+    "nonprofits": ("עמותות", "warm", "plural", "visit_site"),
+    "local-politics": (None, None, None, None),
+    "physio-nutrition": ("פיזיותרפיסטים ותזונאים", "warm", "plural", "booking"),
+}
 
 # ---------------------------------------------------------------------------
 # Hook families and the 27 hook types (07 sec. B1, slugs converted to kebab-case)
@@ -411,7 +465,7 @@ HOOK_TYPES = [
      "שישי בצהריים אצלנו: 280 סועדים, מטבח אחד"),
     ("day-in-life", "יום בחיים", "Day in the life", "relatable",
      "רצף מהיר של יום עבודה אמיתי, אנושי ומעורר הזדהות.",
-     "יום בחיים של סוכן ביטוח (זה לא רק טפסים)"),
+     "יום בחיים של סוכן ביטוח, וזה לא רק טפסים"),
     ("how-to", "מדריך מהיר", "How-to", "education",
      "מבטיחים ללמד משהו שימושי בזמן קצוב.",
      "אתם משתמשים בחוט דנטלי לא נכון. 20 שניות ומתקנים"),
@@ -467,7 +521,7 @@ SEASONS = [
     dict(slug="family-day", name_he="יום המשפחה", name_en="Family Day",
          date_hint_he="בערך 7.2.2027", publish_window_he="10 ימים לפני",
          niche_slugs=["retail-stores", "ecommerce", "beauty-nails", "restaurants"], is_quiet_day=False, note_he=None),
-    dict(slug="valentines", name_he="ולנטיינז", name_en="Valentine's Day",
+    dict(slug="valentines", name_he="ולנטיין (יום האהבה)", name_en="Valentine's Day",
          date_hint_he="14.2.2027", publish_window_he="שבוע לפני",
          niche_slugs=["restaurants", "beauty-nails", "zimmers-boutique-hotels", "retail-stores", "ecommerce"], is_quiet_day=False, note_he=None),
     dict(slug="purim", name_he="פורים", name_en="Purim",
@@ -558,7 +612,7 @@ PLACEHOLDERS = [
 # ---------------------------------------------------------------------------
 HOOKS_SRC = {
 "real-estate": """
-לפני שאתם חותמים על דירה, תבדקו 3 דברים. על השלישי מתווכים פחות אוהבים לדבר | listicle+curiosity-gap | R,T,S | trust | p | יד עם עט קופאת מעל חוזה, שלושה מספרים קופצים על המסך | - | *
+3 דברים לבדוק לפני שחותמים על דירה. על השלישי פחות מדברים | listicle+curiosity-gap | R,T,S | trust | n | יד עם עט קופאת מעל חוזה, שלושה מספרים קופצים על המסך | - | *
 הדירה הזאת נמכרה תוך 9 ימים. ככה עשינו את זה | result-first | R,F | leads | n | מדבקת "נמכר" נדבקת בזום מהיר על שלט "למכירה" | מספר הימים חייב להיות נתון אמיתי. | *
 POV: סוף סוף מצאתם דירה עם מרפסת שמש – וגם חנייה | pov | R,T | awareness | p | דלת נפתחת אל מרפסת מוארת, המצלמה מתקדמת פנימה מגובה העיניים | - | -
 כמה באמת עולה דירת 4 חדרים ב{עיר} השנה? המספר לא מה שחשבתם | price-reveal | R,T,S,F | leads | p | המתווכת מחזיקה שלט עם מספר מטושטש, אצבע מתקרבת כדי לחשוף אותו | המחיר להמחשה; משתמשים בנתוני עסקאות אמיתיים. | -
@@ -610,7 +664,7 @@ POV: יש לכם אירוע בעוד יומיים, ואין תור בשום מק
 POV: הספר הקבוע שלכם בחופש, ואתם אצל מישהו חדש | pov | T,R | awareness | p | לקוח בכיסא, העיניים שלו מתרחבות מול המראה | - | -
 3 שאלות שספר טוב שואל לפני שהוא נוגע במספריים | listicle+insider-secret | R,S | trust | m | מספריים נעצרים באוויר ליד השיער | - | -
 מה ששיער מתולתל צריך – ואף אחד לא אמר לכם | insider-secret+callout | R,T | sales | p | תקריב של תלתלים, טיפת מוצר נלחצת על כף היד | - | -
-תספורת לחתונה: מתי לקבוע תור? (רמז: לא יום לפני) | question+how-to | R,F | leads | n | חתן בחליפה על הכיסא, שעון על הקיר | - | -
+תספורת לחתונה: מתי לקבוע תור? רמז: לא יום לפני | question+how-to | R,F | leads | n | חתן בחליפה על הכיסא, שעון על הקיר | - | -
 שישי בבוקר אצלנו במספרה: שעה שלמה ב-30 שניות | day-in-life+behind-the-scenes | R,T | awareness | n | טיים-לאפס של מספרה מלאה, מוזיקה קצבית | - | -
 """,
 "restaurants": """
@@ -635,7 +689,7 @@ POV: השבוע הראשון שלכם באימון אישי | pov | R,T | leads 
 הטעות שהורסת לכם את הברכיים בסקוואט | negative-warning | R,T,S | trust | p | סקוואט מהצד, קו אדום מסמן ברכיים שבורחות קדימה | - | -
 אין לכם זמן להתאמן? יש לכם 12 דקות? | question+callout | R,F | leads | p | טיימר של מיקרוגל על 12:00, ואז קאט לאימון בסלון | - | -
 מיתוס: משקולות "מנפחות" נשים | myth-busting | R,T,S | awareness | n | מתאמנת מרימה דדליפט ומחייכת אל המצלמה | - | -
-ככה נראית ארוחת בוקר של מאמן כושר (לא מה שחשבתם) | curiosity-gap+day-in-life | R,T | awareness | m | צלחת שקשוקה עם פיתה במקום חזה עוף, מבט מופתע | - | -
+ככה נראית ארוחת בוקר של מאמן כושר, וזה לא מה שחשבתם | curiosity-gap+day-in-life | R,T | awareness | m | צלחת שקשוקה עם פיתה במקום חזה עוף, מבט מופתע | - | -
 90 יום: אותו אדם, אותה מראה, אותה תאורה | before-after | R,T,F | sales | n | סלפי במראה, מסך מפוצל עם מעבר ניגוב | לפני ואחרי של ירידה במשקל מוגבל בפרסום ממומן במטא ובטיקטוק: לבדוק לפני שימוש ולהוסיף "התוצאות משתנות מאדם לאדם". | -
 """,
 "yoga-pilates": """
@@ -664,7 +718,7 @@ POV: הקבלן אמר "שבועיים". זה היה לפני 4 חודשים | p
 """,
 "dentists": """
 אל תלבינו שיניים לפני שאתם יודעים את זה | negative-warning | R,T,S | trust | p | ערכת הלבנה ביד, חותמת X אדומה נוחתת עליה | - | *
-3 סימנים שאתם צריכים טיפול שורש (השלישי מפתיע) | listicle+curiosity-gap | R,F,S | leads | p | הרופאה מחזיקה דגם של שן ומרימה שלוש אצבעות | בפרסום ממומן מנסחים בגוף שלישי ("3 סימנים שאולי צריך טיפול שורש"): פנייה שמניחה מצב בריאותי של הצופה נפסלת במטא. | -
+3 סימנים שאולי צריך טיפול שורש. השלישי מפתיע | listicle+curiosity-gap | R,F,S | leads | n | הרופאה מחזיקה דגם של שן ומרימה שלוש אצבעות | בפרסום ממומן מנסחים בגוף שלישי ("3 סימנים שאולי צריך טיפול שורש"): פנייה שמניחה מצב בריאותי של הצופה נפסלת במטא. | -
 מצחצחים מיד אחרי הקפה? יש לנו בעיה | question+pattern-interrupt | R,T | awareness | p | כוס קפה ליד מברשת שיניים, יד חוטפת את המברשת | - | *
 פוחדים מרופא שיניים? ככה זה נראה מהכיסא אצלנו | callout+pov | R,F | leads | p | צילום מנקודת המבט של המטופל: תקרה עם מסך שמקרין סדרה, תאורה רכה | - | -
 ככה נראה חיוך אחרי 6 חודשים של יישור שקוף | before-after | R,T,F | leads | n | קשתית שקופה יוצאת לאט וחושפת חיוך | לפני ואחרי בתחום רפואי: לבדוק מול כללי הפרסום ולהוסיף "התוצאות משתנות ממטופל למטופל". | -
@@ -680,13 +734,13 @@ POV: הקבלן אמר "שבועיים". זה היה לפני 4 חודשים | p
 תפסיקו להגיע לבנק בלי הצעה מתחרה ביד | stop-doing | F,R | leads | p | זוג נכנס לסניף בידיים ריקות, היועצת מגישה להם תיקייה | - | -
 3 מסלולים שחובה להבין לפני שחותמים על משכנתא | listicle | F,R,S | trust | n | שלושה עמודים צבעוניים נבנים בגרפיקה | - | -
 קיבלתם אישור עקרוני? מזל טוב. עכשיו מתחיל המשא ומתן | callout+pattern-interrupt | F,R,T | leads | p | קונפטי על מכתב האישור, ואז צליל של תקליט שנעצר | - | *
-מיתוס: "אנחנו לקוחות של הבנק 20 שנה, יתנו לנו את הריבית הכי טובה" | myth-busting | F,R | trust | n | כרטיס אשראי ישן על השולחן, היועץ מניד בראשו | - | -
-מחזור משכנתא: מתי זה משתלם, ומתי זה סתם עמלות | comparison+how-to | F,R,S | leads | n | מאזניים מתנדנדים בין "חיסכון" ל"עמלות" | - | -
+מיתוס: "20 שנה אנחנו בבנק, יתנו לנו את הריבית הכי טובה" | myth-busting | F,R | trust | n | כרטיס אשראי ישן על השולחן, היועץ מניד בראשו | - | -
+מחזור משכנתא: מתי זה משתלם, ומתי זה סתם עמלות | comparison+how-to | F,R,S | leads | n | מאזניים מתנדנדים, על כף אחת "חיסכון" ועל השנייה "עמלות" | - | -
 זוג מ{עיר} חסך {סכום} ₪ בפגישה אחת. ככה זה נראה | social-proof+story | F,R | leads | n | זוג ליד שולחן עושה "כיף", מסמכים פרושים | רק מקרה אמיתי ומתועד, בהסכמת הלקוחות. | -
 25 או 30 שנה? השאלה שהרבה עונים עליה לא נכון | question+curiosity-gap | F,R,T | awareness | n | שני לוחות שנה מתהפכים זה מול זה | - | -
 מה שלא תמיד מספרים לכם בפגישה הראשונה בבנק | insider-secret | F,R,S | trust | p | פגישה בבנק, היועצת לוחשת למצלמה מהצד | - | -
 שכירות או משכנתא? עשינו את החשבון על דירה של 2 מיליון ₪ | comparison+statistic | F,R,S | awareness | n | מסך מפוצל: צרור מפתחות מול קבלה על שכר דירה | סימולציה להמחשה בלבד. | -
-הריבית ירדה. מה זה אומר על המשכנתא שלכם? | question+callout | F,R,S | leads | p | גרף ריבית עם חץ שיורד, עיתון מתקפל על השולחן | רק אחרי החלטת ריבית אמיתית; להתאים ל"עלתה" או ל"ירדה" לפי החדשות. | -
+הריבית ירדה. מה זה אומר על המשכנתא שלכם? | question+callout | F,R,S | leads | p | גרף ריבית עם חץ שיורד, עיתון מתקפל על השולחן | רק אחרי החלטת ריבית אמיתית; לפי החדשות, כותבים "עלתה" או "ירדה". | -
 """,
 "event-venues": """
 ככה נראית חתונה של 400 איש אצלנו | behind-the-scenes+social-proof | R,T,F | awareness | n | רחפן נכנס מעל רחבה מלאה, האורות נדלקים בדיוק על הביט | צילום מאירוע אמיתי רק בהסכמת הזוג. | *
@@ -698,7 +752,7 @@ POV: אתם נכנסים לחופה, וכל האורחים קמים | pov | R,T 
 "ecommerce": """
 נגמר לנו המלאי פעמיים החודש. הנה למה | social-proof+curiosity-gap | R,T,F | sales | n | מדף ריק, ואז ארגזים חדשים נפתחים | רק אם נכון. | *
 אל תקנו את זה אם אתם לא אוהבים מחמאות | pattern-interrupt | R,T | sales | p | חשיפת מוצר בהילוך איטי בתאורה דרמטית | - | *
-3 סיבות שבגללן לקוחות חוזרים אלינו (השנייה הפתיעה אותנו) | listicle+social-proof | R,F | trust | n | ביקורות קופצות על המסך אחת אחרי השנייה | רק ביקורות אמיתיות. | -
+3 סיבות שבגללן לקוחות חוזרים אלינו. השנייה הפתיעה גם אותנו | listicle+social-proof | R,F | trust | n | ביקורות קופצות על המסך אחת אחרי השנייה | רק ביקורות אמיתיות. | -
 אורזים איתכם הזמנה ל{עיר} | behind-the-scenes+satisfying-visual | T,R,S | awareness | p | צילום מלמעלה של אריזה: נייר טישו, מדבקה, סרט | - | -
 מבחן קיצון: זרקנו אותו מקומה שנייה | demonstration+challenge | T,R,S | sales | n | נפילה בהילוך איטי, המוצר פוגע ברצפה | - | -
 POV: הזמנתם בבוקר, וזה כבר אצלכם בערב | pov | R,T,F | sales | p | פעמון בדלת, שליח מגיש חבילה | רק אם זמן המשלוח הזה מובטח באמת. | -
@@ -733,7 +787,7 @@ POV: יצאתם מהמגרש עם הרכב הראשון שלכם | pov | R,T | s
 חתמתם על חוזה שכירות? תבדקו את הסעיף הזה עכשיו | callout+curiosity-gap | R,F | trust | p | מרקר צהוב מסמן סעיף בחוזה, תקריב | - | -
 מיתוס: צוואה זה רק לאנשים עשירים | myth-busting | F,R | trust | n | עורכת הדין קורעת דף שכתוב עליו "רק לעשירים" | - | *
 השאלה שחוזרת אליי כל שבוע: מה קורה לדירה אחרי גירושים? | question | F,R,S | leads | n | טלפון על שולחן מציג הודעת וואטסאפ מטושטשת | - | -
-סיפור אמיתי (בשינוי פרטים): הודעת וואטסאפ אחת כמעט עלתה ללקוח 400 אלף ₪ | story | F,R | trust | n | בועת וואטסאפ מוגדלת על המסך, הפרטים מטושטשים | סיפור אמיתי בלבד, בלי פרטים מזהים ובשמירה על חיסיון. | -
+מקרה אמיתי, בשינוי פרטים: וואטסאפ אחד כמעט עלה ללקוח 400 אלף ₪ | story | F,R | trust | n | בועת וואטסאפ מוגדלת על המסך, הפרטים מטושטשים | סיפור אמיתי בלבד, בלי פרטים מזהים ובשמירה על חיסיון. | -
 הסכם ממון מול "אנחנו סומכים אחד על השני" | comparison | R,T | awareness | n | שתי טבעות על שולחן מול מסמך חתום | - | -
 כמה עולה עורך דין לעסקת דירה? הנה הטווח האמיתי | price-reveal | F,R,S | leads | n | מחשבון על שולחן משרד, עורך הדין מקליד | - | -
 קיבלתם מכתב התראה? השעון כבר מתקתק. 3 צעדים ראשונים | negative-warning+how-to | F,R | leads | p | מעטפה עם חותמת אדומה, צליל תקתוק של שעון | - | -
@@ -746,7 +800,7 @@ POV: קניתם דירה על הנייר, והמסירה מתעכבת כבר ש�
 פתחתם עסק? ההחלטה הראשונה מול רשות המסים יכולה לעלות לכם אלפי שקלים | negative-warning+callout | F,R | leads | p | מפתח מסתובב במנעול של חנות חדשה, ואז טופס רשמי על השולחן | - | -
 תפסיקו לשמור קבלות בקופסת נעליים | stop-doing | R,T | awareness | p | קופסת נעליים מתהפכת, קבלות מתפזרות, טלפון סורק אחת מהן | - | *
 קיבלתם מכתב ממס הכנסה? קודם כל, לנשום. הנה 3 צעדים | callout+how-to | F,R | leads | p | יד מחזיקה מעטפה רשמית שרועדת קלות | - | -
-הטעות הכי יקרה שראיתי השנה (ולא, זה לא היה לקוח שלי) | story+negative-warning | F,R,S | trust | n | רואה החשבון מסובב מסך אל המצלמה, מספר אדום גדול | - | -
+הטעות הכי יקרה שראיתי השנה. ולא, זה לא היה לקוח שלי | story+negative-warning | F,R,S | trust | n | רואה החשבון מסובב מסך אל המצלמה, מספר אדום גדול | - | -
 שכירים? יכול להיות שמגיע לכם החזר מס – ואתם בכלל לא יודעים | callout+curiosity-gap | F,R,T | leads | p | המחאה מחליקה לאט לתוך הפריים | - | -
 דוח שנתי ב-60 שניות: מה זה, ולמה זה חשוב לכם | how-to | R,S | awareness | p | שעון עצר מתחיל לרוץ, רואת החשבון עומדת ליד לוח לבן | - | -
 יום לפני הדדליין של הדוחות אצלנו במשרד | behind-the-scenes+day-in-life | R,T | awareness | n | ערימות תיקים, כוסות קפה, מחוגי שעון במהירות כפולה | - | -
@@ -755,14 +809,14 @@ POV: קניתם דירה על הנייר, והמסירה מתעכבת כבר ש�
 """,
 "insurance-agents": """
 יכול להיות שאתם משלמים פעמיים על אותו ביטוח בריאות | negative-warning+bold-claim | F,R | leads | p | שתי פוליסות זהות נערמות זו על זו | - | *
-מתי בפעם האחרונה בדקתם מה יש לכם ב"הר הביטוח"? | question+callout | F,R | leads | p | טלפון פתוח על אתר החיפוש, הסוכנת מצביעה על המסך | - | -
+מתי בפעם האחרונה בדקתם מה יש לכם בהר הביטוח? | question+callout | F,R | leads | p | טלפון פתוח על אתר החיפוש, הסוכנת מצביעה על המסך | - | -
 3 שאלות לפני שעושים ביטוח חיים למשכנתא | listicle | F,R,S | trust | n | מפתחות בית מונחים על פוליסה מקופלת | - | -
 סיפור אמיתי: תאונה, אשפוז – ופוליסה שלא כיסתה את מה שחשבו | story | F,R | trust | n | מסדרון בית חולים, דף פוליסה ביד | רק מקרה אמיתי, בלי פרטים מזהים. | -
-ביטוח רכב: "הכי זול" ו"הכי משתלם" זה לא אותו דבר | comparison | F,R,T | awareness | n | שני מפתחות רכב זה לצד זה | - | -
+ביטוח רכב: זול ומשתלם זה לא אותו דבר | comparison | F,R,T | awareness | n | שני מפתחות רכב זה לצד זה | - | -
 תפסיקו לחדש ביטוח אוטומטית בלי לבדוק | stop-doing | F,R | leads | p | מייל של חידוש, אצבע מרחפת מעל "אישור" | - | *
 נזילה מהשכן מלמעלה – מי משלם? | question+curiosity-gap | F,R,T | leads | n | טיפות מים נוטפות מהתקרה לתוך דלי | - | -
 עצמאים: אם לא תעבדו חודש – מי משלם את החשבונות? | callout+negative-warning | F,R | leads | p | כיסא משרדי ריק, חשבונות נערמים על השולחן | נוגע במצב כלכלי: בפרסום ממומן מנסחים בגוף שלישי ("מה קורה לעצמאי שלא עובד חודש?"). | -
-יום בחיים של סוכן ביטוח (זה לא רק טפסים) | day-in-life | R,T | trust | m | הסוכן נוהג, ואז נכנס לבית של משפחה עם כוס קפה | - | -
+יום בחיים של סוכן ביטוח, וזה לא רק טפסים | day-in-life | R,T | trust | m | הסוכן נוהג, ואז נכנס לבית של משפחה עם כוס קפה | - | -
 בדקנו תיק ביטוחי של זוג צעיר ב-10 דקות. זה מה שמצאנו | demonstration+result-first | F,R,S | leads | n | טבלה גרפית עם שורות שמסומנות באדום | - | -
 בדקתם כמה דמי ניהול אתם משלמים בפנסיה? | question | F,R,S | leads | p | דוח פנסיה שנתי, מרקר מקיף שורה אחת | - | -
 """,
@@ -794,14 +848,14 @@ POV: אתם צלמי החתונה, 600 אורחים, והכלה פשוט נעל�
 "djs-musicians": """
 הרגע שבו כל האולם קם לרקוד | result-first+social-proof | R,T,F | awareness | n | רחבה חצי ריקה, דרופ, ותוך שנייה כולם קופצים עם ידיים למעלה | שירים מוקלטים בסרטון רק ברישיון. | *
 POV: הדיג׳יי שם את השיר של סבתא – והרחבה מתפוצצת | pov | T,R | awareness | n | סבתא בשמלה חגיגית גוררת את הנכדים לרחבה | שירים מוקלטים בסרטון רק ברישיון. | -
-3 שירים שאסור לשים בחתונה (השלישי יפתיע אתכם) | controversy+listicle | T,R,S | engagement | p | יד על המיקסר עוצרת את הפיידר באמצע שיר | - | -
+3 שירים שאסור לשים בחתונה. השלישי יפתיע אתכם | controversy+listicle | T,R,S | engagement | p | יד על המיקסר עוצרת את הפיידר באמצע שיר | - | -
 פלייליסט מול דיג׳יי שקורא את הרחבה: אותו ערב, תוצאה אחרת | comparison | R,F | leads | n | מסך מפוצל: רמקול עם טלפון מחובר מול עמדת דיג׳יי מוארת | - | -
 מאחורי העמדה: ככה נראית חתונה מהצד של הדיג׳יי | behind-the-scenes | R,T,S | trust | n | מצלמה מאחורי הדיג׳יי, מבט אל קהל רוקד ואורות מהבהבים | - | -
 """,
 "zimmers-boutique-hotels": """
 ג׳קוזי מול הנוף הזה. בלי פילטר | bold-claim+satisfying-visual | R,T,F | sales | n | רחפן בדחיפה איטית אל ג׳קוזי בזריחה | - | *
 POV: כיביתם את הטלפון לסופ״ש שלם | pov | R,T | awareness | p | טלפון נופל לסלסלת קש, ערסל מתנדנד | - | *
-3 דברים לבדוק לפני שמזמינים צימר (את השלישי כמעט אף אחד לא בודק) | listicle+curiosity-gap | F,R | trust | n | יד פותחת לאט דלת עץ | - | -
+3 דברים לבדוק לפני שמזמינים צימר. השלישי נשכח כמעט תמיד | listicle+curiosity-gap | F,R | trust | n | יד פותחת לאט דלת עץ | - | -
 כמה עולה סופ״ש זוגי אצלנו – כולל ארוחת בוקר? | price-reveal | F,R | sales | n | מגש ארוחת בוקר מונח על המיטה, תג המחיר מוסתר | - | -
 מה קורה פה ב-6 בבוקר | behind-the-scenes+day-in-life | R,T | awareness | n | המארחת אופה לחם, ערפל מעל הגבעות | - | -
 התמונות באתר מול המציאות. בדקנו | comparison+social-proof | R,F,T | trust | n | טלפון עם תמונת המודעה מורם מול הנוף האמיתי | - | -
@@ -833,7 +887,7 @@ POV: הילדים שואלים "מה עושים היום?", והפעם יש לכ
 "therapists": """
 מתעוררים עייפים גם אחרי 8 שעות שינה? אולי זה לא רק עייפות | callout+curiosity-gap | R,F | awareness | p | שעון מעורר מצלצל, אדם בוהה בתקרה | נוגע בבריאות הנפש: בפרסום ממומן מנסחים בגוף שלישי, בלי להניח את מצבו של הצופה. | -
 3 משפטים שאנשים עם חרדה שומעים כל הזמן – ושלא באמת עוזרים | listicle | R,T,F | awareness | n | בועות דיבור צצות סביב דמות ונעלמות | נוגע בבריאות הנפש: לבדוק את הניסוח לפני פרסום ממומן. | *
-מיתוס: טיפול זה רק למי ש"משהו לא בסדר" איתו | myth-busting | R,F,S | trust | n | חדר טיפול רגוע, שתי כורסאות, אור חלון רך | - | *
+מיתוס: טיפול זה רק למי שמשהו לא בסדר איתו | myth-busting | R,F,S | trust | n | חדר טיפול רגוע, שתי כורסאות, אור חלון רך | - | *
 מה קורה בפגישה הראשונה? בלי מסתורין | how-to+behind-the-scenes | R,F | leads | n | מבט מגובה העיניים: נכנסים לחדר, הדלת נסגרת בעדינות | - | -
 30 שניות של נשימה, לרגעים שהכול מרגיש יותר מדי | demonstration+how-to | R,T,S | awareness | n | עיגול נשימה מונפש מתרחב ומתכווץ | - | -
 תפסיקו להגיד לעצמכם "אחרים עוברים דברים יותר קשים" | stop-doing | R,T | awareness | p | משפט בכתב יד נמחק בקו עדין | - | -
@@ -845,7 +899,7 @@ POV: אמרתם בקול משהו שהחזקתם בפנים שנים | pov | R,T
 """,
 "vets-dog-grooming": """
 הכלב שלכם עושה את זה? זה לא "סתם חמוד" | curiosity-gap+negative-warning | R,T,F | awareness | p | כלב גורר את הישבן על השטיח | - | *
-3 מאכלים מהמטבח שמסוכנים לכלבים (השני נמצא כמעט בכל בית) | listicle | R,T,F,S | awareness | n | ענבים, שוקולד ובצל על השיש, כלב מרחרח | - | *
+3 מאכלים מהמטבח שמסוכנים לכלבים. השני נמצא כמעט בכל בית | listicle | R,T,F,S | awareness | n | ענבים, שוקולד ובצל על השיש, כלב מרחרח | - | *
 חצי שנה בלי מספריים ← כלב חדש | before-after+satisfying-visual | T,R,S | awareness | n | כלב עם פרווה סבוכה, ואז כלב רך ונקי שמתנער | - | -
 POV: הכלב שלכם מבין שנכנסתם לחנייה של הווטרינר | pov | T,R | awareness | p | עיני הכלב נפתחות לרווחה במושב האחורי | - | -
 תפסיקו לגזור ציפורניים בלי לבדוק את הנקודה הזאת | stop-doing+how-to | R,S | trust | p | תקריב של ציפורן, פנס מאיר את כלי הדם | - | -
@@ -921,7 +975,7 @@ POV: יום ראשון בבוקר, 47 מיילים, ואף אחד לא יודע 
 "local-politics": """
 """,
 "physio-nutrition": """
-המאכל ה"בריא" שהורס לא מעט דיאטות | myth-busting+curiosity-gap | R,T,F | awareness | n | יד מושטת לחטיף גרנולה צבעוני, ונעצרת באוויר | - | *
+המאכל שנחשב בריא והורס לא מעט דיאטות | myth-busting+curiosity-gap | R,T,F | awareness | n | יד מושטת לחטיף גרנולה צבעוני, ונעצרת באוויר | - | *
 התנוחה שרובנו יושבים בה מול המחשב – ומה היא עושה לגב | curiosity-gap+negative-warning | R,F,S | awareness | n | צילום פרופיל של אדם שקוע בכיסא מול מחשב, קו גרפי מסמן את עמוד השדרה | - | -
 מיתוס: פחמימות בערב משמינות | myth-busting | R,T,S | awareness | n | צלחת פסטה ליד שעון שמראה 21:00, חותמת "מיתוס" נוחתת עליה | מידע כללי, לא תחליף לייעוץ תזונתי אישי. | -
 3 תרגילים של 2 דקות לכל מי שיושב 8 שעות ביום | listicle+callout | R,F,S | awareness | n | טיימר של 2 דקות על המסך, אדם קם מכיסא משרדי ומתמתח | - | -
@@ -1088,9 +1142,20 @@ def build_all():
             "sort_order": (i + 1) * 10,
         })
     hooks, meta = build_hooks()
+    missing = [n["slug"] for n in NICHES if n["slug"] not in NICHE_EXTRAS]
+    unknown = sorted(set(NICHE_EXTRAS) - {n["slug"] for n in NICHES})
+    if missing or unknown:
+        raise SystemExit(f"NICHE_EXTRAS out of sync with NICHES: missing={missing} unknown={unknown}")
+    niche_extras = []
+    for n in NICHES:
+        short, register, audience, cta = NICHE_EXTRAS[n["slug"]]
+        niche_extras.append({
+            "slug": n["slug"], "short_name_he": short, "default_register": register,
+            "default_audience_gender": audience, "default_cta": cta, "default_music_mood": None,
+        })
     return {
         "niche_categories": categories, "niches": niches, "hook_families": families,
-        "hook_types": hook_types, "seasons": seasons, "hooks": hooks,
+        "hook_types": hook_types, "seasons": seasons, "hooks": hooks, "niche_extras": niche_extras,
     }, meta
 
 
@@ -1100,7 +1165,22 @@ def build_all():
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 HOOK_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*-\d{2}$")
 HEB = "\u05d0-\u05ea"
-BANNED = ["האם ידעת", "אתה לא תאמין", "קחו את העסק", "פתרון חדשני", "בעולם של היום", "זה הזמן ל", "!!"]
+# BANNED_PHRASES of appendix E sec. 5.2 (HE001), in order. The three bureaucratic words are matched as whole words;
+# the rest as substrings after normalizing whitespace and ״/׳ to "/'.
+BANNED = ["קחו את העסק לשלב הבא", "לשלב הבא", "פתרון חדשני ומקיף", "פתרון חדשני", "הפתרון המושלם",
+          "בעולם של היום", "בעידן הדיגיטלי", "בעידן של היום", "זה הזמן ל", "האם ידעתם ש", "האם ידעת ש",
+          "אתם לא תאמינו", "אתה לא תאמין", "חוויה בלתי נשכחת", "ברמה הגבוהה ביותר", "ללא פשרות",
+          "שירות מקצועי ואדיב", "יחס אישי ומקצועי", "המקום המושלם עבורכם", "הצטרפו למהפכה",
+          "המסע שלכם מתחיל כאן", "הגעתם למקום הנכון", "כל מה שצריך במקום אחד",
+          "תנו לנו לעשות את העבודה בשבילכם", "אנחנו כאן בשבילכם", "צוות מקצועי ומנוסה", "שנים רבות של ניסיון",
+          "המובילים בתחום", "סטנדרט חדש של", "הצעה שאי אפשר לסרב לה", "הזדמנות של פעם בחיים",
+          "אל תפספסו את ההזדמנות", "מחירים שלא תמצאו בשום מקום אחר", "תוצאות מדהימות", "חוויית לקוח מושלמת",
+          "בינה מלאכותית מהפכנית", "צרו קשר עוד היום", "פשוט. מהיר. יעיל.", "עומדים לרשותכם", "הננו", "הינו",
+          "הינה", "במידה ו", "על מנת", "!!", "חוויית משתמש מושלמת"]
+BANNED_WHOLE_WORD = {"הננו", "הינו", "הינה"}
+# HOOK_PLACEHOLDERS of part 04 sec. 16.2: names 1-17 of the dictionary may appear in hooks.text_he
+HOOK_PLACEHOLDER_COUNT = 17
+HOOK_MAX_WORDS = 12  # HE010
 PLURAL_WORDS = {"אתם", "לכם", "שלכם", "אתכם", "איתכם", "אותכם", "אצלכם", "עליכם", "בשבילכם", "מכם", "אליכם",
                 "כתבו", "שמרו", "נחשו", "עצרו", "חכו", "שלחו", "גרים", "מחפשים", "רוצים", "פוחדים",
                 "מצחצחים", "מתעוררים", "מגיעים", "תורמים", "בדקתם", "פוטרתם", "חתמתם", "קניתם"}
@@ -1116,6 +1196,8 @@ CANON_KEYS = {
     "hook_families": ["slug", "name_he", "name_en", "description_he", "sort_order"],
     "seasons": ["slug", "name_he", "name_en", "date_hint_he", "publish_window_he", "niche_slugs",
                 "is_quiet_day", "note_he", "sort_order"],
+    "niche_extras": ["slug", "short_name_he", "default_register", "default_audience_gender", "default_cta",
+                     "default_music_mood"],
 }
 
 
@@ -1130,15 +1212,23 @@ def _hebrew_text_issues(s):
         issues.append("LTR arrow → (use ←)")
     if "  " in s or s != s.strip():
         issues.append("extra whitespace")
+    norm = re.sub(r"\s+", " ", s.replace("\u05f4", '"').replace("\u05f3", "'"))
     for b in BANNED:
-        if b in s:
-            issues.append(f"banned phrase: {b}")
+        hit = (re.search(f"(?<![{HEB}]){b}(?![{HEB}])", norm) if b in BANNED_WHOLE_WORD else b in norm)
+        if hit:
+            issues.append(f"banned phrase (HE001): {b}")
     if re.search(f"[{HEB}]'|'[{HEB}]", s):
         issues.append("ASCII apostrophe next to Hebrew (use geresh ׳)")
-    for m in re.finditer(f'([{HEB}]+)"([{HEB}]+)', s):
-        before, after = m.group(1), m.group(2)
-        if len(before) >= 2 or len(after) == 1:
-            issues.append(f"ASCII quote inside acronym {m.group(0)} (use gershayim ״)")
+    for m in re.finditer(f'[{HEB}]"[{HEB}]', s):
+        # HE004: no ASCII quote between two Hebrew letters, which also rules out a prefix letter glued to a
+        # quotation (ל"עמלות"): the editors auto-fix that pattern to gershayim, so rephrase instead
+        issues.append(f"HE004: ASCII quote between Hebrew letters {m.group(0)} (gershayim ״ in acronyms; rephrase a prefixed quote)")
+    if "..." in s:
+        issues.append("HE023: three dots (use …)")
+    if re.search(r"\s[,.:;?!]", s):
+        issues.append("HE024: space before punctuation")
+    if re.search("[\u200e\u200f\u05be]", s):
+        issues.append("bidi mark or maqaf (U+200E/U+200F/U+05BE)")
     if s.count('"') % 2:
         issues.append("unbalanced quotation marks")
     if "הכל" in re.findall(f"[{HEB}]+", s):
@@ -1247,6 +1337,7 @@ def validate(data):
             err(f"seasons/{s['slug']}: is_quiet_day must be bool")
 
     ph_keys = {p[0] for p in PLACEHOLDERS}
+    hook_ph_keys = {p[0] for p in PLACEHOLDERS[:HOOK_PLACEHOLDER_COUNT]}
     for h in data["hooks"]:
         hid = h["id"]
         if not HOOK_ID.match(hid):
@@ -1290,14 +1381,60 @@ def validate(data):
                     err(f"hooks/{hid}.{k}: {i}")
         if not h["text_he"] or not h["visual_direction_he"]:
             err(f"hooks/{hid}: empty text or visual")
-        nwords = len(h["text_he"].split())
-        if nwords > 16:
-            warn(f"hooks/{hid}: {nwords} words (long for a hook)")
+        t = h["text_he"]
+        nwords = len([w for w in t.split() if re.search(r"[^\W_]", w)])  # tokens with a letter or digit
+        if nwords > HOOK_MAX_WORDS:
+            err(f"hooks/{hid}: HE010: {nwords} words (max {HOOK_MAX_WORDS})")
+        if re.search(r"[()]", t):
+            err(f"hooks/{hid}: HE025: parentheses are not allowed in hook text")
+        if re.search(r"₪\s?\d|₪\{", t):
+            err(f"hooks/{hid}: shekel sign must follow the amount ('349 ₪', '{{מחיר}} ₪')")
+        if not 3 <= len(t.strip()) <= 160:
+            err(f"hooks/{hid}: text_he length {len(t)} outside 3-160")
+        for p in found:
+            if p not in hook_ph_keys:
+                err(f"hooks/{hid}: placeholder {{{p}}} is not one of the {HOOK_PLACEHOLDER_COUNT} hook placeholders")
+        vwords = len(h["visual_direction_he"].split())
+        if vwords > 20:
+            err(f"hooks/{hid}: visual_direction_he has {vwords} words (max 20)")
         markers = _plural_markers(h["text_he"])
         if h["gender"] == "neutral" and markers:
             warn(f"hooks/{hid}: gender=neutral but plural markers {markers}")
         if h["gender"] == "plural" and not markers:
             warn(f"hooks/{hid}: gender=plural but no plural markers found")
+
+    # niche_extras: exactly one row per niche, in niche order; enums; short_name_he per part 02 sec. 4.3
+    ext_slugs = [x["slug"] for x in data["niche_extras"]]
+    if ext_slugs != [n["slug"] for n in data["niches"]]:
+        err(f"niche_extras: slugs must be exactly the niches, in niche order (got {len(ext_slugs)} rows)")
+    for x in data["niche_extras"]:
+        s = x["slug"]
+        if s == "local-politics":
+            if any(x[k] is not None for k in CANON_KEYS["niche_extras"][1:]):
+                err("niche_extras/local-politics: every value must be null (inactive at launch)")
+            continue
+        short = x["short_name_he"]
+        if not isinstance(short, str) or not short.strip():
+            err(f"niche_extras/{s}: short_name_he is required for an active niche")
+        else:
+            if not 1 <= len(short.split()) <= 4 or len(short) > 40:
+                err(f"niche_extras/{s}: short_name_he must be 1-4 words and at most 40 chars: {short}")
+            if re.search(r"[()]", short) or short[0] in "-\u05be":
+                err(f"niche_extras/{s}: short_name_he has parentheses or a leading hyphen: {short}")
+            for i in _hebrew_text_issues(short):
+                err(f"niche_extras/{s}.short_name_he: {i}")
+        if x["default_register"] not in REGISTERS:
+            err(f"niche_extras/{s}: bad default_register {x['default_register']}")
+        if x["default_audience_gender"] not in AUDIENCE_GENDERS:
+            err(f"niche_extras/{s}: bad default_audience_gender {x['default_audience_gender']}")
+        if x["default_cta"] not in CTA_TYPES:
+            err(f"niche_extras/{s}: bad default_cta {x['default_cta']}")
+        if x["default_music_mood"] is not None and x["default_music_mood"] not in MUSIC_MOODS:
+            err(f"niche_extras/{s}: bad default_music_mood {x['default_music_mood']}")
+    shorts = [x["short_name_he"] for x in data["niche_extras"] if x["short_name_he"]]
+    dup_short = {v for v in shorts if shorts.count(v) > 1}
+    if dup_short:
+        err(f"niche_extras: duplicate short_name_he: {sorted(dup_short)}")
 
     for slug, cnt in hooks_per_niche.items():
         if cnt == 0 and slug != "local-politics":
@@ -1507,7 +1644,7 @@ def main():
     hooks = data["hooks"]
     print(f"niche_categories={len(data['niche_categories'])} niches={len(data['niches'])} "
           f"hook_families={len(data['hook_families'])} hook_types={len(data['hook_types'])} "
-          f"seasons={len(data['seasons'])} hooks={len(hooks)} "
+          f"seasons={len(data['seasons'])} niche_extras={len(data['niche_extras'])} hooks={len(hooks)} "
           f"(niche={sum(1 for h in hooks if h['niche_slug'])}, "
           f"seasonal={sum(1 for h in hooks if h['id'].startswith('seasonal-'))}, "
           f"universal={sum(1 for h in hooks if h['id'].startswith('universal-'))}, "
