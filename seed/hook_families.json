@@ -1,0 +1,58 @@
+[
+  {
+    "slug": "curiosity",
+    "name_he": "סקרנות ומידע מבפנים",
+    "name_en": "Curiosity & insider info",
+    "description_he": "הוקים שפותחים פער מידע. הצופה נשאר כדי לקבל את התשובה.",
+    "sort_order": 10
+  },
+  {
+    "slug": "warning",
+    "name_he": "אזהרות וטעויות",
+    "name_en": "Warnings & mistakes",
+    "description_he": "נשענים על הרתיעה מהפסד: מה ישתבש אם לא תדעו.",
+    "sort_order": 20
+  },
+  {
+    "slug": "disruption",
+    "name_he": "שבירת דפוס ועמדה",
+    "name_en": "Disruption & bold takes",
+    "description_he": "פתיחה מפתיעה או עמדה חדה שעוצרת את הגלילה.",
+    "sort_order": 30
+  },
+  {
+    "slug": "relatable",
+    "name_he": "הזדהות וסיפור",
+    "name_en": "Relatable & story",
+    "description_he": "הצופה רואה את עצמו בסיטואציה, בפנייה או בסיפור.",
+    "sort_order": 40
+  },
+  {
+    "slug": "proof",
+    "name_he": "הוכחה ותוצאות",
+    "name_en": "Proof & results",
+    "description_he": "מראים ולא מספרים: תוצאה, מהפך, נתון או לקוחות אמיתיים.",
+    "sort_order": 50
+  },
+  {
+    "slug": "education",
+    "name_he": "ערך ולימוד",
+    "name_en": "Value & education",
+    "description_he": "מבטיחים ערך מוגדר בזמן קצר: רשימה, מדריך או השוואה.",
+    "sort_order": 60
+  },
+  {
+    "slug": "visual",
+    "name_he": "ויזואל ומאחורי הקלעים",
+    "name_en": "Visual & behind the scenes",
+    "description_he": "הוקים שעובדים גם בלי סאונד: תנועה, תהליך ומה שקורה מאחורי הדלפק.",
+    "sort_order": 70
+  },
+  {
+    "slug": "action",
+    "name_he": "הצעה ומעורבות",
+    "name_en": "Offers & engagement",
+    "description_he": "מזמינים לפעול עכשיו: הצעה מוגבלת או אתגר שמייצר תגובות.",
+    "sort_order": 80
+  }
+]

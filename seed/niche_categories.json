@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "real-estate-home",
+    "name_he": "נדל״ן ובית",
+    "name_en": "Real estate & home",
+    "sort_order": 10
+  },
+  {
+    "slug": "beauty-grooming",
+    "name_he": "יופי וטיפוח",
+    "name_en": "Beauty & grooming",
+    "sort_order": 20
+  },
+  {
+    "slug": "health-wellness",
+    "name_he": "בריאות, כושר וטיפול",
+    "name_en": "Health, fitness & care",
+    "sort_order": 30
+  },
+  {
+    "slug": "food-hospitality",
+    "name_he": "אוכל ומסעדנות",
+    "name_en": "Food & dining",
+    "sort_order": 40
+  },
+  {
+    "slug": "events",
+    "name_he": "אירועים ושמחות",
+    "name_en": "Events & celebrations",
+    "sort_order": 50
+  },
+  {
+    "slug": "tourism-leisure",
+    "name_he": "תיירות ופנאי",
+    "name_en": "Tourism & leisure",
+    "sort_order": 60
+  },
+  {
+    "slug": "professional-finance",
+    "name_he": "שירותים מקצועיים ופיננסים",
+    "name_en": "Professional & financial services",
+    "sort_order": 70
+  },
+  {
+    "slug": "commerce",
+    "name_he": "מסחר וקמעונאות",
+    "name_en": "Commerce & retail",
+    "sort_order": 80
+  },
+  {
+    "slug": "automotive",
+    "name_he": "רכב ותחבורה",
+    "name_en": "Automotive",
+    "sort_order": 90
+  },
+  {
+    "slug": "education-kids",
+    "name_he": "חינוך, הדרכה וילדים",
+    "name_en": "Education & kids",
+    "sort_order": 100
+  },
+  {
+    "slug": "pets",
+    "name_he": "חיות מחמד",
+    "name_en": "Pets",
+    "sort_order": 110
+  },
+  {
+    "slug": "tech-b2b",
+    "name_he": "הייטק ו-B2B",
+    "name_en": "Tech & B2B",
+    "sort_order": 120
+  },
+  {
+    "slug": "community-public",
+    "name_he": "קהילה וציבור",
+    "name_en": "Community & public",
+    "sort_order": 130
+  }
+]

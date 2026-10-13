@@ -1,0 +1,245 @@
+[
+  {
+    "slug": "curiosity-gap",
+    "name_he": "פער סקרנות",
+    "name_en": "Curiosity gap",
+    "family_slug": "curiosity",
+    "description_he": "פותח פער בין מה שהצופה יודע לבין מה שהוא רוצה לדעת. התשובה מגיעה רק בהמשך הסרטון.",
+    "example_he": "הדבר הראשון שאני בודקת בדירה – וזה לא הקירות",
+    "sort_order": 1
+  },
+  {
+    "slug": "pattern-interrupt",
+    "name_he": "שבירת דפוס",
+    "name_en": "Pattern interrupt",
+    "family_slug": "disruption",
+    "description_he": "פתיחה לא צפויה, ויזואלית או מילולית, שקוטעת את קצב הגלילה.",
+    "example_he": "אל תבואו אלינו רעבים. ברצינות.",
+    "sort_order": 2
+  },
+  {
+    "slug": "negative-warning",
+    "name_he": "אזהרה",
+    "name_en": "Negative / warning",
+    "family_slug": "warning",
+    "description_he": "נשען על הטיית השליליות ועל הרתיעה מהפסד: מה ישתבש אם לא תדעו את זה.",
+    "example_he": "אל תלבינו שיניים לפני שאתם יודעים את זה",
+    "sort_order": 3
+  },
+  {
+    "slug": "stop-doing",
+    "name_he": "תפסיקו לעשות X",
+    "name_en": "Stop doing X",
+    "family_slug": "warning",
+    "description_he": "פקודה ישירה להפסיק הרגל נפוץ. מעוררת התנגדות וסקרנות.",
+    "example_he": "תפסיקו לשמור קבלות בקופסת נעליים",
+    "sort_order": 4
+  },
+  {
+    "slug": "mistakes",
+    "name_he": "X טעויות",
+    "name_en": "Mistakes list",
+    "family_slug": "warning",
+    "description_he": "רשימה ממוספרת של טעויות נפוצות: שילוב של רשימה ואזהרה.",
+    "example_he": "3 טעויות תאורה שהורסות כל דירה חדשה",
+    "sort_order": 5
+  },
+  {
+    "slug": "listicle",
+    "name_he": "רשימה ממוספרת",
+    "name_en": "Listicle",
+    "family_slug": "education",
+    "description_he": "מספר קונקרטי (3, 5, 7) שמבטיח ערך מוגדר וזמן צפייה צפוי.",
+    "example_he": "3 תרגילים שמחליפים שעה בחדר כושר",
+    "sort_order": 6
+  },
+  {
+    "slug": "pov",
+    "name_he": "POV / נקודת מבט",
+    "name_en": "POV",
+    "family_slug": "relatable",
+    "description_he": "מכניס את הצופה לסיטואציה מוכרת שקל להזדהות איתה. חזק במיוחד בטיקטוק וברילס.",
+    "example_he": "POV: הקבלן אמר \"שבועיים\". זה היה לפני 4 חודשים",
+    "sort_order": 7
+  },
+  {
+    "slug": "before-after",
+    "name_he": "לפני / אחרי",
+    "name_en": "Before / after",
+    "family_slug": "proof",
+    "description_he": "חשיפה מיידית של מהפך ויזואלי.",
+    "example_he": "אמבטיה משנות ה-80 ← 10 ימי עבודה",
+    "sort_order": 8
+  },
+  {
+    "slug": "result-first",
+    "name_he": "התוצאה קודם",
+    "name_en": "Result first",
+    "family_slug": "proof",
+    "description_he": "פותחים בתוצאה המרשימה, ורק אחר כך מספרים איך הגענו אליה.",
+    "example_he": "הדירה הזאת נמכרה תוך 9 ימים. ככה עשינו את זה",
+    "sort_order": 9
+  },
+  {
+    "slug": "question",
+    "name_he": "שאלה",
+    "name_en": "Question",
+    "family_slug": "curiosity",
+    "description_he": "שאלה שהצופה עונה עליה בראש, ומרגיש שהיא מופנית אליו.",
+    "example_he": "כל כמה זמן באמת צריך לקלח כלב?",
+    "sort_order": 10
+  },
+  {
+    "slug": "callout",
+    "name_he": "פנייה לקהל",
+    "name_en": "Call-out",
+    "family_slug": "relatable",
+    "description_he": "פנייה מדויקת לקהל היעד, כדי שהאנשים הנכונים יעצרו.",
+    "example_he": "עצמאים? יש סיכוי טוב שאתם משלמים יותר מס ממה שצריך",
+    "sort_order": 11
+  },
+  {
+    "slug": "bold-claim",
+    "name_he": "טענה נועזת",
+    "name_en": "Bold claim",
+    "family_slug": "disruption",
+    "description_he": "הצהרה חזקה ומפתיעה שהסרטון מוכיח בהמשך.",
+    "example_he": "סלון של 20 מטר שנראה כמו 35 – בלי להזיז קיר",
+    "sort_order": 12
+  },
+  {
+    "slug": "statistic",
+    "name_he": "נתון / מספר",
+    "name_en": "Statistic",
+    "family_slug": "proof",
+    "description_he": "נתון מספרי חד שיוצר הקשר ואמינות. חייב להיות אמיתי ומתועד.",
+    "example_he": "הצוות שלכם מאבד 6 שעות בשבוע על דוחות",
+    "sort_order": 13
+  },
+  {
+    "slug": "story",
+    "name_he": "סיפור",
+    "name_en": "Story",
+    "family_slug": "relatable",
+    "description_he": "פתיחה מאמצע הסיפור, עם דמות ומתח.",
+    "example_he": "הודעת וואטסאפ אחת כמעט עלתה ללקוח 400 אלף ₪",
+    "sort_order": 14
+  },
+  {
+    "slug": "challenge",
+    "name_he": "אתגר",
+    "name_en": "Challenge",
+    "family_slug": "action",
+    "description_he": "מזמין את הצופה לנסות, לנחש או להתמודד, ומייצר תגובות.",
+    "example_he": "פלאנק 30 שניות. כתבו בתגובות כמה החזקתם",
+    "sort_order": 15
+  },
+  {
+    "slug": "demonstration",
+    "name_he": "הדגמה",
+    "name_en": "Demonstration",
+    "family_slug": "proof",
+    "description_he": "מראים את המוצר או השירות בפעולה, בזמן אמת, בלי הסברים מיותרים.",
+    "example_he": "דמו של 30 שניות: מעלים קובץ, יוצא דוח",
+    "sort_order": 16
+  },
+  {
+    "slug": "social-proof",
+    "name_he": "הוכחה חברתית",
+    "name_en": "Social proof",
+    "family_slug": "proof",
+    "description_he": "לקוחות, ביקורות, מספרים ותגובות אמיתיות.",
+    "example_he": "ביקורת אמיתית, בלי תסריט ובלי עריכה",
+    "sort_order": 17
+  },
+  {
+    "slug": "controversy",
+    "name_he": "דעה לא פופולרית",
+    "name_en": "Controversy / hot take",
+    "family_slug": "disruption",
+    "description_he": "עמדה מקצועית שנויה במחלוקת שפותחת דיון בתגובות.",
+    "example_he": "דעה לא פופולרית: בית פתוח זה בזבוז זמן",
+    "sort_order": 18
+  },
+  {
+    "slug": "myth-busting",
+    "name_he": "ניפוץ מיתוס",
+    "name_en": "Myth busting",
+    "family_slug": "disruption",
+    "description_he": "מציגים אמונה נפוצה ומפריכים אותה.",
+    "example_he": "מיתוס: אם לא כואב – אין עששת",
+    "sort_order": 19
+  },
+  {
+    "slug": "insider-secret",
+    "name_he": "סוד מקצועי",
+    "name_en": "Insider secret",
+    "family_slug": "curiosity",
+    "description_he": "\"מה שאנשי המקצוע לא מספרים\": תחושה של גישה למידע מבפנים.",
+    "example_he": "קבלן מגלה: איפה \"חוסכים\" בשיפוצים בלי שתשימו לב",
+    "sort_order": 20
+  },
+  {
+    "slug": "price-reveal",
+    "name_he": "חשיפת מחיר",
+    "name_en": "Price reveal",
+    "family_slug": "curiosity",
+    "description_he": "עונה על השאלה שכולם רוצים לשאול: כמה זה עולה.",
+    "example_he": "כמה עולה שיפוץ ב-2026? מחירים אמיתיים מהשטח",
+    "sort_order": 21
+  },
+  {
+    "slug": "comparison",
+    "name_he": "השוואה (X מול Y)",
+    "name_en": "Comparison (X vs Y)",
+    "family_slug": "education",
+    "description_he": "שתי אפשרויות זו מול זו, לרוב במסך מפוצל.",
+    "example_he": "שכירות או משכנתא? עשינו את החשבון",
+    "sort_order": 22
+  },
+  {
+    "slug": "behind-the-scenes",
+    "name_he": "מאחורי הקלעים",
+    "name_en": "Behind the scenes",
+    "family_slug": "visual",
+    "description_he": "חושפים את מה שקורה מאחורי הדלפק, במטבח או בסטודיו.",
+    "example_he": "שישי בצהריים אצלנו: 280 סועדים, מטבח אחד",
+    "sort_order": 23
+  },
+  {
+    "slug": "day-in-life",
+    "name_he": "יום בחיים",
+    "name_en": "Day in the life",
+    "family_slug": "relatable",
+    "description_he": "רצף מהיר של יום עבודה אמיתי, אנושי ומעורר הזדהות.",
+    "example_he": "יום בחיים של סוכן ביטוח (זה לא רק טפסים)",
+    "sort_order": 24
+  },
+  {
+    "slug": "how-to",
+    "name_he": "מדריך מהיר",
+    "name_en": "How-to",
+    "family_slug": "education",
+    "description_he": "מבטיחים ללמד משהו שימושי בזמן קצוב.",
+    "example_he": "אתם משתמשים בחוט דנטלי לא נכון. 20 שניות ומתקנים",
+    "sort_order": 25
+  },
+  {
+    "slug": "satisfying-visual",
+    "name_he": "ויזואל ממכר",
+    "name_en": "Satisfying visual / ASMR",
+    "family_slug": "visual",
+    "description_he": "הוק ויזואלי טהור: תנועה, מרקם, טיים-לאפס. עובד גם בלי סאונד.",
+    "example_he": "פייד מושלם ב-60 שניות",
+    "sort_order": 26
+  },
+  {
+    "slug": "urgency-offer",
+    "name_he": "דחיפות / הצעה",
+    "name_en": "Urgency / offer",
+    "family_slug": "action",
+    "description_he": "הצעה מוגבלת בזמן או בכמות, רק כשהיא אמיתית.",
+    "example_he": "נשארו 2 סופ״שים פנויים בחודש הבא",
+    "sort_order": 27
+  }
+]
