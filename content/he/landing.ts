@@ -181,6 +181,8 @@ export const LANDING = {
     cta: "נסו את זה עם העסק שלכם",
     screens: {
       brandTitle: "כרטיס המותג",
+      analyzing: "מנתחים את האתר…",
+      exampleUrl: "yourbusiness.co.il",
       brandName: "מספרת הגבעה",
       brandServices: ["תספורת גברים", "פייד וזקן", "תספורת ילדים"],
       brandNote: "נשלף מהאתר · אפשר לתקן",

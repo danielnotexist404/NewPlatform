@@ -39,7 +39,7 @@ export function ReelTile({ icon, category, hookText, caption, handle, badge, siz
     >
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(130%_75%_at_50%_0%,color-mix(in_oklab,var(--tint)_42%,transparent),transparent_62%),radial-gradient(90%_60%_at_100%_100%,color-mix(in_oklab,var(--color-violet)_28%,transparent),transparent_70%),linear-gradient(180deg,var(--color-surface-2),var(--color-bg))]" />
       <div aria-hidden className="absolute inset-0 animate-sweep bg-[linear-gradient(105deg,transparent_35%,color-mix(in_oklab,var(--color-white)_9%,transparent)_50%,transparent_65%)] bg-[length:260%_100%]" />
-      <NicheIcon name={icon} strokeWidth={1.1} className={cn("absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 text-white/12", size === "sm" ? "size-24" : "size-44")} />
+      <NicheIcon name={icon} strokeWidth={1.1} className={cn("absolute inset-s-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 text-white/12", size === "sm" ? "size-24" : "size-44")} />
 
       {/* top: story bars + account */}
       <div className="absolute inset-x-3 top-3 flex gap-1" aria-hidden>
@@ -50,7 +50,7 @@ export function ReelTile({ icon, category, hookText, caption, handle, badge, siz
         <span className="h-0.5 flex-1 rounded-full bg-white/30" />
       </div>
       {handle && (
-        <div className="absolute left-3 top-6 flex items-center gap-2" aria-hidden>
+        <div className="absolute inset-s-3 top-6 flex items-center gap-2" aria-hidden>
           <span className="flex size-7 items-center justify-center rounded-full bg-[var(--tint)] text-on-primary">
             <NicheIcon name={icon} className="size-3.5" />
           </span>
@@ -72,19 +72,19 @@ export function ReelTile({ icon, category, hookText, caption, handle, badge, siz
         </div>
       )}
 
-      <div aria-hidden className="absolute left-1/2 top-[50%] flex size-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/15 backdrop-blur-md">
+      <div aria-hidden className="absolute inset-s-1/2 top-[50%] flex size-12 -translate-x-1/2 items-center justify-center rounded-full bg-white/15 backdrop-blur-md">
         <Play className="size-5 translate-x-px fill-white text-white" />
       </div>
 
       {/* platform buttons column: physical right */}
-      <div aria-hidden className={cn("absolute right-2.5 flex flex-col items-center gap-3 text-white/90", size === "sm" ? "bottom-10" : "bottom-16")}>
+      <div aria-hidden className={cn("absolute inset-e-2.5 flex flex-col items-center gap-3 text-white/90", size === "sm" ? "bottom-10" : "bottom-16")}>
         <Heart className="size-5" />
         <MessageCircle className="size-5" />
         <Send className="size-5" />
       </div>
 
       {badge && (
-        <span dir="rtl" className="absolute bottom-3 left-3 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white/90">
+        <span dir="rtl" className="absolute bottom-3 inset-s-3 rounded-full bg-black/55 px-2 py-0.5 text-[10px] font-semibold text-white/90">
           {badge}
         </span>
       )}

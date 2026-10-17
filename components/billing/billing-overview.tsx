@@ -147,7 +147,7 @@ function PaymentCard() {
   return (
     <Panel className="flex flex-col gap-5">
       <h2 className="text-sm font-semibold text-text-2">{b.payment.title}</h2>
-      <div dir="ltr" className="relative aspect-[1.586] w-full max-w-72 self-start overflow-hidden rounded-md bg-surface-3 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] rtl:self-end" aria-hidden>
+      <div dir="ltr" className="relative aspect-[1.586] w-full max-w-72 self-start overflow-hidden rounded-md bg-surface-3 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)]" aria-hidden>
         <div className="absolute inset-0 bg-afterglow" />
         <div className="relative flex h-full flex-col justify-between">
           <CreditCard className="size-6 text-text-2" />

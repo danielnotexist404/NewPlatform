@@ -97,7 +97,7 @@ function series(seed: number, start: string, end: string, budget: number, cfg: {
   const n = daysBetween(start, end);
   for (let i = 0; i <= n; i++) {
     const date = addDays(start, i);
-    const learning = i < 2 ? 0.65 : i < 4 ? 0.85 : 1;
+    const learning = i < 2 ? 0.5 : i < 4 ? 0.72 : 1;
     const partial = date === MOCK_TODAY ? TODAY_PARTIAL : 1;
     const spend = r2(budget * (0.84 + 0.28 * rnd()) * partial);
     const impressions = Math.round((spend / cfg.cpm) * 1000 * (0.9 + 0.2 * rnd()));
@@ -207,17 +207,17 @@ const RAW: Omit<Campaign, "daily">[] = [
     dailyBudgetIls: 30,
     startDate: "2026-09-28",
     endDate: null,
-    lastDeliveryDate: "2026-10-14",
+    lastDeliveryDate: "2026-10-15",
     geo: { mode: "cities", labelHe: "רמת גן, גבעתיים, בני ברק", cities: ["רמת גן", "גבעתיים", "בני ברק"] },
     ageMin: 22, ageMax: 45, advantageAudience: false,
-    timeline: { created: "2026-09-27T20:00:00+03:00", submitted: "2026-09-27T20:06:00+03:00", approved: "2026-09-28T08:15:00+03:00", active: "2026-09-28T08:16:00+03:00", paused: "2026-10-14T22:10:00+03:00" },
+    timeline: { created: "2026-09-27T20:00:00+03:00", submitted: "2026-09-27T20:06:00+03:00", approved: "2026-09-28T08:15:00+03:00", active: "2026-09-28T08:16:00+03:00", paused: "2026-10-15T22:10:00+03:00" },
     variants: [
       { key: "A", hookId: "barbers-salons-09", hookText: "תספורת לחתונה: מתי לקבוע תור? רמז: לא יום לפני", hookTypeHe: "שאלה", tone: 1, primaryText: "מתחתנים בקרוב? השאירו פרטים ונחזור אליכם עם תאריכים פנויים.", headline: "תור לחתן, בלי לחץ", cta: "BOOK_NOW", status: "paused", share: { spend: 0.4, impressions: 0.38, results: 0.47 }, hookRate: 0.296, holdRate: 0.118 },
       { key: "B", hookId: "barbers-salons-07", hookText: "3 שאלות שספר טוב שואל לפני שהוא נוגע במספריים", hookTypeHe: "רשימה ממוספרת", tone: 0, primaryText: "לפני החתונה עושים חזרה. השאירו פרטים ונקבע תור ניסיון.", headline: "תור ניסיון לפני החתונה", cta: "BOOK_NOW", status: "paused", share: { spend: 0.34, impressions: 0.35, results: 0.33 }, hookRate: 0.262, holdRate: 0.104 },
       { key: "C", hookId: "barbers-salons-02", hookText: "התספורת הזאת מתאימה רק ל-3 צורות פנים", hookTypeHe: "רשימה ממוספרת", tone: 2, primaryText: "השאירו פרטים ונמליץ על תספורת שמתאימה לפנים שלכם ולחליפה.", headline: "התאמה לפני האירוע", cta: "BOOK_NOW", status: "paused", share: { spend: 0.26, impressions: 0.27, results: 0.2 }, hookRate: 0.214, holdRate: 0.083 },
     ],
     changeLog: [
-      { at: "2026-10-14T22:10:00+03:00", who: "בעל העסק", source: "user", text: "הקמפיין הושהה" },
+      { at: "2026-10-15T22:10:00+03:00", who: "בעל העסק", source: "user", text: "הקמפיין הושהה" },
       { at: "2026-10-03T10:00:00+03:00", who: "בעל העסק", source: "user", text: "התקציב היומי שונה מ-₪25 ל-₪30" },
       { at: "2026-09-28T08:16:00+03:00", who: "מטא", source: "system", text: "המודעות אושרו, והקמפיין פעיל" },
     ],
@@ -290,7 +290,7 @@ const RAW: Omit<Campaign, "daily">[] = [
 
 const SERIES: Record<string, DayPoint[]> = {
   "cmp-after-holidays": series(11, "2026-10-05", MOCK_TODAY, 40, { cpm: 18, cpr: 8.5, reach: 0.64 }),
-  "cmp-wedding-leads": series(23, "2026-09-28", "2026-10-14", 30, { cpm: 21, cpr: 14, reach: 0.6 }),
+  "cmp-wedding-leads": series(23, "2026-09-28", "2026-10-15", 30, { cpm: 21, cpr: 14, reach: 0.6 }),
   "cmp-friday-awareness": series(37, "2026-09-01", "2026-09-21", 25, { cpm: 12, cpr: 1, reach: 0.7, resultsFromImpressions: 0.29 }),
 };
 

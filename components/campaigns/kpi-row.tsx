@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import type { CampaignGoal, KpiSet, RangeKey } from "@/lib/mock/campaigns";
+import { MOCK_TODAY, type CampaignGoal, type KpiSet, type RangeKey } from "@/lib/mock/campaigns";
 import { GOAL_COPY, kpi as K } from "@/content/he/campaigns-app";
 import { KpiTile, KpiValue, pctChange } from "./kpi-tile";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ export function KpiRow({ set, goal, range, className }: { set: KpiSet; goal: Cam
   const prevCost = p ? (awareness ? (p.reach > 0 ? (p.spendIls / p.reach) * 1000 : null) : p.results > 0 ? p.spendIls / p.results : null) : null;
   const vsLabel = K.vsPrev[range];
   const withDelta = range !== "all";
-  const series = set.series;
+  const series = set.series.filter((d) => d.date !== MOCK_TODAY); // full days only
 
   const resultsSub = goal === "workspace" ? K.results.workspaceSub : GOAL_COPY[goal].resultLabel;
   const resultsHelp = goal === "workspace" ? K.results.workspaceHelp : GOAL_COPY[goal].resultHelp;

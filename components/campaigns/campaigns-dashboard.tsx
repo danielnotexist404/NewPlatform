@@ -114,17 +114,16 @@ export function CampaignsDashboard() {
             {D.election}
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="order-2 lg:order-1">
+          {/* mobile order: winner → list → cap → health; desktop: list beside a side column */}
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-x-8 lg:gap-y-4">
+            {winner && <WinnerCard campaign={lead} winner={winner} className="lg:col-start-2 lg:row-start-1" />}
+            <div className="lg:col-start-1 lg:row-span-3 lg:row-start-1">
               <CampaignList items={campaigns} />
             </div>
-            <aside className="order-1 flex flex-col gap-4 lg:order-2" aria-label="סיכום">
-              {winner && <WinnerCard campaign={lead} winner={winner} />}
-              <div className="rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5">
-                <SpendCapMeter usedIls={monthSpendIls()} capIls={SAMPLE_BUSINESS.plan.monthlyCapIls} planName={SAMPLE_BUSINESS.plan.nameHe} userCapIls={SAMPLE_BUSINESS.userMonthlyCapIls} />
-              </div>
-              <HealthTeaserCard />
-            </aside>
+            <div className="rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5 lg:col-start-2 lg:row-start-2">
+              <SpendCapMeter usedIls={monthSpendIls()} capIls={SAMPLE_BUSINESS.plan.monthlyCapIls} planName={SAMPLE_BUSINESS.plan.nameHe} userCapIls={SAMPLE_BUSINESS.userMonthlyCapIls} />
+            </div>
+            <HealthTeaserCard className="lg:col-start-2 lg:row-start-3" />
           </div>
         </>
       )}

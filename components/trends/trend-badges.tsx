@@ -57,7 +57,7 @@ export function AdSafetyBadge({ safety, className, withTooltip = true }: { safet
   const badge = (
     <Badge
       variant={organic ? undefined : "success"}
-      className={cn(organic && "bg-rose/15 text-rose", withTooltip && "cursor-help", className)}
+      className={cn("whitespace-normal", organic && "bg-rose/15 text-rose", withTooltip && "cursor-help", className)}
       tabIndex={withTooltip ? 0 : undefined}
       aria-label={`${TREND_BADGES.ad[safety]}${extra ? `, ${extra}` : ""}. ${TREND_BADGES.adTooltip[safety]}`}
     >

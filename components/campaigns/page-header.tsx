@@ -42,7 +42,7 @@ export function PageHeader({
           <h1 className="text-h2">{title}</h1>
           {sub && <p className="max-w-2xl text-body text-text-2">{sub}</p>}
         </div>
-        {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
       {children}
     </header>
@@ -57,7 +57,7 @@ export function SampleNote({ text, action, className }: { text: string; action?:
         <FlaskConical className="size-3.5" aria-hidden />
         נתוני דוגמה
       </span>
-      <span className="min-w-0 flex-1">{text}</span>
+      <span className="min-w-0 grow basis-64">{text}</span>
       {action}
     </div>
   );

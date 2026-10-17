@@ -15,11 +15,11 @@ export function BrandScreen() {
     <ScreenShell>
       <div dir="ltr" className="flex items-center gap-2 rounded-full bg-surface-2 px-3 py-2 text-[11px] text-text-2 shadow-[inset_0_0_0_1px_var(--color-border)]">
         <Link2 className="size-3.5 shrink-0" aria-hidden />
-        <span className="truncate">givat-barber.co.il</span>
+        <span className="truncate">{S.exampleUrl}</span>
       </div>
       <div className="flex items-center justify-center gap-1.5 text-[11px] font-semibold text-violet">
         <Sparkles className="size-3.5" aria-hidden />
-        <span className="shimmer-ai rounded-full px-2 py-0.5">מנתחים את האתר…</span>
+        <span className="shimmer-ai rounded-full px-2 py-0.5">{S.analyzing}</span>
       </div>
       <div className="flex flex-col gap-3 rounded-md bg-surface-1 p-3 shadow-[inset_0_0_0_1px_var(--color-frame)]">
         <p className="text-[11px] font-semibold text-muted">{S.brandTitle}</p>

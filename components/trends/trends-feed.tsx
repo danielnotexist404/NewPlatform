@@ -57,7 +57,7 @@ export function TrendsFeed({ niches, workspaceNiche }: { niches: NicheOption[]; 
           emptyLabel={TRENDS_FEED.nicheEmpty}
           workspaceLabel={TRENDS_FEED.nicheWorkspace}
         />
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-col gap-1.5">
           <span id="trend-filter-label" className="text-micro text-muted">{TRENDS_FEED.filtersLabel}</span>
           <div className="-mx-1 overflow-x-auto px-1 pb-1">
             <ToggleGroup

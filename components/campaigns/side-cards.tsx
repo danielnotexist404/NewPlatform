@@ -21,7 +21,7 @@ export function WinnerCard({ campaign, winner, className }: { campaign: Campaign
     <section aria-labelledby="winner-title" className={cn("relative overflow-hidden rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5", className)}>
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-projector opacity-70" />
       <div className="relative flex gap-4">
-        <VideoThumb size="md" tone={winner.tone} hookText={winner.hookText} className="w-24 md:w-28" showPlay={false} />
+        <VideoThumb size="sm" tone={winner.tone} className="w-20 md:w-24" />
         <div className="flex min-w-0 flex-col gap-2">
           <p className="inline-flex items-center gap-1.5 text-micro text-primary-text">
             <Trophy className="size-3.5" aria-hidden />

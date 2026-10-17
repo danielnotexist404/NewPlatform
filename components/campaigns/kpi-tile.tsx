@@ -96,12 +96,12 @@ export function KpiTile({
       aria-labelledby={`${id}-label`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="min-h-11 min-w-0">
           <p id={`${id}-label`} className="text-small font-semibold text-text">
             {index !== undefined && <span className="me-1.5 text-muted num" aria-hidden>{index}.</span>}
             {label}
           </p>
-          {sub && <p className="truncate text-micro font-normal text-muted">{sub}</p>}
+          {sub && <p className="text-micro font-normal text-muted">{sub}</p>}
         </div>
         <Popover>
           <PopoverTrigger asChild>

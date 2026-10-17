@@ -39,7 +39,7 @@ export function UsageChart() {
               <YAxis
                 type="category"
                 dataKey="name"
-                width={150}
+                width={180}
                 tickLine={false}
                 axisLine={false}
                 tick={{ fill: "var(--color-text-2)", fontSize: 14, fontFamily: "var(--font-sans)" }}

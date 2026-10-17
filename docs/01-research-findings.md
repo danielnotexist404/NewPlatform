@@ -2,9 +2,9 @@
 
 # דוח ממצאי מחקר: פלטפורמת AI לסרטוני תדמית ורילס לפי נישה, בעברית
 
-**תאריך:** 13.10.2026
-**היקף:** ניתוח מתחרים (ישראל ועולם), Product Hunt, ספריות הוקים, השוק הישראלי, יכולות OpenRouter, כלכלת יחידה, המלצות מוצר, סיכונים ורגולציה
-**מקור:** סינתזה של תשעה קובצי מחקר (`docs/research/01`–`09`) כולל נספחי האימות שלהם. במקרה של סתירה, נספח האימות גובר על גוף הקובץ.
+**תאריך:** 13.10.2026 · **עודכן:** 17.10.2026 (הרחבת ההיקף: קמפיינים ב-Meta, פרסום רגיל, לידים ומנוע טרנדים)
+**היקף:** ניתוח מתחרים (ישראל ועולם), Product Hunt, ספריות הוקים, השוק הישראלי, יכולות OpenRouter, כלכלת יחידה, המלצות מוצר, סיכונים ורגולציה. בעדכון: Meta Marketing API, פרסום אורגני וקידום המנצח, מתחרים שיוצרים ומשיקים קמפיינים, השראה ועוגני מחיר, ומנוע הטרנדים עם ניתוח ארבעת סרטוני הייחוס
+**מקור:** סינתזה של תשעה קובצי מחקר (`docs/research/01`–`09`) כולל נספחי האימות שלהם. במקרה של סתירה, נספח האימות גובר על גוף הקובץ. בעדכון של 17.10.2026 נוספו שישה קבצים (`10`–`15`). אין בהם נספח אימות: כל טענה מתויגת במקום, ומה שמסומן שם (unverified) מסומן כאן "(לא אומת)" ובפרומפט `[M0-verify]`. "(משני)" = נתמך רק במקור צד שלישי. כל הקישורים בסעיפים 14–18 לקוחים מהקבצים 10–15.
 
 > **מקרא:** "(לא אומת)" = טענה ממקור יחיד, טענה עצמית של ספק, ידע קודם של המודל או נתון שלא נבדק מחדש. "(הערכה)" = חישוב או הסקה שלנו. מחירים מצוינים במטבע המקור ובתאריך המקור. שער עבודה לחישובים: ‎$1 ≈ ₪3.7 (הנחת עבודה, לא אומת; קובץ 01 השתמש בטווח 3.6–3.75).
 
@@ -12,7 +12,7 @@
 
 ## 0. תקציר מנהלים
 
-### 12 תובנות מרכזיות
+### 15 תובנות מרכזיות
 
 1. **פער המחיר עצום, והוא סיפור המכירה.** סרטון תדמית בישראל עולה ₪5,000 עד ₪60,000 ומעלה, ורוב סרטוני התדמית לעסקים קטנים ובינוניים עולים ₪15,000–₪35,000. רילס או טיקטוק אחד בעריכה מקצועית עולה ₪550, ועריכה בלבד עולה ₪80–₪300 לדקה מוגמרת. לעומת זאת, עלות ה-AI של סרטון 30 שניות ברמת "סטנדרט" דרך OpenRouter היא כ-$3 (כ-₪12). זה פער של פי 40 ומעלה, וגם אחרי מרווח רווח בריא, ברוב ההשוואות הלקוח חוסך 80%–95%.
 2. **Cadabra (livinginmovie.com) היא ארגז כלים, לא תוצאה.** מדובר באגרגטור עברי של 30+ מנועים עם יתרת קרדיטים אחת, חבילות חד-פעמיות של $19–$179 בדולרים, קורס וקהילה. לא נמצאו אצלה נישות, תבניות לעסקים, הוקים, ערכת מותג או מסלול "סרטון תדמית". החלל הפנוי הוא "בוחרים נישה ← מקבלים סרטון מוכן".
@@ -26,10 +26,15 @@
 10. **המתחרים הישראליים לא תופסים את העמדה הזו.** Sparkiz מתמקדת במודעות UGC למוצרים ($49 לחודש). FARO מוכרת שירות "עשו לי" (₪490 לסרטון; לא אומת באופן עצמאי). Kossem, ‏Nivra, ‏NitAi ו-Kolbo הם כלים כלליים. נותני שירות כמו vdo.guru ו-2site, וקורס של מעוף בשם "הכנת סרטוני תדמית לעסק באמצעות AI", מאמתים את הביקוש. אף אחד לא מוכר "נישה ← תדמית + רילס + הוקים" בשירות עצמי.
 11. **הרגולציה הישראלית משנה את המוצר עצמו, לא רק את התקנון.** נגישות (ת"י 5568; פיצוי של עד כ-₪50,000 ללא הוכחת נזק), תיקון 13 לחוק הגנת הפרטיות (בתוקף מ-14.8.2025), כפתור ביטול מנוי בולט, מחירים כולל מע"מ 18%, מספר הקצאה בחשבוניות B2B מעל ₪5,000 לפני מע"מ, חוק הספאם (עד ₪1,000 להודעה), וכללי ועדת הבחירות לגבי זיוף עמוק לקראת הבחירות לכנסת ב-27.10.2026.
 12. **Product Hunt הוא ערוץ אמינות, לא ערוץ לקוחות.** הקהל שם גלובלי ודובר אנגלית. כלים ורטיקליים לעסקים מקומיים כמעט לא מגיעים לרשימה המובלטת (featured). הזווית שתעבוד שם היא "הסטודיו הראשון לסרטוני תדמית בשפות RTL", בשתי השקות: קודם ספריית ההוקים, אחר כך המוצר המלא.
+13. **מטא עצמה היא המתחרה הראשי, ובכל זאת לא נמצאה אצלה עברית בכלים הגנרטיביים.** עד אוקטובר 2026 מטא פתחה לכולם יצירת מודעת וידאו מתמונה, הרחיבה עוזר AI בתוך מנהל המודעות גם ל-EMEA, ובודקת "פעולות סוכן" שמקימות קמפיין בצ׳אט. שלושה חיפושים לא מצאו עדות לכך שהטקסט, התרגום או הקריינות הגנרטיביים שלה תומכים בעברית (לא אומת), ומנהל המודעות עדיין נחשב מסובך. לכן החפיר שלנו הוא קריאייטיב עברי, ידע נישתי, מהירות בטרנדים וממשק פשוט, ולא הצנרת מול ה-API (סעיף 16).
+14. **"0% מהתקציב" עם תקרת הוצאה לכל תוכנית מנצח עמלות באחוזים.** Zeely גובה כ-12% מהתקציב (כ-6% עם Booster) ומעבירה את הכסף דרכה, ‏Wix לוקחת 15% מכל תשלום, וסוכנויות ופרילנסרים בישראל גובים כ-₪1,500–₪6,000 בחודש לפני התקציב (משני). מחיר קבוע עם תקרת הוצאה מנוהלת, בדומה ל-AdEspresso ($49 עד $1,000 הוצאה בחודש), הוא פשוט והוגן, ופוטר אותנו מהחזקת כסף של פרסום, מהחזרים ומשאלות מע״מ (סעיפים 16–17).
+15. **טרנדים דורשים אוצרות אנושית, לא סקרייפינג.** אין API רשמי לטרנדים מסחריים מחוץ לאיחוד האירופי, התנאים של טיקטוק ושל מטא אוסרים איסוף אוטומטי, והשירים הטרנדיים לא מורשים לפרסום. כמעט חצי מהטרנדים בטיקטוק נעלמים תוך 5 ימים. לכן המנוע מתחיל מסרטוני ייחוס שהצוות מעלה עם בסיס זכויות, מעתיק את הפורמט ולא את הביטוי, ומתמקד בפורמטים ובתבניות נצחיות עם רענון שבועי (סעיף 18).
 
 ### המלצה אסטרטגית
 
 להשיק בישראל סטודיו עברי "מבוסס תוצאה" ולא עוד ארגז מנועים. המשתמש בוחר נישה ומטרה, מדביק קישור לאתר או לאינסטגרם (או ממלא פרטים ידנית), ומקבל תוך דקות סרטון תדמית או סט רילס מוכן לפרסום: הוק מנצח מתוך ספרייה עברית, תסריט בעברית טבעית עם התאמת מגדר, קריינות עברית, כתוביות RTL מושלמות, ערכת מותג, CTA לוואטסאפ, שלושה פורמטים ושלוש וריאציות פתיחה לבדיקת A/B. כל ה-AI עובר דרך OpenRouter, וההרכבה הדטרמיניסטית (טקסט עברי, כתוביות, לוגו) נעשית ב-Remotion. מחירים בשקלים כולל מע"מ, עם חשבונית מס, ביטול בלחיצה, קרדיטים שקופים והחזר אוטומטי על כישלון. מנוע הצמיחה הוא ספריית הוקים ציבורית לפי נישה, ולצידה שיתופי פעולה עם קורסי AI ועם מנהלי סושיאל. ההתחלה: 8–12 נישות מדרג A, ופרסום ספריית ההוקים לפני בלאק פריידיי (27.11.2026).
+
+**עדכון 17.10.2026:** ההמלצה מתרחבת ללולאה אחת. לוחצים על כפתור ומקבלים סרטון עברי מוכן, הרבה פעמים מתבנית טרנד; מעלים אותו כקמפיין בפייסבוק ובאינסטגרם או כפוסט רגיל מתוך הממשק שלנו; ורואים דשבורד פשוט בעברית עם ארבעה מספרים: כמה הוצאתם, כמה אנשים ראו, כמה פניות הגיעו וכמה עלתה כל פנייה. ניהול Meta כלול בכל תוכנית, ב-0% מהתקציב ועם תקרת הוצאה לכל תוכנית, והתקציב עובר ישירות מהכרטיס של הלקוח למטא. הכול נוצר מושהה ומתפרסם רק באישור מפורש. הקהל: עסקים קטנים בתחילת הדרך ועסקים בצמיחה שרוצים פרסום ממומן בלי סוכנות ובלי ללמוד את מנהל המודעות של מטא. המסלול מול Meta (Business Verification, ‏App Review, ‏Tech Provider) לוקח שבועות, ולכן מתחילים אותו מיד (סעיף 12).
 
 ---
 
@@ -39,6 +44,7 @@
 - **חיפושי רשת ברמת תקציר.** כל קובצי המחקר נבנו מחיפושי WebSearch בעברית ובאנגלית. **גלישה ישירה לדפים (WebFetch/curl) נחסמה בסביבה**, ולכן לא נפתח אף דף של producthunt.com ושל livinginmovie.com. כל עובדה נשענת על תקצירי מנועי חיפוש, על עמודים שאונדקסו ועל טרקרים של Product Hunt כמו hunted.space ו-aitoolly.
 - **מכסת חיפושים משותפת.** לכל ריצה הייתה מכסה של 200 חיפושים, משותפת לכל הסוכנים. קובצי 01–03 ו-09 נבנו מכ-35–45 חיפושים כל אחד (בקובץ 02 המספר לא צוין). הסוכנים של קובצי 05, ‏06, ‏07 ו-08 לא הצליחו להריץ אף חיפוש בסבב הראשון, והסתמכו על ממצאי הקבצים האחרים ועל ידע קודם. **בקובצי 04–08 בוצע סבב אימות נפרד ב-13.10.2026** (35–45 חיפושים לכל קובץ), והטענות קיבלו תגיות במקום. קובץ 09 תיקן גם כמה טענות מקובצי 02 ו-03.
 - **תמונת מצב מתוארכת.** תמונת המצב של עמוד הבית של livinginmovie.com אונדקסה כ-111 יום לפני המחקר, כלומר בערך סוף יוני 2026. ייתכן שהמחירים ורשימת המנועים השתנו מאז.
+- **סבב העדכון (17.10.2026).** הקבצים 10–13 נבנו מחיפושי רשת ברמת תקציר (57, 30, 45 ו-40 חיפושים), וגם בהם WebFetch ו-curl נחסמו. קובץ 14 נשען על תקצירי חיפוש של trendzsocial.co.il (תמונת מצב בת כ-11 חודשים) ועל מדריכי מחיר ישראליים משניים מ-2025. קובץ 15 הוא ניתוח של ארבעת סרטוני הייחוס שהמייסד העלה: פריימים שחולצו ב-ffmpeg (2 פריימים לשנייה ב-4 השניות הראשונות), בלי אודיו ובלי תמלול.
 
 ### 1.2 תיוג מקורות
 | תגית בקובצי המקור | משמעות | איך לקרוא אותה בדוח |
@@ -59,6 +65,8 @@
 - **Product Hunt:** מדדי השקה של Arcads, ‏Revid, ‏Pippit ו-Hooked.so; התאריך המדויק שבו פרסי Orbit החליפו את Golden Kitty; והאם Pexo זכה רשמית במקום הראשון באותו יום.
 - **משפט:** כללי פרסום לפי מגזר (רפואה, שיניים, עורכי דין, מתווכים), חוות הדעת של משרד המשפטים על זכויות יוצרים ולמידת מכונה (דצמבר 2022), תחולת חוק הספאם על וואטסאפ, הרשימה הסטטוטורית של "מידע בעל רגישות מיוחדת", וחוות הדעת הסופית על ממונה הגנת פרטיות.
 - **לוח השנה העברי:** תאריכי החגים לשנת 2027 חושבו ידנית בקובץ 06, ויש לאמת אותם מול hebcal.com.
+- **Meta:** תמיכה בעברית בכלים הגנרטיביים של מטא; מבנה ה-JSON המדויק של קמפיין לוואטסאפ וה-`optimization_goal` שלו; התקציב היומי המינימלי בשקלים; האם טוקן ה-BISU פג ומה מבטל אותו; מכסת הפרסום היומית באינסטגרם (100 או 50); תצוגת RTL של טופס לידים ב-`HE_IL`; שדה API לגילוי תוכן AI; ומשכי ה-App Review והאימות כ-Tech Provider.
+- **טרנדים, מוזיקה ומחירים:** מבנה החלק `video_url` וגודל ה-base64 המרבי ב-OpenRouter; תנאי השימוש המסחרי של Lyria במודעות; מעמד הערעור על פסק הדין Brodesky v. Armosa; ועוגני המחיר של סוכנויות ושל Trendz Social (צריך 10 הצעות מחיר אמיתיות).
 
 ---
 
@@ -382,12 +390,14 @@
 | יום צילום תוכן + עריכה | ‏₪1,500–₪4,500, שמניב 4–10 רילס |
 | יוצר UGC ישראלי (המלצה מול מצלמה) | ‏₪300–₪1,500 לסרטון (בעולם: Billo, כ-$59–99) |
 | כתוביות בעברית בלבד | ‏₪50–₪200 לסרטון קצר |
-| מנהל/ת סושיאל פרילנס לעסק קטן | ‏₪1,500–₪3,500 לחודש (8–12 פוסטים, 2–4 רילס) |
+| ניהול סושיאל בפרילנס לעסק קטן | ‏₪1,500–₪3,500 לחודש (8–12 פוסטים, 2–4 רילס) |
 | סוכנות בוטיק | ‏₪3,500–₪8,000 לחודש |
 | סוכנות פרימיום / בית הפקה | ‏₪8,000–₪25,000+ לחודש |
 | Fiverr: עריכת וידאו קצר | כ-$15–150 לסרטון בעולם; עורכים דוברי עברית כ-$40–200 (הערכה) |
 
 **המשמעות:** עסק קטן מוציא כנראה **₪2,000–₪6,000 בחודש** על תוכן וניהול (הערכה). מנוי של ₪149–₪399 שמפיק 10–30 רילס מוכנים בעברית יכול להחליף פרילנסר לבעל העסק שעושה לבד, או לשמש כמנוע ההפקה של מנהלי סושיאל, שכל אחד מהם משרת 10–40 עסקים.
+
+**עדכון 17.10.2026 (ניהול קמפיינים ממומנים):** מדריכי מחיר ישראליים מ-2025 מציינים ניהול בסיסי של אינסטגרם ופייסבוק ב-₪1,500–₪4,000 בחודש, וריטיינר לניהול קמפיינים ב-₪1,500–₪6,000 בחודש, לפני תקציב הפרסום (משני; סעיף 17.3).
 
 ### 7.2 שירותי AI "עשו לי" שכבר נמכרים בישראל
 | ספק | מה מוכר | מחיר (₪) | סטטוס אימות |
@@ -632,12 +642,19 @@
 
 **מסרים מרכזיים:** "סרטון תדמית מקצועי לעסק שלכם, בלי עורך וידאו". "בוחרים נישה, מדביקים קישור, מקבלים סרטון". "מחירים בשקלים כולל מע"מ, חשבונית מס, ביטול בלחיצה". "קרדיטים שקופים והחזר אוטומטי על כישלון". "הסרטונים שלכם, שלכם".
 
+**עדכון 17.10.2026: המיצוב המורחב.**
+> **עבור עסקים קטנים בתחילת הדרך ועסקים בצמיחה בישראל, שרוצים לפרסם בפייסבוק ובאינסטגרם בלי לשבור את הבנק, בלי לשלם למשווק אלפי שקלים בחודש ובלי ללמוד את מנהל המודעות של מטא, [שם המוצר] הופך לחיצה אחת לסרטון טרנדי בעברית, מעלה אותו כקמפיין מתוך ממשק עברי פשוט, ומראה בארבעה מספרים מה קרה.** התקציב עובר ישירות מהכרטיס של העסק למטא, ואנחנו לא לוקחים ממנו אחוזים.
+> המשפט הפנימי: "סרטון טרנדי בעברית בדקות, קמפיין בפייסבוק ובאינסטגרם בלחיצה, ודוח שמבינים. בלי סוכנות ובלי מנהל המודעות של מטא."
+
+**חמשת עמודי המסר:** "לוחצים, ויש סרטון" · "מעלים לקמפיין מכאן" · "רואים מה עובד, בעברית" · "טרנדים חדשים, מותאמים לעסק שלכם" · "בלי לשבור את הבנק". **טענות אסורות:** תוצאות מובטחות, "ויראלי מובטח", ‏ROI, "שותף רשמי של מטא" ולוגואים של מטא, ושמות מתחרים עם מספרים בקופי השיווקי. "זול יותר מסוכנות" מותר רק עם מקור, תאריך והשוואה של מחיר ניהול חודשי למחיר התוכנית, בשני הצדדים בלי תקציב הפרסום (סעיף 17.4).
+
 ### 10.2 לקוח היעד (ICP)
 | פלח | תיאור | למה הוא קונה | חבילה |
 |---|---|---|---|
 | **ראשי: עסק שירות שבעליו מנהלים אותו** | ‏1–10 עובדים, בנישות מדרג A (אסתטיקה וביוטי, מתווכים, מסעדות, כושר, שיפוצים, רופאי שיניים, יועצי משכנתאות). מפרסם באינסטגרם, בפייסבוק ובטיקטוק, מוציא כ-₪300–₪6,000 בחודש על תוכן (הערכה), והמשפך שלו מבוסס וואטסאפ | צריך 4–15 סרטונים בחודש, אין לו זמן לצלם ולערוך, ומתסכל אותו שעורך עולה ₪550 לרילס | בסיסי / עסקי |
 | **משני: מנהלי סושיאל וסוכנויות בוטיק** | כל אחד משרת 10–40 עסקים קטנים | הפקה מהירה ללקוחות רבים, ערכת מותג לכל לקוח, קישורי אישור | סוכנות |
 | **שלישי: חנויות אונליין ויוצרי קורסים** | מודעות מוצר וקידום קורסים | נפח של וריאציות | עסקי (התחרות כאן מול Sparkiz) |
+| **עסק בצמיחה שכבר מפרסם בעצמו** (עדכון 17.10.2026) | מריץ קמפיינים בפייסבוק ובאינסטגרם לבד או עם פרילנסר, בתקציב של כ-₪20–₪100 ליום (הערכה). לפי סקר של בנק הפועלים, 89% מבעלי העסקים מפרסמים בעצמם ([מקור ממומן](https://www.maariv.co.il/economy/israel/article-1164816)) | רוצה לדעת איפה הכסף נשרף, לבדוק הוקים ולהגביר את המנצח, בלי סוכנות ובלי מנהל המודעות | בסיס / עסק, עם "בדיקת דופק" חינם |
 | **לא עכשיו** | ארגונים גדולים, פוליטיקה, מצב חרדי ייעודי, ערבית ורוסית | — | שלב 2 |
 
 ### 10.3 MVP: מה בפנים ומה בחוץ
@@ -654,6 +671,8 @@
 | **ספריית הוקים ציבורית** (`/hooks/[niche]`) ועמודי נישה ל-SEO | AdClone ("שכפול מבנה של מודעה") |
 | **תשלום בשקלים** (סליקה ישראלית + חשבונית מס), כפתור ביטול, דפים משפטיים, נגישות WCAG 2.2 AA | אפליקציה ניידת ו-API |
 | תווית "נוצר באמצעות AI" (אופציונלית) ודגלי ציות לכל נישה | — |
+
+**עדכון 17.10.2026:** שלושה פריטים מעמודת "בחוץ" נכנסו לתוכנית כאבני הדרך M8–M11, מאחורי דגלים: פרסום ותזמון לרשתות (M9), חיבור לחשבונות פרסום עם מדדי hook rate (M10), ולוח תוכן מתוזמן (M9). הם נבנים אחרי השקת הליבה ב-M7, ולא משנים את ה-MVP שלה.
 
 ### 10.4 פיצ'רים מבדלים (ולמה כל אחד חשוב)
 1. **ספריית הוקים ציבורית בעברית לפי נישה:** נכס SEO ומגנט לידים שאין לו מקבילה בעברית. כל כרטיס מוביל ל"צרו סרטון מההוק". ‏326 הוקים כבר כתובים ב-36 נישות (`seed/hooks.json`).
@@ -695,6 +714,10 @@
 - **הגנה על השוליים:** רמות איכות ואורך מרבי לפי תוכנית, תקרת קרדיטים יומית, ומספר יצירות במקביל.
 - **בדיקת התאמה לשוק:** תוכנית בסיס (₪119) זולה מרילס בודד אצל עורך (₪550) ומ-Sparkiz ‏($49, כ-₪181). תוכנית עסק נמצאת בטווח ה-₪249–₪399 שהוצע בקובץ 06, ושתיהן הרבה מתחת ל-FARO ‏(₪1,290–₪2,990 לחודש, לא אומת).
 
+**עדכון 17.10.2026: ניהול Meta בתוך התוכניות.** המחירים, הקרדיטים והחבילות לא משתנים. ניהול הקמפיינים כלול בכל תוכנית, **0% מהתקציב**, והתקציב משולם ישירות למטא מהכרטיס של הלקוח; השקה, ניהול ודוחות לא עולים קרדיטים. התוכניות נבדלות בתקרת ההוצאה המנוהלת בחודש: חינם — קמפיין בדיקה אחד עד ₪300 · בסיס ₪3,000 · עסק ₪15,000 · סוכנות ₪100,000 (מצטבר על כל סביבות הלקוח). ב-80% מהתקרה יש התראה. ב-100% לא משהים מודעות של לקוח, אלא חוסמים השקות חדשות אחרי 7 ימי חסד ומציעים שדרוג. אין תוספת מעבר לתקרה ואין "בדיקת מומחה" ב-MVP (ליווי אנושי ב-₪149 נשאר במפת הדרכים). **"דף העסק"** (דף נחיתה אוטומטי לעסק בלי אתר) זמין רק בתוכניות בתשלום: בסיס 1, עסק 3, סוכנות 1 לכל סביבת לקוח, ו-10 קרדיטים לכל יצירה; בחינם רק תצוגה מקדימה עם סימן מים. **"בדיקת דופק"** לחשבון מודעות קיים היא חינם: פעם בחודש בחינם, פעמיים בבסיס, 4 פעמים בעסק ובסוכנות (לכל לקוח).
+
+**השוואה בתקציב פרסום של ₪3,000 בחודש** (הערכה לפי סעיף 16, שער ₪3.7 לדולר): [שם המוצר] בסיס ₪119, כולל יצירת הסרטונים · Zeely Plus ועוד כ-12% ≈ ₪545 · ב-Wix כ-₪450 מתוך ה-₪3,000 הולכים לעמלה, ולמטא מגיעים כ-₪2,550 · פרילנסר או סוכנות ₪1,000–₪5,000 (לא אומת) · Madgicx (המדרגה של פחות מ-$1K) ≈ ₪167, בלי קריאייטיב ובאנגלית.
+
 ### 10.7 ערוצי הפצה
 | ערוץ | מה עושים | למה זה יעבוד |
 |---|---|---|
@@ -731,6 +754,12 @@
 | שחיקת מחירים ממוצרים חינמיים | גבוהה | בינונית | נישה × עברית × וואטסאפ × תוצאה מוגמרת |
 | איכות עברית נמוכה (הגייה, תסריט) | בינונית | גבוהה | מבחנים עיוורים, מילון הגייה, מדריך סגנון |
 | חשיפה למטבע (הכנסה בשקלים, עלות בדולרים) | גבוהה | נמוכה–בינונית | מרווח בטחון במחירון ועדכון רבעוני |
+| עיכוב או דחייה באישורי Meta (Business Verification, ‏App Review, ‏Tech Provider) | בינונית | גבוהה | מתחילים ב-M0, סרטון הדגמה לכל שימוש, 500 קריאות נקיות על חשבונות פנימיים, וההשקה הציבורית של יכולות Meta רק ב-M11 |
+| שינויי API ומדיניות של Meta (גרסה חיה כ-12 חודשים, שינויים מחוץ למחזור) | גבוהה | בינונית | גרסה נעוצה במשתנה, ‏runbook לשדרוג ובדיקת smoke שבועית מול הגרסה הבאה |
+| מטא מוסיפה עברית לכלי ה-AI שלה ומצמצמת את הפער | בינונית | גבוהה | בדיקה רבעונית; להישען על טרנדים, הוקים, איכות הווידאו והממשק העברי |
+| דחיית מודעות (ממשק מזויף, טענות בריאות, מאפיינים אישיים) | גבוהה | בינונית | בדיקת מדיניות אוטומטית לפני ההכנה, תבניות "לפרסום רגיל בלבד", ומיפוי של סיבות הדחייה לעברית |
+| זכויות יוצרים ומוזיקה בתבניות טרנד | בינונית | גבוהה | מעתיקים פורמט ולא ביטוי, רשימת `do_not_copy`, בדיקת דמיון, ורק מוזיקה מורשית או Lyria |
+| דליפה או שימוש לרעה בלידים ובטוקנים | נמוכה | גבוהה | הצפנה, שרת בלבד, שמירה של 24 חודשים, העסק הוא בעל השליטה ואנחנו המעבד |
 
 ### 11.2 נגישות (ת"י 5568)
 - **המסגרת:** חוק שוויון זכויות לאנשים עם מוגבלות ותקנות ההתאמות לשירות (התשע"ג-2013). תקנה 35 מחייבת עמידה ב-**ת"י 5568, שמבוסס על WCAG 2.0 ברמה AA**. חלק 1 (2021) הוא תרגום של WCAG 2.0, וחלק 2 (מסמכים דיגיטליים) פורסם ב-28.9.2023. לא נמצא עדכון רשמי ל-WCAG 2.1 או 2.2 (אומת).
@@ -805,7 +834,7 @@
 
 ---
 
-## 12. צעדים הבאים: 10 צעדים מעשיים ל-30 הימים הקרובים (13.10–12.11.2026)
+## 12. צעדים הבאים: 10 צעדים מעשיים ל-30 הימים הקרובים (13.10–12.11.2026), ועוד 7 למסלול Meta והטרנדים
 
 | # | צעד | מועד יעד | תוצר |
 |---|---|---|---|
@@ -820,11 +849,23 @@
 | 9 | **שותפויות:** פנייה ל-5 יוצרי קורסי וידאו ב-AI ול-10 מנהלי סושיאל, עם הצעת שותפות ובטא לסוכנויות | 12.11 | 2–3 הסכמי שיתוף פעולה |
 | 10 | **הכנה ל-Product Hunt וחסימות בטיחות:** פרופיל מייקר ומעורבות בקהילה, איסוף רשימת תומכים (יעד: כמה מאות), תכנון השקה 1 (ספריית הוקים בעברית ובאנגלית) לדצמבר 2026–ינואר 2027 בזווית RTL-first. במקביל: חסימת הנישה הפוליטית ודמויות פוליטיקאים לפני הבחירות ב-27.10 ואחריהן | שוטף | תוכנית השקה ומדיניות שימוש מותר |
 
+**מסלול Meta והטרנדים (נוסף ב-17.10.2026).** האישורים של Meta לוקחים שבועות ולא תלויים בקוד, ולכן מתחילים אותם עכשיו, במקביל ל-M0:
+
+| # | צעד | מועד יעד | תוצר |
+|---|---|---|---|
+| 11 | **Business Verification:** תיק עסקי (business portfolio) ב-Meta על שם הישות המשפטית, עם 2 מנהלים ואימות דו-שלבי, ואימות העסק (תעודת התאגדות, הוכחת כתובת, אימות הדומיין) | **השבוע (עד 23.10)** | סטטוס "Verified" (כ-1–4 שבועות, לא אומת) |
+| 12 | **אפליקציית Meta:** אפליקציה מסוג Business עם Facebook Login for Business בתצורה אחת, ‏Marketing API, ‏Webhooks ו-"Require App Secret"; אחרי App Review מגיע אימות **Tech Provider** | 24.10 | `META_APP_ID` ו-`META_LOGIN_CONFIG_ID` |
+| 13 | **נכסי בדיקה משלנו:** עמוד פייסבוק, אינסטגרם מקצועי מקושר, חשבון מודעות **בשקלים** עם אמצעי תשלום, **מספר WhatsApp Business** שמחובר לעמוד, וטופס לידים לבדיקה | 31.10 | מזהים ב-`.env.local` ובסודות של ה-CI |
+| 14 | **ספייקים 19–24 של M0:** טוקן BISU, העלאת וידאו, ‏JSON של קמפיין לוואטסאפ ותקציב מינימלי בשקלים, טופס לידים בעברית על מכשיר, פרסום רילס לאינסטגרם ולפייסבוק, ‏`video_url` ב-OpenRouter; ובדיקה אם הכלים הגנרטיביים של מטא תומכים בעברית | 7.11 | תוצאות ב-`DECISIONS.md` |
+| 15 | **בדיקת שוק:** 10 הצעות מחיר אמיתיות לניהול קמפיינים לעסק קטן, אימות מחדש של עוגני המחיר (₪1,500–₪6,000, ו-Trendz Social מ-₪499), ובדיקה ידנית של Wix, ‏Marketeam.ai ו-Solara בישראל | 7.11 | `content/claims/comparisons.json` עם מקורות ותאריכים |
+| 16 | **משפט ומוזיקה:** תנאי Lyria לשימוש בפרסום, חוות דעת על פורמט מול ביטוי ועל צילומי מסך של פוסטים, ונוסח הסכם עיבוד הנתונים ללידים | 12.11 | תשובות ⚖️ ותוכנית B של מוזיקה מורשית |
+| 17 | **תוכנית ה-App Review:** תסריט לסרטון הדגמה לכל שימוש (חיבור ובחירת נכסים · פרסום רילס ומדדים · קמפיין: תצוגות, פרסום והשהיה · לידים · קידום רילס), עם כתוביות באנגלית מעל הממשק העברי, וכתובות ציבוריות של פרטיות, תנאים ומחיקת נתונים | לפני סוף M10 | חבילת הגשה (כ-2–6 שבועות לאישור, לא אומת) |
+
 ---
 
 ## 13. מקורות
 
-כל הקישורים מופיעים בקובצי המחקר `docs/research/01`–`09`. הרשימה מקובצת לפי נושא.
+כל הקישורים מופיעים בקובצי המחקר `docs/research/01`–`15`. הרשימה מקובצת לפי נושא; הקבוצות האחרונות נוספו בעדכון 17.10.2026 (קבצים 10–14; לקובץ 15 אין מקורות חיצוניים, כי הוא ניתוח פנימי של סרטוני המייסד).
 
 **Cadabra ומייסדת**
 - https://www.livinginmovie.com/
@@ -918,5 +959,269 @@
 - https://www.gov.il/he/service/request-assignment-number-for-tax-invoice ; https://www.greeninvoice.co.il/magazine/israel-invoice/
 - https://trykintsugi.com/sales-tax-guides/middle-east/israel ; https://www.vatupdate.com/2026/07/08/israels-ministry-of-finance-warns-of-4-5-vat-hike-to-22-5-to-fund-defence/ ; https://adircpa.com/en/guides/stripe-israel-tax
 - https://blogs.loc.gov/law/2026/10/falqs-israels-upcoming-election-on-october-27-2026/ ; https://www.gadgety.co.il/?p=366336
+
+**Meta Marketing API (קובץ 10)**
+- https://developers.facebook.com/blog/post/2026/07/29/introducing-graph-api-v26-and-marketing-api-v26/ ; https://developers.facebook.com/documentation/ads-commerce/marketing-api/marketing-api-changelog.md ; https://developers.facebook.com/docs/graph-api/changelog/versions ; https://developers.facebook.com/documentation/ads-commerce/marketing-api/out-of-cycle-changes/occ-2026.md
+- https://developers.facebook.com/blog/post/2026/02/13/asc-and-aac-deprecation-mapi-v25/ ; https://developers.facebook.com/docs/marketing-api/advantage-campaigns ; https://developers.secure.facebook.com/blog/post/2025/06/13/marketing-api-changes-to-advantage-plus-audience-behaviors/ ; https://www.jonloomer.com/meta-andromeda-creative-diversification/
+- https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business ; https://developers.facebook.com/documentation/development/release/access-verification ; https://developers.meta.com/blog/updates-to-ads-management-standard-access-feature/ ; https://developers.facebook.com/docs/resp-plat-initiatives/individual-processes/data-use-checkup ; https://www.stackmatix.com/blog/meta-business-partner-program
+- https://developers.facebook.com/docs/marketing-api/overview/rate-limiting ; https://developers.facebook.com/docs/marketing-api/currencies ; https://developers.facebook.com/docs/marketing-api/reference/minimum-budget ; https://developers.facebook.com/docs/marketing-api/ad-creative/messaging-ads/click-to-whatsapp
+- https://developers.facebook.com/docs/graph-api/reference/page/leadgen_forms/ ; https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving ; https://developers.facebook.com/documentation/ads-commerce/marketing-api/ads-webhooks/ads-webhooks-overview ; https://developers.facebook.com/documentation/ads-commerce/marketing-api/creative/reels-ads
+- https://developers.facebook.com/blog/post/2025/10/16/ads-insights-api-metric-availability-updates/ ; https://developers.facebook.com/docs/marketing-api/insights/best-practices ; https://developers.facebook.com/documentation/ads-commerce/marketing-api/audiences/special-ad-category ; https://transparency.meta.com/en-us/policies/ad-standards/SIEP-advertising/SIEP ; https://about.fb.com/news/2026/02/meta-prepares-for-2026-us-midterms/ ; https://developers.secure.facebook.com/docs/marketing-apis/guides/javascript-ads-dialog-for-payments
+
+**פרסום אורגני וקידום המנצח (קובץ 11)**
+- https://developers.facebook.com/docs/instagram/ads-api/guides/use-posts-as-ads/ ; https://developers.facebook.com/blog/post/2024/06/03/instagram-boost-signal-for-ad-eligibility/ ; https://developers.facebook.com/blog/post/2025/08/11/instagram-marketing-api-update/
+- https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-container ; https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-user/media ; https://developers.facebook.com/docs/instagram-platform/changelog ; https://bundle.social/blog/instagram-api-rate-limits ; https://www.socialmediatoday.com/news/instagrams-implementing-new-limits-on-hashtag-use/808309/
+- https://developers.facebook.com/docs/video-api/guides/reels-publishing ; https://techcrunch.com/2025/06/17/facebook-announces-that-all-videos-on-its-platform-will-soon-be-shared-as-reels
+- https://developers.facebook.com/blog/post/2025/12/03/instragram-api-updates/ ; https://developers.facebook.com/docs/instagram-platform/reference/instagram-media/insights/ ; https://developers.facebook.com/docs/graph-api/reference/video/video_insights/ ; https://iptc.org/news/ai-disclosure-on-social-media-a-work-in-progress/
+
+**מתחרים שיוצרים ומשיקים (קובץ 12)**
+- https://www.socialmediatoday.com/news/meta-introduces-new-ai-powered-tools-at-ad-week-2026/832288/ ; https://www.relevantaudience.com/meta/meta-advertising-week-new-york-2026-ad-tools/ ; https://about.fb.com/news/2026/01/2026-ai-drives-performance/ ; https://www.relevantaudience.com/meta/meta-ads-mcp-open-to-developers/ ; https://www.jonloomer.com/qvt/translate-text-feature/ ; https://kompozy.io/news/meta-ai-ad-creation-tools-ad-week-2026
+- https://intercom.help/zeely-inc/en/articles/9874321-ad-campaign-launch ; https://ecommercefastlane.com/zeely-ai-ads-reliability-review/ ; https://fluxnote.io/guides/zeely-pricing ; https://www.hunted.space/product/creatify ; https://fluxnote.io/guides/creatify-pricing
+- https://pricingsaas.com/companies/madgicx ; https://www.trustpilot.com/review/madgicx.com?page=4 ; https://superscale.ai/alternatives/revealbot/pricing ; https://pricingsaas.com/companies/adespresso ; https://www.get-ryze.ai/blog/madgicx-pricing-2026
+- https://support.wix.com/en/article/facebook-instagram-ads-faqs-about-the-campaign-budget-and-subscription ; https://www.canva.com/help/connect-meta-account/ ; https://www.dataslayer.ai/blog/how-to-use-pomelli-for-google-ads-creatives ; https://ads.tiktok.com/business/en-US/blog/tiktok-symphony-ai-creative-suite ; https://superscale.ai/alternatives/smartly/pricing ; https://www.hunchads.com/product-roadmap ; https://superscale.ai/alternatives/pencil/pricing
+- https://www.getapp.com.au/software/113187/adscale ; https://www.maariv.co.il/economy/israel/article-1164816 ; https://www.ice.co.il/career/news/article/1093997 ; https://www.superads.ai/facebook-ads-costs/cpc-cost-per-click/israel ; https://clicksgeek.com/?p=22701
+
+**השראה ועוגני מחיר בישראל (קובץ 14)**
+- https://trendzsocial.co.il/ ; https://www.jett.co.il/social-media-management-price/ ; https://calliber.co.il/prices-list/social-media-sponsored-campaigns/ ; https://lemel.co.il/social-media-management-price/
+- https://kanmedia.co.il/%D7%9E%D7%97%D7%99%D7%A8%D7%95%D7%9F-%D7%A9%D7%99%D7%95%D7%95%D7%A7-%D7%93%D7%99%D7%92%D7%99%D7%98%D7%9C%D7%99-%D7%9C%D7%A2%D7%A1%D7%A7%D7%99%D7%9D-%D7%A7%D7%98%D7%A0%D7%99%D7%9D-%D7%91%D7%99%D7%A9/
+- https://bidernet.co.il/%d7%9e%d7%97%d7%99%d7%a8-%d7%a4%d7%a8%d7%a1%d7%95%d7%9d-%d7%91%d7%a4%d7%99%d7%99%d7%a1%d7%91%d7%95%d7%a7-%d7%9e%d7%93%d7%a8%d7%99%d7%9a-%d7%9c%d7%a9%d7%a0%d7%aa-2025/
+
+**מנוע הטרנדים (קובץ 13)**
+- https://openrouter.ai/docs/guides/overview/multimodal/videos ; https://openrouter.ai/google/gemini-3.8-flash ; https://ai.google.dev/gemini-api/docs/tokens ; https://ai.google.dev/gemini-api/docs/media-resolution ; https://ai.google.dev/gemini-api/docs/video-understanding
+- https://ads.tiktok.com/help/article/creative-center ; https://conductatlas.com/platform/tiktok/tiktok-terms-of-service/prohibition-on-scraping-and-data-extraction/ ; https://developers.facebook.com/docs/graph-api/reference/ads_archive/ ; https://9to5google.com/?p=680733 ; https://developers.google.cn/search/blog/2025/07/trends-api ; https://newsroom.tiktok.com/introducing-tiktok-next-2026-our-trend-forecast-for-marketers-for-the-year-ahead?lang=en
+- https://rcip.co.il/articles/supreme-court-overturns-district-court-reaffirming-that-expressions-not-ideas-are-copyrightable/ ; https://dwo.co.il/no-copyright-protection-for-an-idea-in-a-play-supreme-court/ ; https://rcip.co.il/en/articles/updates-on-protection-of-television-formats-and-advertising-campaigns ; https://www.law.co.il/en/news/2022/12/22/fair-use-of-copyrighted-content-for-aiml-training/ ; https://www.wipo.int/wipolex/en/legislation/details/15372
+- https://www.soundstripe.com/blogs/why-can-i-only-use-commercial-sounds-on-tiktok ; https://www.osborneclarke.com/insights/use-music-social-media-platforms-what-businesses-and-creators-need-know-about-usage ; https://www.capcut.com/help/templates-and-trends?pageNo=4
+- https://www.marketing-interactive.com/only-a-fraction-of-tiktok-trends-last-beyond-two-weeks-publicis-groupe-finds ; https://www.adnews.com.au/news/tiktok-trends-in-australia-last-just-three-days-on-average ; https://searchengineland.com/meta-native-reels-ads-can-lift-purchase-intent-5-3x-465615 ; https://segwise.ai/blog/analyze-hook-patterns-video-ads ; https://motionapp.com/releases
+
+---
+
+## 14. Meta Marketing API: מה צריך כדי ליצור ולנהל מודעות בשביל עסקים אחרים
+
+> המקור: `docs/research/10-meta-marketing-api.md` (57 חיפושים ברמת תקציר, 17.10.2026). מה שלא אומת מסומן "(לא אומת)", ובפרומפט `[M0-verify]`.
+
+### 14.1 גרסאות וקצב השינויים
+- **נועצים את `v26.0`**, שיצאה ב-29.7.2026 ([מקור](https://developers.facebook.com/blog/post/2026/07/29/introducing-graph-api-v26-and-marketing-api-v26/)). לפי ה-changelog, ‏v24.0 הייתה זמינה למודעות עד 6.10.2026, כלומר כבר פגה ([מקור](https://developers.facebook.com/documentation/ads-commerce/marketing-api/marketing-api-changelog.md)). גרסה של Marketing API חיה בערך 12 חודשים ולא שנתיים, ולכן הגרסה נשמרת במשתנה סביבה ויש runbook לשדרוג ([מקור](https://developers.facebook.com/docs/graph-api/changelog/versions)). v27 לא נמצאה בחיפוש.
+- **שינויים "מחוץ למחזור"** חלים על כל הגרסאות בבת אחת ודורשים מעקב חודשי. ב-28.6.2026 נוספו תכונות קריאייטיב אוטומטיות (Image Animation, ‏Video Filter, ‏Video Uncrop), ומ-3.8.2026 חלק מהפילוחים (מכשיר, שעה, תדירות) דורשים opt-in בחשבונות "non-sales-supported", וזה רוב העסקים הקטנים בישראל ([מקור](https://developers.facebook.com/documentation/ads-commerce/marketing-api/out-of-cycle-changes/occ-2026.md)).
+- **Advantage+ הוא ברירת המחדל.** יצירה של קמפיינים מהסוג הישן (ASC/AAC) נחסמה, והקמפיינים שנשארו מושהים ב-v26 ([מקור](https://developers.facebook.com/blog/post/2026/02/13/asc-and-aac-deprecation-mapi-v25/)). קמפיין נחשב Advantage+ כשתקציב, קהל ומיקומים של Advantage+ פועלים יחד ([מקור](https://developers.facebook.com/docs/marketing-api/advantage-campaigns)). מבחינתנו זו בשורה טובה: "פשוט" ו"מה שמטא רוצה" הם אותה הגדרה. ההחרגות של טירגוט מפורט הוסרו ב-2025, ומ-v23 כל ad set חייב לשלוח `advantage_audience` במפורש ([מקור](https://developers.secure.facebook.com/blog/post/2025/06/13/marketing-api-changes-to-advantage-plus-audience-behaviors/)).
+- **Andromeda:** מטא מתייחסת למודעות דומות כאל וריאציה אחת, ולכן בדיקת הוקים אמיתית משנה את 3 השניות הראשונות ויזואלית וקונספטואלית, ולא רק את הכיתוב ([מקור](https://www.jonloomer.com/meta-andromeda-creative-diversification/), משני).
+
+### 14.2 גישה, הרשאות וארבעה שערים
+- **התחברות:** אפליקציה מסוג Business בבעלות התיק העסקי שלנו, עם Facebook Login for Business ותצורה (`config_id`) שמנפיקה טוקן BISU (business integration system user). הטוקן קשור לעסק של הלקוח, מגיע רק לנכסים שהלקוח בחר, ומתבטל כשהלקוח מסיר את האפליקציה ([מקור](https://developers.facebook.com/documentation/facebook-login/facebook-login-for-business)). ההרשאות הן הכול או כלום: המשתמש מאשר את כולן או אף אחת.
+- **הרשאות:** `ads_management`, ‏`ads_read`, ‏`business_management`, ‏`pages_show_list`, ‏`pages_read_engagement`, ‏`pages_manage_ads`, ‏`pages_manage_metadata`, ‏`leads_retrieval`, ‏`pages_manage_posts` והרשאות האינסטגרם, כל אחת ב-Advanced Access דרך App Review.
+- **ארבעה שערים לפני הלקוח החיצוני הראשון:**
+
+| שער | מה זה | למה זה קריטי |
+|---|---|---|
+| Business Verification | אימות החברה הישראלית שלנו | תנאי ל-Advanced Access ולאפליקציה שעסקים אחרים משתמשים בה (משני) |
+| App Review | אישור לכל הרשאה, עם תיאור שימוש, הוראות בדיקה וסרטון הדגמה | בלעדיו רק משתמשים עם תפקיד באפליקציה יכולים להתחבר |
+| Tech Provider access verification | חובה כשעסקים אחרים משתמשים באפליקציה עם `ads_management` או `business_management` | בלעדיו משתמש בלי תפקיד באפליקציה נכשל בשגיאה 100, ולכן "בבדיקות עובד ובפרודקשן נכשל" ([מקור](https://developers.facebook.com/documentation/development/release/access-verification)) |
+| Marketing API Full Access | השכבה שנקראה "Standard Access" קיבלה ב-4.5.2026 שם חדש ותנאי סף קלים יותר: 500 קריאות ב-15 יום עם פחות מ-15% שגיאות, בלי סרטון | Limited Access מיועדת לפיתוח בלבד ומוגבלת מאוד בקצב ([מקור](https://developers.meta.com/blog/updates-to-ads-management-standard-access-feature/)) |
+
+- **Data Use Checkup** שנתי; פספוס שלו מאבד את הגישה ל-API ([מקור](https://developers.facebook.com/docs/resp-plat-initiatives/individual-processes/data-use-checkup)). תג Meta Business Partner לא נדרש כדי לבנות על ה-API ([מקור](https://www.stackmatix.com/blog/meta-business-partner-program), משני).
+
+### 14.3 מגבלות קצב
+- הספירה היא לכל חשבון מודעות ולפי Business Use Case, עם הכותרת `X-Business-Use-Case-Usage` ([מקור](https://developers.facebook.com/docs/marketing-api/overview/rate-limiting)).
+- **התקציב של ad set משתנה עד 4 פעמים בשעה** (שגיאה 613/1487632), ומגבלת ההוצאה של החשבון עד 10 פעמים ביום. לכן סליידר התקציב בממשק מושהה ונשמר רק בלחיצה, ואנחנו מתירים עד 3 שינויים בשעה.
+- 100 QPS ליצירה ולעריכה, ומגבלת הקריאה של לידים רחוקה מאוד מהנפחים של עסק קטן.
+
+### 14.4 מודעת וידאו מקצה לקצה, ומיפוי המטרות
+- **הסדר המומלץ:** בדיקה מקדימה (סטטוס החשבון, מטבע, אמצעי תשלום, הרשאת ADVERTISE בעמוד, אינסטגרם מקושר, וואטסאפ מקושר, ‏`minimum_budgets`) ← העלאת וידאו והמתנה ל-`ready` ← תמונה ממוזערת ← טופס לידים, כשצריך ← קמפיין, ‏ad set, קריאייטיב ומודעה, **כולם `PAUSED`** ← תצוגות מקדימות ← הפעלה בלחיצה ← webhooks ו-polling של הסטטוס.
+- **תקציבים ביחידות המשנה של המטבע:** בשקל ההיסט הוא 100, כך ש-`daily_budget: 5000` = ₪50.00 ([מקור](https://developers.facebook.com/docs/marketing-api/currencies)). תקציב מינימלי בשקלים לא פורסם, ולכן קוראים אותו לכל חשבון מ-`minimum_budgets` ולא מקודדים אותו ([מקור](https://developers.facebook.com/docs/marketing-api/reference/minimum-budget)).
+
+| המטרה בעברית | `objective` | `destination_type` | `optimization_goal` | הערה |
+|---|---|---|---|---|
+| הודעות בוואטסאפ | `OUTCOME_ENGAGEMENT` | `WHATSAPP` | `CONVERSATIONS` (בדוגמה של מטא מופיע `IMPRESSIONS`; לא אומת) | העמוד חייב להיות מקושר למספר WhatsApp Business, ומספר פרטי לא עובד ([מקור](https://developers.facebook.com/docs/marketing-api/ad-creative/messaging-ads/click-to-whatsapp)) |
+| לידים בטופס | `OUTCOME_LEADS` | `ON_AD` | `LEAD_GENERATION` או `QUALITY_LEAD` | ה-`locale` של הטופס תומך ב-`HE_IL` ([מקור](https://developers.facebook.com/docs/graph-api/reference/page/leadgen_forms/)); תצוגת RTL על מכשיר לא אומתה |
+| כניסות לאתר | `OUTCOME_TRAFFIC` | `WEBSITE` | `LANDING_PAGE_VIEWS` | — |
+| חשיפה לאזור | `OUTCOME_AWARENESS` | — | `REACH` או `THRUPLAY` | (לא אומת) |
+
+- **לידים:** ה-webhook `leadgen` מביא רק `leadgen_id`, והנתונים נשלפים בקריאה שנייה; גיבוי דרך `GET /{form_id}/leads` ([מקור](https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving)). לפי מקור משני, לידים זמינים להורדה כ-90 יום. רעיון למוצר: להעביר כל ליד לבעל העסק בוואטסאפ או במייל תוך שניות, רגע שמנהל המודעות לא נותן לעסק קטן.
+- **webhooks של חשבון המודעות:** `with_issues_ad_objects` (כולל דחייה) ו-`in_process_ad_objects` (אובייקט שיצא מעיבוד). אין אירוע "המודעה אושרה", ולכן צריך גם polling כל 10–15 דקות ([מקור](https://developers.facebook.com/documentation/ads-commerce/marketing-api/ads-webhooks/ads-webhooks-overview)).
+
+### 14.5 מדדים, ייחוס וקטגוריות מיוחדות
+- **ייחוס:** החלונות `7d_view` ו-`28d_view` הפסיקו לחזור ב-12.1.2026, ובקשה להם מחזירה נתונים ריקים ולא שגיאה ([מקור](https://developers.facebook.com/blog/post/2025/10/16/ads-insights-api-metric-availability-updates/)). הנתונים מתעדכנים כל כ-15 דקות ומתייצבים אחרי 28 יום, ולכן צריך גיבוי לילי של 28 הימים האחרונים ([מקור](https://developers.facebook.com/docs/marketing-api/insights/best-practices)).
+- **מדדי הוק:** hook rate = צפיות של 3 שניות ÷ חשיפות; hold rate = ThruPlays ÷ צפיות של 3 שניות; עלות לתוצאה = הוצאה ÷ לידים או שיחות. מדרגים מודעות רק אחרי מדגם מינימלי, למשל 1,000 חשיפות ו-3 ימים לכל מודעה (הערכה). השמות של ה-action types לא אומתו ב-v26.
+- **קטגוריות מודעה מיוחדות** (דיור, תעסוקה, אשראי): לפי המקורות שנמצאו הן לא חלות היום על מפרסם ישראלי שמטרגט את ישראל, אבל שולחים תמיד `special_ad_categories: []` ([מקור](https://developers.facebook.com/documentation/ads-commerce/marketing-api/audiences/special-ad-category); לא אומת לישראל). **מודעות פוליטיות ומודעות על נושאים חברתיים** בישראל דורשות אישור של המפרסם ו-"Paid for by", וישראל נזכרת במפורש בכללי טוהר הבחירות של מטא ([מקור](https://transparency.meta.com/en-us/policies/ad-standards/SIEP-advertising/SIEP)). לכן חוסמים תוכן כזה לגמרי.
+- **תיוג AI:** מ-1.6.2026 מטא מזהה אוטומטית מדיה של כלי AI חיצוניים (C2PA ואותות דומים) ומציגה "AI info" בתפריט "על המודעה". גילוי הוא חובה רק בחלק ממודעות הבחירות והנושאים החברתיים ([מקור](https://about.fb.com/news/2026/02/meta-prepares-for-2026-us-midterms/)). שדה API לגילוי עצמי לא נמצא.
+
+### 14.6 מי משלם
+- חשבון המודעות של העסק משלם למטא ישירות, באמצעי התשלום שלו. `funding_source` הוא לקריאה בלבד, והוספת כרטיס עוברת בדיאלוג של מטא ([מקור](https://developers.secure.facebook.com/docs/marketing-apis/guides/javascript-ads-dialog-for-payments)). אנחנו לא נוגעים בתקציב: מודל "סוכנות" שבו אנחנו מממנים ומחייבים את הלקוח מוסיף סיכון אשראי, מע״מ ושאלות של שירותי תשלום, ולכן נפסל.
+
+### 14.7 מה זה אומר למוצר
+- בונה עברי בארבעה צעדים, ברירות מחדל של Advantage+, הכול מושהה עד אישור, שומר תקציב, ובדיקה של 3 הוקים שונים באמת.
+- בדיקה מקדימה ירוקה עם תיקון בעברית לכל כשל, דשבורד בלי פילוחים ב-MVP, ומסלול האישורים של הבעלים שמתחיל ב-M0 (סעיף 12).
+
+## 15. פרסום אורגני ו"קידום המנצח"
+
+> המקור: `docs/research/11-meta-organic-publishing.md` (30 חיפושים, 17.10.2026). התיעוד של Meta סותר את עצמו בכמה נקודות (מכסת הפרסום, תזמון בפייסבוק), ולכן ערכים כאלה נקראים בזמן ריצה או נבדקים ב-M0.
+
+### 15.1 דרך ההתחברות
+- **Facebook Login for Business הוא המסלול היחיד ב-MVP.** רק הוא נותן, באותה הסכמה, עמוד, אינסטגרם, חשבון מודעות ובדיקת זכאות לקידום (`boost_eligibility_info`). מסלול Business Login for Instagram לא מאפשר מודעות ולא את בדיקת הזכאות ([מקור](https://developers.facebook.com/docs/instagram/ads-api/guides/use-posts-as-ads/)). לחשבון אינסטגרם בלי עמוד נציע אשף עברי שעוזר לקשר אותו לעמוד.
+
+### 15.2 רילס לאינסטגרם
+- זרימה של container: יצירה עם `media_type=REELS` ו-`video_url` ציבורי ← polling של `status_code` ← `media_publish`. container שלא פורסם תוך 24 שעות פג (`EXPIRED`) ([מקור](https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-container)).
+- **מפרט:** MP4 או MOV עם ה-moov בהתחלה, ‏H.264, ‏AAC עד 48kHz ו-128kbps, עד 25Mbps, 23–60fps, בין 3 שניות ל-15 דקות, עד 300MB, ו-9:16 מומלץ ([מקור](https://developers.facebook.com/documentation/instagram-platform/instagram-graph-api/reference/ig-user/media)).
+- **כיתוב:** עד 2,200 תווים, ואינסטגרם עוברת ל**תקרה של 5 האשטגים** לפוסט ([מקור](https://www.socialmediatoday.com/news/instagrams-implementing-new-limits-on-hashtag-use/808309/), משני). עד 3 שותפים ב-`collaborators`.
+- **מכסה יומית:** התיעוד הרשמי מציין גם 100 וגם 50 פוסטים ב-24 שעות, ולכן קוראים את `content_publishing_limit` בזמן ריצה ([מקור](https://bundle.social/blog/instagram-api-rate-limits), משני). לעסק קטן זה לא משנה בפועל.
+- **Trial Reels:** `trial_params` נתמך ב-API, והרילס מוצג קודם לקהל שלא עוקב אחרי החשבון ([מקור](https://developers.facebook.com/docs/instagram-platform/changelog)). זו בדיקת A/B אורגנית טבעית ל-3 גרסאות הוק; ההעברה של רילס כזה לעוקבים (graduation) קורית רק באפליקציה.
+- **אין תזמון מובנה ב-API של אינסטגרם.** המתזמן יושב אצלנו ויוצר container כ-10 דקות לפני הזמן, ופוסטים כאלה לא יופיעו ברשימת התזמונים באפליקציית אינסטגרם.
+
+### 15.3 רילס לפייסבוק
+- `video_reels`: התחלה ← העלאה ל-`rupload.facebook.com` עם `Authorization: OAuth` ← סיום עם `video_state=PUBLISHED`. לפי המדריך: 3–90 שניות, ועד 30 רילס ב-24 שעות לעמוד ([מקור](https://developers.facebook.com/docs/video-api/guides/reels-publishing)). פייסבוק הודיעה ב-2025 שכל הסרטונים הופכים לרילס ([מקור](https://techcrunch.com/2025/06/17/facebook-announces-that-all-videos-on-its-platform-will-soon-be-shared-as-reels)), אבל בחיפוש לא נמצא עדכון של מדריך ה-API.
+
+### 15.4 מדדים אורגניים
+- **`reels_skip_rate`** (אחוז הצפיות שדילגו ב-3 השניות הראשונות), שנוסף ב-3.12.2025, הוא המדד החשוב ביותר למוצר שלנו, כי הוא מודד בדיוק את ההוק ([מקור](https://developers.facebook.com/blog/post/2025/12/03/instragram-api-updates/)). ברילס עם חשיפה נמוכה הוא עשוי לחזור `null`.
+- `plays`, ‏`impressions` ו-`video_views` הוסרו, ואסור לבקש אותם ([מקור](https://developers.facebook.com/docs/instagram-platform/reference/instagram-media/insights/)). בפייסבוק: `blue_reels_play_count`, ‏`fb_reels_total_plays` ו-`post_video_avg_time_watched` ([מקור](https://developers.facebook.com/docs/graph-api/reference/video/video_insights/)).
+- תוכנית דגימה: אחרי שעה, 6 שעות, 24 שעות, 72 שעות ו-7 ימים, ואז פעם ביום עד יום 28.
+
+### 15.5 מאורגני לממומן
+- **אינסטגרם:** בודקים `boost_eligibility_info` ([מקור](https://developers.facebook.com/blog/post/2024/06/03/instagram-boost-signal-for-ad-eligibility/)), ויוצרים קריאייטיב עם `source_instagram_media_id` ו-`instagram_user_id`. השדה `instagram_actor_id` הוסר מכל הגרסאות ב-9.9.2025 ([מקור](https://developers.facebook.com/blog/post/2025/08/11/instagram-marketing-api-update/)). הלייקים והתגובות נשארים על הפוסט, וזו הסיבה העיקרית לקדם פוסט קיים במקום להעלות מודעה חדשה.
+- **פייסבוק:** `object_story_id = {page_id}_{post_id}`.
+- **הזרימה במוצר:** מפרסמים אורגנית עם `hook_id` ו-`trend_template_id` ← אחרי 24–72 שעות מדרגים לפי דילוג, זמן צפייה ושיתופים ← "קדמו את הסרטון הזה" ← הבונה נפתח עם הפוסט כקריאייטיב. רילס עם מוזיקה מוגנת לא כשיר לקידום ([מקור](https://developers.facebook.com/documentation/ads-commerce/marketing-api/creative/reels-ads)), ולכן הסרטונים שלנו משתמשים רק במוזיקה מורשית או ב-Lyria.
+
+### 15.6 תיוג AI
+- לפי בדיקה של IPTC, אינסטגרם קורא את `DigitalSourceType` של IPTC אבל לא את C2PA ([מקור](https://iptc.org/news/ai-disclosure-on-social-media-a-work-in-progress/), משני; חלק מהנתונים ישנים). לא נמצא פרמטר API לגילוי עצמי. ההמלצה: לכתוב `DigitalSourceType` בכל רינדור, להציג בדיאלוג הפרסום הודעה בעברית שמטא עשויה להוסיף "AI info", ולעולם לא למחוק או לזייף מטא-דאטה.
+
+## 16. מתחרים שיוצרים ומשיקים: מה הם עושים, איך הם גובים, ומה זה אומר לישראל
+
+> המקור: `docs/research/12-create-launch-competitors.md` (45 חיפושים, 17.10.2026). כמעט אף ספק לא מפרסם מחירים יציבים, ולכן המספרים הם סדרי גודל ולא הצעות מחיר. חלק מהמקורות נכתבו בידי מתחרים, ומסומנים כך.
+
+### 16.1 מטא עצמה
+
+| יכולת | המצב באוקטובר 2026 |
+|---|---|
+| יצירת מודעת וידאו מתמונה (Advantage+ Creative) | זמינה לכולם; מטא מדווחת על +10% CTR ו-+8% המרה בבטא ([מקור](https://www.relevantaudience.com/meta/meta-advertising-week-new-york-2026-ad-tools/), משני) |
+| עוזר AI בתוך מנהל המודעות | הורחב באפריל 2026 גם ל-EMEA, "עם תמיכה בשפה מקומית" ([מקור](https://about.fb.com/news/2026/01/2026-ai-drives-performance/)) |
+| עוזר סוכן שמקים קמפיין ומשנה טירגוט ותקציב בצ׳אט | בבדיקה מוקדמת (Advertising Week, 6.10.2026) ([מקור](https://www.socialmediatoday.com/news/meta-introduces-new-ai-powered-tools-at-ad-week-2026/832288/), משני) |
+| שרת MCP רשמי למודעות | פתוח לכל מפתח עם אפליקציית Meta מיולי 2026, עם שלוש רמות הסכמה ([מקור](https://www.relevantaudience.com/meta/meta-ads-mcp-open-to-developers/), משני) |
+| תרגום של טקסט המודעה | פעיל, אבל השפות "יכולות להשתנות לפי מפרסם", ועברית לא אומתה ([מקור](https://www.jonloomer.com/qvt/translate-text-feature/), משני) |
+
+- **איפה מטא משאירה מקום:** לא נמצאה עברית בכלים הגנרטיביים; מנהל המודעות נחשב מסובך; אין ספריית הוקים לפי נישה ואין קטלוג טרנדים; הכלים שלה מיועדים למודעות ממומנות בלבד ולא יוצרים תוכן אורגני ([מקור](https://kompozy.io/news/meta-ai-ad-creation-tools-ad-week-2026), משני); ואין בה שפת תוצאות של וואטסאפ ושקלים.
+- **הסיכון:** תוך 12–24 חודשים "צ׳אט עם המודעות שלכם" יהפוך לסחורה. החפיר שלנו הוא איכות הקריאייטיב בעברית, ידע נישתי ישראלי, מהירות בטרנדים, תוצאות בשפה של וואטסאפ וממשק פשוט.
+
+### 16.2 השחקנים בחו״ל: מה עובד ומה נכשל
+
+| כלי | מה הוא עושה | איך הוא גובה | מה עובד | מה נכשל או מסוכן |
+|---|---|---|---|---|
+| **Zeely** | מוצר ← קריאייטיב (גם וידאו בסגנון UGC) ← מטרה ותקציב ← השקה; מודרציה של צוות, ו"באוויר תוך 1–6 שעות" ([מקור](https://intercom.help/zeely-inc/en/articles/9874321-ad-campaign-launch)) | מנוי של $29.95–$79.95 ועוד **כ-12% מהתקציב** (כ-6% עם Booster), והתקציב עובר דרך Zeely ([מקור](https://ecommercefastlane.com/zeely-ai-ads-reliability-review/), משני; [מחירים](https://fluxnote.io/guides/zeely-pricing)) | זרימה אחת מהמוצר להשקה, והבטחה לזמן | עמלה אטומה, החזקת כסף של פרסום, קרדיטים שאובדים בביטול |
+| **Creatify** (AdMax, ‏AI Media Buyer) | URL לווידאו, אווטארים, וסוכן צ׳אט שמשיק ומשפר קמפיינים ב-Meta, ב-Google וב-TikTok ([מקור](https://www.hunted.space/product/creatify), משני) | קרדיטים: $39 או $99 לחודש ([מקור](https://fluxnote.io/guides/creatify-pricing), משני) | "עוד מהמנצח": מהמודעה המנצחת לקריאייטיבים חדשים | בלי עברית; "שפע זול עדיין צריך עורך עם טעם" |
+| **Madgicx** | אופטימיזציה ממוקדת מטא | לפי מדרגות הוצאה, $45–$329 ומעלה לחודש ([מקור](https://pricingsaas.com/companies/madgicx), משני) | מחיר צפוי | כ-2 מתוך 5 ב-Trustpilot: חיוב שנתי אחרי ביטול ניסיון והחזרים שנדחו ([מקור](https://www.trustpilot.com/review/madgicx.com?page=4)) |
+| **Bïrch** (לשעבר Revealbot) | מנוע כללים בלבד, כל כ-15 דקות | מ-$49–$99 לחודש, לפי ההוצאה ([מקור](https://superscale.ai/alternatives/revealbot/pricing), נכתב בידי מתחרה) | כללים ברורים | לא יוצר מודעות; משתלם רק בהוצאה גבוהה |
+| **AdEspresso** | יצירה ובדיקות A/B במטא | $49 עד $1,000 הוצאה בחודש, ו-$99 בלי הגבלה ([מקור](https://pricingsaas.com/companies/adespresso), משני) | **תקרת הוצאה לכל מדרגה**: התקדים למודל שלנו | בלי וידאו AI |
+| **Wix** (חברה ישראלית) | ניהול קמפיינים בפייסבוק ובאינסטגרם | מנוי של $79–$4,999 שממנו **15% עמלה** ו-85% לתקציב; לא מוחזר ([מקור](https://support.wix.com/en/article/facebook-instagram-ads-faqs-about-the-campaign-budget-and-subscription)) | מודל פשוט של "סכום קבוע לחודש" | העמלה מוחבאת בתוך התקציב; הזמינות בישראל לא אומתה |
+| **Canva** | פרסום מודעה ישירות מהעורך ([מקור](https://www.canva.com/help/connect-meta-account/)) | בתוך התוכניות של Canva | זרימה שעסקים כבר מכירים | בלי אופטימיזציה ובלי דוחות |
+| **Google Pomelli** | "Business DNA" מכתובת האתר ונכסים ממותגים ([מקור](https://www.dataslayer.ai/blog/how-to-use-pomelli-for-google-ads-creatives), משני) | חינם (בטא) | אונבורדינג בלי מאמץ | לא משיק ולא מודד |
+| **TikTok Symphony + Smart+** | קריאייטיב גנרטיבי ואוטומציה של קמפיינים ([מקור](https://ads.tiktok.com/business/en-US/blog/tiktok-symphony-ai-creative-suite)) | חינם (רק תקציב) | חוגת שליטה: מלא · חלקי · ידני | לא Meta |
+| Smartly · Hunch · Pencil · Omneky | ארגוני, או קריאייטיב דינמי (DCO) | אחוז מההוצאה עם רצפה של כ-€5,000 (Smartly, [מקור](https://superscale.ai/alternatives/smartly/pricing)); כ-€2,500 לחודש (Hunch, [מפת דרכים](https://www.hunchads.com/product-roadmap)); $14 או $55 לחודש (Pencil, [מקור](https://superscale.ai/alternatives/pencil/pricing)) | — | לא מתאימים לעסק קטן |
+
+### 16.3 מודלי התמחור בקטגוריה
+
+| מודל | מי | למה לא אצלנו |
+|---|---|---|
+| אחוז מהתקציב, מעל המחיר | Zeely | מרגיש כמו מס, ודורש להחזיק או למדוד את הכסף של הלקוח |
+| אחוז בתוך התקציב | Wix | עמלה מוחבאת, ומחייב אותנו לגבות כסף של פרסום |
+| אחוז ועוד מחיר קבוע | AdScale · Smartly | מסובך לעסק קטן |
+| מחיר קבוע לפי מדרגות הוצאה | Madgicx · Bïrch | כל מדרגה חדשה מרגישה כמו קנס |
+| **מחיר קבוע עם תקרת הוצאה** | AdEspresso | **המודל שאימצנו**: פשוט והוגן, ובלי להחזיק כסף |
+| מחיר קבוע אחד | Ryze ($89 לחודש, [נכתב בידי מתחרה](https://www.get-ryze.ai/blog/madgicx-pricing-2026)) | הכי פשוט, אבל משאיר כסף על השולחן בסוכנויות |
+| קרדיטים | Creatify · Pencil · Omneky | מתמחר את הקריאייטיב ולא את הניהול; אצלנו הווידאו נשאר בקרדיטים |
+| חינם (רק תקציב) | Meta · TikTok | מחיר שאי אפשר לנצח, אבל מסובך ובלי קריאייטיב עברי |
+
+### 16.4 ישראל
+- **לא נמצא שחקן ישראלי בשירות עצמי של "יצירה + השקה" בעברית.** החיפושים בעברית ("ניהול קמפיינים בפייסבוק לעסקים קטנים אפליקציה", "פלטפורמה לניהול מודעות פייסבוק לעסקים בלי סוכנות") החזירו רק את הכלים של מטא, מדריכי CapCut וכלים אמריקאיים.
+- **השכנים הקרובים:** AdScale, אופטימיזציה ב-2% מההוצאה ועוד €99–€499 לחודש ([מקור](https://www.getapp.com.au/software/113187/adscale), משני); Marketeam.ai "Ella" דרך בנק הפועלים, לתוכן ולפרסום אורגני: 6 חודשים חינם ואחר כך $8 לחודש במקום $99 ([מקור](https://www.maariv.co.il/economy/israel/article-1164816), ממומן); ו-Solara AI, עם אתרים, וידאו עם אווטאר ו"קמפיינים חכמים", שעומק המוצר שלה לא ידוע ([מקור](https://www.ice.co.il/career/news/article/1093997), משני).
+- **אות הביקוש:** לפי סקר של בנק הפועלים, 89% מבעלי העסקים מפרסמים בעצמם, ושיווק ברשתות הוא האתגר הגדול שלהם (אותו מקור ממומן).
+- **מספרים:** תקציב יומי טיפוסי לעסק זעיר הוא כ-₪20–₪100 (הערכה; לא נמצא מקור ישראלי). ה-CPC החציוני בישראל ירד מ-$0.59 ל-$0.31 בין יוני 2025 ליוני 2026, לפי מאגר של ספק אחד ([מקור](https://www.superads.ai/facebook-ads-costs/cpc-cost-per-click/israel)). בארה״ב סוכנות בדרג הביניים גובה $1,500–$3,500 בחודש ([מקור](https://clicksgeek.com/?p=22701), משני). את המספרים האלה **לא מציגים ללקוחות כממוצע ענפי**: ממוצעים יבואו רק מהנתונים שלנו, אחרי חוות דעת.
+
+### 16.5 מה לוקחים לישראל
+מתוך 20 הרעיונות של קובץ 12 אימצנו: השקה בארבעה צעדים, ברירות מחדל לפי נישה, טיוטה ← אישור עם תצוגות מקדימות, בדיקת 3 הוקים כברירת מחדל, דשבורד של 4 מספרים ומשפט אחד, דוח שבועי בעברית, כללים מוכנים כמתגים, השהיה ותקציב עם אזהרה על שלב הלמידה, תקרה חודשית שמוצגת בכל מקום, קידום של המנצח האורגני, תיבת לידים, רענון קריאייטיב כשיש עייפות, צ׳קליסט חיבור, בדיקת מדיניות אוטומטית, תג "התקציב משולם ישירות למטא", מצב סוכנות חלקי, ופיד "מה עובד עכשיו בתחום שלכם". נדחו ל-MVP: עוזר צ׳אט בעברית, ממוצעי ענף במספרים, בדיקת מומחה אנושית, וכל תמחור באחוזים מההוצאה או החזקה של התקציב. הוספנו משלנו: התראת ליד מיידית ותזכורת אחרי 15 דקות, סיכום שבועי ביום ראשון, עונות ישראליות עם ימי שקט ושמירה בתקופת בחירות, לוח תוכן, וערוץ הפצה דרך בנקים ומועדוני אשראי (רעיון עסקי, לא קוד).
+
+## 17. השראה מ-Trendz Social, עוגני מחיר והמיצוב המעודכן
+
+> המקור: `docs/research/14-trendz-inspiration-and-positioning.md`. **השראה בלבד:** לא מעתיקים עיצוב, טקסט או מבנה. העובדות על האתר נשענות על תקצירי חיפוש של תמונת מצב בת כ-11 חודשים, וצריך לבדוק אותן מחדש ידנית.
+
+### 17.1 מה השירות עושה (לא אומת)
+- שירות ישראלי שמנהל בעזרת AI את הרשתות של עסקים קטנים: פוסטים, תמונות וסרטונים לאינסטגרם, לפייסבוק ולטיקטוק ([מקור](https://trendzsocial.co.il/)).
+- **התוכן מאושר בוואטסאפ** לפני הפרסום, והתוכניות **מתחילות ב-₪499 לחודש** (אותו מקור; ייתכן שהשתנה).
+- לא נמצא מידע פומבי על ניהול קמפיינים ממומנים, על טיפול בתקציב או על דוחות.
+
+### 17.2 מה לוקחים כהשראה
+1. **וואטסאפ כערוץ השליטה:** אישור בוואטסאפ (עם הסכמה) והודעות "הקמפיין באוויר" ו"התוצאות של השבוע", בתבניות שמטא מאשרת.
+2. **תחושה של "עושים בשבילכם"** למי שאינו משווק: הלקוח מאשר, והמערכת עושה את השאר.
+3. **מחיר חודשי אחד, נמוך בבירור מסוכנות:** אצלנו ₪119 · ₪289 · ₪990 כולל מע״מ. ההבדל: אנחנו גם יוצרים את הסרטון וגם משיקים ומנהלים את הקמפיין הממומן, בממשק עברי אחד.
+
+### 17.3 עוגני מחיר בישראל (מקורות משניים, 2025)
+
+| שירות | טווח | מקור |
+|---|---|---|
+| ניהול בסיסי של אינסטגרם ופייסבוק | ₪1,500–₪4,000 לחודש; פרילנסרים ₪1,500–₪3,500, סוכנויות ₪3,000–₪8,000 | [jett.co.il](https://www.jett.co.il/social-media-management-price/) · [kanmedia.co.il](https://kanmedia.co.il/%D7%9E%D7%97%D7%99%D7%A8%D7%95%D7%9F-%D7%A9%D7%99%D7%95%D7%95%D7%A7-%D7%93%D7%99%D7%92%D7%99%D7%98%D7%9C%D7%99-%D7%9C%D7%A2%D7%A1%D7%A7%D7%99%D7%9D-%D7%A7%D7%98%D7%A0%D7%99%D7%9D-%D7%91%D7%99%D7%A9/) |
+| ריטיינר לניהול קמפיינים | ₪1,500–₪6,000 לחודש; תקציב יומי התחלתי מומלץ של כ-₪20–₪50 | [bidernet.co.il](https://bidernet.co.il/%d7%9e%d7%97%d7%99%d7%a8-%d7%a4%d7%a8%d7%a1%d7%95%d7%9d-%d7%91%d7%a4%d7%99%d7%99%d7%a1%d7%91%d7%95%d7%a7-%d7%9e%d7%93%d7%a8%d7%99%d7%9a-%d7%9c%d7%a9%d7%a0%d7%aa-2025/) |
+| תקציב הפרסום עצמו | משולם לפלטפורמה ישירות, מעל דמי הניהול; לעסק קטן כ-₪500–₪1,000 לחודש לכל פלטפורמה | [calliber.co.il](https://calliber.co.il/prices-list/social-media-sponsored-campaigns/) · [lemel.co.il](https://lemel.co.il/social-media-management-price/) |
+| שירות AI לניהול רשתות (Trendz Social) | מ-₪499 לחודש (לא אומת) | [trendzsocial.co.il](https://trendzsocial.co.il/) |
+
+### 17.4 כלל המקור לטענה "זול יותר מסוכנות"
+כל השוואה נשמרת ב-`content/claims/comparisons.json` עם טווח, מקורות ותאריך גישה, ומוצגת עם הערת שוליים (`ClaimFootnote`). משווים דומה לדומה: מחיר ניהול חודשי מול מחיר התוכנית החודשי, **שניהם בלי תקציב הפרסום**, ואומרים את זה בשני הצדדים. טווחים מסומנים "הערכה לפי מקורות פומביים" ולא מוצגים כהצעת מחיר. העוגן ההתחלתי: **₪1,500–₪6,000 לחודש** לסוכנות, למנהל סושיאל או לפרילנסר, לפני התקציב. את "מ-₪499" של שירותי AI מותר להזכיר רק אחרי אימות ידני מחדש, בניסוח כללי ובלי שם המותג. `check-content` מזהיר כשבדיקת הטענה ישנה מ-90 יום, ונכשל ב-`--launch` כשהיא ישנה מ-180 יום או כשאין לה מקור.
+
+### 17.5 המיצוב המעודכן (התדריך של המייסד, 17.10.2026)
+- **למי:** עסקים קטנים בתחילת הדרך ועסקים בצמיחה, שרוצים מודעות ממומנות בפייסבוק ובאינסטגרם **בלי לשבור את הבנק, בלי לשלם למשווקים אלפי שקלים בחודש ובלי להבין את מנהל המודעות**.
+- **ההבטחה:** כפתור ← סרטון מוכן ← קמפיין מתוך הממשק שלנו ← תוצאות פשוטות בעברית (כמה הוצאתם, כמה ראו, כמה הודעות או לידים, כמה עלתה כל פנייה, איזה הוק עבד) ← שינוי תקציב, השהיה או הגברת המנצח מאותו מקום.
+- **מנוע התוכן:** הרבה פורמטים ויראליים טרנדיים ("תבניות טרנד"), שהצוות מרענן כל שבוע, וכל נישה יכולה להפיק בקליק.
+
+## 18. מנוע הטרנדים וניתוח ארבעת סרטוני הייחוס
+
+> המקורות: `docs/research/13-viral-trends-engine.md` (40 חיפושים) ו-`docs/research/15-reference-hooks-analysis.md` (ניתוח פנימי של הסרטונים שהמייסד העלה). התוכן המשפטי כאן הוא מפת סיכונים למוצר, לא ייעוץ משפטי.
+
+### 18.1 הבנת וידאו דרך OpenRouter
+- `POST /api/v1/chat/completions` מקבל חלק `video_url` עם כתובת או עם `data:` ב-base64. Gemini דרך AI Studio מקבל רק קישורי יוטיוב, ודרך Vertex לא מקבל כתובות בכלל, ולכן **שולחים תמיד קליפ MP4 קצר שגזרנו בעצמנו, ב-base64** ([מקור](https://openrouter.ai/docs/guides/overview/multimodal/videos)).
+- המודל: `google/gemini-3.8-flash` ($0.75 למיליון טוקנים בקלט ו-$3.75 בפלט) ([מקור](https://openrouter.ai/google/gemini-3.8-flash)). ניתוח של הוק עולה כ-$0.01–$0.03, וב-`google/gemini-3.1-pro-preview` כ-$0.07 (הערכה).
+- **מלכודת ה-1fps:** Gemini דוגם פריים אחד לשנייה כברירת מחדל ([מקור](https://ai.google.dev/gemini-api/docs/tokens)), כך שהוק של 3 שניות הוא 3 פריימים בלבד, גס מדי לחיתוכים של 0.3–0.8 שניות. הפתרון הוא "חבילת הוק": הקליפ של 0–6 שניות, 12–16 פריימים מ-ffmpeg עם חותמות זמן, תמלול של Scribe עם זמני מילים, ועובדות שמדדנו (חיתוכים, שיאי עוצמה). אותה חבילה עובדת גם בלי וידאו, על פריימים ותמלול בלבד. ב-Gemini 3 אפשר להעלות את רזולוציית המדיה לקריאת טקסט על המסך ([מקור](https://ai.google.dev/gemini-api/docs/media-resolution)), אבל לא ידוע אם OpenRouter מעביר את הפרמטר.
+
+### 18.2 מקורות לטרנדים שמותר להשתמש בהם
+
+| מקור | API רשמי? | איך משתמשים |
+|---|---|---|
+| TikTok Creative Center (כולל ישראל) | לא; סקרייפינג נוגד את התנאים ([מקור](https://ads.tiktok.com/help/article/creative-center)) | גלישה ידנית של הצוות |
+| Meta Ad Library | ה-API מחזיר מודעות מסחריות רק מהאיחוד האירופי ומבריטניה ([מקור](https://developers.facebook.com/docs/graph-api/reference/ads_archive/)) | חיפוש ידני וקישור בלבד |
+| YouTube | דף ה-Trending נסגר ב-21.7.2025 ([מקור](https://9to5google.com/?p=680733), משני); Gemini קורא קישור יוטיוב ציבורי ישירות | המקור היחיד שה-AI קורא "לפי קישור", בלי הורדה |
+| Google Trends API | גרסת אלפא סגורה מ-24.7.2025 ([מקור](https://developers.google.cn/search/blog/2025/07/trends-api)) | בקשת גישה; בינתיים בדיקה ידנית |
+| TikTok Next 2026 | דוח שנתי: "Reali-TEA", "Curiosity Detours", "Emotional ROI" ([מקור](https://newsroom.tiktok.com/introducing-tiktok-next-2026-our-trend-forecast-for-marketers-for-the-year-ahead?lang=en)) | כיוון קריאייטיבי לכל הספרייה |
+
+**המסקנה:** אוצרות היא עבודה אנושית בדפדפן. סרטון ייחוס נכנס רק בהעלאה של מנהל פלטפורמה עם בסיס זכויות מתועד (תוכן שלנו, רישיון, אישור בכתב או סרטון של הלקוח), כקישור יוטיוב ציבורי, או כקישור עם הערות בלבד. בלי yt-dlp, בלי Apify ובלי סקרייפינג ([מקור](https://conductatlas.com/platform/tiktok/tiktok-terms-of-service/prohibition-on-scraping-and-data-extraction/), משני). מעבר לסיכון המשפטי, הפרה של התנאים של מטא עלולה לעלות לנו בגישה ל-Marketing API, שכל המוצר נשען עליה.
+
+### 18.3 הקו המשפטי: פורמט כן, ביטוי לא
+- חוק זכות יוצרים מגן על **ביטוי ולא על רעיון** (סעיף 5), ובית המשפט העליון חזר על כך בעניין זיסו (2013) ובעניין גואטה (2018) ([מקור](https://rcip.co.il/articles/supreme-court-overturns-district-court-reaffirming-that-expressions-not-ideas-are-copyrightable/); [מקור](https://dwo.co.il/no-copyright-protection-for-an-idea-in-a-play-supreme-court/); משניים). **אבל** בעניין Brodesky v. Armosa קבע בית המשפט המחוזי בתל אביב שפורמט טלוויזיה מפורט שקיבל צורה מוחשית יכול להיות מוגן ([מקור](https://rcip.co.il/en/articles/updates-on-protection-of-television-formats-and-advertising-campaigns), משני). לכן המנוע מפשט את הסרטון למכניקה ומייצר מחדש כל מילה, צילום ותו, עם רשימת `do_not_copy` ובדיקת דמיון ⚖️.
+- **שימוש הוגן:** חוות הדעת של משרד המשפטים מדצמבר 2022 קובעת שאימון ML על יצירות מוגנות הוא כנראה שימוש הוגן, אבל היא לא מכסה את התוצרים ([מקור](https://www.law.co.il/en/news/2022/12/22/fair-use-of-copyrighted-content-for-aiml-training/), משני). ניתוח פנימי של סרטון ייחוס כדי לחלץ מכניקה תואם את רוח חוות הדעת; **הצגה של הייחוס ללקוחות לא תואמת אותה**.
+- **פנים, קול ושם:** שימוש בשם, בתמונה או בקול של אדם למטרת רווח בלי הסכמה הוא פגיעה בפרטיות (סעיף 2(6) לחוק הגנת הפרטיות) ([מקור](https://www.wipo.int/wipolex/en/legislation/details/15372)). לעולם לא משתמשים בפנים, בקול, בשם או בידית של יוצר הייחוס, ולא יוצרים דמות דומה לו.
+- **מוזיקה היא החסם הקשה:** השירים הטרנדיים לא מורשים לשימוש מסחרי, והספריות המסחריות של טיקטוק ושל מטא מורשות רק בתוך האפליקציות שלהן ([מקור](https://www.soundstripe.com/blogs/why-can-i-only-use-commercial-sounds-on-tiktok); [מקור](https://www.osborneclarke.com/insights/use-music-social-media-platforms-what-businesses-and-creators-need-know-about-usage); משניים), ואילו אנחנו צורבים את האודיו לתוך ה-MP4. לכן תבנית נושאת **תקציר מוזיקה** (קצב, אווירה, נקודת drop) ולא שיר, והמוזיקה מגיעה מ-Lyria או מספרייה מורשית. גם CapCut מאבדת את הסאונד בתבניות טרנדיות בגלל זכויות ([מקור](https://www.capcut.com/help/templates-and-trends?pageNo=4)), וזו זווית המיצוב שלנו: "תבנית טרנד שמותרת לפרסום, בעברית, עם הקמפיין בפנים".
+- **קווים אדומים:** בלי המלצות או ראיונות רחוב שנוצרו ב-AI (פורמטים כאלה רק עם אנשים אמיתיים ועם הסכמה), בלי קטינים שנוצרו ב-AI, בלי טרנדים של מלחמה, חטופים, צה״ל, ימי זיכרון, טרור או פוליטיקה, בלי לוגואים של אחרים ובלי פעלולים מסוכנים.
+
+### 18.4 כמה זמן טרנד חי, ומה עובד
+- מחקר של Publicis Groupe APAC עם TikTok (2026): **כמעט חצי מהטרנדים נעלמים תוך 5 ימים**, ורק מיעוט קטן נשאר רלוונטי אחרי שבועיים ([מקור](https://www.marketing-interactive.com/only-a-fraction-of-tiktok-trends-last-beyond-two-weeks-publicis-groupe-finds), משני). באוסטרליה החציון הוא 3 ימים, ותוכן של שינוי עצמי מחזיק 27 יום ([מקור](https://www.adnews.com.au/news/tiktok-trends-in-australia-last-just-three-days-on-average), משני).
+- מכאן שלוש קטגוריות: **רגע** (שיר או מם; 3–10 ימים; כמעט לא מתאים לנו, כי המוזיקה לא מורשית וקמפיין חי יותר מהטרנד) · **פורמט** (מבנה עם טוויסט; 2–8 שבועות; הלב של הפיד השבועי) · **נצחי** (POV, לפני ואחרי, יום בחיים, תהליך מספק, מיתוס מול עובדה; שלד הספרייה).
+- **3 השניות הראשונות:** לפי מחקר של מטא על רילס, מיתוג ומסר ב-5 השניות הראשונות מגדילים פי 1.7 את הסיכוי להגיע לדרג העליון של כוונת רכישה, ודיבור עם מוזיקה מגדילים פי 2.0 את העניין במותג ([מקור](https://searchengineland.com/meta-native-reels-ads-can-lift-purchase-intent-5-3x-465615), משני). לכן התבניות מציגות את שם העסק ב-5 השניות הראשונות, אבל אחרי שורת ההוק ולא בפריים הראשון. hook rate של 25%–30% נחשב טוב, ו-40% ומעלה מצוין, לפי ספק ([מקור](https://segwise.ai/blog/analyze-hook-patterns-video-ads), משני). כלים כמו Motion כבר מוכרים תיוג של טקטיקות הוק עם דוחות hook rate ([מקור](https://motionapp.com/releases)); אצלנו התיוג קורה כבר ביצירה.
+- **"Reali-TEA":** אמיתי מנצח מלוטש, ולכן כל תבנית מציעה גם "צלמו בעצמכם": רשימת צילומים שהלקוח מצלם בשתי דקות עם קווי מנחה, וה-AI משלים כתוביות, מוזיקה ועריכה.
+
+### 18.5 ארבעת סרטוני הייחוס של המייסד: T1–T4
+
+| # | התבנית | מה קורה בפתיחה | למה זה עובד | איך מפיקים אצלנו | מודעה? |
+|---|---|---|---|---|---|
+| **T1** | פיתיון ושלט (`bait-and-sign`) | 0–1.8 שנ׳: רגע ספורט דרמטי וקצת קומי; ואז חיתוך חד לאדם חתום פנים שמחזיק שלט בכתב יד | 2 שניות של "מה יקרה?", ואחריהן תמורה קומית שלא קשורה לפיתיון: ההנעה לפעולה היא הפאנץ׳ | קליפ פיתיון של AI (בלי פציעה) ← תמונה של אדם עם דף ריק ← Remotion מרכיב על הדף טקסט עברי בכתב יד | כן |
+| **T2** | מאחורי הקלעים (`behind-the-viral`) | צילום רחב וסטטי עם התווית "מאחורי הקלעים": צוות של מסעדה עושה משהו אבסורדי ומתואם | הצופה לא מבין מה קורה, והסקרנות מחזיקה אותו עד הסוף; אנשים אמיתיים מהעסק בונים אמון | **צילום מודרך:** רשימה של 3 צילומים עם קווי מנחה, ועריכה אוטומטית עם תווית, כתוביות, מוזיקה מורשית וכרטיס סיום | כן, עם הסכמה של המצולמים |
+| **T3** | כמעט נפגעתי (`almost-got-me-reveal`) | POV מגשר: משאית עם מגדל ארגזים "פוגעת" בגשר והארגזים עפים למצלמה; ואז חיתוך לארגז שנפתח ובו המוצר | כמעט-תאונה ב-POV, פיזיקה בלתי אפשרית שגורמת לצפייה חוזרת, והמחזה שהופך למוצר | קליפ image-to-video של AI ← פתיחת ארגז עם המוצר של הלקוח ← כיתוב מם בעברית | כן, עם תווית AI |
+| **T4** | התראה מזויפת (`fake-system-popup`) | POV ליד שולחן עם אוכל; אחרי כ-1.5 שנ׳ קופצת מעל האוכל התראת "סוללה חלשה" בסגנון של טלפון | רפלקס: ממשק מזויף גורם לעצור, ללחוץ ולצפות שוב, והאוכל נשאר במרכז | התראה עברית דטרמיניסטית ב-Remotion ("סוללה חלשה · נותרו 10%"), בלי לוגו של מערכת הפעלה | **לא, לפרסום רגיל בלבד:** מדיניות המודעות של מטא אוסרת חיקוי של התראות מערכת וכפתורים מזויפים |
+
+**לקחים רוחביים:**
+1. **הוקים הם פורמטים, לא משפטים.** ב-seed יש 326 הוקים טקסטואליים, אבל השכבה שמנצחת בסרטונים האלה היא לרוב ויזואלית ועריכתית: חיתוך חד, ממשק מזויף, פיזיקה ב-POV, שלט חתום פנים. לכן תבנית טרנד היא מתכון סצנות (פיתיון ← חיתוך ← תמורה ← הנעה לפעולה) עם פרומפטים לכל נישה.
+2. **שני מצבי הפקה:** AI מלא (T1, ‏T3, ‏T4) וצילום מודרך (T2, וכל תבנית שצריכה את הצוות או את המקום האמיתיים).
+3. **תוכן ההסבר הוא השיווק שלנו.** סרטונים 3 ו-4 הם פירוקים של "למה זה הפך לוויראלי". נפרסם כל שבוע רילס ועמוד "פירוק טרנד" עם קישור לתבנית ("צרו את זה לעסק שלכם בלחיצה").
+4. **גם חשבונות קטנים יכולים להגיע לקהל חדש.** סרטון העוף המטוגן הגיע לכ-50 אלף צפיות בחשבון קטן, שהרילס הקודמים בו קיבלו כ-4,000. זו דוגמה ולא הבטחה, ומספרים כאלה לא מופיעים בקופי השיווקי.
+5. **לכל תבנית יש דגל בטיחות לפרסום:** `ad_safe` · `organic_only` · `needs_consent` · `needs_ai_label`, שבונה הקמפיינים ושלב המודרציה בודקים.
+6. **רק מוזיקה מורשית:** סאונד טרנדי לא נכנס למודעות.
+
+### 18.6 מה זה אומר למוצר
+- **המנוע:** Trend Studio לצוות ← ניתוח (`trendAnalyze`) ← הפשטה למכניקה, ‏`do_not_copy` ודגלי סיכון ← תבנית עברית לכל נישה, עם 3 גרסאות הוק ותקציר מוזיקה ← בדיקת דמיון ושער סיכונים ← 2–3 רינדורי הדגמה שלנו ← אישור ופרסום בפיד "טרנדים השבוע" ביום ראשון ב-08:00.
+- **12 תבניות ב-seed:** T1–T4, ועוד 8 פורמטים נצחיים מקובץ 13 (POV, לפני ואחרי, יום בחיים, תהליך מספק, מיתוס מול עובדה, עונים לתגובה, כמה זה עולה באמת, מדריך מהיר).
+- **סוגרים את הלולאה עם נתונים:** כל מודעה וכל רילס מתויגים בתבנית ובהוק. דירוג חוצה לקוחות לפי hook rate ועלות לליד דורש k-אנונימיות (5 עסקים לפחות), גילוי במדיניות הפרטיות ואפשרות להוציא את העסק מהחישוב, ולכן הוא כבוי עד חוות דעת ⚖️.
+- **רעיונות שנשארו לגרסה מאוחרת:** "מה ההוק שלך?" (הלקוח מעלה סרטון משלו ומקבל ציון; ל-v1 נכנס "ציון הוק" על הסטוריבורד, לפני פרסום), ‏Google Trends API, וחיפוש פורמטים במודעות מהאיחוד האירופי.
 
 </div>
