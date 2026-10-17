@@ -1,6 +1,4 @@
 "use client";
-import * as React from "react";
-import { useRouter } from "next/navigation";
 import { useCurrentStep } from "../wizard-shell";
 import { BusinessStep } from "./business-step";
 import { GoalStep, NicheStep } from "./niche-goal-steps";

@@ -237,8 +237,8 @@ export function LeadsInbox() {
 function LeadRow({ lead: l, active, onOpen }: { lead: Lead; active: boolean; onOpen: () => void }) {
   const first = l.answers[0];
   return (
-    <div className={cn("relative flex flex-col gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-2", active && "lg:bg-surface-2 lg:shadow-[inset_0_0_0_2px_var(--color-primary)]", l.status === "new" && "border-s-2 border-primary")}>
-      <div className="flex items-start gap-3">
+    <div className={cn("relative flex flex-col gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-2 sm:flex-row sm:items-center", active && "lg:bg-surface-2 lg:shadow-[inset_0_0_0_2px_var(--color-primary)]", l.status === "new" && "border-s-2 border-primary")}>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
         <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-3 font-bold text-text">{l.fullName.slice(0, 1)}</span>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -260,7 +260,7 @@ function LeadRow({ lead: l, active, onOpen }: { lead: Lead; active: boolean; onO
           {first && <p className="line-clamp-1 text-small text-text-2">{first.q}: <span className="text-text">{first.a}</span></p>}
         </div>
       </div>
-      <ContactButtons lead={l} className="relative z-10 sm:ms-[52px] sm:max-w-80" />
+      <ContactButtons lead={l} className="relative z-10 shrink-0 sm:w-60" />
     </div>
   );
 }
