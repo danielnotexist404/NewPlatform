@@ -452,3 +452,29 @@ export const CITY_SUGGESTIONS = [
   "תל אביב-יפו", "רמת גן", "גבעתיים", "בני ברק", "פתח תקווה", "חולון", "בת ים", "ראשון לציון", "הרצליה", "רעננה",
   "כפר סבא", "ירושלים", "חיפה", "באר שבע", "נתניה", "אשדוד", "מודיעין", "רחובות", "קריית אונו", "אור יהודה",
 ];
+
+/* ---------- Builder draft (F.2, F.5 `ads.copy.v1` output) — SAMPLE ---------- */
+export const builderDraft = {
+  projectTitle: "3 שאלות לפני תספורת",
+  durationSec: 30,
+  defaults: { goal: "whatsapp_messages" as CampaignGoal, radiusKm: 5, ageMin: 18, ageMax: 65, suggestedAge: [18, 55] as const, dailyBudgetIls: 40 },
+  budgetPresets: [30, 40, 70, 100],
+  recommendedBudget: 40,
+  budgetFloor: 20,
+  firstCampaignDays: 7,
+  /** daily budgets already committed this month by running / in-review campaigns */
+  committedDailyIls: 70,
+  variants: [
+    { key: "A" as const, hookId: "barbers-salons-07", hookText: "3 שאלות שספר טוב שואל לפני שהוא נוגע במספריים", hookTypeHe: "רשימה ממוספרת", tone: 2 as const, hookScore: 84, primaryText: "ספר טוב שואל קודם ומספר אחר כך. שלחו וואטסאפ וקבעו תור עם שיחה קצרה לפני.", headline: "קודם שואלים, אחר כך מספרים" },
+    { key: "B" as const, hookId: "barbers-salons-05", hookText: "כמה צריכה לעלות תספורת טובה? ולמה לא 40 ₪", hookTypeHe: "חשיפת מחיר", tone: 3 as const, hookScore: 78, primaryText: "שלחו וואטסאפ ונשלח לכם מחירון מלא, בלי הפתעות בקופה.", headline: "המחירון בוואטסאפ" },
+    { key: "C" as const, hookId: "barbers-salons-04", hookText: "פייד מושלם ב-60 שניות", hookTypeHe: "ויזואל ממכר", tone: 0 as const, hookScore: 71, primaryText: "פייד מדויק בלי לחכות בתור. שלחו וואטסאפ וקבעו לשבוע הזה.", headline: "פייד מדויק, בלי לחכות" },
+  ],
+};
+
+/** Allowed CTAs per goal (F.4). */
+export const GOAL_CTAS: Record<CampaignGoal, CtaKey[]> = {
+  whatsapp_messages: ["WHATSAPP_MESSAGE"],
+  lead_form: ["BOOK_NOW", "GET_QUOTE", "SIGN_UP", "LEARN_MORE"],
+  website_traffic: ["LEARN_MORE", "BOOK_NOW", "SHOP_NOW", "CONTACT_US"],
+  local_awareness: ["LEARN_MORE", "CALL_NOW", "WHATSAPP_MESSAGE"],
+};

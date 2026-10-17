@@ -23,8 +23,9 @@ export function RecipeTimeline({ beats, durationSec }: { beats: TrendBeat[]; dur
   const timed = beats.filter((b) => b.role !== "label");
   const labels = beats.filter((b) => b.role === "label");
   const totalMs = timed.reduce((s, b) => s + b.durationMs, 0) + END_CARD_MS;
-  const ticks = Array.from({ length: Math.floor(totalMs / 5000) + 1 }, (_, i) => i * 5);
-  let step = 0;
+  const ticks = Array.from({ length: Math.floor(totalMs / 5000) + 1 }, (_, i) => i * 5).filter((t) => t * 1000 < totalMs - 1500);
+  const stepOf = new Map<string, number>();
+  beats.filter((b) => b.role !== "label" && b.role !== "cut").forEach((b, i) => stepOf.set(b.key, i + 1));
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,7 +63,7 @@ export function RecipeTimeline({ beats, durationSec }: { beats: TrendBeat[]; dur
                 {t}s
               </span>
             ))}
-            <span className="num absolute right-0">{durationSec}s</span>
+            <span className="num absolute inset-e-0">{durationSec}s</span>
           </div>
         </div>
       </figure>
@@ -70,7 +71,6 @@ export function RecipeTimeline({ beats, durationSec }: { beats: TrendBeat[]; dur
       <ol className="flex flex-col gap-3">
         {beats.map((b) => {
           const isTimed = b.role !== "label" && b.role !== "cut";
-          if (isTimed) step += 1;
           return (
             <li key={b.key} className={cn("grid grid-cols-[40px_minmax(0,1fr)] gap-3 rounded-md p-3", b.role === "cut" || b.role === "label" ? "bg-transparent shadow-[inset_0_0_0_1px_var(--color-border)]" : "bg-surface-2")}>
               <span
@@ -80,7 +80,7 @@ export function RecipeTimeline({ beats, durationSec }: { beats: TrendBeat[]; dur
                   isTimed ? ROLE_TONE[b.role].bar : "bg-surface-3 text-text-2",
                 )}
               >
-                {b.role === "cut" ? <Scissors className="size-4" /> : b.role === "label" ? <Layers className="size-4" /> : <Num value={step} />}
+                {b.role === "cut" ? <Scissors className="size-4" /> : b.role === "label" ? <Layers className="size-4" /> : <Num value={stepOf.get(b.key) ?? 0} />}
               </span>
               <div className="flex min-w-0 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

@@ -393,6 +393,9 @@ export const APP_CORE = {
       priceQ: "מה המחיר? (₪)",
       numberQ: "מה המספר?",
       mustFill: "צריך למלא",
+      apply: "אישור",
+      fillNow: "מילוי עכשיו",
+      handled: "טופל",
     },
     script: {
       title: "התסריט",
@@ -531,6 +534,7 @@ export const APP_CORE = {
       newTab: "(נפתח בלשונית חדשה)",
       back: "חזרה לעריכה",
       starting: "מתחילים…",
+      started: "היצירה התחילה. זה לוקח בדרך כלל 4–6 דקות.",
       topUp: "רכישת קרדיטים",
       noVoice: "בלי קריינות",
       noMusic: "בלי",

@@ -104,7 +104,7 @@ export function GrowthExtras() {
               <div className="flex flex-col gap-2 p-3">
                 <p className="text-sm font-extrabold text-text">{T.landing.mockName}</p>
                 <p className="text-[11px] leading-snug text-text-2">{T.landing.mockSub}</p>
-                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-success px-2 py-1.5 text-[11px] font-bold text-on-primary">
+                <span className="inline-flex items-center justify-center gap-1 rounded-full bg-success/15 px-2 py-1.5 text-[11px] font-bold text-success">
                   <MessageCircle className="size-3" />
                   {T.landing.mockWhatsapp}
                 </span>

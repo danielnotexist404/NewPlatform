@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]", className)}>
+    <span className={cn("inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]", className)}>
       <span aria-hidden className="size-1.5 rounded-full bg-primary" />
       {children}
     </span>

@@ -33,6 +33,7 @@ export function ReelTile({
   size = "md",
   className,
   ariaLabel,
+  decorative = false,
 }: {
   hook: string;
   label?: string;
@@ -43,12 +44,15 @@ export function ReelTile({
   size?: "sm" | "md" | "lg";
   className?: string;
   ariaLabel?: string;
+  /** Inside an illustration that already has its own label. */
+  decorative?: boolean;
 }) {
   const text = size === "sm" ? "text-[0.8rem]" : size === "lg" ? "text-[1.35rem]" : "text-base";
   return (
     <div
-      role="img"
-      aria-label={ariaLabel ?? CONTENT_UI.tileAria(hook, label)}
+      role={decorative ? undefined : "img"}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : (ariaLabel ?? CONTENT_UI.tileAria(hook, label))}
       dir="ltr"
       className={cn("frame-tile relative aspect-reel select-none bg-black text-white", className)}
     >

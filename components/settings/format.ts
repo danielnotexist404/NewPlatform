@@ -76,6 +76,7 @@ export function formatBytes(bytes: number): string {
 
 /** Fill "{var}" placeholders in a copy string. */
 export function fill(template: string, vars: Record<string, string | number>): string {
+  if (typeof template !== "string") throw new Error("fill: missing template for " + JSON.stringify(vars));
   return template.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
 }
 

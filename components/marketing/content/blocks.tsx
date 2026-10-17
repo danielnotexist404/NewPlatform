@@ -40,7 +40,7 @@ function Table({ head, rows, mode }: { head: string[]; rows: string[][]; mode: I
               className="border-t border-border align-top max-md:flex max-md:flex-col max-md:gap-2 max-md:rounded-md max-md:border-0 max-md:bg-surface-1 max-md:p-4 max-md:shadow-[inset_0_0_0_1px_var(--color-frame)]"
             >
               {r.map((c, ci) => (
-                <td key={ci} role="cell" className={cn("px-4 py-3 text-start leading-relaxed max-md:p-0", ci === 0 && "font-semibold text-text")}>
+                <td key={ci} role="cell" className={cn("px-4 py-3 text-start leading-relaxed max-md:border-0 max-md:p-0", ci === 0 && "font-semibold text-text max-md:text-body-lg")}>
                   {ci > 0 && head[ci] && (
                     <span aria-hidden className="mb-0.5 block text-micro font-semibold text-muted md:hidden">
                       {head[ci]}

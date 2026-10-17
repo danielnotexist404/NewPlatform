@@ -331,6 +331,7 @@ export const LANDING = {
       notCheaper: `במקרה הזה עורך הווידאו שלכם זול יותר מאיתנו. בכל זאת, אפשר להשוות בעצמכם עם ${TRIAL_CREDITS} קרדיטי ניסיון.`,
       cta: `התחילו עם ${TRIAL_CREDITS} קרדיטים לניסיון`,
       footnotesTitle: "הערות לחישוב",
+      footnoteRef: (n: number) => `הערה ${n}`,
     },
     footnotes: [
       "ברירת המחדל של ₪550 לסרטון היא מחיר עריכה מקצועית של רילס אחד, לפי מחירון שפורסם באתר natigold.com (נבדק באוקטובר 2026). המחיר שאתם משלמים יכול להיות שונה, ולכן אפשר לשנות אותו.",
@@ -347,6 +348,7 @@ export const LANDING = {
     title: "מה שעורך הווידאו עשה, עכשיו בכמה לחיצות",
     subtitle: "וגם מה שקורה אחרי שהסרטון מוכן: פרסום, קמפיינים ולידים.",
     captionSample: "מבצע Black Friday עד 50% על כל הטיפולים",
+    presetsLabel: "שישה סגנונות כתוביות",
     presetNames: { "bold-pop": "פופ", "clean-box": "קופסה נקייה", karaoke: "קריוקי", poster: "פוסטר", news: "חדשות", soft: "רך" },
     tiles: {
       captions: {
@@ -434,6 +436,7 @@ export const LANDING = {
     searchPlaceholder: "למשל: משכנתא, פילאטיס, בלאק פריידיי",
     searchButton: "חיפוש",
     quickLabel: "חיפושים מהירים",
+    seasonChip: "בלאק פריידיי",
     cta: "לספרייה המלאה (חינם) ←",
     pauseMotion: "עצירת התנועה",
     playMotion: "הפעלת התנועה",
@@ -499,7 +502,10 @@ export const LANDING = {
       },
     ],
     t4Popup: { title: "סוללה חלשה", body: "נותרו 10%", action1: "מצב חיסכון בסוללה", action2: "סגירה" },
+    t1Bait: "פיתיון · 2.5 שנ׳",
+    t1Cut: "קאט",
     t2Label: "מאחורי הקלעים",
+    t3AiLabel: "צולם ב-AI",
     t3Caption: "המשאית כמעט תפסה אותי",
   },
 

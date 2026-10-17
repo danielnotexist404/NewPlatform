@@ -7,6 +7,7 @@ import { NICHES_COPY } from "@/content/he/niches";
 import { plural, normalize } from "@/components/hooks/text";
 import { cn } from "@/lib/utils";
 import { NicheIcon } from "./niche-icon";
+import { SmartText } from "@/components/hooks/hook-text";
 import { tintFor } from "./reel-tile";
 
 export interface NicheCardData {
@@ -64,7 +65,9 @@ export function NicheCard({ n, compact = false }: { n: NicheCardData; compact?: 
           {n.name}
         </Link>
       </h3>
-      <p className="line-clamp-2 text-small text-text-2">{n.description}</p>
+      <p className="line-clamp-2 text-small text-text-2">
+        <SmartText text={n.description} />
+      </p>
       <div className="relative z-10 mt-auto flex items-center justify-between gap-3 pt-2 text-sm font-semibold">
         <span className="inline-flex items-center gap-1 text-primary-text" aria-hidden>
           {H.cardPrimary} <DirIcon name="forward" className="size-4 transition-transform group-hover:rtl:-translate-x-0.5 group-hover:ltr:translate-x-0.5" />
@@ -96,7 +99,7 @@ export function NicheGrid({ groups }: { groups: NicheGroup[] }) {
   const total = filtered.reduce((s, g) => s + g.niches.length, 0);
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <label htmlFor="niche-filter" className="sr-only">{H.filterLabel}</label>
         <div className="relative max-w-2xl">
@@ -130,12 +133,14 @@ export function NicheGrid({ groups }: { groups: NicheGroup[] }) {
         <p className="rounded-lg bg-surface-1 p-8 text-center text-body-lg text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">{H.noResults}</p>
       ) : (
         filtered.map((g) => (
-          <section key={g.slug} aria-labelledby={`cat-${g.slug}`} className="flex flex-col gap-4">
-            <h2 id={`cat-${g.slug}`} className="flex items-baseline gap-3 text-h3">
-              {g.name}
-              <span className="num text-small font-normal text-muted">{g.niches.length}</span>
-            </h2>
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <section key={g.slug} aria-labelledby={`cat-${g.slug}`} className="grid gap-4 border-t border-border pt-6 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8">
+            <div>
+              <h2 id={`cat-${g.slug}`} className="text-h3 lg:sticky lg:top-[calc(var(--header-h)+24px)]">
+                {g.name}
+                <span className="num mt-1 block text-small font-normal text-muted">{plural(g.niches.length, H.results)}</span>
+              </h2>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {g.niches.map((n) => (
                 <li key={n.slug}>
                   <NicheCard n={n} />

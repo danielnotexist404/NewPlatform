@@ -31,7 +31,7 @@ export const TRENDS_HUB = {
     empty: "אין טרנד שמתאים לסינון הזה.",
     clear: "ניקוי הסינון",
   },
-  featuredTitle: "בשיא עכשיו",
+  featuredTitle: "הטרנדים של עכשיו",
   libraryTitle: "הספרייה הקבועה",
   librarySubtitle: "פורמטים שעובדים כבר שנים. אנחנו מרעננים את הסגנון, והמבנה נשאר.",
   cardCta: "לפירוק הטרנד",

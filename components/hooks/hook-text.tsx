@@ -16,6 +16,26 @@ export function PlaceholderChip({ name, className }: { name: string; className?:
   );
 }
 
+/**
+ * Plain Hebrew copy where "ל-AI", "ב-2026" must not break at the hyphen and Latin/number runs are isolated.
+ */
+export function SmartText({ text }: { text: string }) {
+  const parts = text.split(/((?:^|(?<=\s|["(]))[א-ת]{1,3}-[A-Za-z0-9][A-Za-z0-9.,%:+/]*)/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className="whitespace-nowrap">
+            <Runs text={p} />
+          </span>
+        ) : (
+          <Runs key={i} text={p} />
+        ),
+      )}
+    </>
+  );
+}
+
 function Runs({ text }: { text: string }) {
   return (
     <>
@@ -33,7 +53,7 @@ export function HookText({ text, values, className }: { text: string; values?: V
   return (
     <span className={className}>
       {segs.map((s, i) => {
-        if (s.kind === "text") return <Runs key={i} text={s.text} />;
+        if (s.kind === "text") return <SmartText key={i} text={s.text} />;
         const v = values?.[s.name]?.trim();
         if (!v) {
           return (

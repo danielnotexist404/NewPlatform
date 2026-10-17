@@ -471,6 +471,10 @@ export const billingCopy = {
     free: "חינם",
     approxVideos: "בערך {n} סרטונים בחודש",
     oneTime: "{n} קרדיטים לניסיון, חד-פעמי",
+    creditsPerMonth: "{n} קרדיטים בכל חודש",
+    oneTimeShort: "{n} (חד-פעמי)",
+    upTo: "עד",
+    perClientShort: "לכל לקוח",
     meta: {
       heading: "פרסום בפייסבוק ובאינסטגרם",
       spendCap: "תקציב פרסום מנוהל: עד {cap} בחודש",

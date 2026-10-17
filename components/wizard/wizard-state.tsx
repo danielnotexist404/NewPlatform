@@ -216,9 +216,16 @@ export function stepValid(step: WizardStep, d: WizardData): boolean {
   }
 }
 
-/** First step that is not valid yet; steps after it are not reachable. */
+/** Navigation gate: like stepValid, but open facts in the script can still be fixed later in "preview" (fast path, §6.11). */
+export function stepNavOk(step: WizardStep, d: WizardData): boolean {
+  if (step === "script") return d.scriptState === "ready";
+  if (step === "preview") return true;
+  return stepValid(step, d);
+}
+
+/** First step that blocks navigation; steps after it are not reachable. */
 export function firstInvalid(d: WizardData): WizardStep | null {
-  return WIZARD_STEPS.find((s) => !stepValid(s, d)) ?? null;
+  return WIZARD_STEPS.find((s) => !stepNavOk(s, d)) ?? null;
 }
 export function reachable(step: WizardStep, d: WizardData): boolean {
   const fi = firstInvalid(d);

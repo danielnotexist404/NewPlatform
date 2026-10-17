@@ -32,9 +32,6 @@ function fill(s: string, n: Niche): string {
 
 export const disclaimersFor = (n: Niche) => COMPLIANCE_DISCLAIMERS[n.compliance_flag] ?? [];
 
-/** Seed lists sometimes quote an item ("נמכר!"); keep items as written. */
-const lowerList = (items: string[]) => items;
-
 function topTypeNames(n: Niche, limit = 3): string[] {
   const counts = new Map<string, number>();
   for (const h of hooksOfNiche(n.slug)) counts.set(h.typeSlug, (counts.get(h.typeSlug) ?? 0) + 1);
@@ -78,11 +75,10 @@ function generated(n: Niche): NicheContent {
   const disc = disclaimersFor(n)[0] ?? null;
   const count = hooksOfNiche(n.slug).length;
   const types = topTypeNames(n);
-  const angles = n.seasonal_angles_he.slice(0, 2).map((a) => a.split(":")[0].trim());
 
-  const intro: string[] = [n.description_he, GENERATED.how(BRAND.nameHeWith.b, short, joinHe(lowerList(n.video_types_he)), cta)];
+  const intro: string[] = [n.description_he, GENERATED.how(BRAND.nameHeWith.b, short, joinHe(n.video_types_he), cta)];
   if (n.compliance_note_he) intro.push(GENERATED.rules(n.compliance_note_he, disc));
-  intro.push(GENERATED.formats(joinHe(angles)));
+  intro.push(GENERATED.formats());
 
   const faq: NicheFaq[] = [
     { q_he: GENERATED.faq.what.q(short), a_he: GENERATED.faq.what.a(joinHe(n.video_types_he.slice(0, 3))) },

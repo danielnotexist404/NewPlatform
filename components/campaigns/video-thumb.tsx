@@ -23,6 +23,7 @@ export function VideoThumb({
   durationSec,
   className,
   showPlay = true,
+  aspect = "reel",
   children,
 }: {
   hookText?: string;
@@ -32,12 +33,13 @@ export function VideoThumb({
   durationSec?: number;
   className?: string;
   showPlay?: boolean;
+  aspect?: "reel" | "feed" | "square";
   children?: React.ReactNode;
 }) {
   const showText = !!hookText && (size === "md" || size === "lg");
   return (
     <div
-      className={cn("relative isolate aspect-reel shrink-0 overflow-hidden bg-black text-white frame-tile", size === "xs" ? "rounded-xs" : "rounded-md", className)}
+      className={cn("relative isolate shrink-0 overflow-hidden bg-black text-white frame-tile", aspect === "reel" ? "aspect-reel" : aspect === "feed" ? "aspect-feed" : "aspect-square", size === "xs" ? "rounded-xs" : "rounded-md", className)}
       style={{ backgroundImage: TONES[tone] }}
       role={hookText ? "img" : undefined}
       aria-label={hookText ? `סרטון לדוגמה: ${hookText}` : undefined}
