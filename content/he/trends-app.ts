@@ -186,6 +186,8 @@ export const HOOK_CHECK_LABEL: Record<HookCheckKey, { label: string; fix: string
 export const GUIDED = {
   eyebrow: "צילום מודרך",
   back: "חזרה לטרנד",
+  backToProject: "חזרה לפרויקט",
+  byTrend: (name: string) => `לפי הטרנד "${name}"`,
   progress: (done: number, total: number) => `${done} מתוך ${total} שוטים`,
   forBusiness: (business: string) => `בשביל ${business}`,
   stepsLabel: "רשימת הצילומים",

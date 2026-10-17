@@ -12,14 +12,14 @@ import { Progress } from "@/components/ui/misc";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { Num } from "@/components/a11y/num";
 import { GUIDED } from "@/content/he/trends-app";
-import { createHref, getTrend, onscreenFor, type GuidedShot } from "@/lib/mock/trends-app";
+import { getTrend, onscreenFor, type GuidedShot } from "@/lib/mock/trends-app";
 import { cn } from "@/lib/utils";
 
 type ShotStatus = "todo" | "recording" | "done";
 interface ShotState { status: ShotStatus; source?: "camera" | "file"; takes: number; seconds?: number; fileName?: string }
 type Phase = "shoot" | "editing" | "done";
 
-export function ShootKit({ trendSlug, nicheSlug, nicheIcon }: { trendSlug: string; nicheSlug: string; nicheIcon?: string }) {
+export function ShootKit({ trendSlug, nicheSlug, nicheIcon, continueHref }: { trendSlug: string; nicheSlug: string; nicheIcon?: string; continueHref: string }) {
   const trend = getTrend(trendSlug)!;
   const shots = trend.shotList ?? [];
   const [active, setActive] = React.useState(0);
@@ -137,7 +137,7 @@ export function ShootKit({ trendSlug, nicheSlug, nicheIcon }: { trendSlug: strin
             ))}
           </ul>
           <div className="flex flex-wrap gap-3">
-            <Link href={`${createHref(trend.slug, "guided", nicheSlug)}&step=preview`} className={buttonVariants({ size: "lg" })}>
+            <Link href={continueHref} className={buttonVariants({ size: "lg" })}>
               {GUIDED.autocut.continue}
               <DirIcon name="forward" />
             </Link>

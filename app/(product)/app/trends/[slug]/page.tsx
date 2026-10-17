@@ -124,7 +124,7 @@ async function TrendDetail({ params }: { params: Promise<{ slug: string }> }) {
                   <p className="text-micro text-muted">{TREND_DETAIL.hooks.bait}</p>
                   <p className="text-small text-text-2">{v.baitHe}</p>
                   <p className="text-micro text-muted">{TREND_DETAIL.hooks.line}</p>
-                  <p className="text-body-lg font-bold leading-snug">"{v.hookLineHe}"</p>
+                  <p className="text-body-lg font-bold leading-snug">{`"${v.hookLineHe}"`}</p>
                   <p className="mt-auto text-small text-text-2">{v.whyHe}</p>
                 </li>
               ))}

@@ -100,7 +100,7 @@ export function faqLd(items: { q_he: string; a_he: string }[]) {
 /** "דוגמה" / "הדגמה" chip — sample data must always be labelled (Part 00 §3 principle 9). */
 export function SampleTag({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-xs bg-lemon px-2 py-0.5 text-micro text-on-primary", className)}>
+    <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-xs bg-lemon px-2 py-0.5 text-micro text-on-primary", className)}>
       {children}
     </span>
   );

@@ -201,7 +201,7 @@ def ov_clock(time):
 
 def ov_price():
     return {"kind": "price", "amountHe": "$onscreen", "labelHe": "$onscreen", "strikeAmountHe": None,
-            "fromMs": 800, "toMs": None, "position": "center"}
+            "fromMs": 300, "toMs": None, "position": "center"}
 
 
 NO_TEXT = "no text, no letters, no logos, no watermark"
@@ -313,19 +313,19 @@ def t2_behind_the_viral():
         "requires_real_footage": True,
         "requires_people_consent": True,
         "recipe": {"version": 1, "beats": [
-            label("bts", "תווית קבועה מעל צילומי ההכנות", ov_bts(), ["chaos", "chaos_more", "detail"]),
+            label("bts", "תווית קבועה מעל צילומי ההכנות", ov_bts(), ["chaos", "chaos_more"]),
             scene("chaos", "bait", 3500, "צילום רחב של כל הצוות באמצע ההכנות, בלי הסבר", "user_media",
                   speed=1.25, onscreen=slot("hook_line", 40, "הסרטון הכי מטורף שצילמנו במסעדה"),
                   vo=vo("chaos_vo", 3.5), shot=wide),
             scene("chaos_more", "payoff", 7000, "הבלגן ממשיך, מואץ, וכולם רציניים לגמרי", "user_media",
-                  speed=1.5, vo=vo("chaos_more_vo", 7), shot=wide),
-            scene("detail", "payoff", 6000, "רגע אחד מקרוב: הכי מצחיק או הכי מוזר", "user_media", camera="handheld",
-                  onscreen=slot("detail_line", 30, "כן, זה בכוונה"), vo=vo("detail_vo", 6), shot="detail_moment"),
+                  speed=1.5, onscreen=slot("detail_line", 30, "כן, זה בכוונה"), vo=vo("chaos_more_vo", 7), shot=wide),
             scene("result", "reveal", 7500, "התוצאה הגמורה: למה כל הבלגן היה שווה", "user_media", transition="whip",
                   sfx="whoosh", onscreen=slot("result_line", 30, "וזה מה שיצא"), vo=vo("result_vo", 7.5),
                   shot="final_result"),
-            scene("cta", "cta", 6000, "הצוות מזמין, בלי מילים", "user_media",
-                  onscreen=slot("cta_line", 30, "בואו לראות את זה מקרוב"), vo=vo("cta_vo", 6), shot="team_wave"),
+            scene("team", "payoff", 6000, "הצוות שעשה את זה, מנופף למצלמה", "user_media",
+                  onscreen=slot("team_line", 30, "הצוות שעשה את זה"), vo=vo("team_vo", 6), shot="team_wave"),
+            scene("cta", "cta", 6000, "איך מגיעים אלינו", "brand_card",
+                  onscreen=slot("cta_line", 30, "בואו לראות את זה מקרוב"), vo=vo("cta_vo", 6)),
         ]},
         "hook_variants": [
             variant("A", "open on the most absurd wide moment of the preparation, everyone in the middle of an action",
@@ -339,37 +339,38 @@ def t2_behind_the_viral():
             adapt("restaurants", "the restaurant floor team in work aprons", "a busy restaurant bar area",
                   "a signature dish served at the bar",
                   {"hook_line": "הסרטון הכי מטורף שצילמנו במסעדה", "detail_line": "כן, זה בכוונה",
-                   "result_line": "וזה מה שיצא", "cta_line": "בואו לראות את זה מקרוב"}, "whatsapp",
+                   "result_line": "וזה מה שיצא", "team_line": "צוות הערב שלנו", "cta_line": "בואו לראות את זה מקרוב"},
+                  "whatsapp",
                   vo_example="ככה נראות ההכנות לסרטון קצר אחד. ועכשיו התוצאה.",
                   notes="כל מי שמופיע בצילום, גם עובדים, צריך לאשר בכתב לפני הפרסום."),
             adapt("event-photographers", "a photographer and an assistant with lights and a backdrop", "a small photo studio",
                   "a finished portrait on a camera screen",
                   {"hook_line": "ככה נראה יום צילומים אצלנו בסטודיו", "detail_line": "התאורה לקחה יותר זמן מהצילום",
-                   "result_line": "וזו התמונה שיצאה", "cta_line": "שלחו וואטסאפ וקבעו צילומים"}, "whatsapp",
+                   "result_line": "וזו התמונה שיצאה", "team_line": "הצוות שמאחורי המצלמה",
+                   "cta_line": "שלחו וואטסאפ וקבעו צילומים"}, "whatsapp",
                   vo_example="רוב העבודה קורית לפני שלוחצים על הכפתור."),
             adapt("beauty-nails", "a nail technician and a client at the work table", "a calm nail studio with soft lighting",
                   "a finished set of nails in close-up",
                   {"hook_line": "ככה נראה יום צילומים אצלנו בסטודיו", "detail_line": "רגע לפני שזה מושלם",
-                   "result_line": "וזו התוצאה", "cta_line": "קבעו תור אונליין"}, "booking",
+                   "result_line": "וזו התוצאה", "team_line": "הידיים שמאחורי כל ציפורן", "cta_line": "קבעו תור אונליין"},
+                  "booking",
                   vo_example="לפני כל סרטון יפה יש בלגן קטן. זה שלנו."),
             adapt("fitness-trainers", "a trainer and two clients", "a training studio during a busy hour",
                   "the trainer giving a high five after a set",
                   {"hook_line": "ככה צילמנו את אימון הבוקר", "detail_line": "אף אחד לא הבין מה אנחנו עושים",
-                   "result_line": "וזה הסרטון שיצא", "cta_line": "שלחו הודעה ונתאם אימון"}, "whatsapp",
+                   "result_line": "וזה הסרטון שיצא", "team_line": "המאמנים של הסטודיו",
+                   "cta_line": "שלחו הודעה ונתאם אימון"}, "whatsapp",
                   vo_example="ככה נראה צילום של סרטון קצר, מאחורי הקלעים."),
         ],
         "music_brief": music("energetic", 110, 128, 23500, "build", [("result", "whoosh")]),
         "required_overlays": ["bts_label"],
-        "shot_list": {"version": 1, "intro_he": "ארבעה שוטים קצרים, בערך עשר דקות של צילום. אנחנו עורכים, מוסיפים כתוביות ומוזיקה.",
+        "shot_list": {"version": 1, "intro_he": "שלושה שוטים קצרים, בערך עשר דקות של צילום. אנחנו עורכים, מוסיפים כתוביות ומוזיקה.",
                       "estimated_minutes": 10, "shots": [
             shot(wide, "הבלגן מזווית רחבה",
                  "שימו את הטלפון לאורך על חצובה או על מדף, וצלמו את כל הצוות באמצע ההכנות. לא עוצרים באמצע.",
-                 "wide", 10, 40, "tripod_wide",
+                 "wide", 15, 45, "tripod_wide",
                  ["האור מגיע מאחורי הטלפון, לא מולו", "כולם בתוך המסגרת, גם מי שמחזיק את הדף",
                   "בקשו מכל מי שמצטלם אישור לפני שמתחילים"], True),
-            shot("detail_moment", "רגע אחד מקרוב",
-                 "צלמו מקרוב את הרגע הכי מצחיק: דף שמכסה את המצלמה, צלחת שעוברת מיד ליד או פרצוף רציני.",
-                 "closeup", 4, 15, "hands_table", ["מתקרבים עם הרגליים, לא עם הזום", "מחזיקים את הטלפון בשתי ידיים"], True),
             shot("final_result", "התוצאה",
                  "צלמו את התוצאה הגמורה: המנה על הבר, הצוות בעמדות, או הסרטון שיצא מההכנות.",
                  "medium", 5, 25, "product_center", ["צילום אחד יציב, בלי לזוז", "התוצאה במרכז המסגרת"], False),
@@ -501,7 +502,7 @@ def t4_fake_popup():
             scene("bait", "bait", 3500, "המנה מוגשת, ומעליה קופצת התראה", "ai_clip",
                   "First-person POV at a wooden table in {setting_en}, the viewer's hand resting on the table, a server places {product_en} right in front of the camera, warm appetizing light",
                   "the plate slides into frame and settles, steam rising, the hand stays still",
-                  onscreen=slot("hook_line", 70, "סוללה חלשה\nכדאי לחבר למטען"), overlay=ov_fake_ui("low_battery", 1200, 3300),
+                  onscreen=slot("hook_line", 70, "סוללה חלשה\nכדאי לחבר למטען"), overlay=ov_fake_ui("low_battery", 350, 3300),
                   shot="pov_table"),
             cut("cut1", sfx="click"),
             scene("closeup", "reveal", 6000, "תקריב של המנה, בלי שום הפרעה", "ai_clip",
@@ -1209,7 +1210,7 @@ def t11_price():
                    "offer_line": "מחיר אחד, בלי תוספות", "cta_line": "קבעו תור אונליין"}, "booking",
                   vo_example="בנייה בג׳ל מההתחלה ועד הסוף, במחיר אחד."),
         ],
-        "music_brief": music("energetic", 105, 125, 800, "drop", [("number", "cash")]),
+        "music_brief": music("energetic", 105, 125, 300, "drop", [("number", "cash")]),
         "required_overlays": ["price"],
         "shot_list": None,
         "compliance_notes_he": [
@@ -1586,6 +1587,8 @@ def validate(rows, hook_types, niche_slugs):
                 e(i, "TT09", f"{b['key']}: one emoji at most")
             if ov.get("toMs") is not None and (ov["toMs"] <= ov["fromMs"] or ov["toMs"] > b["duration_ms"]):
                 e(i, "TT09", f"{b['key']}: overlay timing outside the beat")
+            if b is (scenes[0] if scenes else None) and refs and ov["fromMs"] + 120 > 500:
+                w(i, "TT09", f"{b['key']}: hook text in the overlay appears after 0.5 s (hook score text_by_500ms)")
         # TT10 text slots
         slots = {}
         for b in scenes:

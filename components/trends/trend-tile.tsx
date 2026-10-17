@@ -29,9 +29,11 @@ export interface TrendTileProps {
   className?: string;
   /** Accessible name; the tile is decorative when omitted. */
   ariaLabel?: string;
+  /** Hide the play / duration row (when a real control is layered on top). */
+  controls?: boolean;
 }
 
-export function TrendTile({ art, tone, text, nicheIcon, durationSec, label, size = "md", className, ariaLabel }: TrendTileProps) {
+export function TrendTile({ art, tone, text, nicheIcon, durationSec, label, size = "md", className, ariaLabel, controls = true }: TrendTileProps) {
   return (
     <div
       role={ariaLabel ? "img" : undefined}
@@ -49,7 +51,7 @@ export function TrendTile({ art, tone, text, nicheIcon, durationSec, label, size
           {label}
         </span>
       )}
-      <div className="absolute inset-x-[4cqi] bottom-[4cqi] z-20 flex items-center justify-between gap-2" dir="ltr">
+      <div className={cn("absolute inset-x-[4cqi] bottom-[4cqi] z-20 flex items-center justify-between gap-2", !controls && "hidden")} dir="ltr">
         <span className="flex size-[13cqi] items-center justify-center rounded-full bg-white/90 text-black">
           <Play className="size-[6cqi] translate-x-[0.4cqi]" fill="currentColor" />
         </span>
@@ -57,7 +59,7 @@ export function TrendTile({ art, tone, text, nicheIcon, durationSec, label, size
           {durationSec ? <span className="num rounded-full bg-black/55 px-[2.6cqi] py-[0.8cqi] text-[4cqi] font-semibold">0:{String(durationSec).padStart(2, "0")}</span> : null}
           {nicheIcon && size !== "sm" ? (
             <span className="flex size-[10cqi] items-center justify-center rounded-full bg-black/55 backdrop-blur-sm">
-              <NicheIcon name={nicheIcon} className="size-[5.5cqi]" />
+              <NicheIcon icon={nicheIcon} className="size-[5.5cqi]" />
             </span>
           ) : null}
         </span>
@@ -232,7 +234,7 @@ function TileArtLayer({ art, text }: { art: TileArt; text: string }) {
     case "price":
       return (
         <div className="absolute inset-0 z-10">
-          <p dir="ltr" className="absolute top-[18%] inset-x-0 text-center font-display text-[42cqi] leading-none font-bold text-primary drop-shadow-[0_0_6cqi_color-mix(in_oklab,var(--color-primary)_45%,transparent)]">₪?</p>
+          <p dir="ltr" className="absolute top-[20%] inset-x-0 text-center text-[34cqi] leading-none font-extrabold text-primary drop-shadow-[0_0_6cqi_color-mix(in_oklab,var(--color-primary)_45%,transparent)]">₪?</p>
           <p className="absolute top-[56%] inset-x-[8%] text-center text-[6.6cqi] leading-tight font-extrabold text-white">{text}</p>
         </div>
       );

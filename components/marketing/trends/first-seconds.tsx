@@ -61,7 +61,6 @@ export function FirstSeconds({ items }: { items: TrendExplainerV1["first_seconds
 /** Recipe strip: one block per beat, width by duration (LTR media order, Hebrew labels). */
 export function RecipeStrip({ beats }: { beats: TrendRecipeBeatV1[] }) {
   const timed = beats.filter((b) => b.role !== "label" && b.role !== "cut");
-  const total = timed.reduce((s, b) => s + b.duration_ms, 0) || 1;
   const persistent = beats.filter((b) => b.role === "label");
   const tones: Record<string, string> = {
     bait: "bg-rose/20 text-rose shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-rose)_40%,transparent)]",

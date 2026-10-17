@@ -323,8 +323,7 @@
           "guided_shot_key": null,
           "spans": [
             "chaos",
-            "chaos_more",
-            "detail"
+            "chaos_more"
           ]
         },
         {
@@ -364,38 +363,17 @@
           "transition_in": "cut",
           "sfx": null,
           "speed": 1.5,
-          "onscreen_slot": null,
-          "vo_slot": {
-            "key": "chaos_more_vo",
-            "max_words": 15
-          },
-          "overlay": null,
-          "guided_shot_key": "wide_chaos",
-          "spans": null
-        },
-        {
-          "key": "detail",
-          "role": "payoff",
-          "duration_ms": 6000,
-          "purpose_he": "רגע אחד מקרוב: הכי מצחיק או הכי מוזר",
-          "visual_source": "user_media",
-          "visual_prompt_en": "",
-          "motion_prompt_en": "",
-          "camera": "handheld",
-          "transition_in": "cut",
-          "sfx": null,
-          "speed": null,
           "onscreen_slot": {
             "key": "detail_line",
             "max_chars": 30,
             "example_he": "כן, זה בכוונה"
           },
           "vo_slot": {
-            "key": "detail_vo",
-            "max_words": 12
+            "key": "chaos_more_vo",
+            "max_words": 15
           },
           "overlay": null,
-          "guided_shot_key": "detail_moment",
+          "guided_shot_key": "wide_chaos",
           "spans": null
         },
         {
@@ -424,11 +402,36 @@
           "spans": null
         },
         {
+          "key": "team",
+          "role": "payoff",
+          "duration_ms": 6000,
+          "purpose_he": "הצוות שעשה את זה, מנופף למצלמה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "team_line",
+            "max_chars": 30,
+            "example_he": "הצוות שעשה את זה"
+          },
+          "vo_slot": {
+            "key": "team_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": "team_wave",
+          "spans": null
+        },
+        {
           "key": "cta",
           "role": "cta",
           "duration_ms": 6000,
-          "purpose_he": "הצוות מזמין, בלי מילים",
-          "visual_source": "user_media",
+          "purpose_he": "איך מגיעים אלינו",
+          "visual_source": "brand_card",
           "visual_prompt_en": "",
           "motion_prompt_en": "",
           "camera": "static",
@@ -445,7 +448,7 @@
             "max_words": 12
           },
           "overlay": null,
-          "guided_shot_key": "team_wave",
+          "guided_shot_key": null,
           "spans": null
         }
       ]
@@ -480,6 +483,7 @@
           "hook_line": "הסרטון הכי מטורף שצילמנו במסעדה",
           "detail_line": "כן, זה בכוונה",
           "result_line": "וזה מה שיצא",
+          "team_line": "צוות הערב שלנו",
           "cta_line": "בואו לראות את זה מקרוב"
         },
         "vo_example_he": "ככה נראות ההכנות לסרטון קצר אחד. ועכשיו התוצאה.",
@@ -495,6 +499,7 @@
           "hook_line": "ככה נראה יום צילומים אצלנו בסטודיו",
           "detail_line": "התאורה לקחה יותר זמן מהצילום",
           "result_line": "וזו התמונה שיצאה",
+          "team_line": "הצוות שמאחורי המצלמה",
           "cta_line": "שלחו וואטסאפ וקבעו צילומים"
         },
         "vo_example_he": "רוב העבודה קורית לפני שלוחצים על הכפתור.",
@@ -510,6 +515,7 @@
           "hook_line": "ככה נראה יום צילומים אצלנו בסטודיו",
           "detail_line": "רגע לפני שזה מושלם",
           "result_line": "וזו התוצאה",
+          "team_line": "הידיים שמאחורי כל ציפורן",
           "cta_line": "קבעו תור אונליין"
         },
         "vo_example_he": "לפני כל סרטון יפה יש בלגן קטן. זה שלנו.",
@@ -525,6 +531,7 @@
           "hook_line": "ככה צילמנו את אימון הבוקר",
           "detail_line": "אף אחד לא הבין מה אנחנו עושים",
           "result_line": "וזה הסרטון שיצא",
+          "team_line": "המאמנים של הסטודיו",
           "cta_line": "שלחו הודעה ונתאם אימון"
         },
         "vo_example_he": "ככה נראה צילום של סרטון קצר, מאחורי הקלעים.",
@@ -550,7 +557,7 @@
     ],
     "shot_list": {
       "version": 1,
-      "intro_he": "ארבעה שוטים קצרים, בערך עשר דקות של צילום. אנחנו עורכים, מוסיפים כתוביות ומוזיקה.",
+      "intro_he": "שלושה שוטים קצרים, בערך עשר דקות של צילום. אנחנו עורכים, מוסיפים כתוביות ומוזיקה.",
       "estimated_minutes": 10,
       "shots": [
         {
@@ -558,27 +565,13 @@
           "title_he": "הבלגן מזווית רחבה",
           "instruction_he": "שימו את הטלפון לאורך על חצובה או על מדף, וצלמו את כל הצוות באמצע ההכנות. לא עוצרים באמצע.",
           "framing": "wide",
-          "min_sec": 10,
-          "max_sec": 40,
+          "min_sec": 15,
+          "max_sec": 45,
           "ghost": "tripod_wide",
           "tips_he": [
             "האור מגיע מאחורי הטלפון, לא מולו",
             "כולם בתוך המסגרת, גם מי שמחזיק את הדף",
             "בקשו מכל מי שמצטלם אישור לפני שמתחילים"
-          ],
-          "people_on_camera": true
-        },
-        {
-          "key": "detail_moment",
-          "title_he": "רגע אחד מקרוב",
-          "instruction_he": "צלמו מקרוב את הרגע הכי מצחיק: דף שמכסה את המצלמה, צלחת שעוברת מיד ליד או פרצוף רציני.",
-          "framing": "closeup",
-          "min_sec": 4,
-          "max_sec": 15,
-          "ghost": "hands_table",
-          "tips_he": [
-            "מתקרבים עם הרגליים, לא עם הזום",
-            "מחזיקים את הטלפון בשתי ידיים"
           ],
           "people_on_camera": true
         },
@@ -937,7 +930,7 @@
             ],
             "theme": "light",
             "tapAtMs": 3050,
-            "fromMs": 1200,
+            "fromMs": 350,
             "toMs": 3300,
             "position": "center"
           },
@@ -3312,7 +3305,7 @@
             "amountHe": "$onscreen",
             "labelHe": "$onscreen",
             "strikeAmountHe": null,
-            "fromMs": 800,
+            "fromMs": 300,
             "toMs": null,
             "position": "center"
           },
@@ -3482,7 +3475,7 @@
       "mood": "energetic",
       "bpm_min": 105,
       "bpm_max": 125,
-      "drop_at_ms": 800,
+      "drop_at_ms": 300,
       "energy_curve": "drop",
       "sfx_cues": [
         {

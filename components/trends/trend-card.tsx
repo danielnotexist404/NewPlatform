@@ -6,7 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { TREND_CARD } from "@/content/he/trends-app";
 import {
-  adaptationFor, createHref, hookScore, onscreenFor, shootProjectId, supportsAi, supportsGuided, type TrendTemplate,
+  adaptationFor, createHref, hookScore, onscreenFor, supportsAi, supportsGuided, type TrendTemplate,
 } from "@/lib/mock/trends-app";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,7 @@ export function TrendCard({
           </Link>
         )}
         {guided && (
-          <Link href={`/app/projects/${shootProjectId(trend.slug)}/shoot`} className={buttonVariants({ variant: ai ? "secondary" : "primary", size: "sm" })}>
+          <Link href={createHref(trend.slug, "guided", nicheSlug)} className={buttonVariants({ variant: ai ? "secondary" : "primary", size: "sm" })}>
             <Camera aria-hidden />
             {TREND_CARD.guidedCta}
           </Link>
