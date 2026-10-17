@@ -1,7 +1,7 @@
 # חלק 02 — אתר שיווקי, ספריית הוקים ציבורית ו-SEO
 
-החלק הזה מגדיר כל עמוד ציבורי של {{BRAND_NAME}}: המעטפת הגלובלית (כותרת, פוטר, פס הודעה, כפתור וואטסאפ, באנר עוגיות), דף הבית סקשן אחר סקשן עם קופי סופי, דפי הנישה, ספריית ההוקים הציבורית על כל סוגי העמודים שלה, דוגמאות, תבניות, מחירים, בלוג עם שלושה מאמרים מלאים, אודות, יצירת קשר, שאלות נפוצות ושבעת הדפים המשפטיים בנוסח מלא.
-בנוסף מוגדרים כאן כללי ה-SEO (מטא-דאטה, JSON-LD, מפות אתר, robots, תמונות OG, קישור פנימי), תקציבי הביצועים ואירועי האנליטיקה השיווקיים.
+החלק הזה מגדיר כל עמוד ציבורי של {{BRAND_NAME}}: המעטפת הגלובלית (כותרת, פוטר, פס הודעה, כפתור וואטסאפ, באנר עוגיות), דף הבית סקשן אחר סקשן עם קופי סופי, דפי הנישה, ספריית ההוקים הציבורית על כל סוגי העמודים שלה, דוגמאות, תבניות, מחירים, בלוג עם שלושה מאמרים מלאים (ועוד שניים ל-M11), אודות, יצירת קשר, שאלות נפוצות, שמונת הדפים המשפטיים בנוסח מלא, עמוד מחיקת נתוני פייסבוק ואינסטגרם, עמוד הקמפיינים (`/campaigns`) ודפי הטרנדים הציבוריים (`/trends`).
+בנוסף מוגדרים כאן כללי ה-SEO (מטא-דאטה, JSON-LD, מפות אתר, robots, תמונות OG, קישור פנימי), תקציבי הביצועים ואירועי האנליטיקה השיווקיים, וגם שער הטענות: מה מותר לומר על קמפיינים, לידים, פרסום וטרנדים, מתי, ועם איזה מקור (§1.2, §3.0).
 כל מחרוזת שמופיעה כאן בעברית היא הנוסח הסופי לשילוב ב-`messages/he.json` או בקובצי ה-MDX — לא טיוטה ולא דוגמה. הדפים המשפטיים מסומנים "טיוטה לבדיקת עורך דין" ומכילים משתנים משפטיים מפורשים בלבד.
 העיצוב, הטוקנים והרכיבים המשותפים מוגדרים בחלק 01; כאן משתמשים בהם בשמם (`HookCard`, `VideoTile`, `Price`, `Num` וכו׳) ולא מגדירים אותם מחדש.
 
@@ -19,7 +19,7 @@
 
 | נתיב | רינדור | revalidate | תגיות מטמון (`revalidateTag`) |
 |---|---|---|---|
-| `/` | Static + ISR | 3600 | `landing`, `hooks:hotd`, `examples`, `plans`, `credit_costs` |
+| `/` | Static + ISR | 3600 | `landing`, `hooks:hotd`, `examples`, `plans`, `credit_costs`, `flags`, `trends` |
 | `/niches` · `/niches/[niche]` | SSG + ISR (`generateStaticParams` על נישות פעילות) | 86400 | `niches`, `niche:{slug}`, `examples` |
 | `/hooks` | SSR (דינמי, כי הפאסטים מגיעים מ-`searchParams`), עם נתונים מהמטמון; פילטרים מתעדכנים בצד לקוח | מטמון נתונים 3600 | `hooks`, `hooks:hotd` |
 | `/hooks/[niche]` | SSG + ISR | 21600 | `hooks`, `hooks:niche:{slug}`, `niche:{slug}` |
@@ -30,16 +30,21 @@
 | `/hooks/h/[id]` | ISR | 21600 | `hook:{id}` |
 | `/examples` | ISR | 3600 | `examples` |
 | `/templates` · `/templates/[slug]` | SSG + ISR | 86400 | `templates`, `template:{slug}` |
-| `/pricing` | SSG + ISR | 86400 | `plans`, `credit_packs`, `credit_costs`, `app_settings` |
+| `/pricing` | SSG + ISR | 86400 | `plans`, `credit_packs`, `credit_costs`, `app_settings`, `flags` |
 | `/blog` · `/blog/[slug]` · `/blog/tag/[tag]` | SSG | — | (נבנים מחדש בכל פריסה) |
-| `/about` · `/contact` (`?topic=` נקרא בצד הלקוח) · `/faq` | SSG | — | — |
-| `/legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies}` (`?v={version}` לגרסה מהארכיון) | דינמי, כי הוא קורא את `?v=` בצד השרת; בלי cookies, וה-MDX של כל הגרסאות מקומפל בזמן ה-build, כך שהרינדור זול | — | — |
+| `/about` · `/contact` (`?topic=` נקרא בצד הלקוח) | SSG | — | — |
+| `/faq` | SSG + ISR (שאלה שתלויה בדגל מוצגת רק כשהתנאי שלה מתקיים, §9.3) | 86400 | `flags`, `plans`, `credit_costs` |
+| `/legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies,dpa}` (`?v={version}` לגרסה מהארכיון) | דינמי, כי הוא קורא את `?v=` בצד השרת; בלי cookies, וה-MDX של כל הגרסאות מקומפל בזמן ה-build, כך שהרינדור זול | — | — |
 | `/accessibility` | הפניה קבועה (308) ל-`/legal/accessibility` (`next.config.ts` → `redirects`) | — | — |
+| `/campaigns` | SSG + ISR; `notFound()` כשהתנאי `campaigns` לא מתקיים (§3.0, §16) | 3600 | `flags`, `plans`, `credit_costs` |
+| `/trends` | SSG + ISR; `notFound()` כשהדגל `trends_public` כבוי. הסינון (`?niche=&lifecycle=&ads=`) בצד הלקוח (§15.1) | 3600 | `trends`, `flags`, `niches` |
+| `/trends/[slug]` | SSG + ISR (`generateStaticParams` על טרנדים מפורסמים ועל טרנדים שפרשו; `dynamicParams = true`) | 3600 | `trends`, `flags` |
+| `/meta/data-deletion` (`?code=` נקרא בצד השרת) | דינמי, `noindex`, `Cache-Control: no-store` (§10.10) | — | — |
 | `/exp/hero/[variant]` | SSG (`b`, `c`), `noindex`, יעד rewrite בלבד מ-`/` (§3.3.2) | 3600 | כמו `/` |
-| תמונות OG: `/opengraph-image`, `/niches/[niche]/opengraph-image`, `/hooks/[niche]/opengraph-image`, `/hooks/types/[type]/opengraph-image`, `/hooks/h/[id]/opengraph-image`, `/blog/[slug]/opengraph-image` | `next/og` (§12.5) | כמו העמוד | כמו העמוד |
+| תמונות OG: `/opengraph-image`, `/niches/[niche]/opengraph-image`, `/hooks/[niche]/opengraph-image`, `/hooks/types/[type]/opengraph-image`, `/hooks/h/[id]/opengraph-image`, `/blog/[slug]/opengraph-image`, `/campaigns/opengraph-image`, `/trends/opengraph-image`, `/trends/[slug]/opengraph-image` | `next/og` (§12.5) | כמו העמוד | כמו העמוד |
 | `/sitemap.xml` (+ מקטעי `generateSitemaps`) · `/robots.txt` | §12.3 | 3600 | — |
 
-נתיבים ציבוריים שהעמודים שלהם מוגדרים בחלקים אחרים, ונמצאים ברשימה הזו כדי שתהיה מלאה: `/v/[token]` ו-`/v/[token]/opengraph-image` (דף שיתוף, חלק 03 §8), `/approve/[token]` (אישור לקוח, חלק 03 §8.4), `/login` (`?next=&invite=&email=`) · `/auth/callback` · `/auth/confirm` · `/auth/error` (חלק 03 §3), ו-`/unsubscribe` (`?token=`, העמוד מוגדר כאן ב-§11.6). כולם דינמיים ו-`noindex`. הנתיבים `/dev/*` קיימים רק מחוץ לפרודקשן (חלק 06).
+נתיבים ציבוריים שהעמודים שלהם מוגדרים בחלקים אחרים, ונמצאים ברשימה הזו כדי שתהיה מלאה: `/v/[token]` ו-`/v/[token]/opengraph-image` (דף שיתוף, חלק 03 §8), `/approve/[token]` (אישור לקוח, חלק 03 §8.4), `/login` (`?next=&invite=&email=`) · `/auth/callback` · `/auth/confirm` · `/auth/error` (חלק 03 §3), ו-`/unsubscribe` (`?token=`, העמוד מוגדר כאן ב-§11.6). כולם דינמיים ו-`noindex`. הנתיבים `/dev/*` קיימים רק מחוץ לפרודקשן (חלק 06), וביניהם `/dev/mock-meta-login` (חלק 07). גם `/b/[slug]` ו-`/b/[slug]/privacy` ("דף העסק" של לקוח והודעת הפרטיות שלו, מוגדרים בחלק 07) ציבוריים: ISR, `noindex` כל עוד `landing_pages.indexable = false`, לא נכנסים למפות האתר שלנו, ו-robots לא חוסם אותם, כדי שדף שהעסק בחר לאנדקס ייסרק.
 
 כללים:
 - עמודי השיווק לא קוראים cookies ולא את הסשן בצד השרת (אחרת הם הופכים לדינמיים). כל מה שתלוי במשתמש (מצב מחובר בכותרת, מועדפים, התאמה אישית של הוקים) נעשה ב"איים" קטנים בצד הלקוח.
@@ -48,6 +53,9 @@
 - עמודים סטטיים עם מסננים (`/hooks/[niche]`, `/examples`, `/templates`) מטמיעים את כל הרשומות שלהם ב-HTML ומסננים בצד הלקוח (`useSearchParams` בתוך `Suspense`), כדי שיישארו סטטיים. רק `/hooks` (האב, עם חיפוש בכל הספרייה) מרונדר דינמית.
 - `generateStaticParams` מחזיר רק נישות עם `is_active = true`. נישה עם `compliance_flag = 'political'` לעולם לא נבנית ולא מקושרת.
 - מילים שמורות שאסור שיהיו slug של נישה: `types`, `season`, `platform`, `h`, `new`, `search`. סקריפט ה-seed ובדיקת יחידה ב-`tests/unit/routes.test.ts` נכשלים אם נישה מקבלת slug כזה.
+- **שער הטענות:** כל עמוד שמזכיר קמפיינים, לידים, פרסום ברשתות או טרנדים קורא את `getClaimsGate()` (§3.0) בזמן ה-ISR, ולכן הוא נושא את התגית `flags`; שינוי דגל באדמין קורא ל-`revalidateTag("flags", "max")` (חלק 06 §21.2).
+- **טרנדים:** `getPublishedTrends()` ו-`getTrend()` קוראים דרך הלקוח הציבורי רק את העמודות שה-column grant של `trend_templates` פותח ל-`anon` (חלק 08 §D; הרשימה ב-§15.3). `source_reference_id`, `do_not_copy`, `created_by` ו-`updated_by` לא נבחרים לעולם, ושום כתובת של ה-bucket `trend-refs` לא מגיעה לעמוד.
+- **חריג אחד ללקוח הציבורי:** `/meta/data-deletion` קורא את מצב הבקשה דרך `lib/marketing/data-deletion.ts` (`server-only`, `createAdminClient()`), כי לטבלה `meta_data_deletion_requests` אין בכוונה הרשאות ל-`anon` (חלק 07 §6). ההרשאה היא קוד האישור עצמו (12 תווים, 60 ביט, כמו טוקן של קישור אישור), והשאילתה בוחרת שלוש עמודות בלבד (§10.10).
 
 ```ts
 // lib/marketing/queries.ts (תקציר החוזה)
@@ -63,6 +71,11 @@ export async function getPublishedExamples(f?: ExampleFilters): Promise<ExampleD
 export async function getPublicTemplates(): Promise<TemplateDTO[]>;           // tags: templates
 export async function getPricing(): Promise<PricingDTO>; // plans + packs + credit_costs + vat_rate + typical_video_credits + bitEnabled (§7.3)
 export async function getMarketingCounters(): Promise<CountersDTO>;           // מונים אמיתיים בלבד (§3.11)
+export async function getClaimsGate(): Promise<ClaimsGate>;                    // tags: flags, trends — שער הטענות (§3.0)
+export async function getComparisonClaims(ids: ClaimId[]): Promise<ComparisonClaim[]>; // content/claims/comparisons.json, בזמן הבנייה (§1.2)
+export async function getMarketingSettings(): Promise<MarketingSettingsDTO>;  // tags: app_settings — getSetting(): meta_budget_presets_ils, meta_spend_cap_grace_days, trends_weekly_drop, lead_notify
+export async function getPublishedTrends(): Promise<PublicTrendCard[]>;       // tags: trends — published + retired, עמודות ציבוריות בלבד (§15.3)
+export async function getTrend(slug: string): Promise<PublicTrend | null>;    // tags: trends
 ```
 
 ### §1.2 קבועים, משתנים ותוויות
@@ -144,6 +157,10 @@ export const whatsappHref = (text = WHATSAPP_PREFILL_HE) =>
 | `music_tracks.mood` | `energetic` אנרגטי · `warm` חם · `luxury` יוקרתי · `funny` קליל ומצחיק · `calm` רגוע · `inspiring` מעורר השראה · `urban` אורבני |
 | `visual_style` | `cinematic` קולנועי · `ugc` צילום טלפון · `day_in_business` יום בעסק · `before_after` לפני ואחרי · `product` מוצר בפוקוס · `text_motion` טקסט בתנועה |
 | caption presets | `bold-pop` פופ · `clean-box` קופסה נקייה · `karaoke` קריוקי · `poster` פוסטר · `news` חדשות · `soft` רך |
+| `ad_goal` | `whatsapp_messages` הודעות בוואטסאפ · `lead_form` לידים בטופס · `website_traffic` כניסות לאתר · `local_awareness` חשיפה לאזור |
+| `trend_production_mode` (תג ההפקה בכרטיס טרנד) | `ai` AI מלא · `guided` צילום מודרך · `hybrid` צילום מודרך |
+| `trend_ad_safety` (תג המודעה בכרטיס טרנד) | `organic_only` רק לפרסום רגיל · `ad_safe`, `needs_consent`, `needs_ai_label` מתאים למודעה (התנאים הנוספים מוסברים בעמוד הטרנד, §15.2) |
+| מצב הטרנד (`TrendLifecycleBadge`) | חדש השבוע · בשיא · קלאסיקה · נגמר בקרוב · ולטרנד שפרש: הטרנד הזה כבר פחות חם (הכלל שבוחר את התג — חלק 08 §11.1) |
 
 **שם קצר לנישה.** שמות הנישות בזרע ארוכים ומתאימים לכרטיס ("נדל״ן: מתווכים ומשרדי תיווך"), אבל לא לביטוי "סרטון תדמית ל…". לכן לטבלה `niches` יש עמודה `short_name_he text` (חלק 04 §5.2) — צירוף ברבים שאפשר להצמיד אליו את האות ל (למשל "מתווכי נדל״ן", "רופאי שיניים"). בכל תבנית כותרת: `ל{short_name_he ?? name_he}`. ערכי ההשקה שבטבלה נכתבים לקובץ `supabase/seed/data/niche_extras.json` ונטענים בשלב 3b של ה-seed במצב `fill_if_null` (חלק 04 §16.1), כך שעריכה באדמין לעולם לא נדרסת. הערכים להשקה:
 
@@ -168,6 +185,73 @@ export const whatsappHref = (text = WHATSAPP_PREFILL_HE) =>
 | `b2b-startups` | חברות B2B וסטארטאפים | `nonprofits` | עמותות |
 | `physio-nutrition` | פיזיותרפיסטים ותזונאים | `local-politics` | (לא פעילה; לא מוצגת) |
 
+**טענות השוואה ומקורות (`content/claims/comparisons.json`).** כל טענה שמשווה אותנו לחלופה (טווח המחירים של סוכנויות ושל מנהלי סושיאל, ההמלצה לתקציב התחלתי) נמצאת בקובץ אחד, ולא כתובה בקופי. הקופי מפנה לטענה לפי `id`, ו-`ClaimFootnote` (חלק 01) מרנדר הערת שוליים ממוספרת עם שם המקור, קישור (`rel="nofollow noopener"`) ו**"נבדק ב-{accessedAt}"**. המספור רציף לכל העמוד (`ClaimFootnotesProvider`), ורשימת ההערות מוצגת בסוף הסקשן שבו הטענה מופיעה (`<ol start>`). הכללים מחייבים (חלק 07 §1.3):
+
+- **דבר מול דבר:** מחיר ניהול חודשי מול מחיר התוכנית החודשית שלנו, ובשני הצדדים בלי תקציב פרסום. בשני הצדדים כתוב **"לא כולל תקציב פרסום, שמשולם למטא בנפרד"**.
+- טווח מוצג תמיד עם התווית **"הערכה לפי מקורות פומביים"**, ולעולם לא כהצעת מחיר או כציטוט. הטווח עצמו מוצג מ-`value_range_ils` דרך `formatIls`, לא כמחרוזת.
+- **המחירים שלנו לא בקובץ:** הם נקראים מ-`plans` (`getPricing()`), כולל מע״מ, כמו בכל האתר.
+- טענה עם `reviewed_at: null` לא מוצגת בשום מקום. כך נשמרת בקובץ טענה שעוד לא אומתה ידנית.
+- בלי שמות של מתחרים ובלי המספרים שלהם בקופי. הקישור למקור מופיע רק בהערת השוליים, ומקור מותר רק אם אינו מתחרה ישיר.
+- `unit` הוא `month` או `day` (התקציב ההתחלתי הוא ליום).
+
+```json
+{
+  "version": 1,
+  "claims": [
+    {
+      "id": "agency-monthly-management",
+      "text_he": "ניהול קמפיינים בפייסבוק ובאינסטגרם אצל סוכנות, מנהל סושיאל או פרילנסר",
+      "value_range_ils": [1500, 6000],
+      "unit": "month",
+      "sources": [
+        { "label": "Jett: מחירון ניהול סושיאל", "url": "https://www.jett.co.il/social-media-management-price/", "accessed_at": "2026-10-17" },
+        { "label": "Kanmedia: מחירון שיווק דיגיטלי לעסקים קטנים", "url": "https://kanmedia.co.il/%D7%9E%D7%97%D7%99%D7%A8%D7%95%D7%9F-%D7%A9%D7%99%D7%95%D7%95%D7%A7-%D7%93%D7%99%D7%92%D7%99%D7%98%D7%9C%D7%99-%D7%9C%D7%A2%D7%A1%D7%A7%D7%99%D7%9D-%D7%A7%D7%98%D7%A0%D7%99%D7%9D-%D7%91%D7%99%D7%A9/", "accessed_at": "2026-10-17" },
+        { "label": "Bidernet: מחיר פרסום בפייסבוק, מדריך לשנת 2025", "url": "https://bidernet.co.il/%d7%9e%d7%97%d7%99%d7%a8-%d7%a4%d7%a8%d7%a1%d7%95%d7%9d-%d7%91%d7%a4%d7%99%d7%99%d7%a1%d7%91%d7%95%d7%a7-%d7%9e%d7%93%d7%a8%d7%99%d7%9a-%d7%9c%d7%a9%d7%a0%d7%aa-2025/", "accessed_at": "2026-10-17" }
+      ],
+      "reviewed_at": "2026-10-17",
+      "note_he": "לפני תקציב הפרסום. המקורות לא תמיד מציינים אם המחיר כולל מע״מ."
+    },
+    {
+      "id": "ad-budget-paid-separately",
+      "text_he": "תקציב הפרסום משולם לפלטפורמה בנפרד, מעבר לדמי הניהול",
+      "value_range_ils": null,
+      "unit": "month",
+      "sources": [
+        { "label": "Calliber: מחירון קמפיינים ממומנים ברשתות חברתיות", "url": "https://calliber.co.il/prices-list/social-media-sponsored-campaigns/", "accessed_at": "2026-10-17" },
+        { "label": "Lemel: מחירון ניהול סושיאל", "url": "https://lemel.co.il/social-media-management-price/", "accessed_at": "2026-10-17" }
+      ],
+      "reviewed_at": "2026-10-17",
+      "note_he": "גם אצלנו התקציב משולם למטא בנפרד, ישירות מאמצעי התשלום שבחשבון המודעות."
+    },
+    {
+      "id": "daily-budget-start",
+      "text_he": "תקציב יומי התחלתי מומלץ לקמפיין ראשון",
+      "value_range_ils": [30, 50],
+      "unit": "day",
+      "sources": [
+        { "label": "Bidernet: מחיר פרסום בפייסבוק, מדריך לשנת 2025", "url": "https://bidernet.co.il/%d7%9e%d7%97%d7%99%d7%a8-%d7%a4%d7%a8%d7%a1%d7%95%d7%9d-%d7%91%d7%a4%d7%99%d7%99%d7%a1%d7%91%d7%95%d7%a7-%d7%9e%d7%93%d7%a8%d7%99%d7%9a-%d7%9c%d7%a9%d7%a0%d7%aa-2025/", "accessed_at": "2026-10-17" }
+      ],
+      "reviewed_at": "2026-10-17",
+      "note_he": "המלצה שלנו, לא הבטחה. המדריך מציין טווח התחלתי של ₪20–₪50 ליום, וברירת המחדל במערכת היא ₪40."
+    },
+    {
+      "id": "ai-managed-social-from",
+      "text_he": "שירותי ניהול סושיאל מבוססי AI, מ-₪499 בחודש",
+      "value_range_ils": null,
+      "unit": "month",
+      "sources": [
+        { "label": "צילום מצב של תוצאות חיפוש (בן כ-11 חודשים בזמן הבדיקה)", "url": "https://trendzsocial.co.il/", "accessed_at": "2026-10-17" }
+      ],
+      "reviewed_at": null,
+      "note_he": "לא מוצג. המקור הוא מתחרה ישיר, והמחיר לא אומת. נכנס לקופי רק אחרי אימות ידני, בניסוח כללי בלי שם, ורשומה ב-DECISIONS.md."
+    }
+  ]
+}
+```
+
+- `scripts/check-content.ts` (חלק 07 §1.3): **אזהרה** על טענה מוצגת שנבדקה לפני יותר מ-90 יום; **כישלון** על טענה בלי מקור, על `id` שהקופי מפנה אליו ולא קיים, וב-`--launch` גם על טענה מוצגת שנבדקה לפני יותר מ-180 יום או שלא נבדקה (`reviewed_at: null`). לפני M11 בעל המוצר בודק את המקורות מחדש, אוסף 10 הצעות מחיר אמיתיות ומעדכן את `reviewed_at` (חלק 07 §4.2, משימה 12) `[M0-verify market]`.
+- **טענות אסורות** (`MARKETING_FORBIDDEN_CLAIMS` ב-`lib/marketing/claims.ts`, ש-`check-content` מריץ על `messages/he.json` → `marketing.*`, על `content/blog/**` ועל `content/seo/**`, ונכשל על כל אחת): "תוצאות מובטחות", "יותר לקוחות בוודאות", "ויראלי מובטח", "ROI", "הכפלת המכירות", "שותף רשמי של מטא", "שותפים רשמיים של מטא", "מאושר על ידי מטא", "מאושרים על ידי מטא", "בשיתוף מטא", "Meta Partner", "Meta Business Partner". באותה בדיקה: שמות מתחרים (`COMPETITOR_NAMES`: Trendz, Zeely, Wix, Madgicx, AdEspresso, Creatify) נכשלים בקופי השיווקי, והמילים "באוויר" או "לאוויר" (כמילה שלמה, לא "לאווירה") על קמפיין נכשלות כשאין "אחרי בדיקה של מטא" באותה מחרוזת או במחרוזת שמוצגת מיד אחריה באותו סקשן (למשל H1 ותת-הכותרת שלו).
+
 ### §1.3 מרחבי שמות ב-`messages/he.json`
 
 | namespace | מה יש בו |
@@ -183,6 +267,10 @@ export const whatsappHref = (text = WHATSAPP_PREFILL_HE) =>
 | `common.labels.*` | תוויות enum (§1.2) — משותף לאתר, לאפליקציה ולאדמין |
 | `hooks.*` | ספריית ההוקים הציבורית (§5) — משותף עם הספרייה באפליקציה |
 | `legal.*` | כותרות, תוויות ומשתני מסגרת של הדפים המשפטיים; גוף הדפים עצמו ב-`content/legal/*.mdx` |
+| `marketing.campaigns.*` | עמוד הקמפיינים (§16), ושני הסקשנים המשותפים `CampaignFlow` (`marketing.campaigns.flow.*`) ו-`DashboardPreview` (`marketing.campaigns.dashboard.*`), שמופיעים גם בדף הבית (§3.17–§3.18) |
+| `marketing.trends.*` | האב הטרנדים ועמוד טרנד (§15), ו-`TrendsTeaser` (`marketing.trends.teaser.*`, §3.19) |
+| `marketing.compare.*` | `ComparisonBlock` (§3.20) ותוויות הערות השוליים של הטענות (§1.2) |
+| `marketing.metaDeletion.*` | התוויות והמצבים של עמוד מחיקת נתוני פייסבוק ואינסטגרם (§10.10); הגוף ב-`content/legal/meta-data-deletion.mdx` |
 
 **סכומים ומספרים בקופי:** בחלק הזה סכום מופיע כ-"₪{x}" כדי שיהיה ברור איך הוא נראה. במימוש, כל סכום בשקלים מוצג דרך `formatIls` / `Price` / `Num` (חלק 01 §2.5): סימן השקל לפני המספר, בלי רווח ("₪119"), והמחרוזת ב-`messages/he.json` מקבלת משתנה ICU שכבר כולל את הסימן (`{todayIls}`) — לא כותבים ₪ ליד משתנה או מספר בקובץ ההודעות. בקובצי `content/**/*.mdx` (דפים משפטיים, בלוג) סכום מילולי מותר, כי לרכיבי ה-MDX אין `Price`/`Num`: כותבים "₪119" (₪ לפני המספר, בלי רווח), ו-`lint:copy` נכשל שם רק על סדר הפוך ("119 ₪") או על "ש״ח" אחרי מספר (חלק 01 §2.6). מירכאות בקופי הן `"…"` רגילות; גרשיים (״) רק בתוך ראשי תיבות (מע״מ, נדל״ן). בלי תווי כיווניות גולמיים בקופי (U+200E/U+200F; גם לא U+05BE, המקף העברי): טוקן לועזי או מספרי בתוך משפט עברי עטוף ב-`<ltr>` (טקסט עשיר של ICU, מרונדר כ-`bdi`) או ב-`Num`, למשל `"…כמו <ltr>@yourbusiness</ltr>."`. סימני כיווניות שמופיעים בפרוזה של המסמך הזה הם עזרי תצוגה בלבד ולא מועתקים לקוד (חלק 00 §6.5).
 
@@ -193,7 +281,8 @@ export const whatsappHref = (text = WHATSAPP_PREFILL_HE) =>
 ```
 content/
 ├─ blog/*.mdx
-├─ legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies}.mdx
+├─ legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies,dpa}.mdx
+├─ legal/meta-data-deletion.mdx     # גוף עמוד מחיקת נתוני פייסבוק ואינסטגרם (§10.10), לא דף משפטי עם גרסאות
 ├─ legal/archive/{slug}-{version}.mdx  # גרסאות קודמות (§10.1)
 ├─ about.json                       # מייסדים לעמוד אודות (§9.1); ריק בהשקה
 ├─ seo/hook-types/{slug}.mdx        # הסבר ארוך לכל סוג הוק (§5.7)
@@ -202,12 +291,14 @@ content/
 ├─ seo/niche-types/{niche}--{type}.mdx  # אופציונלי: הקדמה ייחודית לצירוף נישה × סוג (§5.6)
 ├─ testimonials.he.json             # המלצות אמיתיות בלבד (§3.11)
 ├─ demo-wall.json                   # תוכנית קיר הווידאו (§3.3.6)
+├─ demo-dashboard.json              # נתוני ההמחשה של DashboardPreview (§3.18)
+├─ claims/comparisons.json          # טענות השוואה עם מקורות (§1.2)
 └─ newsletter/{issueId}.json        # גיליונות "5 הוקים לשבוע" (חלק 06 §12.5)
 ```
 
 ### §1.4 רכיבים
 
-הרכיבים הקנוניים מחלק 01 (`MarketingHeader`, `AnnouncementBar`, `HeroPromptCard`, `VideoWall`, `EnginesStrip`, `NicheShowcase`, `HowItWorks`, `EditorMath`, `BeforeAfterSlider`, `SavingsCalculator`, `FeatureBento`, `HooksTeaser`, `ShowcaseGallery`, `Testimonials`, `PricingCards`, `CreditCostTable`, `FaqAccordion`, `FinalCtaBand`, `MarketingFooter`, `MobileStickyCta`, `HookCard`, `HookFilters`, `NicheIcon`, `NichePicker`, `SectionHeading`, `GlowCard`, `LegalPage`, `Breadcrumbs`, `JsonLd`, `VideoTile`, `PhoneFrame`, `VideoPlayer`, `Price`, `Num`, `LtrInput`, `DirIcon`, `EmptyState`) משמשים בשמם. החלק הזה מוסיף רכיבים שיווקיים בלבד, בקבצים ב-`components/marketing/` או `components/hooks/` (שם קובץ kebab-case):
+הרכיבים הקנוניים מחלק 01 (`MarketingHeader`, `AnnouncementBar`, `HeroPromptCard`, `VideoWall`, `EnginesStrip`, `NicheShowcase`, `HowItWorks`, `EditorMath`, `BeforeAfterSlider`, `SavingsCalculator`, `FeatureBento`, `HooksTeaser`, `ShowcaseGallery`, `Testimonials`, `PricingCards`, `CreditCostTable`, `FaqAccordion`, `FinalCtaBand`, `MarketingFooter`, `MobileStickyCta`, `HookCard`, `HookFilters`, `NicheIcon`, `NichePicker`, `SectionHeading`, `GlowCard`, `LegalPage`, `Breadcrumbs`, `JsonLd`, `VideoTile`, `PhoneFrame`, `VideoPlayer`, `Price`, `Num`, `LtrInput`, `DirIcon`, `EmptyState`, ומהרחבת 2026-10-17 גם `ClaimFootnote`, `KpiTile`, `SpendCapMeter`, `HookComparisonTable`, `StatusBadge`, `TrendCard`, `TrendLifecycleBadge`) משמשים בשמם. החלק הזה מוסיף רכיבים שיווקיים בלבד, בקבצים ב-`components/marketing/` או `components/hooks/` (שם קובץ kebab-case):
 
 | רכיב | תפקיד |
 |---|---|
@@ -228,6 +319,17 @@ content/
 | `CountersRow` | מונים אמיתיים (§3.11) |
 | `QuietDayBanner` | פס יום שקט (§2.1) |
 | `BlogCard` · `BlogProse` · `TableOfContents` | §8 |
+| `ClaimsGate` | רכיב שרת שמרנדר את הילדים רק כשהתנאי של שער הטענות מתקיים (§3.0) |
+| `CampaignFlow` | "מהסרטון לקמפיין" בדף הבית ובעמוד הקמפיינים (§3.17) |
+| `DashboardPreview` | דוח ההמחשה, עם התווית "דוגמה להמחשה" (§3.18) |
+| `TrendsTeaser` | טרנדים בדף הבית (§3.19) |
+| `ComparisonBlock` | השוואת מחיר הניהול החודשי, עם הערות שוליים ממקורות (§3.20) |
+| `HealthCheckCta` | כפתור או קישור "בדיקת דופק חינם" אחיד (§3.17, §7.10, §16) |
+| `PlanMetaFeatures` | שורות הקמפיינים, דף העסק ובדיקת הדופק בכרטיסי התוכניות ובטבלת ההשוואה (§7.10) |
+| `TrendHubFilters` · `TrendExplainer` | הסינון בהאב הטרנדים, ותוכן "פירוק טרנד" בעמוד טרנד (§15) |
+| `DeletionStatusLookup` | שדה קוד האישור ותוצאת המצב בעמוד מחיקת הנתונים (§10.10) |
+| `BrandMentionNote` | שורת הסימנים המסחריים של פייסבוק, אינסטגרם, וואטסאפ ומטא (§2.3) |
+| `EnSummary` | תקציר באנגלית לבודקים של הפלטפורמה, רק בדף הפרטיות ובעמוד מחיקת הנתונים (§10.1) |
 
 ### §1.5 עמודי שגיאה
 
@@ -242,6 +344,9 @@ content/
 - [ ] אחרי `pnpm db:seed` יש `short_name_he` לכל 35 הנישות הפעילות (מ-`niche_extras.json`, חלק 04 §16.1); בדיקת ה-seed נכשלת אם חסר ערך.
 - [ ] ניסיון לבנות נישה עם slug שמור נכשל בבדיקת יחידה.
 - [ ] עמוד 404 ועמוד שגיאה מוצגים בעברית, RTL, בשתי ערכות הנושא, ועוברים axe ללא הפרות חמורות.
+- [ ] `scripts/check-content.ts` נכשל על טענה ב-`comparisons.json` בלי מקור ועל `id` שהקופי מפנה אליו ואינו קיים, וב-`--launch` גם על טענה מוצגת שנבדקה לפני יותר מ-180 יום או שלא נבדקה; מעל 90 יום — אזהרה.
+- [ ] `check-content` נכשל על ביטוי מ-`MARKETING_FORBIDDEN_CLAIMS`, על שם מתחרה בקופי השיווקי, ועל "באוויר" או "לאוויר" בלי "אחרי בדיקה של מטא" באותה מחרוזת או במחרוזת שאחריה (בדיקות חיוביות ושליליות ב-`tests/fixtures/claims-cases.json`).
+- [ ] כל שאילתה של האתר על `trend_templates` בוחרת רק את `TREND_PUBLIC_COLUMNS` (בדיקת יחידה: אין `source_reference_id` ואין `do_not_copy`), ואין ב-HTML של עמודי הטרנדים כתובת של ה-bucket `trend-refs`.
 
 ---
 
@@ -254,6 +359,7 @@ content/
   - טקסט: **"חדש: ספריית הוקים בעברית לפי נישה. מעתיקים בחינם ←"**
   - קישור: `/hooks`
 - כשמספר ההוקים המפורסמים ידוע, מותר וריאנט עם מספר אמיתי בלבד, מעוגל כלפי מטה לעשרות: "חדש: {count, plural, other {יותר מ-# הוקים}} בעברית לפי נישה ←" (למשל 320 כשיש 326; הספירה תמיד מעל 100, ולכן מספיקה הצורה `other`).
+- **נוסח השקת הקמפיינים (M11; נקבע באדמין רק אחרי שהתנאי `campaigns` מתקיים):** `{"enabled": true, "id": "campaigns-launch-v1", "text_he": "חדש: מעלים את הסרטון לקמפיין בפייסבוק ובאינסטגרם, ישר מכאן ←", "href": "/campaigns"}`. הגנה מהודעה שנשארה דלוקה: כשהתנאי `campaigns` לא מתקיים, הודעה שה-`href` שלה מתחיל ב-`/campaigns` לא מוצגת, וכך גם הודעה שמובילה ל-`/trends` כשהדגל `trends_public` כבוי.
 - **יום שקט:** כשהיום (לפי `Asia/Jerusalem`) נמצא בטווח `starts_on`–`ends_on` של עונה עם `is_quiet_day = true`, ההודעה השיווקית לא מוצגת. במקומה מוצג `QuietDayBanner` בלי כפתור סגירה, בלי צבע זהב ובלי קישור:
   - `memorial-day`: "היום יום הזיכרון לחללי מערכות ישראל ולנפגעי פעולות האיבה. אנחנו מתייחדים עם זכרם."
   - `holocaust-memorial-day`: "היום יום הזיכרון לשואה ולגבורה. אנחנו מתייחדים עם זכר הנספים."
@@ -269,6 +375,7 @@ content/
 | End (שמאל) | כפתור הגדרות תצוגה (אייקון) · "התחברות" (ghost) · "צרו סרטון בחינם" (גלולה זהובה) |
 
 - **יעדי הקישורים:** איך זה עובד → `/#how-it-works` · נישות → `/niches` · ספריית הוקים → `/hooks` · דוגמאות → `/examples` · מחירים → `/pricing` · בלוג → `/blog` · התחברות → `/login` · צרו סרטון בחינם → `/login?next=/app/create` (משתמש מחובר: `/app/create`).
+- **קישורים לפי שער הטענות (§3.0):** כשהתנאי `campaigns` מתקיים נכנס "קמפיינים" (`/campaigns`) אחרי "איך זה עובד", וכשהדגל `trends_public` פעיל נכנס "טרנדים" (`/trends`) אחרי "נישות". כששניהם פעילים, "דוגמאות" עובר לפוטר בלבד, כדי שבמרכז יהיו לכל היותר 7 קישורים: איך זה עובד · קמפיינים · נישות · טרנדים · ספריית הוקים · מחירים · בלוג. בתפריט הנייד מופיעים כולם, באותו סדר, ו"דוגמאות" אחרי "ספריית הוקים".
 - **תפריט נישות (דסקטופ):** "נישות" פותח `NavigationMenu` עם שתי עמודות: 14 הנישות בעדיפות 1 (אייקון + `name_he`, קישור ל-`/niches/[slug]`) ובתחתית "לכל הנישות ←". ללא hover-only: נפתח גם בלחיצה ובמקלדת (Enter/Space/חץ למטה), נסגר ב-Esc ומחזיר פוקוס.
 - **כפתור הגדרות תצוגה:** אייקון `SlidersHorizontal`, `aria-label="הגדרות תצוגה"`, פותח Popover עם `ThemeToggle` ("ערכת נושא: כהה · בהירה · לפי המכשיר") ו-`MotionToggle` ("עצירת אנימציות").
 - **מצב מחובר:** אי בצד לקוח בודק אם יש סשן Supabase בדפדפן. אם כן, "התחברות" מתחלף ב-"לאפליקציה ←" (`/app`), והכפתור הזהוב מוביל ל-`/app/create`. עד שהבדיקה מסתיימת מוצג המצב הלא-מחובר (בלי קפיצת layout: לשני הכפתורים רוחב מינימלי קבוע).
@@ -286,7 +393,7 @@ content/
 - תת-כותרת: "פעם בשבוע: חמישה משפטי פתיחה חדשים לנישות שונות, טיפ אחד לרילס, ובלי ספאם."
 - שדה מייל (`LtrInput`, placeholder `name@business.co.il`), תיבת הסכמה לא מסומנת, כפתור "הרשמה".
 
-**עמודת המותג:** לוגו · "סרטוני תדמית ורילס בעברית, לפי נישה." · `WhatsAppButton` ("דברו איתנו בוואטסאפ") · אייקוני רשתות (רק אלה שמוגדרים ב-`BRAND.social`, עם `aria-label` כמו "{{BRAND_NAME}} באינסטגרם").
+**עמודת המותג:** לוגו · "סרטוני תדמית ורילס בעברית, לפי נישה." (כשהתנאי `campaigns` מתקיים: "סרטונים בעברית וקמפיינים בפייסבוק ובאינסטגרם, לעסקים קטנים ולעסקים שגדלים.") · `WhatsAppButton` ("דברו איתנו בוואטסאפ") · אייקוני רשתות (רק אלה שמוגדרים ב-`BRAND.social`, עם `aria-label` כמו "{{BRAND_NAME}} באינסטגרם").
 
 | המוצר | נישות | ספריית ההוקים | משאבים | משפטי ועזרה |
 |---|---|---|---|---|
@@ -299,6 +406,8 @@ content/
 | | | | | **ביטול מנוי** (`/app/billing/cancel`) |
 | | | | | מדיניות שימוש הוגן ב-AI |
 | | | | | הסכמה לשימוש בדמות ובקול |
+| קמפיינים (`/campaigns`, רק כשהתנאי `campaigns` מתקיים) | | טרנדים לרילס (`/trends`, רק כשהדגל `trends_public` פעיל) | | הסכם עיבוד מידע |
+| | | | | מחיקת נתוני פייסבוק ואינסטגרם (`/meta/data-deletion`, רק כשהדגל `meta_connect` פעיל; העמוד עצמו קיים תמיד) |
 
 - כותרות העמודות הן `<h2>` ויזואלית קטנה (`micro`), כל עמודה ב-`<nav aria-label="…">` עם אותה כותרת.
 - הקישור **"ביטול מנוי"** מופיע בכל עמוד, בולט באותה מידה כמו שאר הקישורים המשפטיים (לא אפור יותר, לא קטן יותר). זה הקישור הייעודי והבולט לביטול שסעיף 14ט לחוק הגנת הצרכן דורש באתר שמוכר עסקאות מרחוק (חלק 06 §10.1). משתמש לא מחובר שלוחץ עליו מגיע ל-`/login?next=/app/billing/cancel` עם הודעה "התחברו כדי לבטל את המנוי. אפשר גם לבטל במייל או בטלפון — הפרטים במדיניות הביטול." (הודעה זו מוצגת בעמוד ההתחברות כשה-`next` הוא עמוד הביטול; ראו חלק 03).
@@ -307,6 +416,7 @@ content/
 - "© {year} {{LEGAL_ENTITY_NAME}}. כל הזכויות שמורות."
 - "{{BRAND_NAME}} הוא שם מסחרי של {{LEGAL_ENTITY_NAME}}, ח״פ {{COMPANY_ID}}."
 - "כל המחירים באתר בשקלים וכוללים מע״מ (אלא אם מסומן "לפני מע״מ")."
+- `BrandMentionNote` (רק כשאחד הדגלים `meta_connect`, `meta_ads` או `trends_public` פעיל): **"פייסבוק, אינסטגרם, וואטסאפ ומטא הם סימנים מסחריים של Meta Platforms, Inc. הם מוזכרים רק כדי לתאר את הפלטפורמות שאליהן אפשר לפרסם, ואין בכך חסות, שותפות או המלצה מצד מטא."**
 - `ThemeToggle` קומפקטי בצד הסוף.
 
 ### §2.4 `MobileStickyCta`
@@ -324,7 +434,8 @@ content/
   - מעמוד המחירים: "היי, אשמח לעזרה בבחירת תוכנית לעסק שלי" (ניסוח בגוף ראשון בלי צורת מגדר, כדי להימנע מלוכסן)
   - מעמוד נישה: "היי, ראיתי את העמוד על סרטונים ל{short_name_he} ואשמח לשמוע איך זה עובד"
   - מעמוד יצירת הקשר, כשנבחר הנושא "נגישות": "היי, אני פונה בנושא נגישות האתר"
-- אין בועת וואטסאפ צפה בדסקטופ. בדסקטופ הקישור מופיע בפוטר, בעמוד יצירת הקשר ובעמוד המחירים.
+  - מעמוד הקמפיינים: "היי, אשמח לשמוע איך עובדים אצלכם הקמפיינים בפייסבוק ובאינסטגרם"
+- אין בועת וואטסאפ צפה בדסקטופ. בדסקטופ הקישור מופיע בפוטר, בעמוד יצירת הקשר, בעמוד המחירים ובעמוד הקמפיינים.
 - אם `BRAND.whatsapp` ריק — כל כפתורי הוואטסאפ לא מוצגים (גם בפס הנייד, שאז מציג רק את כפתור היצירה).
 
 **קריטריוני קבלה**
@@ -333,6 +444,7 @@ content/
 - [ ] ביום שמסומן כיום שקט, `QuietDayBanner` מחליף את ההודעה, וקיר הווידאו מציג פוסטרים בלבד (בדיקה עם תאריך מדומה).
 - [ ] הפס הנייד לא מסתיר אף אלמנט בפוקוס (בדיקת Playwright: Tab בכל העמוד, `getBoundingClientRect` של האלמנט בפוקוס מעל הפס).
 - [ ] אין קישור וואטסאפ שבור כש-`BRAND.whatsapp` ריק.
+- [ ] כשהדגלים `meta_ads` ו-`trends_public` כבויים, אין בכותרת, בפוטר ובתפריט הנייד קישור ל-`/campaigns` או ל-`/trends`, ו-`BrandMentionNote` לא מוצג; כששניהם פעילים, במרכז הכותרת בדסקטופ יש בדיוק 7 קישורים.
 - [ ] אין לוכסנים מגדריים בשום נוסח (בדיקת CI על `messages/he.json` ועל `content/**`: הביטוי `[א-ת]+/(ת|י|ה|ות|ים)(?![א-ת])` לא מופיע).
 
 ---
@@ -341,13 +453,70 @@ content/
 
 ### §3.0 כללים לכל הדף
 
-- סדר הסקשנים קבוע ומחייב: `AnnouncementBar` → `MarketingHeader` → Hero → `EnginesStrip` → `NicheShowcase` → `HowItWorks` → `EditorMath` → `FeatureBento` → `HooksTeaser` → `ShowcaseGallery` → `Testimonials` → `PricingCards` + `CreditCostTable` → `FaqAccordion` → `FinalCtaBand` → `MarketingFooter` → `MobileStickyCta`.
-- כל סקשן הוא `<section aria-labelledby="…">` עם `id` קבוע: `hero`, `engines`, `niches`, `how-it-works`, `editor-math`, `features`, `hooks`, `examples`, `testimonials`, `pricing`, `faq`, `start`. כותרת הסקשן היא `<h2>` דרך `SectionHeading` (eyebrow אופציונלי + H2 + תת-כותרת).
+- סדר הסקשנים קבוע ומחייב: `AnnouncementBar` → `MarketingHeader` → Hero → `EnginesStrip` → `NicheShowcase` → `HowItWorks` → `CampaignFlow` → `DashboardPreview` → `EditorMath` → `FeatureBento` → `HooksTeaser` → `TrendsTeaser` → `ShowcaseGallery` → `Testimonials` → `ComparisonBlock` → `PricingCards` + `CreditCostTable` → `FaqAccordion` → `FinalCtaBand` → `MarketingFooter` → `MobileStickyCta`. ארבעת הסקשנים החדשים (§3.17–§3.20) מוצגים רק כשהתנאי שלהם בשער הטענות מתקיים; כשהם מוסתרים, הדף זהה לדף שלפני הרחבת 2026-10-17.
+- כל סקשן הוא `<section aria-labelledby="…">` עם `id` קבוע: `hero`, `engines`, `niches`, `how-it-works`, `campaigns`, `dashboard`, `editor-math`, `features`, `hooks`, `trends`, `examples`, `testimonials`, `compare`, `pricing`, `faq`, `start`. כותרת הסקשן היא `<h2>` דרך `SectionHeading` (eyebrow אופציונלי + H2 + תת-כותרת).
 - **LCP = טקסט ה-H1**, לא וידאו ולא תמונה. אין `priority` על תמונות בגיבור; פוסטרים של קיר הווידאו נטענים אחרי הצביעה הראשונה.
 - לכל היותר שלושה אפקטים כבדים בדף: קיר הווידאו (מרקיז אנכי), ה-pin של "איך זה עובד" (GSAP ScrollTrigger), ומרקיז ההוקים. כל השאר (BorderBeam, spotlight ב-bento, ספירת מספרים ב-`Num animate`) קלים ונטענים בעצלות (`next/dynamic`, `ssr: false` רק לאפקט, לא לתוכן). `NumberTicker` של Magic UI לא בשימוש (חלק 01).
 - תחת `prefers-reduced-motion` או "עצירת אנימציות": אין מרקיז, אין pin, אין Lenis, פוסטרים במקום וידאו, ומעברים של עד 150ms בשקיפות בלבד.
-- כל כפתור הנעה לפעולה בדף שולח `cta_clicked {location}` (ערכי `location` ב-§14). קישורים לאפליקציה נושאים `src` רק מהערכים `hero`, `final_cta`, `hooks`, `template`, `niche_page` (חלק 04 §19.3).
+- כל כפתור הנעה לפעולה בדף שולח `cta_clicked {location}` (ערכי `location` ב-§14). קישורים לאפליקציה נושאים `src` רק מהערכים `hero`, `final_cta`, `hooks`, `template`, `niche_page`, `trend` (חלק 04 §19.3; `trend` רק בקישורי `?trend=`, §15).
 - הדף נשאר סטטי גם עם פרמטרים: `?niche=` (§3.5) ו-`?newsletter=confirmed|invalid` (§11.5) נקראים באיים בצד הלקוח, וה-canonical תמיד `https://{{DOMAIN}}/`.
+
+#### §3.0.1 שער הטענות (לכל האתר)
+
+קופי על קמפיינים, לידים, פרסום ברשתות ו"כל שבוע" של טרנדים מוצג רק כשהיכולת קיימת באמת (חלק 07 §1.3). ההחלטה מתקבלת בשרת, בזמן ה-ISR, ממקום אחד:
+
+```ts
+// lib/marketing/claims-gate.ts (server-only); נחשף דרך lib/marketing/queries.ts
+export type ClaimsGate = {
+  campaigns: boolean;     // meta_connect && meta_ads
+  leads: boolean;         // campaigns && meta_lead_forms
+  autoRules: boolean;     // campaigns && meta_auto_rules
+  publishing: boolean;    // meta_connect
+  healthCheck: boolean;   // meta_connect && meta_health_check
+  businessPage: boolean;  // landing_pages
+  trendsPublic: boolean;  // trends_public
+  trendsWeekly: boolean;  // trendsPublic && weeklyDropStreak() >= 4
+  guidedFilming: boolean; // guided_filming
+  hookScore: boolean;     // hook_score
+  monthlyPlan: boolean;   // monthly_plan
+};
+export async function getClaimsGate(): Promise<ClaimsGate>;
+// isEnabled() של lib/flags.ts (בלי workspace ובלי תוכנית: האתר מדבר על מה שקיים במוצר),
+// עטוף ב-unstable_cache עם התגיות "flags" ו-"trends", revalidate 3600.
+// weeklyDropStreak(): מספר שבועות ISO רצופים (Asia/Jerusalem) שבכל אחד מהם יש לפחות טרנד אחד
+// עם published_week (מפורסם או שפרש), סופרים אחורה מהשבוע הנוכחי אם כבר היה בו דרופ, אחרת מהשבוע הקודם.
+```
+
+| תנאי | מה מוצג רק כשהוא מתקיים |
+|---|---|
+| `campaigns` | וריאנט הקמפיינים של הגיבור (§3.3.2), `CampaignFlow`, `DashboardPreview`, `ComparisonBlock`, אריח 9 ב-bento, פריט 0% בשורת האמון, `PlanMetaFeatures` ושורת האמון של המחירים (§7.10), `/campaigns`, השאלות `meta-*` (חוץ משלוש של `publishing`), הקישורים בכותרת ובפוטר, נוסח הפוטר והכותרת של הקמפיינים |
+| `leads` | אריח 10, שורת תיבת הלידים בטבלת ההשוואה, הסקשן "כל הפניות במקום אחד" ב-`/campaigns` |
+| `autoRules` | שורת הכללים האוטומטיים בטבלת ההשוואה |
+| `publishing` | אריח 11, שורת הפוסטים המתוזמנים, השאלות `meta-what-i-need`, `meta-data-access`, `meta-disconnect`, הקישור למחיקת הנתונים בפוטר |
+| `healthCheck` | כל `HealthCheckCta`, שורת בדיקת הדופק בתוכניות, השאלה `health-check`, הסקשן ב-`/campaigns` |
+| `businessPage` | אזכורי "דף העסק", שורת דף העסק בתוכניות, `landing.generate` במחירון, השאלה `business-page` |
+| `trendsPublic` | `TrendsTeaser`, אריח 12, `/trends`, `/trends/[slug]`, השאלות `trends-legal` ו-`trends-music`, הקישורים בכותרת ובפוטר |
+| `trendsWeekly` | כל ניסוח של "כל שבוע", "טרנדים חדשים כל שבוע" או "כל יום ראשון" על טרנדים |
+| `guidedFilming` · `hookScore` · `monthlyPlan` | אריחים 13, 14, 15, ומשפטי הצילום המודרך בטרנדים |
+
+- `ClaimsGate` (רכיב שרת) עוטף כל בלוק כזה: `<ClaimsGate when="campaigns">…</ClaimsGate>`. מחרוזות עם תנאי נמצאות במפתחות שמסומנים ב-`lib/marketing/gated-keys.ts` (`GATED_KEYS: Record<keyof ClaimsGate, string[]>`), ובדיקת snapshot מרנדרת את `/`, `/pricing`, `/faq`, `/niches/dentists` ו-`/hooks` עם כל הדגלים כבויים ונכשלת אם מחרוזת מ-`GATED_KEYS` מופיעה ב-HTML.
+- גם כשהתנאי מתקיים, ניסוח שמרמז שהקמפיין "באוויר" או "עולה לאוויר" מלווה תמיד ב"אחרי בדיקה של מטא", באותה מחרוזת או במחרוזת שמוצגת מיד אחריה באותו סקשן (חלק 07 §1.3; נבדק ב-`check-content`, §1.2). בגיבור, למשל, ה-H1 "…קמפיין באוויר, בלחיצה." מלווה בתת-כותרת שאומרת "אחרי בדיקה של מטא הוא באוויר".
+
+#### §3.0.2 חמשת המסרים
+
+כיוון הקופי (חלק 01 §1.1, חלק 07 §1.1). כל מסר מוכח במוצר, ומוצג רק כשהתנאי שלו מתקיים:
+
+| # | מסר | איפה בדף | תנאי |
+|---|---|---|---|
+| 1 | לוחצים, ויש סרטון | הגיבור, `HowItWorks`, `HooksTeaser` | תמיד |
+| 2 | מעלים לקמפיין מכאן | הגיבור (וריאנט הקמפיינים), `CampaignFlow`, `/campaigns` | `campaigns` |
+| 3 | רואים מה עובד, בעברית | `DashboardPreview`, `/campaigns` §16.3 | `campaigns` |
+| 4 | טרנדים חדשים, מותאמים לעסק שלכם | `TrendsTeaser`, `/trends` | `trendsPublic` ("כל שבוע" רק עם `trendsWeekly`) |
+| 5 | בלי לשבור את הבנק | `EditorMath`, `ComparisonBlock`, `PricingCards`, `PlanMetaFeatures` | המחיר — תמיד; "0% מהתקציב" — `campaigns` |
+
+#### §3.0.3 שמות של פלטפורמות
+
+"פייסבוק", "אינסטגרם", "וואטסאפ" ו"מטא" מופיעים רק כטקסט רגיל: בלי לוגו, בלי אייקון של המותג (גם לא מ-lucide), בלי הצבעים שלהם, ובלי ניסוח של שותפות או של אישור ("שותף רשמי", "מאושר על ידי מטא", "בשיתוף מטא"). {{BRAND_NAME}} אינו Meta Business Partner (חלק 07 §1.3). כל עמוד שמזכיר פרסום בפלטפורמות האלה מציג בפוטר את `BrandMentionNote` (§2.3). מנהל המודעות של מטא נקרא תמיד "מנהל המודעות של מטא", והמונחים ROAS, CPM, CPC, ODAX, Advantage+, ad set ו-pixel לא מופיעים בקופי השיווקי. `[M0-verify]` את הנוסח מול הנחיות המותג העדכניות של מטא.
 
 ### §3.1 `AnnouncementBar`
 
@@ -378,6 +547,18 @@ Eyebrow (צ׳יפ קטן, זהה בכל הווריאנטים): **"AI · עברי
 | **A (בקרה)** | סרטון **תדמית** מקצועי לעסק שלכם, בלי עורך וידאו. | בוחרים נישה, מדביקים קישור לאתר או לאינסטגרם, ומקבלים סרטון תדמית ורילס עם הוק שעוצר גלילה, קריינות וכתוביות בעברית. תוך דקות, לא שבועות. |
 | **B (נישה)** | רילס וסרטון **תדמית** בעברית, שנכתבו בשביל הנישה שלכם. | מספרה, מרפאת שיניים, משרד תיווך או מסעדה: אנחנו יודעים מה עוצר גלילה אצל הלקוחות שלכם, וכותבים, מקריינים ומוסיפים כתוביות, בעברית טבעית. אתם רק בוחרים ומאשרים. |
 | **C (מחיר ושפה)** | סרטון **תדמית** ורילס לעסק, בעברית טבעית ובשקלים. | בלי לבחור מנועים, בלי דולרים ובלי עורך: הוק לנישה שלכם, קריינות וכתוביות בעברית, ותוצאה מוכנה לפרסום בשלושה פורמטים. מתחילים בחינם. |
+
+**וריאנט הקמפיינים (כשהתנאי `campaigns` מתקיים).** עד אז הגיבור נשאר בדיוק כמו בטבלה למעלה. כשהתנאי מתקיים, וריאנט A מוחלף בגרסת הקמפיינים, והיא הבקרה החדשה; B ו-C נשארים כמו שהם, כמתחרים בניסוי. ה-eyebrow החדש משותף לשלושתם. בווריאנט הזה המילה עם הגרדיאנט היא "קמפיין" (`<span class="text-gradient-gold">קמפיין</span>`), ועדיין זו המילה היחידה בדף עם גרדיאנט.
+
+| וריאנט | H1 | תת-כותרת |
+|---|---|---|
+| **A-קמפיינים (בקרה)** | סרטון מוכן ו**קמפיין** באוויר, בלחיצה. | בוחרים טרנד או הוק לנישה, מקבלים סרטון בעברית, ומעלים אותו כקמפיין בפייסבוק ובאינסטגרם, מכאן. אחרי בדיקה של מטא הוא באוויר, ורואים בעברית פשוטה כמה הוצאתם וכמה פניות הגיעו. בלי דמי ניהול של סוכנות, בלי מנהל המודעות של מטא, ו-0% מהתקציב: התקציב עובר ישירות למטא. |
+
+- Eyebrow (בשלושת הווריאנטים): **"לעסקים קטנים ולעסקים שגדלים · פייסבוק ואינסטגרם · בעברית"**
+- מתחת לכפתור של `HeroPromptCard`, במקום "חינם · ללא כרטיס אשראי": **"חינם להתחיל, בלי כרטיס אשראי · הקמפיין עולה לאוויר אחרי בדיקה של מטא"**.
+- כשהתנאי `healthCheck` מתקיים, מתחת לשורה הזו קישור טקסט (`HealthCheckCta` בווריאנט `link`, §3.17): **"כבר מפרסמים? בדיקת דופק חינם לחשבון המודעות שלכם ←"**.
+- `HeroPromptCard` עצמו לא משתנה, והכפתור נשאר **"צרו את הסרטון הראשון שלי"**: קמפיין תמיד מתחיל בסרטון.
+- **הניסוי:** כשהתנאי מתקיים בפעם הראשונה מתחיל ניסוי חדש ב-PostHog, `hero_copy_v2`, עם אותם שלושה מקומות (`a`, `b`, `c`), אותם נתיבים (`/exp/hero/b`, `/exp/hero/c`) ואותה עוגייה `exp_hero`, ומשקלות התחלתיים 50/25/25 לטובת הבקרה החדשה. הניתוח של `hero_copy_v1` נסגר באותו יום, כדי שהתוצאות לא יתערבבו. המעבר נרשם ב-`DECISIONS.md`.
 
 **מנגנון הניסוי (בלי פגיעה ב-LCP ובלי עוגיות לפני הסכמה):**
 - הדף `/` נשאר סטטי. הווריאנטים B ו-C הם עמודים סטטיים נוספים בנתיב `app/(marketing)/exp/hero/[variant]/page.tsx` (`generateStaticParams` מחזיר `b`, `c`), שמרנדרים את אותו דף עם `variant` אחר. הנתיב מוגדר `noindex`, לא מקושר ולא נכנס למפת האתר. (תיקייה שמתחילה בקו תחתון אינה נתיב ב-Next.js, ולכן לא משתמשים ב-`_variants`.)
@@ -432,6 +613,8 @@ Eyebrow (צ׳יפ קטן, זהה בכל הווריאנטים): **"AI · עברי
 | `Banknote` | מחירים בשקלים, כולל מע״מ |
 | `ReceiptText` | חשבונית מס על כל תשלום |
 | `RotateCcw` | החזר קרדיטים אוטומטי על יצירה שנכשלה |
+
+כשהתנאי `campaigns` מתקיים, הפריט השלישי (`ReceiptText`) מוחלף בפריט `PiggyBank`: **"0% מהתקציב. התקציב משולם ישירות למטא"**. החשבונית נשארת בשורת ההבטחות של המחירים (§7.3).
 
 לפריט הראשון יש הערת שוליים נגישה (`Tooltip` שנפתח גם בפוקוס, והטקסט שלו נמצא גם ב-DOM לקוראי מסך): "{trialCredits} קרדיטי ניסיון מספיקים {freeVideos, plural, one {בערך לסרטון קצר אחד} two {בערך לשני סרטונים קצרים} other {בערך ל-# סרטונים קצרים}} באיכות טיוטה, עם סימן מים. סרטון של עד 30 שניות מתמונות בתנועה, עם קליפ AI קצר אחד, עולה כ-{freeVideoCredits} קרדיטים." (`{freeVideoCredits}` = `estimateSample(FREE_VIDEO_SAMPLE, creditCosts)` בזמן הבנייה, כש-`FREE_VIDEO_SAMPLE = { durationSec: 30, quality: "draft", visualMix: "smart", images: 6, clipSeconds: 5, formats: 1 }` מוגדר ב-`lib/marketing/savings.ts`; עם ה-seed התוצאה 30, כמו בנספח F §10.4. `{trialCredits}` = מענק הניסיון מה-seed, 70.) `freeVideos = floor(trialCredits / freeVideoCredits)` (2 עם ה-seed) מחושב בזמן הבנייה, וכל מקום באתר שמזכיר מספר סרטונים לניסיון משתמש בו, תמיד יחד עם "באיכות טיוטה, עם סימן מים" (בדיקת יחידה). הטענה הקצרה בשורת האמון, במטא ובכפתורים היא תמיד בקרדיטים, לא בסרטונים.
 
@@ -621,6 +804,20 @@ export function computeSavings(i: {
 | 7 | 1×1 | קרדיטים שקופים | כל כפתור יצירה מראה כמה הוא עולה לפני הלחיצה. יצירה שנכשלה? הקרדיטים חוזרים אליכם אוטומטית. | `CostBadge` "צרו את הסרטון · 107 קרדיטים" ואחריו טוסט "הקרדיטים חזרו אליכם" |
 | 8 | 2×1 | תווית AI ועמידה בכללים | תווית "נוצר באמצעות AI" בלחיצה, תזכורות לכללי הפרסום בנישה שלכם, ובלי המלצות מומצאות או מספרים שלא אישרתם. | תג "נוצר באמצעות AI" בפינת פריים + תג "שימו לב: כללי פרסום לנישה" |
 
+**אריחים לפי שער הטענות.** האריחים 9–15 מוצגים רק כשהתנאי שלהם מתקיים, ונכנסים לגריד אחרי אריח 8 (`grid-auto-flow: dense`, כך שאריח מוסתר לא משאיר חור). כשהתנאי `campaigns` מתקיים, ה-H2 מתחלף ל-**"מה שעורך וידאו ומנהל קמפיינים עשו, עכשיו בכמה לחיצות"**. המיקרו-הדגמות של האריחים החדשים הן תמונות או לולאות וידאו קצרות; אף אחת מהן לא מציגה מספרים של עסק אמיתי.
+
+| # | גודל | תנאי | כותרת | טקסט | מיקרו-הדגמה |
+|---|---|---|---|---|---|
+| 9 | 2×1 | `campaigns` | מהסרטון לקמפיין | מעלים את הסרטון כקמפיין בפייסבוק ובאינסטגרם בארבע החלטות: מטרה, אזור, תקציב ואישור. הכול נוצר מושהה, ושום דבר לא עולה בלי האישור שלכם. | ארבעה שלבים שמתמלאים, ואחריהם התג "בבדיקה של מטא" |
+| 10 | 1×1 | `leads` | לידים ופניות במקום אחד | כל ליד מהטופס מגיע לתיבה אחת, עם כפתור להתקשר וכפתור לוואטסאפ, והתראה ברגע שהוא נכנס. | כרטיס ליד לדוגמה עם "התקשרו" ו"וואטסאפ" |
+| 11 | 1×1 | `publishing` | פרסום ותזמון | מפרסמים רילס לאינסטגרם ולפייסבוק עכשיו או בשעה שבחרתם, מלוח תוכן שמכיר את החגים. | לוח חודשי עם פוסטים מתוזמנים |
+| 12 | 1×2 | `trendsPublic` | טרנדים לעסק שלכם | פורמטים שעוצרים גלילה, מפורקים לתבנית ומותאמים לנישה שלכם. בוחרים טרנד, ויוצרים גרסה לעסק בלחיצה. | `TrendCard` עם סרטון ההדגמה של טרנד מומלץ (`is_featured`) |
+| 13 | 1×1 | `guidedFilming` | צילום מודרך | רשימת צילומים לפי הטרנד, מצלמה עם קו מנחה על המסך, ועריכה אוטומטית של הצילומים שלכם. | מסגרת מצלמה עם קו מנחה |
+| 14 | 1×1 | `hookScore` | ציון הוק לפני פרסום | לפני שמפרסמים, כל סרטון מקבל ציון לפתיחה שלו ועד שלוש הצעות לשיפור. הערכה לפי כללי הוקים — לא הבטחה לתוצאות. | תמונה של תג הציון עם הצעה אחת |
+| 15 | 1×1 | `monthlyPlan` | תוכנית 30 יום | תוכנית לחודש הקרוב: מה ליצור, מה לפרסם ומתי, לפי העונה והתחום שלכם. | רשימה של שלושה פריטים עם "צרו בקליק" |
+
+המשפט "הערכה לפי כללי הוקים — לא הבטחה לתוצאות." באריח 14 הוא חובה (חלק 05 §24, נספח E §19.5), ולא מקוצר.
+
 ### §3.9 `HooksTeaser` (`#hooks`)
 
 - Eyebrow: "ספריית ההוקים"
@@ -697,6 +894,7 @@ export function computeSavings(i: {
 - מתחת: שורת ההבטחות (§7.3) וגרסה מקוצרת של `CreditCostTable` עם ארבע הדוגמאות המחושבות בלבד (§7.5).
 - כפתור: **"לכל פרטי המחירים ←"** (`/pricing`). מתג מחירים לעסקים (`VatModeToggle`) מוצג רק בעמוד המחירים.
 - אירוע: `pricing_viewed {location:"landing"}` כשהסקשן נכנס למסך בפעם הראשונה.
+- כשהתנאי `campaigns` מתקיים: בכל כרטיס מוצג `PlanMetaFeatures` בגרסה המקוצרת (§7.10), ומתחת לכרטיסים שורת האמון **"0% מהתקציב · התקציב משולם ישירות למטא"**.
 
 ### §3.13 `FaqAccordion` (`#faq`)
 
@@ -706,6 +904,7 @@ export function computeSavings(i: {
 - Accordion של Radix: כמה פריטים יכולים להיות פתוחים, chevron בצד הסוף, הכותרת היא כפתור בתוך `<h3>`.
 - מתחת: **"לא מצאתם תשובה? לכל השאלות ←"** (`/faq`) ו-**"או כתבו לנו בוואטסאפ"**.
 - `FAQPage` JSON-LD עם אותן 12 שאלות (§12.4). אירוע: `faq_expanded {question_id, location:"landing"}`.
+- כשהתנאי `campaigns` מתקיים, ארבע שאלות נכנסות אחרי `what-you-get`: `meta-who-pays`, `meta-fee`, `meta-what-i-need`, `meta-guarantee`; ו-`own-media` ו-`ownership` יוצאות מדף הבית (ונשארות ב-`/faq`). סך הכול 14 שאלות, וה-`FAQPage` משקף בדיוק את מה שמוצג.
 
 ### §3.14 `FinalCtaBand` (`#start`)
 
@@ -714,6 +913,7 @@ export function computeSavings(i: {
 - תת-כותרת: **"בוחרים נישה, מספרים על העסק, ומקבלים תסריט ותצוגה מקדימה תוך דקות. {trialCredits} קרדיטים לניסיון עלינו, בלי כרטיס אשראי."** (`{trialCredits}` מוזרק מה-seed, כמו ב-`TrustRow`, §3.3.4.)
 - `NichePicker` מקוצר (combobox אחד, "מה העסק שלכם?") וכפתור **"צרו את הסרטון הראשון שלי"** עם "חינם · ללא כרטיס אשראי". ההתנהגות כמו בגיבור (§3.3.3), עם `src=final_cta`.
 - אירועים: `niche_selected {niche, location:"final_cta"}`, `cta_clicked {location:"final_cta"}`; לאורח גם `signup_started {source:"final_cta"}`.
+- כשהתנאי `campaigns` מתקיים, התת-כותרת מתחלפת ל-**"בוחרים נישה או טרנד, מקבלים סרטון, ומעלים אותו לקמפיין כשמוכנים. {trialCredits} קרדיטים לניסיון עלינו, בלי כרטיס אשראי."** ה-H2 והכפתור לא משתנים.
 
 ### §3.15 `MarketingFooter` ו-`MobileStickyCta`
 
@@ -725,6 +925,7 @@ export function computeSavings(i: {
 - description: **"סרטון תדמית ורילס לעסק שלכם תוך דקות: הוק לנישה, תסריט, קריינות וכתוביות בעברית ב-3 פורמטים. מחירים בשקלים כולל מע״מ. {trialCredits} קרדיטים לניסיון, בלי כרטיס אשראי."**
 - JSON-LD: `Organization`, `WebSite` + `SearchAction`, `SoftwareApplication`, `FAQPage`, `HowTo` (§12.4).
 - תמונת OG סטטית מעוצבת (`app/opengraph-image.tsx`, §12.5): H1 של וריאנט A, אריחי טלפון, הדומיין.
+- כשהתנאי `campaigns` מתקיים: `<title>` **"{{BRAND_NAME}} | סרטון וקמפיין בפייסבוק ובאינסטגרם, בעברית"**; description **"סרטון בעברית מטרנד או מהוק לנישה, וקמפיין בפייסבוק ובאינסטגרם מאותו מקום, עם דוח פשוט. 0% מהתקציב. {trialCredits} קרדיטים לניסיון, בלי כרטיס אשראי."**; תמונת ה-OG מציגה את ה-H1 של A-קמפיינים ("קמפיין" בזהב).
 
 **קריטריוני קבלה**
 - [ ] כל הסקשנים מופיעים בסדר שנקבע, עם `id`-ים קבועים; ניווט ל-`/#how-it-works` גולל למקום הנכון בלי שהכותרת הדביקה תסתיר את ה-H2.
@@ -738,6 +939,106 @@ export function computeSavings(i: {
 - [ ] `{freeVideoCredits}` מחושב מ-`FREE_VIDEO_SAMPLE` ומחזיר 30 עם ה-seed. בכל מקום ש"כ-2 סרטונים" מופיע, הוא מלווה ב"באיכות טיוטה, עם סימן מים" ומחושב `floor(trialCredits / freeVideoCredits)` (בדיקת יחידה על `messages/he.json` ועל `content/**`).
 - [ ] כפתור "עצירת הווידאו" עוצר גם תנועה וגם ניגון; תחת `prefers-reduced-motion` אין שום תנועה בדף (בדיקת Playwright עם `reducedMotion: 'reduce'`).
 - [ ] axe: אפס הפרות חמורות או קריטיות בדף הבית בשתי ערכות הנושא.
+
+### §3.17 `CampaignFlow` (`#campaigns`)
+
+- מוצג רק כשהתנאי `campaigns` מתקיים (§3.0.1), מיד אחרי `HowItWorks`. אותו רכיב מופיע בעמוד הקמפיינים (§16.2) עם `variant="page"`, שבו ה-H2 הופך ל-H2 של הסקשן "איך זה עובד" שם.
+- Eyebrow: "קמפיינים"
+- H2: **"מהסרטון לקמפיין, בלי מנהל המודעות של מטא"**
+- תת-כותרת: **"הסרטון מוכן? מעלים אותו כקמפיין בפייסבוק ובאינסטגרם מאותו מסך. ארבע החלטות, וכל השאר מוגדר מראש לפי הנישה שלכם."**
+- שלושה כרטיסים בשורה (במובייל זה מתחת לזה), מחוברים בקו עם חץ `DirIcon`:
+
+| # | כותרת | טקסט | איור |
+|---|---|---|---|
+| 1 | סרטון מוכן | מטרנד, מהוק לנישה או מהצילומים שלכם. בתוכניות בתשלום אפשר להעלות שלוש גרסאות עם הוקים שונים, ולראות איזו מהן עובדת. | שלושה אריחי 9:16 עם התגים "הוק א׳", "הוק ב׳", "הוק ג׳" |
+| 2 | קמפיין בארבע החלטות | מטרה (הודעות בוואטסאפ, לידים בטופס, כניסות לאתר או חשיפה לאזור), אזור, תקציב וסקירה. הכול נוצר מושהה, ורואים איך כל מודעה תיראה לפני שמשהו עולה. לוחצים "פרסום", ואחרי בדיקה של מטא הקמפיין באוויר. | ארבעה שלבים מסומנים, וכפתור "פרסום" |
+| 3 | דוח שמבינים | כמה הוצאתם, כמה אנשים ראו, כמה פניות הגיעו וכמה עלתה כל פנייה. ולצד המספרים, כמה משפטים בעברית: מה זה אומר ומה כדאי לשקול. | ארבעה אריחי `KpiTile` מעומעמים, בלי מספרים |
+
+- **תג הכסף** (`micro`, מסגרת, אייקון `PiggyBank`): **"0% מהתקציב. התקציב משולם ישירות למטא, מהכרטיס שלכם. לכל תוכנית יש תקרת הוצאה חודשית, ורואים אותה בכל מסך."**
+- **שורת התקציב:** **"מתחילים מתקציב יומי שבוחרים, למשל {dailyIls} ליום, שזה בערך {monthlyIls} בחודש."** (`dailyIls` = `meta_budget_presets_ils.recommended` מ-`getMarketingSettings()`, ₪40 עם ה-seed; `monthlyIls` = פי 30, ₪1,200; שניהם דרך `formatIls`). אחרי המשפט, הערת שוליים לטענה `daily-budget-start` (§1.2).
+- **"אין לכם אתר?"** (רק כשהתנאי `businessPage` מתקיים; כרטיס משני עם אייקון `LayoutTemplate`): **"אין לכם אתר? "דף העסק" נבנה מהסרטון ומפרטי העסק: שירותים, שעות, כפתור וואטסאפ וטופס לפניות. אפשר לשלוח אליו את מי שלוחץ על המודעה. דף העסק זמין בתוכניות בתשלום."**
+- **כפתורים:** ראשי **"איך זה עובד בקמפיינים ←"** (`/campaigns`, `cta_clicked {location:"campaign_flow"}`). משני, רק כשהתנאי `healthCheck` מתקיים: `HealthCheckCta` **"בדיקת דופק חינם"**, ומתחתיו (`micro`): **"כבר מפרסמים? נעבור על חשבון המודעות שלכם ונראה איפה הכסף נשרף."**
+- **`HealthCheckCta`** (רכיב אחד לכל המקומות; וריאנטים `button` ו-`link`): היעד `/login?next=` עם `/app/campaigns/health` מקודד ב-`encodeURIComponent` (משתמש מחובר: `/app/campaigns/health`, שם חלק 07 מוביל לחיבור ולדוח). האירוע תמיד `cta_clicked {location:"health_check"}`; העמוד שבו נלחץ מזוהה לפי `$pageview`.
+
+### §3.18 `DashboardPreview` (`#dashboard`)
+
+- מוצג רק כשהתנאי `campaigns` מתקיים, מיד אחרי `CampaignFlow`. סטטי לגמרי: בלי Recharts, בלי קריאות לשרת ובלי אפקט כבד. הנתונים מ-`content/demo-dashboard.json`.
+- Eyebrow: "הדוח"
+- H2: **"רואים מה עובד, בעברית"**
+- תת-כותרת: **"ארבעה מספרים, תמיד באותו סדר, וכמה משפטים שמסבירים אותם. בלי מונחים של מנהל המודעות."**
+- **תווית חובה**, גלויה תמיד ומעל המסגרת (לא tooltip), `small` עם אייקון `Info`: **"דוגמה להמחשה. המספרים כאן הומצאו כדי להראות איך נראה המסך, ואינם הערכה או הבטחה לתוצאות."** בפינת המסגרת גם התג "הדגמה" (חלק 01). התווית קודמת למספרים בסדר ה-DOM, כך שקורא מסך מקריא אותה קודם.
+- **מבנה המסך** (מסגרת דפדפן מעוצבת; ה-`section` הפנימי מקבל `aria-label="דוגמה להמחשה של דוח קמפיין"`, וכל התוכן בו נשאר טקסט נגיש ולא תמונה):
+  1. שורת כותרת: שם הקמפיין מהקובץ, `StatusBadge` מסוג `campaign` בערך `active` ("פעיל"), ובורר טווח מנוטרל "7 ימים אחרונים".
+  2. ארבעה `KpiTile` בסדר הקנוני: **כמה הוצאתם** · **כמה אנשים ראו** · **כמה פניות** (תווית המטרה: "פניות בוואטסאפ") · **כמה עלתה כל פנייה**, כל אחד עם שורת "מה זה?" שלו. בלי חיצי שינוי, כי בהמחשה אין "תקופה קודמת".
+  3. גרף יומי סטטי ב-SVG (עמודות הוצאה וקו פניות, `dir="ltr"`), ומתחתיו טבלה מוסתרת ויזואלית עם אותם ערכים, לפי כללי `Chart` בחלק 01.
+  4. `HookComparisonTable` עם שלוש שורות: תמונה ממוזערת, טקסט ההוק, **"עצרו לצפות"**, **"נשארו עד הסוף"**, פניות, עלות לפנייה, והתג **"המנצח"** בשורה אחת.
+  5. כרטיס **"מה זה אומר?"** עם `explainHe` מהקובץ, וכפתור **"הגבירו את המנצח"** מנוטרל (`aria-disabled="true"`, tooltip **"בדוגמה הכפתור לא פעיל"**).
+- **בדיקת עקביות** (בדיקת יחידה על הקובץ): `spendIls / results` = `costPerResultIls`; סכום הימים = הסיכום; סכום ההוצאה והפניות של ההוקים = הסיכום; לכל הוק `spendIls / results` = `costPerResultIls`; המנצח הוא ההוק עם העלות הנמוכה ביותר לפנייה; וכל מספר ב-`explainHe` מופיע בקובץ (אותו כלל של `ads.insight_explain.v1`, חלק 07 §11.3).
+
+```json
+{
+  "campaignNameHe": "מבצע חורף · מספרה בחולון",
+  "goal": "whatsapp_messages",
+  "rangeDays": 7,
+  "kpis": { "spendIls": 280, "reach": 6400, "results": 14, "costPerResultIls": 20 },
+  "daily": [
+    { "day": 1, "spendIls": 40, "results": 1 },
+    { "day": 2, "spendIls": 40, "results": 2 },
+    { "day": 3, "spendIls": 40, "results": 2 },
+    { "day": 4, "spendIls": 40, "results": 1 },
+    { "day": 5, "spendIls": 40, "results": 3 },
+    { "day": 6, "spendIls": 40, "results": 2 },
+    { "day": 7, "spendIls": 40, "results": 3 }
+  ],
+  "hooks": [
+    { "key": "A", "labelHe": "הוק א׳", "hookTextHe": "ביקש רק לסדר קצת. זה מה שיצא", "impressions": 3000, "hookRatePct": 24, "holdRatePct": 18, "spendIls": 100, "results": 4, "costPerResultIls": 25, "isWinner": false },
+    { "key": "B", "labelHe": "הוק ב׳", "hookTextHe": "3 תספורות שמתאימות לחורף", "impressions": 3600, "hookRatePct": 31, "holdRatePct": 22, "spendIls": 120, "results": 8, "costPerResultIls": 15, "isWinner": true },
+    { "key": "C", "labelHe": "הוק ג׳", "hookTextHe": "כמה עולה פייד אצלנו? התשובה בסוף", "impressions": 1800, "hookRatePct": 19, "holdRatePct": 15, "spendIls": 60, "results": 2, "costPerResultIls": 30, "isWinner": false }
+  ],
+  "explainHe": "בשבוע הזה הגיעו 14 פניות בוואטסאפ, בממוצע ₪20 לפנייה. הוק ב׳ עצר הכי הרבה אנשים, 31% ממי שראו אותו, והביא 8 פניות. כדאי לשקול להגביר אותו."
+}
+```
+
+### §3.19 `TrendsTeaser` (`#trends`)
+
+- מוצג רק כשהתנאי `trendsPublic` מתקיים, מיד אחרי `HooksTeaser`, ורק כשיש לפחות 3 טרנדים מפורסמים עם סרטון הדגמה; אחרת לא מרונדר בכלל.
+- Eyebrow: "טרנדים"
+- H2: **"טרנדים שעובדים עכשיו, מותאמים לעסק שלכם"**
+- תת-כותרת: **"פורמטים שעוצרים גלילה, מפורקים לתבנית: מה רואים בשנייה הראשונה, איפה החיתוך ומתי מגיע הגילוי. בוחרים טרנד, רואים דוגמה שהכנו, ויוצרים גרסה לעסק שלכם בלחיצה."** כשהתנאי `trendsWeekly` מתקיים נוסף המשפט **"כל שבוע עולים טרנדים חדשים."**, וכשהתנאי `guidedFilming` מתקיים — **"רוצים לצלם בעצמכם? כל טרנד מגיע עם רשימת צילומים."**
+- עד 6 `TrendCard` (מומלצים קודם, אחר כך הדרופ של השבוע, ואז לפי `sort_order`): רשת 3×2 בדסקטופ, פס גלילה אופקי (RTL, בלי תנועה אוטומטית) במובייל. בכרטיס: פוסטר של סרטון ההדגמה (ניגון מושתק ב-hover ובפוקוס בדסקטופ, כמו ב-`ShowcaseGallery`), `name_he`, `tagline_he`, `TrendLifecycleBadge`, תג ההפקה ותג המודעה (§1.2), וקישור **"לפירוק הטרנד ←"** (`/trends/[slug]`).
+- כפתור: **"לכל הטרנדים ←"** (`/trends`, `cta_clicked {location:"trends_teaser"}`).
+- הסרטונים הם הדגמות שלנו בלבד (`public-media/trends/{slug}/…`) ומסומנים "הדגמה": לעולם לא סרטון הייחוס, ולא שם, פנים או קול של מי שיצר את הטרנד המקורי (חלק 08 §11.5, §16).
+- `trend_opened` לא נשלח מהכרטיס; הוא נשלח בעמוד הטרנד עצמו (§15.2).
+
+### §3.20 `ComparisonBlock` (`#compare`)
+
+- מוצג רק כשהתנאי `campaigns` מתקיים, ממש לפני `PricingCards`, ורק כשכל הטענות שהוא מפנה אליהן עוברות את כללי §1.2 (יש מקור, ו-`reviewed_at` לא ריק ולא ישן מ-180 יום). אם טענה לא עוברת, הסקשן כולו לא מרונדר בפרודקשן (בסביבת פיתוח: אזהרה בקונסול). אותו רכיב מופיע גם בעמוד המחירים (§7.10) ובעמוד הקמפיינים (§16.8).
+- Eyebrow: "השוואה"
+- H2: **"כמה עולה לנהל קמפיינים, בלי תקציב הפרסום"**
+- תת-כותרת: **"השוואה בין מחיר ניהול חודשי לבין התוכנית החודשית אצלנו. בשני הצדדים: לא כולל תקציב פרסום, שמשולם למטא בנפרד."**
+- טבלה נגישה (`<table>` עם `<caption>` מוסתר "השוואת מחיר ניהול חודשי"; בדסקטופ שני כרטיסים זה לצד זה, במובייל זה מתחת לזה):
+
+| שורה | סוכנות, מנהל סושיאל או פרילנסר | {{BRAND_NAME}} |
+|---|---|---|
+| ניהול חודשי | **{agencyRangeIls} בחודש** ¹ (₪1,500–₪6,000 עם הנתונים הנוכחיים), ומתחת, `micro`: "הערכה לפי מקורות פומביים" | **מ-{lowestPaidIls} בחודש, כולל מע״מ** (התוכנית הזולה בתשלום, מ-`getPricing()`; ₪119 עם ה-seed) |
+| תקציב הפרסום | לא כולל תקציב פרסום, שמשולם למטא בנפרד ² | לא כולל תקציב פרסום, שמשולם למטא בנפרד. **0% מהתקציב:** התקציב משולם ישירות למטא, מהכרטיס שלכם |
+| הסרטונים | לפי ההצעה של כל ספק | יצירת הסרטונים בקרדיטים של התוכנית |
+| הדוח | לפי ההצעה של כל ספק | דוח בעברית פשוטה: ארבעה מספרים וכמה משפטים |
+
+- ¹ = `ClaimFootnote` לטענה `agency-monthly-management`; ² = `ad-budget-paid-separately`. אחרי רשימת ההערות, שורה קבועה: **"הטווחים מבוססים על מחירונים ומדריכים שפורסמו ברשת, ואינם הצעת מחיר. המחיר בפועל תלוי בספק ובהיקף העבודה."**
+- כפתור: **"לכל פרטי המחירים ←"** (`/pricing`, `cta_clicked {location:"compare"}`; בעמוד המחירים עצמו הכפתור לא מוצג).
+- אסור בסקשן הזה: שמות של סוכנויות או של מתחרים, "הכי זול", אחוז חיסכון שמחושב מול טווח (הטווח הוא הערכה, לא מחיר), ומספר שלא מגיע מ-`comparisons.json` או מ-`plans`.
+
+**קריטריוני קבלה (§3.17–§3.20)**
+- [ ] כשהתנאי `campaigns` לא מתקיים, ב-HTML של `/` אין `#campaigns`, `#dashboard` ו-`#compare`, אין אף מחרוזת מ-`marketing.campaigns.*` או מ-`marketing.compare.*`, והגיבור הוא וריאנט A המקורי (snapshot עם כל הדגלים כבויים).
+- [ ] כשהוא מתקיים, הסדר הוא `HowItWorks` → `CampaignFlow` → `DashboardPreview` → `EditorMath`, ו-`ComparisonBlock` ממש לפני `PricingCards`.
+- [ ] התווית "דוגמה להמחשה" גלויה מעל `DashboardPreview` בכל רוחב מסך, וקורא מסך מקריא אותה לפני המספרים; `demo-dashboard.json` עובר את בדיקת העקביות.
+- [ ] `ComparisonBlock` לא מרונדר כשטענה חסרה, ישנה מ-180 יום או לא נבדקה; הטווח מגיע מ-`value_range_ils` והמחיר שלנו מ-`plans`, ושינוי מחיר באדמין משנה את הבלוק אחרי revalidate.
+- [ ] `TrendsTeaser` לא מרונדר עם פחות מ-3 טרנדים מפורסמים עם הדגמה, ואין בו "כל שבוע" לפני שהתנאי `trendsWeekly` מתקיים.
+- [ ] `HealthCheckCta` מוביל אורח ל-`/login?next=%2Fapp%2Fcampaigns%2Fhealth` ומשתמש מחובר ל-`/app/campaigns/health`, ושולח `cta_clicked {location:"health_check"}`.
+- [ ] כל ניסוח של "באוויר" או "לאוויר" על קמפיין בדף מלווה ב"אחרי בדיקה של מטא" באותה מחרוזת או במחרוזת שמוצגת מיד אחריה (`check-content`).
+- [ ] `getClaimsGate()`: בדיקת יחידה על כל שורה בטבלת §3.0.1 (למשל `meta_ads` דלוק בלי `meta_connect` ← `campaigns = false`) ועל `weeklyDropStreak` (3 שבועות רצופים ← `trendsWeekly = false`, 4 ← `true`, שבוע חסר באמצע מאפס את הרצף).
+- [ ] Lighthouse מובייל של `/` עם כל הדגלים דלוקים עומד בתקציבים של §13.1, כולל JS ראשוני של עד 170KB.
 
 ---
 
@@ -1429,6 +1730,7 @@ POV הוא קיצור של Point of View, נקודת מבט. בהוק כזה ה�
 | `Banknote` | המחירים כוללים מע״מ |
 | `CreditCard` | תשלום בכרטיס אשראי; חבילות קרדיטים גם ב-Bit (כש-`bitEnabled = false`: **"תשלום בכרטיס אשראי"**) |
 
+- כשהתנאי `campaigns` מתקיים, מתחת לשש ההבטחות מופיעה שורת אמון נפרדת, באותו גודל ועם האייקון `PiggyBank`: **"0% מהתקציב · התקציב משולם ישירות למטא"**.
 - שורת אמצעי תשלום (טקסט, בלי לוגואים; `marketing.pricing.bit`): **"כרטיסי אשראי ישראליים ובינלאומיים · Bit לחבילות קרדיטים · התשלום מאובטח ומתבצע בעמוד של חברת הסליקה. אנחנו לא שומרים את מספר הכרטיס המלא: רק אסימון לחיוב המנוי, ארבע ספרות אחרונות ותוקף, לזיהוי הכרטיס."**
 - **Bit מוצג רק כשהוא באמת זמין.** Bit מוצע רק לחבילות קרדיטים, ורק כשמשתנה הסביבה `GROW_PAGE_CODE_BIT` מוגדר (אחרי שניסוי ה-M0 מול עמוד הסליקה של Grow אישר את זה). השרת מעביר ל-`/pricing` את הדגל `bitEnabled: boolean` (`getPricing()`), וכשהוא `false` כל מחרוזת שמזכירה Bit מוחלפת בגרסה שלה בלי Bit, ממפתח מקביל עם הסיומת `ByCardOnly`: `marketing.pricing.bit` ← `marketing.pricing.bitByCardOnly` (שורת אמצעי התשלום: **"כרטיסי אשראי ישראליים ובינלאומיים · התשלום מאובטח ומתבצע בעמוד של חברת הסליקה. אנחנו לא שומרים את מספר הכרטיס המלא: רק אסימון לחיוב המנוי, ארבע ספרות אחרונות ותוקף, לזיהוי הכרטיס."**), שורת ההבטחה למעלה, השורה בכרטיסי החבילות (§7.6) והתשובה `pricing-payment-methods` (§9.3). אותו דגל מגיע גם ל-`TopUpDialog` באפליקציה (חלק 03 §15.2).
 
@@ -1464,6 +1766,7 @@ H2: **"השוואה מלאה בין התוכניות"**. הטבלה נבנית �
 | חשבונית מס | על כל רכישת חבילה | ✓ | ✓ | ✓ |
 
 - הערת שוליים לשורת המשתמשים (מתחת לטבלה, מקושרת ב-`aria-describedby`): **"¹ צופים — ללא הגבלה. המכסה סופרת בעלים, מנהלים ועורכים; צופים יכולים לצפות בפרויקטים ולהוריד סרטונים, ולא נספרים בה."** (`seats_used`, חלק 04 §9.2)
+- כשהתנאי `campaigns` מתקיים, הטבלה מקבלת קבוצת שורות נוספת, **"קמפיינים, פרסום ודף העסק"**, עם כותרת ביניים (`<th scope="rowgroup">`) והערות שוליים משלה (§7.10).
 - `<table>` אמיתית: `<caption>` מוסתר ("השוואה בין תוכניות {{BRAND_NAME}}"), כותרות עמודה `scope="col"`, כותרות שורה `scope="row"`. ✓ עם טקסט מוסתר "כלול", "—" עם טקסט מוסתר "לא כלול".
 - כותרת העמודות דביקה בגלילה אנכית. במובייל: עמודת התוויות דביקה בצד ההתחלה וגלילה אופקית של עמודות התוכניות, עם רמז גלילה ("גללו הצידה כדי לראות את כל התוכניות") שמוצג פעם אחת.
 
@@ -1502,8 +1805,18 @@ H2: **"השוואה מלאה בין התוכניות"**. הטבלה נבנית �
 | `music.generate` | מוזיקה מקורית לסרטון | 5 |
 | `render.base` | הרכבת הסרטון, פורמט ראשון (עד 30 שניות / 31–60 שניות) | 3 / 5 |
 | `render.extra_format` | פורמט נוסף (עד 30 שניות / 31–60 שניות) | 2 / 3 |
+| `ads.copy` | טקסטים למודעה (3 גרסאות) | חינם |
+| `ads.insight` | הסבר בעברית לתוצאות הקמפיין | חינם |
+| `meta.health_check` | בדיקת דופק לחשבון המודעות | חינם |
+| `landing.generate` | בניית דף העסק (יצירה או יצירה מחדש) | 10 |
+| `plan.generate` | בניית תוכנית 30 יום | חינם |
+| `hooks.score` | ציון הוק לפני פרסום | חינם |
+| `guided.shotlist` | רשימת צילומים מותאמת | חינם |
+| `guided.autocut` | עריכה אוטומטית של צילום, לכל קליפ | 1 |
 
 פעולות "חינם" מוגבלות בקצב (למשל עד 5 חילוצי מותג ביום), כדי למנוע ניצול לרעה. פעולות מאחורי דגל כבוי (`avatar.second`) לא מוצגות.
+
+השורות של הרחבת 2026-10-17 מוצגות רק כשהדגל שלהן פעיל: `ads.*` עם התנאי `campaigns`, `meta.health_check` עם `healthCheck`, `landing.generate` עם `businessPage`, `plan.generate` עם `monthlyPlan`, `hooks.score` עם `hookScore`, ו-`guided.*` עם `guidedFilming`. הערכים (`landing.generate` = 10, השאר 0 או 1) נקראים מ-`credit_costs` ולא כתובים בקוד. `trends.analyze` (ניתוח סרטון השראה) הוא פעולה של הצוות בלבד, ולא מוצג לעולם. כשהתנאי `campaigns` מתקיים, מתחת למחירון: **"העלאה לקמפיין, ניהול ודוחות לא עולים קרדיטים. יצירת הסרטון עולה קרדיטים כרגיל."**
 
 **"איך זה עובד" — שלוש נקודות מתחת:**
 - **"רואים מחיר לפני כל יצירה."** כל כפתור יצירה מציג את העלות, ולפני יצירת סרטון מופיע אישור עם פירוט.
@@ -1536,6 +1849,7 @@ H2: **"השוואה מלאה בין התוכניות"**. הטבלה נבנית �
 ### §7.8 שאלות על מחירים
 
 H2 **"שאלות על מחירים ותשלום"**. מזהי השאלות ב-`marketing.faq.items` (נוסח מלא ב-§9.3): `credits`, `pricing-how-many-videos`, `pricing-rollover`, `pricing-packs-expire`, `failure`, `pricing-upgrade`, `pricing-annual`, `pricing-refund-14`, `invoice-vat`, `pricing-payment-methods`, `pricing-watermark`, `cancel`.
+כשהתנאים מתקיימים נוספות אחרי `credits`: `meta-fee` ו-`meta-who-pays` (`campaigns`), `business-page` (`businessPage`) ו-`health-check` (`healthCheck`).
 
 ### §7.9 מטא ו-JSON-LD
 
@@ -1556,6 +1870,55 @@ H2 **"שאלות על מחירים ותשלום"**. מזהי השאלות ב-`ma
 - [ ] הבאדג׳ בכרטיס המודגש הוא "מומלץ" (לפי `plans.is_highlighted`); המחרוזת "הכי פופולרי" לא מופיעה בקוד, ב-`messages/he.json` או ב-`content/**` (בדיקת CI). החזרה שלה דורשת בדיקת נתונים (הכי הרבה מנויים פעילים בתשלום ב-90 הימים האחרונים) ורשומה ב-`DECISIONS.md`.
 - [ ] אין "בלחיצה" בהקשר של ביטול באף מחרוזת; כפתור הביטול נקרא בדיוק "ביטול מנוי".
 
+### §7.10 קמפיינים, דף העסק ובדיקת דופק (`PlanMetaFeatures`)
+
+ניהול הקמפיינים כלול בכל התוכניות, 0% מהתקציב, והעלאה, ניהול ודוחות לא עולים קרדיטים; תקציב הפרסום תמיד משולם ישירות למטא (חלק 06 §1.8). הכול כאן מוצג רק כשהתנאי `campaigns` מתקיים, וכל שורה גם לפי התנאי שלה (§3.0.1). כל ערך נקרא מ-`plans.limits` (המפתחות של חלק 06 §2.1) דרך מפת התוויות של `PlanComparisonTable`, והערכים כאן הם ערכי ה-seed. מספרים שסופרים משהו עוברים ICU plural (R24); סכומים עוברים `formatIls`.
+
+**בכרטיסי התוכניות (גרסה מקוצרת).** מתחת ל-`features_he`, כותרת ביניים **"קמפיינים בפייסבוק ובאינסטגרם"** ועד ארבע שורות, כל אחת עם התנאי שלה:
+
+| תוכנית | שורות |
+|---|---|
+| חינם | "קמפיין ניסיון אחד, עד {testSpendIls} בסך הכול" · "פרסום רגיל ותזמון של עד 3 פוסטים" (`publishing`) · "דף העסק: תצוגה מקדימה בלבד" (`businessPage`) · "בדיקת דופק אחת בחודש" (`healthCheck`) |
+| בסיס | "עד 2 קמפיינים פעילים · תקרת הוצאה {capIls} בחודש" · "בדיקת 3 הוקים בכל קמפיין" · "דף עסק אחד" (`businessPage`) · "2 בדיקות דופק בחודש" (`healthCheck`) |
+| עסק | "קמפיינים פעילים ללא הגבלה · תקרת הוצאה {capIls} בחודש" · "תיבת לידים עם סטטוסים, הערות וייצוא" (`leads`) · "עד 3 דפי עסק" (`businessPage`) · "4 בדיקות דופק בחודש" (`healthCheck`) |
+| סוכנות | "עד 15 חשבונות מודעות, אחד לכל לקוח" · "תקרת הוצאה {capIls} בחודש, לכל הלקוחות יחד" · "דף עסק אחד לכל לקוח" (`businessPage`) · "4 בדיקות דופק בחודש לכל לקוח" (`healthCheck`) |
+
+מתחת לכרטיסים: שורת האמון **"0% מהתקציב · התקציב משולם ישירות למטא"**, וכשהתנאי `businessPage` מתקיים גם **"דף העסק זמין בתוכניות בתשלום. כל בנייה של הדף עולה {landingCredits} קרדיטים, ועריכת טקסט, פרסום והסרה לא עולים קרדיטים."**
+
+**קבוצת השורות בטבלת ההשוואה ("קמפיינים, פרסום ודף העסק"):**
+
+| שורה | מפתח ב-`plans.limits` | חינם | בסיס | עסק | סוכנות | תנאי |
+|---|---|---|---|---|---|---|
+| עמלה מתקציב הפרסום | — (קבוע) | 0% | 0% | 0% | 0% | `campaigns` |
+| חשבונות מודעות מחוברים | `meta_ad_accounts` | 1 | 1 | 2 | 15 (אחד לכל לקוח) | `campaigns` |
+| קמפיינים פעילים במקביל | `meta_active_campaigns` | 1 | 2 | ללא הגבלה | ללא הגבלה | `campaigns` |
+| תקרת הוצאה חודשית לקמפיינים שמנוהלים כאן ¹ | `meta_monthly_spend_cap_ils` | — | ₪3,000 | ₪15,000 | ₪100,000 (לכל הלקוחות יחד) | `campaigns` |
+| קמפיין ניסיון | `meta_test_spend_ils` | אחד, עד ₪300 בסך הכול | — | — | — | `campaigns` |
+| בדיקת 3 הוקים בקמפיין | `meta_split_test` | — | ✓ | ✓ | ✓ | `campaigns` |
+| כללים אוטומטיים פעילים | `meta_auto_rules` | — | 2 | 5 | 5 | `autoRules` |
+| תיבת לידים: סטטוסים, הערות, שיוך וייצוא ² | `meta_lead_inbox` | — | ✓ | ✓ | ✓ | `leads` |
+| פוסטים מתוזמנים במקביל | `social_scheduled_max` | 3 | 30 | ללא הגבלה | ללא הגבלה | `publishing` |
+| דף העסק ³ | `landing_pages` | תצוגה מקדימה בלבד | 1 | עד 3 | 1 לכל לקוח | `businessPage` |
+| בדיקת דופק בחודש | `health_checks_per_month` | 1 | 2 | 4 | 4 לכל לקוח | `healthCheck` |
+
+הערות השוליים של הקבוצה (מתחת לטבלה, מקושרות ב-`aria-describedby`):
+- ¹ **"התקרה סופרת את כל ההוצאה של הקמפיינים שהופעלו מכאן בחודש קלנדרי, לפי שעון ישראל. ב-80% מקבלים התראה. כשמגיעים לתקרה, קמפיינים שכבר רצים לא נעצרים; אחרי {graceDays, plural, one {יום אחד} two {יומיים} other {# ימים}} אי אפשר להפעיל קמפיין חדש, לחדש קמפיין מושהה או להגדיל תקציב, עד החודש הבא או עד שדרוג."** (`graceDays` = `meta_spend_cap_grace_days`, 7.)
+- ² **"צפייה בלידים, כפתורי התקשרות ווואטסאפ והתראה על כל ליד חדש — בכל התוכניות. הלידים שלכם."**
+- ³ **"כל בנייה של הדף, גם של תצוגה מקדימה, עולה {landingCredits} קרדיטים. בתוכנית החינמית התצוגה המקדימה מגיעה עם סימן מים ואי אפשר לפרסם אותה; פרסום הדף דורש תוכנית בתשלום, או רכישה של חבילת קרדיטים שמאפשרת לפרסם דף אחד."** (חלק 06 §2.1, חלק 07 §14.1.)
+
+**`HealthCheckCta` בעמוד המחירים** (רק כשהתנאי `healthCheck` מתקיים): כרטיס רחב אחרי טבלת ההשוואה. כותרת **"כבר מפרסמים בפייסבוק ובאינסטגרם?"** · טקסט **"בדיקת דופק חינם לחשבון המודעות שלכם: נעבור על הקמפיינים מ-90 הימים האחרונים, ונראה בעברית איפה הכסף נשרף ומה כדאי לתקן. הבדיקה לא משנה שום דבר בחשבון."** · כפתור **"בדיקת דופק חינם"** (§3.17).
+
+**`ComparisonBlock`** (§3.20) מופיע אחרי כרטיס בדיקת הדופק, באותם כללים ובלי הכפתור "לכל פרטי המחירים".
+
+**JSON-LD:** ה-`Offer` של התוכניות לא משתנה. ניהול הקמפיינים לא מקבל `Offer` נפרד, כי הוא כלול בתוכנית.
+
+**קריטריוני קבלה (§7.10)**
+- [ ] כשהתנאי `campaigns` לא מתקיים, אין בעמוד המחירים שורה, תג, הערה או שאלה על קמפיינים, 0% מהתקציב, דף העסק או בדיקת דופק (snapshot).
+- [ ] כל ערך בכרטיסים ובקבוצת השורות נקרא מ-`plans.limits`: שינוי `meta_monthly_spend_cap_ils` של `starter` ל-4,000 באדמין משנה את הכרטיס, את הטבלה ואת התשובה `meta-fee` אחרי revalidate.
+- [ ] בשורת דף העסק, עמודת החינם היא "תצוגה מקדימה בלבד", והמשפט "דף העסק זמין בתוכניות בתשלום" מופיע כשהתנאי `businessPage` מתקיים; `landing.generate` מוצג כ-10 קרדיטים מתוך `credit_costs`.
+- [ ] שורות `credit_costs` שהתנאי שלהן לא מתקיים לא מוצגות, ו-`trends.analyze` לא מוצג לעולם.
+- [ ] הטבלה עם קבוצת השורות עוברת axe ונקראת נכון ב-NVDA, כולל כותרת הקבוצה וההערות.
+
 ---
 
 ## §8. בלוג (`/blog`, `/blog/[slug]`, `/blog/tag/[tag]`)
@@ -1573,15 +1936,15 @@ export const BlogFrontmatter = z.object({
   date: z.iso.date(),                        // תאריך פרסום
   updated: z.iso.date().optional(),
   author: z.string().default("צוות {{BRAND_NAME}}"),
-  tags: z.array(z.enum(["hooks", "reels", "pricing", "niches", "guides", "video-marketing"])).min(1),
+  tags: z.array(z.enum(["hooks", "reels", "pricing", "niches", "guides", "video-marketing", "ads", "trends"])).min(1),
   niches: z.array(z.string()).default([]),   // slugs; נבדקים מול niches
   cover: z.object({ src: z.string(), alt: z.string().min(10) }),
-  cta: z.object({ kind: z.enum(["create", "hooks", "pricing"]), niche: z.string().optional() }),
+  cta: z.object({ kind: z.enum(["create", "hooks", "pricing", "campaigns", "trends"]), niche: z.string().optional() }),
   draft: z.boolean().default(false),         // draft לא נבנה בפרודקשן
 });
 ```
 
-- **תוויות תגיות:** `hooks` הוקים · `reels` רילס · `pricing` מחירים ותקציב · `niches` לפי נישה · `guides` מדריכים · `video-marketing` שיווק בווידאו. עמוד תגית: H1 **"מאמרים על {tag}"**, רשימת `BlogCard`.
+- **תוויות תגיות:** `hooks` הוקים · `reels` רילס · `pricing` מחירים ותקציב · `niches` לפי נישה · `guides` מדריכים · `video-marketing` שיווק בווידאו · `ads` פרסום ממומן · `trends` טרנדים. עמוד תגית של `ads` או `trends`, ומאמר עם `cta.kind` של `campaigns` או `trends`, נבנים רק כשהתנאי `campaigns` או `trendsPublic` מתקיים (§3.0.1); אחרת המאמר לא נבנה, כמו `draft`. עמוד תגית: H1 **"מאמרים על {tag}"**, רשימת `BlogCard`.
 - **זמן קריאה:** `ceil(words / 200)` דקות, מוצג "{n, plural, one {דקת קריאה אחת} two {שתי דקות קריאה} other {# דקות קריאה}}".
 - **רכיבים זמינים בתוך MDX** (רק אלה; כל רכיב אחר נכשל ב-build):
 
@@ -1590,7 +1953,7 @@ export const BlogFrontmatter = z.object({
 | `<HookEmbed id="real-estate-01" />` | `HookCard` בווריאנט `compact` עם העתקה ו"צרו סרטון" |
 | `<HookList niche="real-estate" type="pov" limit={6} />` | רשימת הוקים מהספרייה |
 | `<Callout kind="tip\|warning\|note" title="…">…</Callout>` | תיבת הדגשה |
-| `<CtaBox kind="create\|hooks\|pricing" niche="…" />` | כרטיס הנעה לפעולה אחיד בסוף מאמר |
+| `<CtaBox kind="create\|hooks\|pricing\|campaigns\|trends" niche="…" />` | כרטיס הנעה לפעולה אחיד בסוף מאמר (`campaigns` → `/campaigns`, `trends` → `/trends`) |
 | `<SampleCost preset="images15\|draft30\|standard30\|premium60" />` | "בערך {credits, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}} (כ-₪{ils} בתוכנית עסק)", מחושב בזמן הבנייה מ-`SAMPLE_PRESETS` ו-`estimateSample` (`lib/pipeline/estimate.ts`, חלק 05 §14.2) |
 | `<ExampleVideo slug="…" />` | נגן של דוגמה מפורסמת (עם כתוביות) |
 | `<Figure src alt caption />` | תמונה עם כיתוב (`next/image`, AVIF) |
@@ -1866,13 +2229,209 @@ cta: { kind: "create" }
 <CtaBox kind="create" />
 ```
 
+### §8.5 מאמר 4 (M11) — `content/blog/facebook-ads-without-agency.mdx`
+
+נכתב עכשיו ונשמר עם `draft: true`. ה-PR של M11 שמדליק את התנאי `campaigns` בפרודקשן משנה ל-`draft: false`, מעדכן את `date` לתאריך הפרסום, ובודק מחדש את המקורות שב-`<Sources>` מול `comparisons.json` (§1.2).
+
+```mdx
+---
+title: "קמפיין בפייסבוק ובאינסטגרם בלי סוכנות: מדריך לעסק קטן"
+seoTitle: "קמפיין בפייסבוק בלי סוכנות: מדריך לעסק קטן"
+description: "איך מעלים קמפיין בפייסבוק ובאינסטגרם בלי סוכנות ובלי מנהל המודעות של מטא: מטרה אחת, אזור נכון, תקציב התחלתי, שלושה הוקים ודוח שיודעים לקרוא."
+date: "2026-12-15"
+tags: ["ads", "guides", "pricing"]
+niches: ["barbers-salons", "renovation-contractors"]
+cover: { src: "/media/blog/facebook-ads-without-agency.avif", alt: "בעלת מספרה בודקת בטלפון דוח של קמפיין עם ארבעה מספרים" }
+cta: { kind: "campaigns" }
+draft: true
+---
+
+רוב העסקים הקטנים מגיעים לפרסום בפייסבוק ובאינסטגרם באחת משתי דרכים. הראשונה: לוחצים על "קידום" מתחת לפוסט ומקווים לטוב. השנייה: משלמים לסוכנות או למנהל סושיאל כל חודש. הדרך הראשונה זולה, אבל עובדת בעיניים עצומות. השנייה יכולה לעבוד, אבל דמי הניהול מצטרפים לתקציב הפרסום, ולא תמיד ברור על מה בדיוק משלמים.
+
+יש דרך שלישית: קמפיין פשוט שמנהלים לבד, עם כמה החלטות נכונות וסרטון שעוצר גלילה. המדריך הזה עובר עליהן אחת אחת.
+
+## לפני הכול: על מה משלמים
+
+בכל קמפיין יש שני סכומים נפרדים. הראשון הוא תקציב הפרסום, שמשולם למטא ישירות מאמצעי התשלום שבחשבון המודעות שלכם. השני הוא מי שמנהל את הקמפיין: אתם, כלי, פרילנסר או סוכנות. לפי מחירונים ומדריכים שפורסמו ברשת, ניהול קמפיינים אצל סוכנות או מנהל סושיאל עולה בדרך כלל ₪1,500–₪6,000 בחודש, לפני תקציב הפרסום.
+
+כשמשווים הצעות, כדאי לשאול שלוש שאלות: האם המחיר כולל את יצירת הסרטונים, האם לוקחים אחוז מהתקציב, ואיזה דוח תקבלו בסוף כל חודש. התשובות משנות את החשבון לגמרי.
+
+## 1. מטרה אחת לכל קמפיין
+
+הטעות הנפוצה ביותר היא קמפיין שרוצה הכול: חשיפה, לייקים, הודעות וכניסות לאתר. מטא מכוונת את הקמפיין לפי המטרה שבחרתם, ולכן בוחרים אחת:
+
+- **הודעות בוואטסאפ:** לעסקים שסוגרים בשיחה, כמו מספרות, בעלי מקצוע ומסעדות שמקבלות הזמנות.
+- **לידים בטופס:** כשצריך שם וטלפון כדי לחזור ללקוח, כמו מרפאות, עורכי דין ויועצי משכנתאות.
+- **כניסות לאתר:** לחנויות אונליין ולמי שיש לו עמוד הזמנה טוב.
+- **חשיפה לאזור:** כשרוצים שהשכונה תכיר אתכם, למשל לפני פתיחה.
+
+## 2. אזור וקהל: פחות הגדרות, לא יותר
+
+לעסק מקומי, האזור חשוב יותר מכל הגדרה אחרת. מגדירים רדיוס סביב העסק, למשל 5 קילומטרים למספרה או 25 לקבלן שיפוצים, או בוחרים ערים. את השאר אפשר להשאיר למטא: בתוך האזור היא מחפשת את מי שסביר שיגיב, וכל הגבלה נוספת של תחומי עניין או גילאים מצמצמת את הקהל, ולרוב גם מייקרת כל פנייה. הגבלת גיל קשיחה שווה רק כשהשירות באמת לא רלוונטי לגילאים מסוימים.
+
+## 3. תקציב: מתחילים קטן ונותנים זמן
+
+אין תקציב קסם, אבל יש היגיון. מדריך מחירים ישראלי לשנת 2025 ממליץ להתחיל בסביבות ₪20–₪50 ליום. תקציב של ₪40 ליום, למשל, הוא בערך ₪1,200 בחודש. חשוב יותר מהסכום: לתת לקמפיין כמה ימים לפני שמשנים אותו. מטא צריכה זמן ללמוד מי מגיב, וכל שינוי גדול בתקציב מאפס חלק מהלמידה. רוצים להגדיל? עושים את זה בהדרגה, עד 20% בכל פעם.
+
+## 4. הסרטון: שלוש השניות הראשונות
+
+בפיד אף אחד לא מחפש את המודעה שלכם. ההוק, המשפט והתמונה שפותחים את הסרטון, הוא מה שמחליט אם יעצרו. הבסיס: סרטון אנכי, כתוביות בעברית, הוק בשנייה הראשונה והנעה לפעולה אחת ברורה. אותו סרטון יכול להופיע ברילס, בסטוריז ובפיד, ולכן כדאי שהטקסט החשוב יישב במרכז המסך ולא בקצוות.
+
+רעיונות לפתיחה לפי נישה תמצאו ב[ספריית ההוקים](/hooks), למשל [הוקים למספרות](/hooks/barbers-salons) או [הוקים לקבלני שיפוצים](/hooks/renovation-contractors). [המדריך לרילס לעסק קטן](/blog/reels-guide-small-business) מפרט איך בונים 30 שניות טובות.
+
+## 5. שלושה הוקים במקום ניחוש
+
+במקום לנחש איזו פתיחה תעבוד, מעלים שלוש גרסאות של אותו סרטון עם הוקים שונים, באותו קמפיין. חשוב שההבדל יהיה אמיתי: תמונה אחרת ומשפט אחר, לא רק מילה שהתחלפה, כי מגרסאות כמעט זהות לא לומדים הרבה. אחרי כמה ימים ומספיק חשיפות רואים איזו גרסה מביאה פניות בפחות כסף, ומעבירים אליה את התקציב.
+
+## 6. איך קוראים את הדוח
+
+ארבעה מספרים מספיקים כדי להבין מה קורה:
+
+- **כמה הוצאתם:** האם הקמפיין רץ לפי התקציב.
+- **כמה אנשים ראו:** כמה אנשים שונים נחשפו למודעה.
+- **כמה פניות:** הודעות, לידים או כניסות, לפי המטרה.
+- **כמה עלתה כל פנייה:** המספר שהכי חשוב לעסק קטן.
+
+עלות גבוהה לפנייה בימים הראשונים היא לא בהכרח סימן רע. הנתונים מתייצבים עם הזמן, ומטא מעדכנת אותם גם כמה ימים אחורה. החלטות גדולות מקבלים אחרי שבוע, לא אחרי יום.
+
+## 7. מתי בכל זאת סוכנות
+
+סוכנות טובה שווה את הכסף כשהתקציב גדול, כשצריך אסטרטגיה בכמה ערוצים, או כשאין לכם זמן אפילו לאשר מודעה. לעסק בתחילת הדרך, או לעסק שכבר יודע מה הוא מוכר ורוצה עוד פניות מהאזור, קמפיין פשוט עם סרטון טוב ודוח ברור הוא לרוב נקודת התחלה טובה.
+
+## 8. מה עושים כשהפניות מגיעות
+
+קמפיין טוב נגמר בשיחה, לא בדוח. פנייה שמחכה הרבה זמן לתשובה נוטה להתקרר, ולכן כדאי להחליט מראש מי עונה ומתי. בהודעות בוואטסאפ, תשובה קצרה וחמה ("היי, כאן מהמספרה. מתי נוח לכם להגיע?") עובדת טוב יותר מתפריט ארוך. בלידים מטופס מתקשרים באותו יום, ואם אין מענה, שולחים הודעה. ואם תרצו לשלוח לפונים מבצעים בהמשך, צריך את ההסכמה שלהם לכך, לפי חוק התקשורת.
+
+## לפני שלוחצים "פרסום"
+
+- יש מטרה אחת, והיא מתאימה לאופן שבו העסק סוגר לקוחות
+- האזור מוגדר סביב העסק או לפי ערים
+- התקציב היומי נוח לכם גם לשבוע שלם
+- לסרטון יש הוק בשנייה הראשונה, כתוביות והנעה לפעולה אחת
+- כל מחיר ומבצע במודעה נכונים
+- מישהו זמין לענות להודעות ולשיחות שיגיעו
+
+<Sources>
+- Bidernet, "מחיר פרסום בפייסבוק: מדריך לשנת 2025", bidernet.co.il
+- Jett, "מחירון ניהול סושיאל", jett.co.il
+- Kanmedia, "מחירון שיווק דיגיטלי לעסקים קטנים", kanmedia.co.il
+</Sources>
+
+<CtaBox kind="campaigns" />
+```
+
+### §8.6 מאמר 5 (M11) — `content/blog/reels-trends-2026.mdx`
+
+גם הוא נשמר עם `draft: true`, ונפתח רק כשהתנאי `trendsPublic` מתקיים. הקישורים הפנימיים מובילים להאב הטרנדים ולעמודי הוקים, ולא לעמוד טרנד מסוים, כדי שטרנד שפרש לא ישבור קישור.
+
+```mdx
+---
+title: "טרנדים לרילס לעסקים: 6 פורמטים שכל עסק יכול לעשות"
+seoTitle: "טרנדים לרילס לעסקים: 6 פורמטים עם דוגמאות"
+description: "שישה פורמטים ויראליים לרילס שמתאימים לעסקים קטנים: מה רואים בשנייה הראשונה, למה זה עובד, איך מתאימים לנישה שלכם ומה אסור להעתיק."
+date: "2026-12-22"
+tags: ["reels", "trends", "hooks"]
+niches: ["restaurants", "barbers-salons", "dentists"]
+cover: { src: "/media/blog/reels-trends-2026.avif", alt: "שלושה טלפונים מציגים רילס אנכיים של מסעדה, מספרה ומרפאת שיניים" }
+cta: { kind: "trends" }
+draft: true
+---
+
+טרנד ברשתות נראה כמו משהו שקורה לאחרים: סרטון של מישהו שהתפוצץ, שיר שכולם משתמשים בו, ותחושה שעד שתספיקו לצלם, הוא כבר ייגמר. אבל מאחורי רוב הטרנדים עומד פורמט, מבנה שחוזר על עצמו: מה רואים בשנייה הראשונה, איפה החיתוך ומתי מגיע הגילוי. ואת הפורמט כל עסק יכול לעשות, גם בלי מצלמה מקצועית.
+
+יש טרנדים של רגע, שנעלמים אחרי כמה ימים, ויש פורמטים שחוזרים כבר שנים. לעסק קטן, הפורמטים הקבועים שווים יותר: אפשר לחזור אליהם כל חודש עם תוכן חדש, והקהל כבר יודע איך "לקרוא" אותם.
+
+ריכזנו שישה פורמטים שעובדים טוב לעסקים קטנים, עם דוגמה לכל אחד, ובסוף גם מה אסור להעתיק.
+
+## 1. פיתיון ושלט
+
+- **מה רואים:** רגע מפתיע בשנייה הראשונה, למשל משהו שכמעט נופל, ואז חיתוך חד לאדם רציני לגמרי שמחזיק שלט בכתב יד.
+- **למה זה עובד:** הפתיחה עוצרת את האגודל, והשלט נותן פאנץ׳ שהצופה לא ציפה לו.
+- **דוגמה:** מסעדה בחולון, ועל השלט: "בואו לאכול אצלנו. אנחנו בחולון".
+- **איך מתאימים לעסק:** הפיתיון צריך להיות מצחיק ולא מסוכן, והשלט קצר: עד שלוש שורות שאפשר לקרוא בשנייה.
+
+## 2. לפני ואחרי
+
+- **מה רואים:** "לפני" לשנייה אחת, חיתוך עם תנועת יד או הקשה, ואז "אחרי".
+- **למה זה עובד:** רוצים לראות את הסוף, ולכן נשארים עד הגילוי.
+- **דוגמה:** תספורת במספרה, ניקוי של רכב או אמבטיה אחרי שיפוץ.
+- **איך מתאימים לעסק:** מצלמים את ה"לפני" ואת ה"אחרי" מאותה זווית ובאותו אור, כדי שההבדל יהיה ברור מיד.
+- **שימו לב:** רק עבודה אמיתית שלכם. בתחומי בריאות ואסתטיקה יש כללים מחמירים יותר, ולפעמים אסור בכלל.
+
+## 3. POV
+
+- **מה רואים:** שורה בראש המסך שמתחילה ב-POV, ומצב שכל לקוח שלכם מכיר.
+- **למה זה עובד:** הצופה רואה את עצמו בתוך הסרטון, ומשם הדרך לתגובה ולשיתוף קצרה.
+- **דוגמה:** קבלן שיפוצים: "POV: אמרו לכם שהשיפוץ ייקח שבועיים". עוד על הפורמט בעמוד [הוקים מסוג POV](/hooks/types/pov).
+- **איך מתאימים לעסק:** בוחרים רגע שקורה ללקוחות שלכם באמת, ומספרים אותו בגוף שני, בהומור ובלי להעליב אף אחד.
+
+## 4. תהליך מספק
+
+- **מה רואים:** חומר גלם, תקריבים של העבודה ותוצאה מוגמרת, בלי דיבור.
+- **למה זה עובד:** קצב רגוע וסאונד נקי גורמים להישאר עד הסוף, וצפייה עד הסוף היא סימן טוב לכל סרטון.
+- **דוגמה:** מניקור, דיטיילינג לרכב או אריזה של הזמנה בחנות.
+- **איך מתאימים לעסק:** מצלמים מקרוב, עם תאורה טובה וטלפון יציב, ומשאירים את הסאונד האמיתי של העבודה.
+
+## 5. מיתוס מול עובדה
+
+- **מה רואים:** משפט שהרבה אנשים מאמינים בו, המילים "לא נכון", ואז ההסבר.
+- **למה זה עובד:** מי שהאמין במיתוס רוצה לדעת למה, ומי שידע רוצה להרגיש צודק.
+- **דוגמה:** מרפאת שיניים, עם הוק כמו זה:
+
+<HookEmbed id="dentists-03" />
+
+- **שימו לב:** כל עובדה צריכה להיות נכונה ומבוססת, במיוחד ברפואה ובפיננסים.
+
+## 6. עונים לתגובה
+
+- **מה רואים:** כרטיס של תגובה או של שאלה שלקוח שאל, ואחריו תשובה קצרה.
+- **למה זה עובד:** זה מרגיש כמו שיחה ולא כמו פרסומת, ומזמין עוד שאלות.
+- **דוגמה:** משרד עורכי דין עונה על "מה קורה אם אין צוואה?".
+- **שימו לב:** רק תגובה אמיתית, באישור מי שכתב אותה, או שאלה כללית שלא מוצגת כאילו אדם מסוים שאל אותה.
+
+## איך הופכים טרנד לסרטון שלכם
+
+1. **בוחרים פורמט אחד** שמתאים למה שאתם מוכרים, ולא את הטרנד הכי חם השבוע.
+2. **כותבים את ההוק בעברית שלכם.** לא מתרגמים את המשפט מהסרטון המקורי, אלא כותבים משפט שהלקוחות שלכם היו אומרים.
+3. **מחליטים: לצלם או ליצור.** לפני ואחרי ותהליך מספק צריכים צילום אמיתי; פיתיון ושלט או POV אפשר ליצור גם בלי לצלם.
+4. **מוסיפים כתוביות והנעה לפעולה אחת**, למשל "שלחו לנו הודעה" או "קבעו תור".
+5. **מפרסמים ובודקים.** אחרי כמה ימים רואים אם אנשים נשארו עד הסוף, ומנסים הוק אחר אם לא.
+
+## טעויות נפוצות
+
+- פותחים בלוגו ולא בהוק, ומאבדים את השנייה הראשונה.
+- מעתיקים את הבדיחה במקום את המבנה.
+- מותחים את הסרטון: רוב הפורמטים האלה עובדים הכי טוב ב-15 עד 30 שניות.
+- שוכחים להגיד לצופה מה לעשות בסוף.
+
+## מה לא מעתיקים
+
+פורמט אפשר לקחת. את הביטוי לא. לכן:
+
+- לא מעתיקים את הטקסטים, השלטים או הכתוביות המדויקים מהסרטון המקורי.
+- לא משתמשים בפנים, בקול או בשם של מי שיצר את הטרנד.
+- לא מעלים למודעה את השיר מהטרנד. שירים פופולריים מוגנים בזכויות יוצרים, ומודעה עם שיר כזה עלולה להידחות. מוזיקה מקורית, או רצועה עם רישיון לפרסום, פותרות את זה.
+- לא מזייפים המלצות, "ראיונות רחוב" או לקוחות שלא קיימים.
+- פורמט שמחקה התראה או כפתור בטלפון מתאים לפוסט רגיל, לא למודעה ממומנת.
+- טרנדים שנוגעים במלחמה, בשכול או בפוליטיקה משאירים בחוץ.
+
+## איך בוחרים טרנד
+
+שלוש שאלות קצרות. האם הפורמט מתאים לשירות שלכם, בלי למתוח אותו? האם אפשר לצלם אותו עם מה שיש לכם, או ליצור אותו בלי לצלם בכלל? והאם הוא עדיין חי? טרנד של רגע נעלם בתוך ימים, אבל פורמט טוב כמו לפני ואחרי או POV עובד שנים.
+
+כל הפורמטים כאן, ועוד, מחכים בעמוד [הטרנדים](/trends), מפורקים לתבנית ועם דוגמה לנישה שלכם. ואם אתם מחפשים קודם משפט פתיחה, [ההוקים למסעדות](/hooks/restaurants) הם מקום טוב להתחיל בו.
+
+<CtaBox kind="trends" />
+```
+
 **קריטריוני קבלה**
-- [ ] שלושת המאמרים נבנים, עוברים את סכמת ה-frontmatter, ומופיעים ב-`/blog` ובעמודי התגיות שלהם.
+- [ ] שלושת מאמרי ההשקה נבנים, עוברים את סכמת ה-frontmatter, ומופיעים ב-`/blog` ובעמודי התגיות שלהם; שני מאמרי M11 (§8.5–§8.6) עוברים את הסכמה עם `draft: true`, לא נבנים בפרודקשן ולא מופיעים במפת האתר עד שהם נפתחים.
 - [ ] כל `HookEmbed` מצביע על הוק קיים ומפורסם; מזהה שגוי מפיל את ה-build.
 - [ ] `SampleCost` מציג ערכים זהים לטבלת "כמה עולה סרטון" בעמוד המחירים.
 - [ ] בכל מאמר יש לפחות 2 קישורים פנימיים לעמודי נישה או הוקים, ו-`BlogPosting` תקין ב-Rich Results Test.
 - [ ] מאמר עם `draft: true` לא נבנה בפרודקשן ולא נכנס למפת האתר.
-- [ ] ספירת מילים: כל אחד משלושת המאמרים בין 700 ל-1,000 מילים (בדיקת יחידה ב-`tests/unit/content.test.ts`).
+- [ ] ספירת מילים: כל אחד מחמשת המאמרים בין 700 ל-1,000 מילים (בדיקת יחידה ב-`tests/unit/content.test.ts`).
+- [ ] במאמרי M11 אין שם של מתחרה, אין "תוצאות מובטחות" ואין מספר בלי מקור ב-`<Sources>` (`check-content`), והטווח ₪1,500–₪6,000 זהה ל-`agency-monthly-management` ב-`comparisons.json`.
 
 ---
 
@@ -2030,10 +2589,42 @@ cta: { kind: "create" }
 | `faq-client-approval` | איך עובד אישור לקוח? | בתוכניות עסק וסוכנות שולחים ללקוח קישור לסרטון. הלקוח צופה, מאשר או מבקש שינויים עם הערה, בלי להירשם. אתם מקבלים התראה ומייל ברגע שהוא החליט, וכל ההיסטוריה נשמרת בפרויקט. |
 | `faq-team-seats` | אפשר לעבוד כצוות? | כן. בתוכנית עסק יש עד 3 משתמשים, ובסוכנות עד 10, וצופים לא נספרים במכסה. לכל משתמש יש הרשאה: בעלים, מנהל, עורך או צופה. רק בעלים ומנהלים רואים חיובים, ורק עורכים ומעלה יכולים ליצור סרטונים ולהוציא קרדיטים. |
 
+**קמפיינים בפייסבוק ובאינסטגרם**
+
+הקטגוריה מוצגת רק כשהתנאי `campaigns` מתקיים (§3.0.1). בתוכה, `meta-what-i-need`, `meta-data-access` ו-`meta-disconnect` דורשות גם את `publishing`, `business-page` את `businessPage`, ו-`health-check` את `healthCheck`. הסכומים (`{starterCapIls}`, `{businessCapIls}`, `{agencyCapIls}`, `{testSpendIls}`) נקראים מ-`plans.limits` דרך `formatIls`, `{graceDays}` מ-`meta_spend_cap_grace_days`, `{landingCredits}` מ-`credit_costs['landing.generate']`, ומספרי בדיקות הדופק (`{freeChecks}`, `{starterChecks}`, `{businessChecks}`) מ-`health_checks_per_month`.
+
+| מזהה | שאלה | תשובה |
+|---|---|---|
+| `meta-who-pays` | מי משלם למטא על הפרסום? | אתם, ישירות למטא. תקציב הפרסום נגבה מאמצעי התשלום שמוגדר בחשבון המודעות שלכם, והקבלות על ההוצאה זמינות בחשבון הזה אצל מטא. אנחנו לא גובים, לא מחזיקים ולא מחזירים כסף של פרסום. המנוי אצלנו נפרד מהתקציב, ומשלמים עליו כמו היום: בשקלים, כולל מע״מ ועם חשבונית מס. |
+| `meta-fee` | אתם לוקחים אחוז מהתקציב? | לא. 0% מהתקציב. ניהול הקמפיינים כלול בתוכנית, וההעלאה, הניהול והדוחות לא עולים קרדיטים; רק יצירת הסרטון עולה קרדיטים, כרגיל. לכל תוכנית יש תקרה חודשית להוצאה של הקמפיינים שמנוהלים מכאן: {starterCapIls} בבסיס, {businessCapIls} בעסק ו-{agencyCapIls} בסוכנות, לכל הלקוחות יחד. בתוכנית החינמית אפשר להפעיל קמפיין ניסיון אחד, עד {testSpendIls} בסך הכול. כשמגיעים לתקרה, קמפיינים שכבר רצים לא נעצרים. אחרי {graceDays, plural, one {יום אחד} two {יומיים} other {# ימים}}, קמפיין חדש, חידוש קמפיין מושהה או הגדלת תקציב אפשריים רק בחודש הבא או אחרי שדרוג. |
+| `meta-what-i-need` | מה צריך כדי להתחיל? צריך להכיר את מנהל העסקים של מטא? | לא צריך להכיר את מנהל המודעות או את מנהל העסקים של מטא. צריך עמוד עסקי בפייסבוק, חשבון מודעות בשקלים עם אמצעי תשלום, ואם רוצים גם אינסטגרם, חשבון אינסטגרם מקצועי שמקושר לעמוד. לקמפיין של הודעות בוואטסאפ צריך גם מספר וואטסאפ עסקי שמחובר לעמוד. בזמן החיבור המערכת בודקת את כל אלה ומציגה רשימה: מה כבר מוכן, מה חסר ואיך מסדרים אותו. המטבע של חשבון מודעות נקבע כשפותחים אותו, ולכן אם החשבון שלכם בדולרים, נסביר איך פותחים חשבון חדש בשקלים. |
+| `meta-review-time` | כמה זמן לוקח עד שהקמפיין עולה? | ההכנה אצלנו לוקחת כמה דקות: הסרטונים עולים למטא, הקמפיין והמודעות נוצרים במצב מושהה, ורואים תצוגה מקדימה של כל מודעה. אחרי שלוחצים "פרסום", כל מודעה עולה לאוויר אחרי בדיקה של מטא. לפי מטא, רוב הבדיקות מסתיימות תוך 24 שעות, ולפעמים זה לוקח יותר. ברגע שהקמפיין פעיל מקבלים התראה ומייל, ובעמוד הקמפיין רואים בכל רגע באיזה שלב הוא. |
+| `meta-guarantee` | אתם מבטיחים תוצאות או לקוחות? | לא. אף אחד לא יכול להבטיח תוצאות בפרסום, וגם לא אנחנו. מה שאנחנו כן עושים: מכינים סרטון עם הוק שנכתב לנישה שלכם, ובתוכניות בתשלום מעלים שלושה הוקים שונים כדי לראות מה עובד אצל הקהל שלכם. אחר כך מראים בעברית פשוטה כמה הוצאתם, כמה אנשים ראו, כמה פניות הגיעו וכמה עלתה כל פנייה. ההחלטות נשארות אצלכם: שום קמפיין לא עולה ושום תקציב לא משתנה בלי אישור שלכם, או בלי כלל אוטומטי שהפעלתם בעצמכם. |
+| `meta-ad-rejected` | מה קורה אם מטא דוחה מודעה? | מקבלים התראה ומייל, ובעמוד הקמפיין מופיעה הסיבה שמטא נתנה, בעברית, עם הצעה מה לעשות: לשנות את הטקסט, לבחור סרטון אחר או לפנות לתמיכה. לפני הפרסום המערכת בודקת את הסרטון ואת הטקסט מול כללי הפרסום הנפוצים, כדי להקטין את הסיכוי לדחייה, אבל ההחלטה הסופית היא של מטא. מודעה שנדחתה לא רצה, ולכן גם לא מוציאה תקציב. |
+| `meta-data-access` | זה בטוח לחבר את חשבון הפייסבוק? מה אתם רואים? | החיבור נעשה במסך ההתחברות של פייסבוק עצמה, ושם בוחרים איזה עמוד, איזה חשבון אינסטגרם ואיזה חשבון מודעות לחבר. את הסיסמה שלכם אנחנו לא רואים ולא שומרים. ההרשאות משמשות רק כדי לפרסם את מה שאישרתם, ליצור ולנהל את הקמפיינים שהפעלתם, להציג דוחות ולקבל לידים. אסימון הגישה נשמר אצלנו מוצפן, לא נשלח לדפדפן ולא לאף מודל AI, ונמחק ברגע שמנתקים. אנחנו לא משתמשים בנתונים שלכם כדי לפרסם לאחרים, ולא משווים אותם לנתונים של עסקים אחרים. |
+| `meta-disconnect` | אפשר לנתק בכל רגע? | כן. בהגדרות, תחת "אינטגרציות", לוחצים "ניתוק". אסימוני הגישה נמחקים מיד, ואפשר לבחור גם למחוק את כל נתוני מטא שנשמרו אצלנו: קמפיינים, דוחות, לידים ופוסטים. קמפיינים שכבר רצים ממשיכים לרוץ אצל מטא גם אחרי הניתוק, ולכן כדאי להשהות אותם קודם. אפשר גם להסיר את הגישה מתוך ההגדרות של פייסבוק; ההסבר המלא נמצא בעמוד מחיקת נתוני פייסבוק ואינסטגרם. |
+| `meta-whatsapp-number` | צריך מספר וואטסאפ עסקי? | רק לקמפיין של הודעות בוואטסאפ. כדי שמי שלוחץ על המודעה יגיע אליכם לשיחה, מספר הוואטסאפ העסקי צריך להיות מחובר לעמוד הפייסבוק של העסק, ובחיבור תתבקשו לאשר אותו. אנחנו לא שולחים הודעות בשמכם ולא קוראים את השיחות שלכם. בלי מספר כזה אפשר לבחור מטרה אחרת: לידים בטופס, כניסות לאתר או חשיפה לאזור. |
+| `business-page` | אין לי אתר. אפשר בכל זאת לפרסם? | כן. "דף העסק" הוא עמוד אחד בעברית שהמערכת בונה מתוך הסרטון, ערכת המותג ופרטי העסק: שירותים, שעות פתיחה, כתובת, כפתור וואטסאפ וטופס לפניות, וגם הודעת פרטיות בשם העסק. אפשר לשלוח אליו את מי שלוחץ על המודעה, ופניות שמגיעות דרכו נכנסות לתיבת הלידים. כל בנייה של הדף, או בנייה מחדש, עולה {landingCredits} קרדיטים; עריכת טקסט, פרסום והסרה לא עולים קרדיטים. בבסיס יש דף אחד, בעסק עד שלושה ובסוכנות דף לכל לקוח. בתוכנית החינמית אפשר לבנות תצוגה מקדימה עם סימן מים, בלי לפרסם אותה; פרסום הדף דורש תוכנית בתשלום או רכישה של חבילת קרדיטים. |
+| `health-check` | מה זה "בדיקת דופק"? | בדיקה חינמית לחשבון מודעות שכבר מפרסם. אחרי החיבור, המערכת עוברת על הקמפיינים שלכם מ-90 הימים האחרונים ומחפשת דברים שמבזבזים תקציב: הוצאה בלי תוצאות, קהל שרואה את אותה מודעה יותר מדי פעמים, מודעות ישנות שהקהל כבר התעייף מהן, תקציב קטן שמפוצל להרבה קבוצות, ועוד. מקבלים דוח בעברית: איפה הכסף נשרף, ועד חמישה תיקונים, חלקם בלחיצה מתוך המערכת. הבדיקה לא עולה קרדיטים ולא משנה שום דבר בחשבון שלכם. בתוכנית החינמית {freeChecks, plural, one {בדיקה אחת} two {שתי בדיקות} other {# בדיקות}} בחודש, בבסיס {starterChecks, plural, one {בדיקה אחת} two {שתי בדיקות} other {# בדיקות}}, ובעסק ובסוכנות {businessChecks, plural, one {בדיקה אחת} two {שתי בדיקות} other {# בדיקות}} (בסוכנות, לכל לקוח). |
+
+- **הערות למפתח:** `meta-review-time` — `[M0-verify]` את הנוסח של מרכז העזרה של מטא על זמן הבדיקה לפני ההשקה; אם אי אפשר לאמת אותו, המשפט "לפי מטא…" יוצא מהתשובה (חלק 07 §1.3). `meta-what-i-need` — `[M0-verify]` בספייק 19 אם החיבור דורש תיק עסקי (business portfolio) במטא; אם כן, נוסף המשפט **"אם אין לכם עדיין תיק עסקי במטא, מטא תציע לפתוח אחד במהלך החיבור."**
+
+**טרנדים**
+
+מוצגת רק כשהתנאי `trendsPublic` מתקיים.
+
+| מזהה | שאלה | תשובה |
+|---|---|---|
+| `trends-legal` | מותר להשתמש בטרנד של מישהו אחר? | אנחנו מעתיקים את המבנה, לא את התוכן. תבנית טרנד מתארת איך הסרטון בנוי: מה רואים בשנייה הראשונה, איפה החיתוך ומתי מגיע הגילוי. הסרטון שלכם נוצר מחדש, עם העסק שלכם, טקסטים בעברית שנכתבו בשבילכם וויז׳ואלים שאנחנו יוצרים. לא משתמשים בסרטון המקורי, ולא בפנים, בקול, בשם או במוזיקה של מי שיצר אותו. טרנדים על פוליטיקה, מלחמה ושכול, וטרנדים שמזייפים המלצות של לקוחות, לא נכנסים לספרייה. פורמט שמחקה התראה בטלפון מתאים רק לפרסום רגיל, לא למודעה. |
+| `trends-music` | ומה עם השיר מהטרנד? | לא משתמשים בו. שירים פופולריים ברשתות מוגנים בזכויות יוצרים, ושימוש בהם במודעה עלול לגרום לדחייה שלה או להסרה של הסרטון. לכל טרנד אנחנו מגדירים את סוג המוזיקה: קצב, אווירה ורגע השיא. ואז יוצרים מוזיקה מקורית לסרטון או בוחרים רצועה מהספרייה שלנו, ושתיהן מותרות לשימוש גם בפרסום ממומן. |
+
+- **הערה למפתח:** `trends-music` נשען על תנאי השימוש של Lyria לפרסום ממומן (`[M0-verify]`, חלק 07 §4.2, משימה 12). אם האימות לא עובר, הסוף מתחלף ל-**"…ואז בוחרים רצועה מהספרייה שלנו, שמותרת לשימוש גם בפרסום ממומן."**, ובאותו PR גם התשובה `faq-music-rights`.
+
 **קריטריוני קבלה**
 - [ ] טופס יצירת הקשר: כל הודעת שגיאה מקושרת לשדה ב-`aria-describedby`, הפוקוס עובר לשדה השגוי הראשון, וה-honeypot לא נחשף לקורא מסך.
 - [ ] `marketingOptIn` לא מסומן כברירת מחדל; כשהוא מסומן נשלח מייל אישור כפול, ושורת `consents` נרשמת רק אחרי האישור.
-- [ ] `/faq` מציג את כל 34 השאלות, עם `FAQPage` תקין, והסינון מכריז על מספר התוצאות.
+- [ ] `/faq` מציג 34 שאלות כשכל התנאים של שער הטענות כבויים, ו-47 כשכולם מתקיימים, עם `FAQPage` תקין שכולל רק את מה שמוצג; הסינון מכריז על מספר התוצאות.
+- [ ] בשאלות `meta-fee`, `business-page` ו-`health-check` כל סכום ומספר מוזרק מ-`plans.limits`, מ-`credit_costs` או מ-`app_settings` (בדיקת snapshot מול ה-seed), ובשאלות על קמפיינים אין הבטחת תוצאות.
 - [ ] כל מספר בסוגריים מסולסלים בתשובות מוזרק מהנתונים; בדיקת CI נכשלת אם נשאר `{` לא מוחלף ב-HTML הסופי.
 - [ ] `content/about.json` ריק → אין בלוק מייסדים ואין כותרת ריקה.
 
@@ -2043,9 +2634,12 @@ cta: { kind: "create" }
 
 ### §10.1 מסגרת משותפת (`LegalPage`)
 
-- שבעה דפים, כל אחד קובץ ב-`content/legal/{slug}.mdx`, מרונדרים בתבנית אחת `LegalPage` תחת `/legal/{slug}`: `terms`, `privacy`, `cancellation`, `accessibility`, `ai-policy`, `likeness-consent`, `cookies`. הפניה קבועה אחת (`next.config.ts` → `redirects`, 308): `/accessibility` → `/legal/accessibility` (§1.1). ⚖️ כל שבעת הדפים הם טיוטה שממתינה לאישור עורך דין, ורשומים ברשימת ההחלטות שממתינות לאישור בחלק 06 §25.
+- שמונה דפים, כל אחד קובץ ב-`content/legal/{slug}.mdx`, מרונדרים בתבנית אחת `LegalPage` תחת `/legal/{slug}`: `terms`, `privacy`, `cancellation`, `accessibility`, `ai-policy`, `likeness-consent`, `cookies`, `dpa`. הפניה קבועה אחת (`next.config.ts` → `redirects`, 308): `/accessibility` → `/legal/accessibility` (§1.1). ⚖️ כל שמונת הדפים הם טיוטה שממתינה לאישור עורך דין, ורשומים ברשימת ההחלטות שממתינות לאישור בחלק 06 §25.
 - **הערות למפתח בתוך הנוסח:** בנוסחים שבסעיפים §10.2–§10.8, סימוני ⚖️ ו-`[M0-verify]` והערות בסוגריים שמפנות לחלקים אחרים במסמך הזה (למשל "(חלק 06 §10.1)") הן הוראות למפתח, ולא נכנסות לקובצי ה-MDX. כל השאר הוא הנוסח שמוצג.
 - **תנאי הקרדיטים** הם פרק נפרד בתוך תנאי השימוש, עם עוגן קבוע `#credits` (`/legal/terms#credits`), ועמוד המחירים והאפליקציה מקשרים אליו ישירות.
+- **פרקים שנוספו בהרחבת 2026-10-17** ממוספרים כך שהמספור הקיים לא משתנה: בתנאי השימוש 9א–9ב (עוגנים `#meta`, `#extras`), בפרטיות 8א–8ב (`#meta`, `#leads`), ובמדיניות ה-AI 4א–4ב (`#trends`, `#ads`). קישור קיים לסעיף ממוספר לא נשבר.
+- **תקציר באנגלית:** בדף הפרטיות ובעמוד מחיקת הנתונים (§10.10) מותר רכיב MDX אחד נוסף, `<EnSummary>`, שמרנדר `<section lang="en" dir="ltr">` עם תקציר לבודקים של מטא (חלק 07 §4.2, משימה 5). זה הטקסט היחיד באנגלית בדפים האלה, הוא לא מחליף את הנוסח העברי המחייב, ו-`lint:copy` מדלג רק על התוכן שבתוכו.
+- **עמוד מחיקת נתוני פייסבוק ואינסטגרם** (`/meta/data-deletion`, §10.10) אינו אחד משמונת הדפים: הוא דינמי, בלי גרסאות ובלי באנר טיוטה, ומשתמש רק בטיפוגרפיה של `LegalPage`. הגוף שלו ב-`content/legal/meta-data-deletion.mdx`, ו-⚖️ היקף המחיקה שבו ממתין לעורך דין יחד עם שאר הדפים.
 
 ```yaml
 # frontmatter לכל דף משפטי
@@ -2062,7 +2656,7 @@ summary:                               # תיבת "בקצרה" בראש הדף
 - **מבנה העמוד:** Breadcrumbs (ראשי › {title}) · H1 · שורת מטא "בתוקף מ-{effectiveDate} · גרסה {version}" · **באנר טיוטה** (כל עוד `reviewStatus: "draft"`): **"טיוטה לבדיקת עורך דין. הנוסח טרם אושר סופית, ועשוי להשתנות לפני ההשקה."** · תיבת **"בקצרה"** עם ה-`summary` ושורה **"התקציר נועד לנוחותכם. הנוסח המחייב הוא הנוסח המלא שלמטה."** · תוכן עניינים מה-H2 · התוכן · **"גרסאות קודמות"** (קישורים ל-`content/legal/archive/{slug}-{version}.mdx`, מוצגים ב-`/legal/{slug}?v={version}` עם `noindex`) · תיבת יצירת קשר.
 - טיפוגרפיה של קריאה ארוכה (68ch, גוף 18px), כותרות ממוספרות, עוגן לכל H2 (`id` באנגלית קבוע, למשל `#credits`, `#retention`, `#subprocessors`).
 - **שער השקה:** `scripts/check-content.ts --launch` (רץ ב-CI על ענף `main` לפני פריסת פרודקשן ב-M7) נכשל אם יש דף משפטי עם `reviewStatus: "draft"`, או אם נשאר בקוד, בתוכן או בדפים משפטיים משתנה `{{…}}` כלשהו מרשימת משתני התוכן של חלק 06 §20 (חוץ מ-`{{VERCEL_TEAM_SLUG}}`, שאינו בקוד, ו-`{{DPO_NAME}}`, שמותר להשאיר ריק: המשפט שמזכיר אותו מוסתר). האישור המשפטי (תאריך, שם עורך הדין) נרשם ב-`DECISIONS.md`.
-- **משתנים משפטיים ותפעוליים:** קובצי ה-MDX כוללים את המשתנים כמו שהם (`{{LEGAL_ENTITY_NAME}}`, `{{COMPANY_ID}}`, `{{LEGAL_ADDRESS}}`, `{{LEGAL_EFFECTIVE_DATE}}`, `{{SUPPORT_PHONE}}`, `{{JURISDICTION_CITY}}`, `{{DPO_NAME}}`, `{{A11Y_COORDINATOR_TITLE}}` ("רכז הנגישות" או "רכזת הנגישות"), `{{A11Y_COORDINATOR_NAME}}`, `{{A11Y_COORDINATOR_PHONE}}`, `{{A11Y_COORDINATOR_EMAIL}}`, `{{A11Y_STATEMENT_DATE}}`, `{{A11Y_AUDIT_DATE}}`, `{{A11Y_AUDITOR}}`, וגם `{{BRAND_NAME}}`, `{{DOMAIN}}`), ותוסף ה-remark המשותף לכל קובצי ה-MDX (§8.1) מחליף אותם בזמן הבנייה מתוך `BRAND` ב-`lib/constants.ts` (§1.2) — אין קובץ משתנים נוסף. אם `BRAND.legal.dpoName` ריק (לא מונה ממונה הגנת פרטיות), המשפט שמזכיר אותו לא מוצג.
+- **משתנים משפטיים ותפעוליים:** קובצי ה-MDX כוללים את המשתנים כמו שהם (`{{LEGAL_ENTITY_NAME}}`, `{{COMPANY_ID}}`, `{{LEGAL_ADDRESS}}`, `{{LEGAL_EFFECTIVE_DATE}}`, `{{SUPPORT_PHONE}}`, `{{JURISDICTION_CITY}}`, `{{DPO_NAME}}`, `{{A11Y_COORDINATOR_TITLE}}` ("רכז הנגישות" או "רכזת הנגישות"), `{{A11Y_COORDINATOR_NAME}}`, `{{A11Y_COORDINATOR_PHONE}}`, `{{A11Y_COORDINATOR_EMAIL}}`, `{{A11Y_STATEMENT_DATE}}`, `{{A11Y_AUDIT_DATE}}`, `{{A11Y_AUDITOR}}`, וגם `{{BRAND_NAME}}`, `{{BRAND_NAME_EN}}`, `{{DOMAIN}}`), ותוסף ה-remark המשותף לכל קובצי ה-MDX (§8.1) מחליף אותם בזמן הבנייה מתוך `BRAND` ב-`lib/constants.ts` (§1.2) — אין קובץ משתנים נוסף. אם `BRAND.legal.dpoName` ריק (לא מונה ממונה הגנת פרטיות), המשפט שמזכיר אותו לא מוצג.
 - **הסכמות:** בכניסה הראשונה נרשמות הסכמות `terms` ו-`privacy` עם `version` של הדף (`source: "signup"`); בקופה — `terms` (`source: "checkout"`); ביצירה הראשונה — `ai_content_policy` בצד השרת (`source: "generate"`, חלק 04 §19.8). גרסה עם `material: true` מפעילה את מייל `terms_update` 14 יום לפני התחולה ואת דיאלוג הקבלה מחדש באפליקציה (חלק 06 §11.12).
 
 ### §10.2 תנאי שימוש (`/legal/terms`)
@@ -2073,15 +2667,16 @@ summary:                               # תיבת "בקצרה" בראש הדף
 - "משלמים בקרדיטים, רואים את המחיר לפני כל יצירה, ויצירה שנכשלה מחזירה את הקרדיטים."
 - "אפשר לבטל מנוי בכל רגע, אונליין מעמוד החיוב. ב-14 הימים הראשונים אחרי תשלום אפשר גם לקבל החזר."
 - "אסור להשתמש בשירות לתעמולה פוליטית, להטעיה, או ליצירת דמות או קול של אדם בלי הסכמתו."
+- "בפרסום בפייסבוק ובאינסטגרם אתם המפרסמים. תקציב הפרסום משולם ישירות למטא, אנחנו לא לוקחים ממנו אחוזים, ואיננו מבטיחים תוצאות."
 
 **1. מי אנחנו ועל מה התנאים חלים**
 1.1. השירות {{BRAND_NAME}} ("השירות") מופעל על ידי {{LEGAL_ENTITY_NAME}}, ח״פ {{COMPANY_ID}}, שכתובתה {{LEGAL_ADDRESS}} ("החברה" או "אנחנו").
-1.2. התנאים חלים על כל שימוש באתר {{DOMAIN}}, באפליקציה, בספריית ההוקים, בדפי השיתוף ובכל שירות אחר שלנו. מדיניות הפרטיות, מדיניות הביטול וההחזרים, מדיניות השימוש ההוגן ב-AI, מדיניות ההסכמה לשימוש בדמות ובקול ומדיניות העוגיות הן חלק בלתי נפרד מהתנאים.
+1.2. התנאים חלים על כל שימוש באתר {{DOMAIN}}, באפליקציה, בספריית ההוקים, בדפי השיתוף, בדפי העסק ובכל שירות אחר שלנו. מדיניות הפרטיות, מדיניות הביטול וההחזרים, מדיניות השימוש ההוגן ב-AI, מדיניות ההסכמה לשימוש בדמות ובקול, מדיניות העוגיות והסכם עיבוד המידע הן חלק בלתי נפרד מהתנאים.
 1.3. התנאים כתובים בלשון רבים לשם הנוחות, ופונים לכל המגדרים באופן שווה.
 1.4. פתיחת חשבון או שימוש בשירות מהווים הסכמה לתנאים. אם אינכם מסכימים להם, אנא אל תשתמשו בשירות.
 
 **2. הגדרות**
-"חשבון" — החשבון האישי שלכם בשירות. "סביבת עבודה" — מרחב שבו נשמרים פרויקטים, ערכות מותג וקרדיטים, ושאפשר לשתף בו משתמשים נוספים. "התוכן שלכם" — כל מה שאתם מוסרים לשירות: טקסטים, קישורים, פרטי העסק, תמונות, סרטונים, לוגו והקלטות. "תוצרים" — מה שהשירות יוצר עבורכם: הוקים, תסריטים, תמונות, קליפים, קריינות, כתוביות, מוזיקה וסרטונים. "קרדיטים" — יחידות השימוש בשירות, כמפורט בפרק 5. "תוכנית" — המסלול שבחרתם (חינם, בסיס, עסק או סוכנות).
+"חשבון" — החשבון האישי שלכם בשירות. "סביבת עבודה" — מרחב שבו נשמרים פרויקטים, ערכות מותג וקרדיטים, ושאפשר לשתף בו משתמשים נוספים. "התוכן שלכם" — כל מה שאתם מוסרים לשירות: טקסטים, קישורים, פרטי העסק, תמונות, סרטונים, לוגו והקלטות. "תוצרים" — מה שהשירות יוצר עבורכם: הוקים, תסריטים, תמונות, קליפים, קריינות, כתוביות, מוזיקה וסרטונים. "קרדיטים" — יחידות השימוש בשירות, כמפורט בפרק 5. "תוכנית" — המסלול שבחרתם (חינם, בסיס, עסק או סוכנות). "חשבון מטא" — העמוד העסקי בפייסבוק, חשבון האינסטגרם המקצועי, חשבון המודעות ומספר הוואטסאפ העסקי שחיברתם לשירות. "קמפיין" — פרסום ממומן בפייסבוק ובאינסטגרם שנוצר מהשירות בחשבון המודעות שלכם. "לידים" — פרטים שפונים השאירו בטופס של מודעה או של דף העסק. "דף העסק" — עמוד אינטרנט שהשירות בונה לעסק שלכם ומארח בכתובת של השירות.
 
 **3. הרשמה וחשבון**
 3.1. השירות מיועד לבני 18 ומעלה, לשימוש לצורכי עסק, מקצוע או פעילות שיווקית.
@@ -2095,6 +2690,7 @@ summary:                               # תיבת "בקצרה" בראש הדף
 4.3. אנחנו רשאים לשנות, לשפר, להחליף ספקים ומודלים, להוסיף או להסיר יכולות. שינוי כזה לא יפגע בקרדיטים שכבר שולמו. שינוי מהותי לרעה בתוכנית בתשלום יימסר לכם במייל לפחות 30 יום מראש, ותוכלו לבטל ולקבל החזר יחסי על התקופה שנותרה.
 4.4. אנחנו משתדלים שהשירות יהיה זמין ותקין, אך ייתכנו הפסקות לצורך תחזוקה, תקלות אצלנו או אצל ספקים. נודיע מראש על תחזוקה מתוכננת ככל האפשר.
 4.5. שמירת קבצים: בסביבת עבודה שמעולם לא שולם בה דבר (תוכנית חינמית בלי מנוי ובלי חבילה), סרטונים מוכנים נשמרים 90 יום מיום יצירתם. מהתשלום הראשון — על מנוי או על חבילת קרדיטים — הסרטונים נשמרים כל עוד החשבון קיים, גם אם בהמשך חזרתם לתוכנית החינמית. מומלץ לשמור עותק של כל סרטון שחשוב לכם.
+4.6. **יכולות שמתחברות לפלטפורמות.** חלק מהיכולות, כמו פרסום בפייסבוק ובאינסטגרם, קמפיינים, לידים, דף העסק ובדיקת דופק, נפתחות בהדרגה ותלויות בתוכנית שלכם. התנאים שלהן מפורטים בפרקים 9א ו-9ב.
 
 **5. תנאי הקרדיטים** (עוגן `#credits`)
 5.1. **מהו קרדיט.** קרדיט הוא יחידת שימוש בשירות. אין לו ערך כספי, הוא אינו ניתן להמרה לכסף, למכירה או להעברה לחשבון אחר. בתוכנית הסוכנות, הקרדיטים של הסוכנות משמשים גם את סביבות הלקוח שלה.
@@ -2136,8 +2732,28 @@ summary:                               # תיבת "בקצרה" בראש הדף
 9.3. המערכת משתמשת רק במספרים, במחירים ובעובדות שאישרתם, ומסמנת בתסריט כל נתון שחסר. האחריות לוודא שכל עובדה בסרטון נכונה היא שלכם.
 9.4. אנחנו רשאים לחסום יצירה, להסיר תוכן או לבטל קישור שיתוף שמפרים את התנאים או את הדין, ונודיע לכם על כך ככל האפשר.
 
+**9א. פרסום בפייסבוק ובאינסטגרם** (עוגן `#meta`)
+9א.1. **אנחנו כלי.** השירות מאפשר לחבר את חשבון מטא שלכם, לפרסם בו פוסטים, להכין ולהפעיל קמפיינים, ולצפות בדוחות ובלידים. אנחנו לא סוכנות פרסום, לא מנהלים את הקמפיינים לפי שיקול דעת שלנו, ולא פועלים בשמכם מול מטא מעבר לפעולות שביקשתם או לכללים שהפעלתם.
+9א.2. **אתם המפרסמים.** אתם בעלי חשבון המודעות והעמוד, ואתם המפרסמים של כל מודעה ופוסט. השימוש שלכם בפייסבוק, באינסטגרם ובוואטסאפ כפוף לתנאים ולמדיניות של מטא, ובהם תקני הפרסום שלה, ואתם מתחייבים לעמוד בהם. מטא רשאית לדחות, להגביל או להסיר מודעות ותוכן לפי שיקול דעתה, ואיננו אחראים להחלטות שלה.
+9א.3. **תקציב הפרסום.** תקציב הפרסום נגבה על ידי מטא, ישירות מאמצעי התשלום שבחשבון המודעות שלכם. אנחנו לא גובים, לא מחזיקים ולא מחזירים כספי פרסום, ולא לוקחים עמלה או אחוז מהתקציב. לפני כל פרסום תתבקשו לאשר שהתקציב ייגבה על ידי מטא. חיובים, קבלות, מסים ובירורים על תקציב הפרסום הם בינכם לבין מטא. מטא עשויה להוציא ביום מסוים מעט יותר מהתקציב היומי שבחרתם, לפי הכללים שלה.
+9א.4. **בלי הבטחת תוצאות.** איננו מתחייבים לחשיפה, לפניות, ללידים, למכירות או לכל תוצאה אחרת. הערכות, הסברים, ציונים והמלצות במערכת הם כלי עזר ואינם הבטחה. הנתונים בדוחות מגיעים ממטא, ועשויים להתעדכן עד 28 יום אחורה.
+9א.5. **האחריות שלכם לתוכן ולפניות.** אתם אחראים לכך שכל מה שמופיע במודעה, בפוסט, בטופס הלידים ובדף העסק נכון ומותר: עובדות, מחירים, מבצעים, זכויות במוזיקה ובצילומים, והסכמה של כל אדם שמופיע בהם. אתם אחראים גם לדף או לאתר שאליו מובילה המודעה, ולהודעות שאתם שולחים לפונים: הודעה שיווקית לפונה מותרת רק לפי חוק התקשורת, כלומר בהסכמה שלו.
+9א.6. **אוטומציות.** שינויים אוטומטיים בקמפיין, כמו השהיה של מודעה יקרה או הגדלת תקציב למודעה המנצחת, קורים רק לפי כללים שהפעלתם בעצמכם, ובגבולות שקבעתם. אפשר לכבות כל כלל בכל רגע. כל פעולה, שלכם או של כלל, נרשמת ביומן השינויים של הקמפיין.
+9א.7. **מגבלות ותקרות.** לכל תוכנית יש תקרת הוצאה חודשית לקמפיינים שמנוהלים מהשירות, ומספר מרבי של חשבונות מודעות ושל קמפיינים פעילים, כמפורט בעמוד המחירים. כשמגיעים לתקרה איננו עוצרים קמפיינים שכבר רצים; אחרי תקופת חסד קצרה אי אפשר יהיה להפעיל קמפיין חדש, לחדש קמפיין מושהה או להגדיל תקציב, עד החודש הבא או עד שדרוג.
+9א.8. **חסימת תוכן.** אנחנו רשאים לחסום מודעה, פוסט או דף עסק שמפרים את התנאים, את מדיניות השימוש ההוגן ב-AI, את המדיניות של מטא או את הדין. תוכן פוליטי או חברתי חסום תמיד לפרסום ממומן דרך השירות.
+9א.9. **ניתוק.** אפשר לנתק את חשבון מטא בכל רגע, בהגדרות. הניתוק מוחק את אסימוני הגישה, ואפשר לבחור למחוק גם את נתוני מטא שנשמרו אצלנו. קמפיינים שכבר רצים ממשיכים לרוץ אצל מטא עד שתעצרו אותם שם.
+9א.10. **הסכמה.** בפעם הראשונה שאתם מחברים את חשבון מטא תתבקשו לאשר את הפרק הזה, ונרשום את ההסכמה.
+9א.11. **זמינות.** היכולות האלה תלויות בממשקים ובאישורים של מטא. אם מטא תשנה, תגביל או תפסיק את הגישה, ייתכן שחלק מהיכולות ייפסקו, ונודיע לכם על כך בהקדם.
+
+**9ב. דף העסק, בדיקת דופק וטרנדים** (עוגן `#extras`)
+9ב.1. **דף העסק.** דף העסק זמין בתוכניות בתשלום, לפי מספר הדפים שבתוכנית. כל בנייה של הדף, או בנייה מחדש, עולה קרדיטים לפי המחירון; עריכת טקסט, פרסום והסרה לא עולים קרדיטים. בתוכנית החינמית אפשר לבנות תצוגה מקדימה עם סימן מים, שאי אפשר לפרסם; פרסום הדף דורש תוכנית בתשלום או רכישה של חבילת קרדיטים.
+9ב.2. הדף מתארח אצלנו, בכתובת של השירות. אתם אחראים לתוכן שלו, לנכונות הפרטים ולטיפול בפניות שמגיעות דרכו. בדף מוצגים פרטי העסק והודעת פרטיות שהשירות מכין בשמכם, ועליכם לבדוק שהיא מתאימה לעסק שלכם. לפי ברירת המחדל הדף לא מופיע במנועי חיפוש, ואפשר לשנות זאת בהגדרות הדף. אנחנו רשאים להסיר מהאוויר דף שמפר את התנאים או את הדין. אם התוכנית משתנה לתוכנית שאין בה מספיק דפים, נודיע לכם מראש לפני שדף יורד מהאוויר.
+9ב.3. **בדיקת דופק.** הבדיקה קוראת נתונים מחשבון המודעות שחיברתם ואינה משנה בו דבר. הדוח וההמלצות הם כלי עזר, ואינם הבטחה לחיסכון או לתוצאות.
+9ב.4. **טרנדים.** תבניות הטרנדים הן השראה לפורמט, וכל סרטון שנוצר מהן נבנה מחדש בשירות, עם התוכן שלכם. הן לא כוללות את הסרטון המקורי, ולא את הדמות, הקול או המוזיקה של מי שיצר אותו, ואסור לכם להוסיף אותם. צילומים שאתם מעלים, גם בצילום מודרך, חייבים להיות שלכם, ובהסכמה של מי שמופיע בהם.
+9ב.5. **ציון הוק ותוכנית 30 יום.** הציון והתוכנית הם הערכה לפי כללים, ואינם הבטחה לתוצאות.
+
 **10. ספקים חיצוניים**
-השירות נעזר בספקים חיצוניים, ובהם OpenRouter וספקי המודלים שאליהם הוא מנתב, ספק הסליקה, ספק החשבוניות וספקי תשתית, כמפורט במדיניות הפרטיות. ייתכן שחלק מתנאיהם יחולו על השימוש בתוצרים. איננו אחראים לשירותים של צדדים שלישיים שאליהם אתם מעלים את הסרטונים, כמו רשתות חברתיות.
+השירות נעזר בספקים חיצוניים, ובהם OpenRouter וספקי המודלים שאליהם הוא מנתב, ספק הסליקה, ספק החשבוניות וספקי תשתית, כמפורט במדיניות הפרטיות. ייתכן שחלק מתנאיהם יחולו על השימוש בתוצרים. איננו אחראים לשירותים של צדדים שלישיים שאליהם אתם מעלים את הסרטונים, כמו רשתות חברתיות. גם כשהשירות מפרסם בשמכם בפייסבוק ובאינסטגרם, מטא היא צד שאתם מתקשרים איתו ישירות, והשימוש שלכם בפלטפורמות שלה כפוף לתנאים שלה (פרק 9א).
 
 **11. פרטיות**
 אנחנו מעבדים מידע אישי לפי מדיניות הפרטיות.
@@ -2176,13 +2792,15 @@ summary:                               # תיבת "בקצרה" בראש הדף
 - "המידע נשמר בשרתים באירופה; חלק מהספקים פועלים בארצות הברית."
 - "אנליטיקה רק בהסכמה. דיוור שיווקי רק בהסכמה, ואפשר להסיר בלחיצה."
 - "אפשר לעיין במידע, לתקן, להוריד עותק ולמחוק את החשבון בכל עת."
+- "אם חיברתם את פייסבוק ואינסטגרם: אנחנו שומרים רק מה שצריך כדי לפרסם, לנהל קמפיינים ולהציג דוחות, ואסימון הגישה נמחק בניתוק."
+- "לידים שעסק אוסף דרך השירות שייכים לעסק. אנחנו מעבדים אותם בשבילו בלבד."
 
 **1. מי אחראי למידע**
 בעלת השליטה במידע היא {{LEGAL_ENTITY_NAME}}, ח״פ {{COMPANY_ID}}, {{LEGAL_ADDRESS}}. לכל פנייה בנושא פרטיות: privacy@{{DOMAIN}}. ממונה הגנת הפרטיות: {{DPO_NAME}}. (המשפט האחרון מוצג רק אם מונה ממונה, §10.1.)
 המדיניות הזו היא גם ההודעה שסעיף 11 לחוק הגנת הפרטיות, התשמ״א-1981, מחייב, כפי שתוקן בתיקון 13 (בתוקף מ-14 באוגוסט 2025).
 
 **2. על מה המדיניות חלה**
-המדיניות חלה על מבקרים באתר, על משתמשים רשומים ועל אנשי קשר שפונים אלינו. כשאתם מעלים לשירות מידע על אנשים אחרים — למשל צילומים של עובדים או של לקוחות שלכם — אתם אחראים לכך שיש לכם בסיס חוקי והסכמה לכך, ואנחנו מעבדים את המידע הזה בשבילכם ולפי הוראותיכם.
+המדיניות חלה על מבקרים באתר, על משתמשים רשומים ועל אנשי קשר שפונים אלינו. כשאתם מעלים לשירות מידע על אנשים אחרים — למשל צילומים של עובדים או של לקוחות שלכם — אתם אחראים לכך שיש לכם בסיס חוקי והסכמה לכך, ואנחנו מעבדים את המידע הזה בשבילכם ולפי הוראותיכם. כך גם לגבי לידים שעסק אוסף דרך השירות, בטופס של מודעה או בדף העסק: העסק הוא בעל השליטה במידע, ואנחנו מעבדים אותו בשבילו לפי הסכם עיבוד המידע (`/legal/dpa`). מי שהשאיר פרטים ורוצה לברר מה נעשה בהם, יפנה קודם לעסק (סעיף 8ב).
 
 **3. איזה מידע אנחנו אוספים** (עוגן `#data`)
 
@@ -2197,11 +2815,16 @@ summary:                               # תיבת "בקצרה" בראש הדף
 | אנליטיקה | אילו עמודים ופעולות שימשו אתכם, בלי תוכן אישי | עוגיות ואירועים | רק בהסכמה; בלעדיה השירות עובד כרגיל |
 | תקשורת | פניות, תכתובות תמיכה, משוב | מכם | לא חובה |
 | הסכמות | מה הסכמתם, מתי, לאיזו גרסה, מאיזה IP | נרשם אוטומטית | נדרש כדי להוכיח את ההסכמה |
+| חיבור לפייסבוק ולאינסטגרם | מזהים ושמות של העמוד, של חשבון האינסטגרם ושל חשבון המודעות שבחרתם, ההרשאות שנתתם, ואסימון גישה מוצפן | ממטא, כשאתם מחברים את החשבון | לא חובה; בלעדיו אי אפשר לפרסם ולהפעיל קמפיינים מהשירות |
+| קמפיינים, פוסטים וביצועים | הגדרות הקמפיין, טקסטים, יעד ותקציב, סטטוסים, יומן שינויים, נתוני ביצועים (הוצאה, חשיפה, פניות) ונתוני צפייה בפוסטים, ודוחות "בדיקת דופק" | מכם וממטא | לא חובה |
+| לידים שהעסק אוסף | שם, טלפון, מייל, עיר ותשובות שהפונה מילא בטופס של מודעה או של דף העסק, וסטטוס והערות שהצוות של העסק הוסיף | מהפונים, דרך מטא או דרך דף העסק | אנחנו מעבדים אותם בשביל העסק (סעיף 8ב) |
+| דף העסק | התוכן שהשירות בנה ואתם ערכתם, ומספר הצפיות בדף | מכם, ונוצר בשירות | לא חובה |
+| צילום מודרך | סרטונים שצילמתם באפליקציה או העליתם לפי רשימת צילומים, כולל אנשים שמופיעים בהם בהסכמה | מכם | לא חובה |
 
 איננו אוספים ביודעין מידע בעל רגישות מיוחדת. שיבוט קול ואווטאר דיגיטלי, שכרוכים במידע ביומטרי, אינם זמינים כיום. אם יושקו, הם יחייבו הסכמה נפרדת ומפורשת, כמפורט במדיניות ההסכמה לשימוש בדמות ובקול.
 
 **4. למה אנחנו משתמשים במידע**
-כדי לספק את השירות ולנהל את החשבון; כדי ליצור את התוצרים, כולל העברת התוכן הרלוונטי לספקי ה-AI; כדי לחייב, להפיק חשבוניות ולעמוד בחובות מס; כדי לתת תמיכה; כדי לאבטח את השירות ולמנוע הונאה וניצול לרעה, כולל מניעת קבלה כפולה של קרדיטי ניסיון; כדי לשפר את השירות על בסיס נתונים מצרפיים; כדי לשלוח לכם עדכונים שיווקיים — רק אם הסכמתם; וכדי לעמוד בדרישות הדין.
+כדי לספק את השירות ולנהל את החשבון; כדי ליצור את התוצרים, כולל העברת התוכן הרלוונטי לספקי ה-AI; כדי לחייב, להפיק חשבוניות ולעמוד בחובות מס; כדי לתת תמיכה; כדי לאבטח את השירות ולמנוע הונאה וניצול לרעה, כולל מניעת קבלה כפולה של קרדיטי ניסיון; כדי לשפר את השירות על בסיס נתונים מצרפיים; כדי לשלוח לכם עדכונים שיווקיים — רק אם הסכמתם; כדי לפרסם בחשבון מטא שלכם, להפעיל ולנהל את הקמפיינים שביקשתם, להציג דוחות ולהעביר אליכם לידים — רק אם חיברתם את החשבון; וכדי לעמוד בדרישות הדין.
 
 **5. האם חובה למסור מידע**
 אינכם חייבים על פי חוק למסור לנו מידע, והמסירה תלויה ברצונכם. עם זאת, בלי כתובת מייל לא נוכל לפתוח לכם חשבון, בלי פרטי תשלום לא תוכלו לרכוש, ופרטים לחשבונית נדרשים לפי דיני המס. בלי פרטי העסק השירות יעבוד, אבל הסרטונים יהיו פחות מותאמים לכם.
@@ -2226,14 +2849,23 @@ summary:                               # תיבת "בקצרה" בראש הדף
 | Amazon Web Services | גיבויים מוצפנים של מסד הנתונים והקבצים (S3) | האיחוד האירופי (פרנקפורט) |
 | Meta (WhatsApp) | הודעות שירות בוואטסאפ, רק אם הפעלתם אותן בהגדרות (כשהאפשרות תושק) | ארצות הברית ומדינות נוספות |
 
-מה מקבל כל ספק AI: למודלי הטקסט נשלחים פרטי העסק והבריף שמסרתם; למודלי התמונה והווידאו — תיאור חזותי באנגלית ותמונת הפתיחה של הסצנה, בלי פרטי הקשר שלכם; למודל הקריינות — טקסט הקריינות, שעשוי לכלול פרטי קשר עסקיים שבחרתם להקריא; למודל התמלול — קובץ הקריינות; לחילוץ פרטי המותג — התוכן הציבורי של האתר או של עמוד האינסטגרם שקישרתם; לבדיקת התאמה למדיניות — הבריף, התסריט, ותמונות שהעליתם (בסרטון — הפריים הראשון), כדי לוודא שהן לא מפרות את מדיניות השימוש ההוגן ב-AI. הבקשות נשלחות בהגדרה שמונעת מספקים לשמור את התוכן לצורך אימון מודלים `[M0-verify]` (§9.3).
+מה מקבל כל ספק AI: למודלי הטקסט נשלחים פרטי העסק והבריף שמסרתם; למודלי התמונה והווידאו — תיאור חזותי באנגלית ותמונת הפתיחה של הסצנה, בלי פרטי הקשר שלכם; למודל הקריינות — טקסט הקריינות, שעשוי לכלול פרטי קשר עסקיים שבחרתם להקריא; למודל התמלול — קובץ הקריינות; לחילוץ פרטי המותג — התוכן הציבורי של האתר או של עמוד האינסטגרם שקישרתם; לבדיקת התאמה למדיניות — הבריף, התסריט, ותמונות שהעליתם (בסרטון — הפריים הראשון), כדי לוודא שהן לא מפרות את מדיניות השימוש ההוגן ב-AI; לכתיבת טקסטים למודעות, להסבר של תוצאות קמפיין ולבדיקת דופק — פרטי העסק, הגדרות הקמפיין ומספרים מצרפיים של ביצועים, בלי שום פרט של לידים; לבניית דף העסק — פרטי העסק והשירותים שאישרתם. הבקשות נשלחות בהגדרה שמונעת מספקים לשמור את התוכן לצורך אימון מודלים `[M0-verify]` (§9.3).
 בנוסף, נמסור מידע לרשויות כשהדין מחייב, ליועצים מקצועיים שלנו בחובת סודיות, ולגוף שירכוש את הפעילות במקרה של מיזוג או מכירה, בכפוף למדיניות זו. את רשימת הספקים העדכנית נפרסם תמיד בעמוד הזה.
+**מטא (פייסבוק ואינסטגרם).** כשאתם מחברים את חשבון מטא, אנחנו שולחים למטא את מה שביקשתם לפרסם — סרטונים, טקסטים והגדרות קמפיין — ומקבלים ממנה נתוני ביצועים ולידים. בעניין הזה מטא אינה ספק משנה שלנו: היא צד עצמאי שאתם עובדים איתו ישירות, והשימוש שלה במידע כפוף לתנאים ולמדיניות הפרטיות שלה. מה אנחנו שומרים מהחיבור — בסעיף 8א.
 
 **7. העברת מידע אל מחוץ לישראל**
 חלק מהספקים פועלים מחוץ לישראל, באיחוד האירופי ובארצות הברית. ההעברה נעשית בהתאם לתקנות הגנת הפרטיות (העברת מידע למאגרי מידע שמחוץ לגבולות המדינה), התשס״א-2001, בין היתר למדינות שחלים בהן דיני הגנת מידע מתאימים, ובכפוף להתחייבויות חוזיות של הספקים לשמירה על המידע.
 
 **8. בינה מלאכותית**
 אנחנו לא מאמנים מודלים על התוכן שלכם. התוכן נשלח לספקי AI רק כדי ליצור את התוצרים שביקשתם. על כל קריאה לספק AI אנחנו שומרים מטא-נתונים (איזה מודל, עלות, זמן ותוצאה) לצורך חיוב, בקרת עלויות ותמיכה, בלי לשמור את תוכן הבקשה מעבר למה שנשמר ממילא בפרויקט שלכם. כשתשובה של מודל נכשלת בבדיקה האוטומטית, נשמר קטע קצר ממנה לצורך איתור התקלה, והוא נמחק אחרי 30 יום.
+
+**8א. פייסבוק ואינסטגרם** (עוגן `#meta`)
+אם חיברתם את חשבון מטא, אנחנו שומרים את המזהים והשמות של העמוד, של חשבון האינסטגרם ושל חשבון המודעות שבחרתם, את ההרשאות שנתתם, ואסימון גישה מוצפן שמאפשר לשירות לפעול בשמכם רק בפעולות שביקשתם. האסימון לא נשלח לדפדפן, לא נכתב ביומנים ולא נשלח למודלי AI, והוא נמחק ברגע שמנתקים את החשבון או כשמטא מבטלת אותו. בנוסף נשמרים הקמפיינים והפוסטים שהפעלתם מהשירות, נתוני הביצועים שלהם, והלידים שהגיעו מהם.
+אנחנו לא משתמשים בנתונים האלה כדי לפרסם לאחרים, לא מוכרים אותם, ולא משווים את הנתונים שלכם לנתונים של עסקים אחרים. אם בעתיד נציע השוואה מצרפית בין עסקים, היא תהיה אנונימית, רק על קבוצות של חמישה עסקים לפחות, נעדכן עליה כאן מראש, ואפשר יהיה לבטל את ההשתתפות בה.
+אפשר לנתק את החשבון ולמחוק את נתוני מטא בכל רגע. ההסבר המלא, כולל מחיקה מתוך פייסבוק עצמה, בעמוד מחיקת נתוני פייסבוק ואינסטגרם (`/meta/data-deletion`).
+
+**8ב. לידים שהעסק אוסף** (עוגן `#leads`)
+כשעסק אוסף לידים דרך השירות — בטופס של מודעה בפייסבוק או באינסטגרם, או בטופס של דף העסק — העסק הוא בעל השליטה במידע, ואנחנו מעבדים אותו בשבילו בלבד, לפי הסכם עיבוד המידע. אנחנו שומרים את הלידים בשרתים באירופה, מציגים אותם לצוות של העסק, שולחים לו התראה על ליד חדש במייל (ואם הפעיל זאת, גם בוואטסאפ), ומאפשרים לו לייצא ולמחוק אותם. לידים לא משמשים לשיווק שלנו, לא מצורפים ללידים של עסקים אחרים ולא נשלחים למודלי AI. ליד נמחק אצלנו 24 חודשים אחרי שהתקבל, או קודם אם העסק מחק אותו. מחיקה אצלנו לא מוחקת את העותק שמטא שומרת מטופס של מודעה, לפי המדיניות שלה. מי שהשאיר פרטים ורוצה לעיין בהם, לתקן או למחוק אותם, מתבקש לפנות לעסק; אם יפנה אלינו, נעביר את הבקשה לעסק ונעזור לו לטפל בה.
 
 **9. כמה זמן אנחנו שומרים מידע** (עוגן `#retention`)
 
@@ -2244,6 +2876,13 @@ summary:                               # תיבת "בקצרה" בראש הדף
 | סרטונים בסביבת עבודה שמעולם לא שולם בה דבר (תוכנית חינמית בלי מנוי ובלי חבילה) | 90 יום מיום היצירה |
 | סרטונים וקבצים בסביבת עבודה ששולם בה לפחות פעם אחת | כל עוד החשבון קיים, גם אחרי חזרה לתוכנית החינמית |
 | קובץ ייצוא של המידע שלכם | 7 ימים מיום הפקתו |
+| אסימוני הגישה לחשבון מטא (מוצפנים) | עד שמנתקים את החשבון, או עד שמטא מבטלת אותם |
+| קמפיינים, פוסטים, נתוני הביצועים שלהם ויומן השינויים | כל עוד סביבת העבודה קיימת, או עד שמוחקים את נתוני מטא; הנתונים הגולמיים כפי שהגיעו ממטא — 90 יום |
+| לידים | 24 חודשים מיום שהתקבלו, אלא אם נמחקו קודם |
+| דוחות "בדיקת דופק" | 12 חודשים |
+| דפי עסק | כל עוד סביבת העבודה קיימת, או עד שמוחקים את הדף |
+| בקשות מחיקה שהגיעו ממטא | 3 שנים |
+| סרטוני השראה שהצוות שלנו מעלה לניתוח טרנדים (לא מידע של משתמשים) | 30 יום, אלא אם הם שלנו או ברישיון |
 | רשומות תשלום, חשבוניות (כולל קובצי ה-PDF), יומן הקרדיטים ובקשות החזר | 7 שנים לפחות, כנדרש לפי דיני המס; בסביבה שנמחקה הן נשמרות בלי פרטים מזהים מעבר לנדרש בחוק |
 | מטא-נתונים של קריאות AI | 24 חודשים; קטעי איתור תקלות — 30 יום |
 | יומני הודעות מספקים (webhooks) | 90 יום |
@@ -2278,6 +2917,20 @@ summary:                               # תיבת "בקצרה" בראש הדף
 **16. יצירת קשר**
 privacy@{{DOMAIN}} · {{LEGAL_ENTITY_NAME}}, {{LEGAL_ADDRESS}}.
 
+<EnSummary>
+
+**Summary in English (for platform reviewers)**
+
+{{BRAND_NAME_EN}} is operated by {{LEGAL_ENTITY_NAME}}, Israel. This is a summary; the Hebrew text above is the binding policy.
+
+- When a business connects Facebook and Instagram, we store the IDs and names of the Page, Instagram account and ad account it selected, the permissions it granted, and an encrypted access token. Tokens are never sent to the browser, written to logs or sent to AI models, and are deleted when the business disconnects or when Meta invalidates them.
+- We use Meta data only to publish content the business approved, create and manage the campaigns it launched, show its reports and deliver its leads. We do not sell this data, use it to advertise to others, or combine it across businesses.
+- Leads collected through ad lead forms or a business page belong to the business, which is the controller; we process them on its behalf under our Data Processing Agreement (https://{{DOMAIN}}/legal/dpa). Leads are stored in the EU (Frankfurt), are never used for our marketing or sent to AI models, and are deleted after 24 months, or earlier on request.
+- Users can disconnect and delete all Meta data at any time in Settings → Integrations, or remove the app in their Facebook settings. Deletion instructions and request status: https://{{DOMAIN}}/meta/data-deletion
+- Contact: privacy@{{DOMAIN}}
+
+</EnSummary>
+
 ### §10.4 מדיניות עוגיות ואנליטיקה (`/legal/cookies`)
 
 `summary`:
@@ -2299,14 +2952,15 @@ privacy@{{DOMAIN}} · {{LEGAL_ENTITY_NAME}}, {{LEGAL_ADDRESS}}.
 | הכרחיות | `motion` | ההעדפה שלכם לגבי אנימציות ("עצירת אנימציות") | שנה | לא |
 | הכרחיות | `sidebar_state` | אם התפריט הצדדי באפליקציה פתוח או מקופל | 7 ימים | לא |
 | הכרחיות | `consent_v1` | הבחירה שלכם לגבי עוגיות | שנה | לא |
+| הכרחיות | `meta_oauth_state` | אבטחת החיבור לפייסבוק ולאינסטגרם. נוצרת רק כשמתחילים חיבור, ונשלחת רק לנתיב החיבור | 10 דקות | לא |
 | אנליטיקה | `ph_*` (PostHog) | הבנת השימוש באתר ובאפליקציה, בלי תוכן אישי | שנה | **כן** |
 | אנליטיקה (ניסויים) | `exp_hero` | הצגת גרסה אחידה של דף הבית בניסוי | 90 יום | **כן** (אותה הסכמה כמו אנליטיקה) |
 
 **3. מידע שנשמר בדפדפן בלבד**
-`hook_personalize_v1` (הפרטים שהזנתם בהתאמת ההוקים, למשל שם העסק והעיר) · `hero_draft_v1` (הנישה, הקישור או התיאור שהזנתם בדף הבית, עד 24 שעות) · `announcement.dismissed.{id}` (הודעות שסגרתם). באפליקציה נשמרים גם שני פרטים זמניים ב-sessionStorage, שנמחקים בסגירת הלשונית: `reauth_draft_v1` (מה שהקלדתם כשהחיבור פג, כדי שלא יאבד אחרי התחברות מחדש) ו-`signup_marketing_v1` (הבחירה שלכם לגבי דיוור במהלך ההרשמה). אין מידע נוסף בדפדפן.
+`hook_personalize_v1` (הפרטים שהזנתם בהתאמת ההוקים, למשל שם העסק והעיר) · `hero_draft_v1` (הנישה, הקישור או התיאור שהזנתם בדף הבית, עד 24 שעות) · `announcement.dismissed.{id}` (הודעות שסגרתם, כולל הודעת ה-AI בפרסום, `announcement.dismissed.meta-ai-notice`). באפליקציה נשמרים גם ארבעה פרטי נוחות: `trends.feed.niche` (התחום שבחרתם בפיד הטרנדים), `publish.calendar.view` (תצוגת לוח הפרסום: חודש או שבוע), `campaigns.report.range` (טווח התאריכים בדוח הקמפיין) ו-`guided.camera.tips` (אם כבר ראיתם את הטיפים של המצלמה). אלה לא נשלחים אלינו בכלל. באפליקציה נשמרים גם שני פרטים זמניים ב-sessionStorage, שנמחקים בסגירת הלשונית: `reauth_draft_v1` (מה שהקלדתם כשהחיבור פג, כדי שלא יאבד אחרי התחברות מחדש) ו-`signup_marketing_v1` (הבחירה שלכם לגבי דיוור במהלך ההרשמה). אין מידע נוסף בדפדפן.
 
 **4. עוגיות של צדדים שלישיים**
-כשאתם עוברים לעמוד התשלום של חברת הסליקה, היא עשויה לשמור עוגיות משלה, לפי המדיניות שלה. אנחנו לא משתמשים בעוגיות פרסום ולא בפיקסלים של רשתות חברתיות. אם נוסיף כאלה בעתיד, נעדכן את המדיניות ונבקש את הסכמתכם קודם.
+כשאתם עוברים לעמוד התשלום של חברת הסליקה, היא עשויה לשמור עוגיות משלה, לפי המדיניות שלה. אנחנו לא משתמשים בעוגיות פרסום ולא בפיקסלים של רשתות חברתיות. בבונה הקמפיינים שבאפליקציה מוצגות תצוגות מקדימות של המודעות מתוך facebook.com, בתוך מסגרת מבודדת, והן עשויות לשמור עוגיות של מטא לפי המדיניות שלה; באתר עצמו אין רכיבים של מטא. אם נוסיף עוגיות פרסום או פיקסלים בעתיד, נעדכן את המדיניות ונבקש את הסכמתכם קודם.
 
 **5. איך משנים את הבחירה**
 בכל עמוד, בתחתית, יש קישור "הגדרות עוגיות". ביטול הסכמה לאנליטיקה מוחק את עוגיות האנליטיקה ומפסיק את האיסוף מאותו רגע. אפשר גם לחסום או למחוק עוגיות בהגדרות הדפדפן; חסימת עוגיות הכרחיות תמנע התחברות לחשבון.
@@ -2422,6 +3076,8 @@ billing@{{DOMAIN}} · {{SUPPORT_PHONE}} · טופס יצירת הקשר באתר
 - "אסור: תעמולה פוליטית, התחזות, דמות או קול של אדם בלי הסכמתו, תוכן מיני או פוגעני, ופרסום מטעה."
 - "המערכת לא ממציאה מספרים, ביקורות או המלצות, ומוסיפה הסתייגויות בנישות מפוקחות."
 - "תוכן ריאליסטי שנוצר ב-AI כדאי לסמן, ובחלק מהרשתות חובה."
+- "טרנדים: מעתיקים פורמט, לא תוכן. בלי הסרטון, הדמות, הקול או המוזיקה של מי שיצר את הטרנד."
+- "מודעות ממומנות: בלי תוכן פוליטי, בלי ממשק מזויף ובלי פנייה לפי מאפיין אישי."
 - "מצאתם שימוש לרעה? דווחו ל-abuse@{{DOMAIN}}."
 
 **1. למה המדיניות קיימת**
@@ -2456,6 +3112,32 @@ billing@{{DOMAIN}} · {{SUPPORT_PHONE}} · טופס יצירת הקשר באתר
 | מזון | לא כותבת "כשר" בלי שאישרתם תעודת כשרות בתוקף |
 | הגרלות ותחרויות | מזכירה לפרסם תקנון |
 | ילדים וחינוך | לא יוצרת ילדים בתמונות AI (מראה את המקום, את הצוות ואת הפעילות), ומזכירה שנדרשת הסכמת הורים לכל צילום של קטינים |
+
+**4א. טרנדים ופורמטים ויראליים** (עוגן `#trends`)
+תבניות הטרנדים בשירות מבוססות על פורמטים שהצוות שלנו ניתח: מבנה, קצב וסוג ההוק. אנחנו מעתיקים את הפורמט, לא את הביטוי, ולכן:
+- לא משתמשים בסרטון המקורי, ולא בטקסטים, בשלטים או בכתוביות המדויקים שלו.
+- לא יוצרים את הפנים, הקול, השם או שם המשתמש של מי שיצר את הטרנד, וגם לא דמות שדומה לו.
+- לא משתמשים במוזיקה המסחרית מהטרנד. כל סרטון מקבל מוזיקה מקורית או רצועה מהספרייה שלנו.
+- לא יוצרים ב-AI המלצות של לקוחות או "ראיונות רחוב". פורמטים כאלה דורשים אנשים אמיתיים שנתנו הסכמה.
+- לא יוצרים דמויות AI של ילדים.
+- לא מכניסים לספרייה טרנדים על מלחמה, חטופים, צה״ל, ימי זיכרון, טרור או פוליטיקה.
+- בלי לוגואים של צד שלישי, ובלי פעלולים מסוכנים.
+- דחיפות ("נשארו 2 מנות") רק כשהיא נכונה, ומחיר רק כשהוא המחיר האמיתי.
+- פורמט שמחקה הודעת מערכת, התראה או כפתור בטלפון מתאים רק לפרסום רגיל, ולא למודעה ממומנת.
+- סרטון AI ריאליסטי שמציג רגע מסוכן מקבל תווית שמבהירה שהוא נוצר ב-AI.
+
+חושבים שתבנית או סרטון בשירות משתמשים ביצירה שלכם? כתבו ל-abuse@{{DOMAIN}}, ונבדוק תוך 2 ימי עסקים.
+
+**4ב. מודעות בפייסבוק ובאינסטגרם** (עוגן `#ads`)
+לפני שקמפיין עולה, המערכת בודקת את הסרטון ואת הטקסט מול הכללים שלנו ומול כללי הפרסום הנפוצים של מטא. בנוסף לאיסורים שבסעיף 3:
+- תוכן פוליטי או חברתי לא עולה כמודעה דרך השירות, בשום תקופה. מודעה כזו דורשת אישור מפרסם אצל מטא, שאנחנו לא תומכים בו.
+- מודעה לא פונה לצופה כאילו ידוע לה משהו על מאפיין אישי שלו, כמו בריאות, מצב כלכלי, דת או גיל ("סובלים מכאבי גב?").
+- בלי "לפני ואחרי" רפואי או אסתטי מזויף, ובלי הבטחת תוצאה.
+- בלי ממשק מזויף: חלונות מערכת, כפתורים או התראות מדומים.
+- בלי מוזיקה שאין לכם רישיון להשתמש בה בפרסום.
+- מטא עשויה להוסיף לסרטון תווית "AI info", ובסרטון שנראה מציאותי המדיניות שלה מבקשת לסמן אותו. אנחנו לא מסירים את סימון ה-AI מהקובץ ולא עוזרים לעקוף אותו.
+
+מודעה שנחסמה אצלנו לא נשלחת למטא, ומוצג הסבר בעברית מה לשנות.
 
 **5. סימון תוכן שנוצר ב-AI**
 ככל שידוע לנו, בישראל אין כיום חובה כללית בחוק לסמן פרסומת מסחרית שנוצרה ב-AI (לתעמולת בחירות יש כללים מיוחדים, סעיף 3.1). מטא, טיקטוק ויוטיוב דורשות לסמן תוכן ריאליסטי שנוצר או שונה ב-AI, ולעיתים מסמנות אותו בעצמן. בשירות אפשר להוסיף תווית "נוצר באמצעות AI" לכל סרטון, ולפני ההורדה מוצגת תזכורת לכללי הפלטפורמות. אנחנו ממליצים לא להסיר מהקובץ נתונים שמציינים שהוא נוצר ב-AI.
@@ -2494,6 +3176,7 @@ billing@{{DOMAIN}} · {{SUPPORT_PHONE}} · טופס יצירת הקשר באתר
 3.2. בצילום של קטין נדרשת הסכמה בכתב של ההורים או של האפוטרופוס.
 3.3. בסרטון המלצה של לקוח נדרשים ציטוט אמיתי והסכמה בכתב של הלקוח. אסור ליצור המלצה בשם לקוח שלא אמר אותה.
 3.4. באפליקציה, בהעלאה הראשונה בכל סשן, תתבקשו לסמן: **"מי שמופיע בצילומים נתן הסכמה לשימוש בהם בפרסום (ואם מופיעים ילדים — ההורים שלהם הסכימו בכתב)."** (אותו נוסח כמו בחלק 03 §6.) בלי הסימון ההעלאה לא מתחילה, והאישור נשמר עם הזמן והמשתמש.
+3.5. **צילום מודרך וטרנדים.** גם כשמצלמים לפי רשימת צילומים באפליקציה, ובטרנדים שבהם מופיעים אנשים, תתבקשו לאשר שמי שמופיע בצילומים נתן הסכמה. בלי האישור, הסרטון לא יכול לעלות כמודעה.
 
 **4. טופס הסכמה לשימוש בדמות ובקול**
 אפשר להוריד את הטופס כקובץ PDF (`public/legal/model-release-he.pdf`, מופק מהנוסח שבהמשך על ידי `scripts/build-legal-pdfs.ts`) או להדפיס אותו ישירות מהעמוד (סגנון הדפסה ייעודי). נוסח הטופס:
@@ -2536,15 +3219,159 @@ billing@{{DOMAIN}} · {{SUPPORT_PHONE}} · טופס יצירת הקשר באתר
 **7. שמירה ואבטחה**
 רישומי ההסכמה, וכשיושקו גם ההקלטות והשיבוטים, נשמרים בהצפנה, עם גישה מוגבלת לצוות, ונמחקים לפי מדיניות הפרטיות.
 
+### §10.9 הסכם עיבוד מידע (`/legal/dpa`)
+
+ההסכם חל על לידים שעסקים אוספים דרך השירות (טופס של מודעה, דף העסק) ועל מידע אישי של אנשים אחרים שעסקים מעלים (צילומים, צילום מודרך, פרטי לקוחות לקישורי אישור). הוא חלק מתנאי השימוש (סעיף 1.2 שם) ולא דורש הסכמה נפרדת; ההסכמה `meta_ads_terms` (`source = meta_connect`) שנרשמת בצד השרת בחיבור הראשון לחשבון מטא (חלק 07) מפנה גם אליו. חלק 07 §12.5 ו-§21. ⚖️ הנוסח כולו ממתין לעורך דין (חלק 06 §25), כולל מועד ההודעה על אירוע אבטחה וההודעה מראש על ספקי משנה.
+
+`summary`:
+- "כשאתם אוספים לידים או מעלים מידע על אנשים אחרים, אתם בעלי השליטה במידע, ואנחנו מעבדים אותו בשבילכם."
+- "אנחנו משתמשים במידע הזה רק כדי לתת לכם את השירות, ולפי ההוראות שלכם."
+- "לידים לא משמשים לשיווק שלנו, לא מצורפים למידע של עסקים אחרים ולא נשלחים למודלי AI."
+- "ליד נשמר 24 חודשים מיום שהתקבל, אלא אם תמחקו אותו קודם."
+- "על אירוע אבטחה שנוגע למידע הזה נודיע לכם בלי דיחוי."
+
+**1. על מה ההסכם חל**
+1.1. ההסכם הזה הוא חלק מתנאי השימוש של {{BRAND_NAME}}, והוא חל בינכם, בעלי סביבת העבודה, לבין {{LEGAL_ENTITY_NAME}} ("אנחנו").
+1.2. הוא חל על מידע אישי של אנשים אחרים שאתם אוספים או מוסרים לשירות, ובכלל זה: (א) לידים מטפסים של מודעות בפייסבוק ובאינסטגרם; (ב) לידים מהטופס של דף העסק; (ג) צילומים וסרטונים שבהם מופיעים עובדים, לקוחות או אנשים אחרים, כולל צילום מודרך; (ד) פרטי קשר של לקוחות שלכם שאתם מזינים לשירות, למשל כדי לשלוח קישור אישור.
+1.3. על המידע שלכם עצמכם, כמשתמשים בשירות, חלה מדיניות הפרטיות, ושם אנחנו בעלי השליטה במידע.
+
+**2. הגדרות**
+"בעל שליטה" ו"מחזיק" — כמשמעותם בחוק הגנת הפרטיות, התשמ״א-1981. "המידע" — המידע האישי שבסעיף 1.2. "נושא מידע" — האדם שהמידע הוא עליו, למשל מי שהשאיר פרטים בטופס. "אירוע אבטחה" — כמשמעותו בתקנות הגנת הפרטיות (אבטחת מידע), התשע״ז-2017.
+
+**3. התפקידים**
+3.1. אתם בעלי השליטה במידע, ואנחנו מחזיקים אותו ומעבדים אותו בשבילכם.
+3.2. אתם אחראים לבסיס החוקי לאיסוף המידע ולשימוש בו: להודעה לנושאי המידע (טופס של מודעה כולל קישור למדיניות הפרטיות של העסק, ודף העסק כולל הודעת פרטיות שאתם אחראים לבדוק), להסכמה לקבלת דברי פרסומת לפי חוק התקשורת, ולהסכמה של כל אדם שמופיע בצילומים.
+
+**4. שימוש במידע רק לפי ההוראות שלכם**
+4.1. נעבד את המידע רק כדי לתת לכם את השירות: לקבל את הלידים ממטא או מדף העסק, לשמור אותם, להציג אותם לצוות שלכם, לשלוח לכם התראה על ליד חדש, לאפשר עדכון סטטוס, ייצוא ומחיקה, ולשלב צילומים בסרטונים שביקשתם.
+4.2. לא נשתמש במידע למטרות שלנו: לא לשיווק שלנו, לא למכירה, לא לצירוף עם מידע של עסקים אחרים ולא לאימון מודלים. לידים לא נשלחים למודלי AI.
+4.3. אם הדין יחייב אותנו לעבד את המידע בדרך אחרת, נודיע לכם לפני כן, אלא אם הדין אוסר זאת.
+
+**5. סודיות**
+הגישה למידע אצלנו מוגבלת לאנשי צוות שזקוקים לה כדי לתפעל את השירות ולתת תמיכה, וכולם מחויבים לסודיות.
+
+**6. אבטחת מידע**
+אנחנו מאבטחים את המידע לפי תקנות הגנת הפרטיות (אבטחת מידע), התשע״ז-2017, ובין היתר: הפרדה בין סביבות עבודה ברמת מסד הנתונים, הצפנה בתעבורה ובאחסון, הרשאות לפי תפקיד, תיעוד של כל ייצוא לידים, הסתרה של פרטי לידים מיומני השגיאות, וגיבויים מוצפנים.
+
+**7. ספקי משנה**
+7.1. אתם מאשרים לנו להיעזר בספקי המשנה שמפורטים במדיניות הפרטיות (סעיף 6 שם), ובהם ספקי האחסון והתשתית ושירותי שליחת ההתראות.
+7.2. על ספק משנה חדש שיעבד לידים נודיע במייל לבעלים של סביבת העבודה לפחות 14 יום מראש. אם אינכם מסכימים, תוכלו להפסיק לאסוף לידים דרך השירות או לבטל את המנוי.
+7.3. נחייב כל ספק משנה בהתחייבויות לשמירה על המידע שאינן פחותות מאלה שבהסכם הזה.
+
+**8. העברה אל מחוץ לישראל**
+הלידים נשמרים בשרתים באיחוד האירופי (פרנקפורט). התראות על לידים עשויות לעבור דרך ספקים בארצות הברית. ההעברה נעשית לפי תקנות הגנת הפרטיות (העברת מידע למאגרי מידע שמחוץ לגבולות המדינה), התשס״א-2001.
+
+**9. בקשות של נושאי מידע**
+נושא מידע שרוצה לעיין במידע עליו, לתקן אותו או למחוק אותו, צריך לפנות אליכם. אם יפנה אלינו, נעביר אליכם את הבקשה בהקדם. בשירות אפשר למצוא ליד, לתקן אותו ולמחוק אותו בעצמכם, ואם צריך עזרה, נעזור.
+
+**10. אירוע אבטחה**
+10.1. אם יתברר לנו על אירוע אבטחה שנוגע למידע, נודיע לבעלים של סביבת העבודה בלי דיחוי, ולא יאוחר מ-24 שעות מהרגע שאישרנו שהאירוע נוגע למידע שלכם, עם מה שידוע לנו: מה קרה, איזה מידע נפגע ומה עשינו.
+10.2. אם תידרש הודעה לרשות להגנת הפרטיות או לנושאי המידע, נעזור לכם במידע שבידינו.
+
+**11. שמירה ומחיקה**
+11.1. ליד נשמר 24 חודשים מיום שהתקבל, ואז נמחק אוטומטית, אלא אם מחקתם אותו קודם.
+11.2. כשמוחקים את סביבת העבודה, או כשבוחרים "מחיקת כל נתוני מטא מהחשבון", המידע נמחק מהשירות תוך 30 יום. בגיבויים הוא נשאר עד שהגיבוי נמחק, לפי טבלת השמירה במדיניות הפרטיות.
+11.3. מחיקה אצלנו לא מוחקת את העותק שמטא שומרת מטופס של מודעה, לפי המדיניות שלה.
+11.4. צילומים נשמרים ונמחקים לפי מדיניות הפרטיות, כמו כל קובץ שהעליתם.
+
+**12. מידע על עמידה בהסכם**
+לבקשה בכתב, פעם בשנה, נמסור לכם את המידע הסביר שדרוש כדי להראות שאנחנו עומדים בהסכם, כמו תיאור של אמצעי האבטחה ורשימת ספקי המשנה. ביקורת במקום אפשרית בתיאום מראש ובעלותכם.
+
+**13. אחריות וסדר עדיפויות**
+האחריות לפי ההסכם כפופה להגבלת האחריות שבתנאי השימוש (פרק 12 שם). אם יש סתירה בין ההסכם הזה לתנאי השימוש בעניין עיבוד המידע, ההסכם הזה גובר.
+
+**14. יצירת קשר**
+privacy@{{DOMAIN}} · {{LEGAL_ENTITY_NAME}}, {{LEGAL_ADDRESS}}.
+
+### §10.10 מחיקת נתוני פייסבוק ואינסטגרם (`/meta/data-deletion`)
+
+העמוד הזה הוא כתובת "הוראות מחיקת הנתונים" שנרשמת אצל מטא (חלק 07 §4.2, משימה 5), ועמוד המצב שאליו מפנה התשובה של `POST /api/webhooks/meta/data-deletion`: `{"url": "https://{{DOMAIN}}/meta/data-deletion?code={code}", "confirmation_code": "{code}"}` (חלק 07 §3.7, §8.2). הוא קיים מ-M2, לפני שהיכולות של מטא נפתחות, ולכן הוא לא מאחורי שער הטענות; הקישור אליו בפוטר מוצג רק כש-`meta_connect` פעיל (§2.3).
+
+**רינדור ונתונים:**
+- `app/(marketing)/meta/data-deletion/page.tsx`, דינמי (קורא את `searchParams.code` בצד השרת), `noindex`, `Cache-Control: no-store`, בלי `MobileStickyCta`, בלי אירועי אנליטיקה ובלי כפתורי הנעה לפעולה. Breadcrumbs: ראשי › מחיקת נתוני פייסבוק ואינסטגרם.
+- הגוף מ-`content/legal/meta-data-deletion.mdx` (אותו תוסף remark של המשתנים), ובין הסעיפים הרכיב `DeletionStatusLookup`.
+
+```ts
+// lib/marketing/data-deletion.ts
+import "server-only";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+const CODE_RE = /^[A-Z2-7]{12}$/;            // base32, 12 תווים (חלק 07 §6)
+export type DeletionStatusView = { status: "pending" | "processing" | "completed"; receivedAt: string; completedAt: string | null };
+
+export async function getDeletionRequestStatus(raw: string | undefined): Promise<DeletionStatusView | null> {
+  const code = (raw ?? "").trim().toUpperCase();
+  if (!CODE_RE.test(code)) return null;      // הבדיקה המפורשת: הקוד עצמו הוא ההרשאה
+  const { data } = await createAdminClient()
+    .from("meta_data_deletion_requests")
+    .select("status, received_at, completed_at")   // לעולם לא meta_user_id ולא connection_ids
+    .eq("confirmation_code", code)
+    .maybeSingle();
+  return data ? { status: data.status, receivedAt: data.received_at, completedAt: data.completed_at } : null;
+}
+```
+
+- אין הגבלת קצב ייעודית: הקוד הוא 60 ביט אקראיים שאי אפשר לנחש, והעמוד מחזיר רק סטטוס ותאריכים. קוד לא תקין או לא קיים מחזירים את אותו מצב "לא מצאנו", בלי להבדיל ביניהם.
+
+**הגוף (`content/legal/meta-data-deletion.mdx`):**
+
+H1: **"מחיקת נתוני פייסבוק ואינסטגרם"**
+
+פתיח: **"אם חיברתם ל{{BRAND_NAME}} עמוד פייסבוק, חשבון אינסטגרם או חשבון מודעות, אפשר לבקש בכל רגע שנמחק את המידע שקיבלנו מהם. יש שלוש דרכים לעשות את זה."**
+
+**שלוש דרכים למחוק**
+1. **מתוך {{BRAND_NAME}}.** בהגדרות, תחת "אינטגרציות", לוחצים "ניתוק" ובוחרים "מחיקת כל נתוני מטא מהחשבון". אסימוני הגישה נמחקים מיד, ואיתם הקמפיינים, הדוחות, הלידים והפוסטים שנשמרו אצלנו מהחיבור. רק בעלים או מנהלים של סביבת העבודה יכולים לעשות את זה.
+2. **מתוך פייסבוק.** בפייסבוק נכנסים להגדרות ופרטיות ← הגדרות ← אפליקציות ואתרים, בוחרים את {{BRAND_NAME}} ולוחצים "הסרה". שם אפשר גם לבקש שנמחק את המידע. פייסבוק מעבירה אלינו את הבקשה, ואתם מקבלים קוד אישור וקישור לעמוד הזה, כדי לראות את מצב הבקשה.
+3. **במייל.** כותבים ל-privacy@{{DOMAIN}} מכתובת המייל של החשבון, ונטפל בבקשה תוך 30 יום.
+
+**מה נמחק**
+- אסימוני הגישה לחשבון שלכם במטא.
+- המזהה שלכם בפייסבוק, שמשמש לחיבור, ופרטים מזהים אחרים שקיבלנו עליכם מפייסבוק.
+- כשבוחרים "מחיקת כל נתוני מטא מהחשבון" בהגדרות: גם הקמפיינים, הדוחות, הכללים, יומן השינויים, טופסי הלידים, הלידים והפוסטים של סביבת העבודה.
+
+**מה נשאר, ולמה**
+נתוני הקמפיינים והלידים שייכים לעסק שבשמו הם נאספו. בקשת מחיקה שמגיעה מפייסבוק מוחקת את החיבור ואת הפרטים המזהים שלכם, אבל לא את הנתונים העסקיים של סביבת העבודה. כדי למחוק גם אותם, בעלים או מנהלים של הסביבה בוחרים "מחיקת כל נתוני מטא מהחשבון" בהגדרות. חשבוניות ורשומות תשלום נשמרות כל עוד חוקי המס מחייבים. קמפיינים שרצים אצל מטא ממשיכים לרוץ עד שעוצרים אותם שם, ומטא שומרת עותק משלה של המודעות ושל הלידים, לפי המדיניות שלה.
+
+**מצב הבקשה** — `DeletionStatusLookup`:
+- טופס `GET` לאותו עמוד: תווית **"קוד האישור"**, שדה `LtrInput` (`autoCapitalize="characters"`, `maxLength={12}`, `spellCheck={false}`), placeholder `K7Q2M4XAP3LZ`, כפתור **"בדיקת מצב הבקשה"**. עם `?code=` בכתובת, השדה מתמלא והתוצאה מוצגת מיד (`aria-live="polite"`).
+- **התקבלה** (`pending`, אייקון `Inbox`): **"קיבלנו את הבקשה ב-{receivedAt}. נטפל בה בהקדם, ולכל המאוחר תוך 30 יום."**
+- **בטיפול** (`processing`, אייקון `LoaderCircle` בלי סיבוב תחת הפחתת תנועה): **"הבקשה בטיפול. המחיקה תסתיים לכל המאוחר תוך 30 יום מיום הבקשה."**
+- **הושלמה** (`completed`, אייקון `CircleCheck`): **"המחיקה הושלמה ב-{completedAt}."**
+- **לא נמצא:** **"לא מצאנו בקשה עם הקוד הזה. בדקו שהקוד הועתק במלואו (12 תווים: אותיות באנגלית וספרות), או כתבו ל-privacy@{{DOMAIN}}."**
+- התאריכים דרך `formatDate(d, "long")` (חלק 01), למשל "ב-17 באוקטובר 2026". מתחת למצב, באנגלית ובתוך `<bdi>`: "Status: Received" / "Status: In progress" / "Status: Completed".
+
+**תקציר באנגלית** (`<EnSummary>`, בסוף העמוד):
+
+```mdx
+<EnSummary>
+
+**Facebook and Instagram data deletion — {{BRAND_NAME_EN}}**
+
+{{BRAND_NAME_EN}} is operated by {{LEGAL_ENTITY_NAME}}. You can ask us at any time to delete the data we received from Facebook and Instagram:
+
+1. In {{BRAND_NAME_EN}}: Settings → Integrations → Disconnect, then choose "Delete all Meta data". Access tokens are deleted immediately, together with the campaigns, reports, leads and posts we stored.
+2. In Facebook: Settings & privacy → Settings → Apps and websites, select {{BRAND_NAME_EN}}, remove it and request data deletion. You will receive a confirmation code and a link to this page, where you can check the status.
+3. By email: privacy@{{DOMAIN}}. We complete requests within 30 days.
+
+A request sent from Facebook deletes your access tokens, your app-scoped Facebook user ID and other personal identifiers we received about you. Campaign statistics and leads belong to the business workspace and are deleted when its owner chooses "Delete all Meta data". Status values: Received, In progress, Completed.
+
+</EnSummary>
+```
+
+- `[M0-verify]` את שמות התפריטים בפייסבוק, בעברית ובאנגלית, מול הממשק הנוכחי, ואת מה ש-`DELETE /me/permissions` עושה לאסימון מסוג BISU (חלק 07 §3.6). ⚖️ היקף המחיקה ("מה נשאר, ולמה") ממתין לעורך דין, כמו בחלק 07 §3.7.
+
 **קריטריוני קבלה**
-- [ ] שבעת הדפים קיימים בנתיבים `/legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies}`, עם באנר הטיוטה, תיבת "בקצרה", תוכן עניינים וגרסה.
+- [ ] שמונת הדפים קיימים בנתיבים `/legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies,dpa}`, עם באנר הטיוטה, תיבת "בקצרה", תוכן עניינים וגרסה, ו-`check-content --launch` כולל גם את `dpa`.
+- [ ] `/meta/data-deletion` מחזיר 200 עם ההוראות גם בלי `?code=`; עם קוד של בקשה קיימת מוצג המצב הנכון (`pending` → "התקבלה", `processing` → "בטיפול", `completed` → "הושלמה"); קוד לא תקין וקוד לא קיים מציגים אותו נוסח "לא מצאנו"; העמוד `noindex` ולא נשמר במטמון; ה-HTML לא מכיל `meta_user_id` או מזהה חיבור (בדיקת Playwright מול ה-mock של חלק 07).
+- [ ] העוגנים `/legal/terms#meta`, `/legal/terms#extras`, `/legal/privacy#meta`, `/legal/privacy#leads`, `/legal/ai-policy#trends` ו-`/legal/ai-policy#ads` קיימים, והמספור הקודם של כל הסעיפים לא השתנה.
+- [ ] `<EnSummary>` מופיע רק בדף הפרטיות ובעמוד מחיקת הנתונים, עם `lang="en"` ו-`dir="ltr"`.
 - [ ] `/accessibility` מפנה (308) ל-`/legal/accessibility`.
 - [ ] `/legal/terms#credits` גולל לפרק תנאי הקרדיטים, וכל הקישורים "לתנאי הקרדיטים" באתר ובאפליקציה מצביעים אליו.
 - [ ] הכפתור "ביטול מנוי" (בדיוק, כמו במילון המונחים) מופיע בראש `/legal/cancellation` ומוביל ל-`/app/billing/cancel`.
 - [ ] הדוגמאות המספריות בסעיפים 2.3, 3.3 ו-3.4 של מדיניות הביטול זהות לתוצאת `lib/billing/refunds.ts` עם אותם קלטים (בדיקת יחידה).
 - [ ] `scripts/check-content.ts --launch` נכשל כשיש דף בסטטוס `draft` או כשנשאר משתנה `{{…}}` כלשהו מהרשימה של חלק 06 §20.
 - [ ] בהרשמה נרשמות הסכמות `terms` ו-`privacy` עם ה-`version` של הדפים, בפורמט התאריך ש-`ConsentBody` מקבל (גרסה כמו `1.0` נכשלת בבדיקת יחידה).
-- [ ] רשימת העוגיות ב-`content/legal/cookies.mdx` זהה בדיוק לעוגיות שהדפדפן מקבל בפועל לפני הסכמה ואחריה (בדיקת Playwright, חלק 06 §11.7), ורשימת ה-`localStorage` כוללת רק את שלושת המפתחות של §5.3, ורשימת ה-`sessionStorage` רק את `reauth_draft_v1` ו-`signup_marketing_v1`.
+- [ ] רשימת העוגיות ב-`content/legal/cookies.mdx` זהה בדיוק לעוגיות שהדפדפן מקבל בפועל לפני הסכמה ואחריה (בדיקת Playwright, חלק 06 §11.7), ורשימת ה-`localStorage` כוללת רק את המפתחות שבסעיף 3 של הדף (שלושת מפתחות האתר וארבעת מפתחות האפליקציה של הרחבת 2026-10-17), ורשימת ה-`sessionStorage` רק את `reauth_draft_v1` ו-`signup_marketing_v1`.
 - [ ] טבלת השמירה ב-`/legal/privacy#retention` זהה לטבלה בחלק 06 §11.5, ורשימת ספקי המשנה זהה ל-`docs/legal/subprocessors.md`.
 - [ ] אף נוסח משפטי מוצג לא כולל `⚖️`, `[M0-verify]` או הפניה ל"חלק 0X".
 - [ ] `model-release-he.pdf` נוצר ב-build ונפתח כ-PDF עם עברית תקינה מימין לשמאל.
@@ -2679,6 +3506,12 @@ export function buildMetadata(i: {
 | כל URL עם פרמטרי סינון (`?q=`, `?type=` וכו׳), `?v=`, `?cycle=`, `?vat=`, `?topic=` | noindex,follow | canonical לבסיס |
 | `/` עם `?niche=`, `?newsletter=` או `?src=` | index (אותו HTML סטטי) | canonical תמיד ל-`/` |
 | `/exp/*`, `/v/*`, `/approve/*`, `/unsubscribe`, `/login`, `/auth/*`, `/dev/*` | noindex | — (`/dev/*` מחזיר 404 בפרודקשן) |
+| `/campaigns` | index | התנאי `campaigns` מתקיים; אחרת 404 |
+| `/trends` | index | הדגל `trends_public` פעיל ויש לפחות 3 טרנדים מפורסמים; אחרת 404 (בלי הדגל) או `noindex,follow` (פחות מ-3) |
+| `/trends/[slug]` | index | `trends_public` פעיל ויש `explainer`; טרנד שפרש נשאר באינדקס, עם התג "הטרנד הזה כבר פחות חם" |
+| `/trends` עם `?niche=`, `?lifecycle=` או `?ads=` | noindex,follow | canonical ל-`/trends` |
+| `/meta/data-deletion` (עם `?code=` ובלעדיו) | noindex | — |
+| `/b/*` (דפי העסק של לקוחות, חלק 07) | noindex | רק `landing_pages.indexable = true`; לא נכנסים לאף מפת אתר שלנו |
 
 - הפונקציה `isIndexable(page)` ב-`lib/seo/indexing.ts` מחשבת את התנאים, ומשמשת גם את `generateMetadata` וגם את `sitemap.ts`, כך שעמוד `noindex` לעולם לא נכנס למפת האתר.
 - **פריסות שאינן פרודקשן:** כש-`VERCEL_ENV !== "production"`, כל תגובה מקבלת `X-Robots-Tag: noindex, nofollow` (`next.config.ts` → `headers`), ו-`robots.ts` מחזיר `Disallow: /`.
@@ -2689,16 +3522,17 @@ export function buildMetadata(i: {
 ```ts
 // app/sitemap.ts
 export async function generateSitemaps() {
-  return [{ id: "static" }, { id: "niches" }, { id: "hooks" }, { id: "hook-types" }, { id: "seasons" }, { id: "blog" }];
+  return [{ id: "static" }, { id: "niches" }, { id: "hooks" }, { id: "hook-types" }, { id: "seasons" }, { id: "blog" }, { id: "trends" }];
 }
 export default async function sitemap({ id }: { id: string }): Promise<MetadataRoute.Sitemap> {
   switch (id) {
-    case "static":     return staticPages();          // /, /niches, /hooks, /examples, /templates(+[slug]), /pricing, /about, /contact, /faq, /legal/*
+    case "static":     return staticPages();          // /, /niches, /hooks, /examples, /templates(+[slug]), /pricing, /about, /contact, /faq, /legal/*, /campaigns (רק עם התנאי campaigns)
     case "niches":     return nichePages();           // /niches/[niche] שעומדים ב-isIndexable
     case "hooks":      return hookNichePages();       // /hooks/[niche] + /hooks/[niche]/[type] מאונדקסים + /hooks/platform/*
     case "hook-types": return hookTypePages();        // /hooks/types + /hooks/types/[type]
     case "seasons":    return seasonPages();          // /hooks/season/[season]
     case "blog":       return blogPages();            // /blog, /blog/[slug], /blog/tag/[tag]
+    case "trends":     return trendPages();           // /trends + /trends/[slug] (מפורסמים ושפרשו); [] כש-trends_public כבוי
   }
   return [];
 }
@@ -2731,11 +3565,13 @@ export default function robots(): MetadataRoute.Robots {
 | `softwareApplication(pricing)` | דף הבית, `/pricing` | `@type: SoftwareApplication`, `applicationCategory: "MultimediaApplication"`, `operatingSystem: "Web"`, `inLanguage: "he"`, `offers: AggregateOffer` (ILS, `lowPrice: 0`, `highPrice`, `offerCount`) |
 | `product(pricing)` | `/pricing` | `@type: Product` + `offers: AggregateOffer` ו-`Offer` לכל תוכנית וחבילה, `priceCurrency: "ILS"`, `priceSpecification.valueAddedTaxIncluded: true` |
 | `breadcrumb(items)` | כל עמוד עם Breadcrumbs | `BreadcrumbList`, שמות בעברית, URL-ים מוחלטים |
-| `faqPage(items: { q_he: string; a_he: string }[])` | דף הבית, `/faq`, `/pricing`, דפי נישה והוקים | `FAQPage` (לטובת המשתמשים; אין ציפייה לתוצאה עשירה). שאלות מ-`messages/he.json` (`marketing.faq.items.{id}.q/a`) מומרות לאותו מבנה לפני הקריאה |
+| `faqPage(items: { q_he: string; a_he: string }[])` | דף הבית, `/faq`, `/pricing`, דפי נישה והוקים, `/campaigns`, `/trends/[slug]` | `FAQPage` (לטובת המשתמשים; אין ציפייה לתוצאה עשירה). שאלות מ-`messages/he.json` (`marketing.faq.items.{id}.q/a`) מומרות לאותו מבנה לפני הקריאה |
 | `itemListHooks(hooks, url)` | עמודי הוקים | `ItemList` של `ListItem` עם `name` = טקסט ההוק ו-`url` = `{url}#{hook.id}` |
-| `videoObject(v)` | `/examples`, דפי נישה ותבנית, `ExampleVideo` | `name`, `description`, `thumbnailUrl`, `uploadDate`, `duration` (ISO 8601, למשל `PT30S`), `contentUrl`, `inLanguage: "he"`, `isFamilyFriendly: true` |
+| `videoObject(v)` | `/examples`, דפי נישה ותבנית, `ExampleVideo`, `/trends/[slug]` (סרטון ההדגמה) | `name`, `description`, `thumbnailUrl`, `uploadDate`, `duration` (ISO 8601, למשל `PT30S`), `contentUrl`, `inLanguage: "he"`, `isFamilyFriendly: true` |
 | `howTo(steps)` | דף הבית (איך זה עובד), `/hooks/types/[type]` | `HowTo` עם `step: HowToStep[]` (שם + טקסט) |
 | `blogPosting(post)` | `/blog/[slug]` | `headline`, `description`, `image`, `datePublished`, `dateModified`, `author` + `publisher` מסוג `Organization`, `inLanguage: "he"`, `mainEntityOfPage` |
+| `trendHowTo(t)` | `/trends/[slug]` | `HowTo` עם `name` = `name_he`, השלבים מה-`explainer`, ו-`video` = ה-`videoObject` של ההדגמה |
+| `itemListTrends(items)` | `/trends` | `ItemList` של `ListItem` עם `name` = `name_he` ו-`url` = `/trends/[slug]` |
 
 ### §12.5 תמונות Open Graph
 
@@ -2764,12 +3600,15 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 
 | קובץ | תוכן התמונה |
 |---|---|
-| `app/opengraph-image.tsx` | רקע `#08080C`, אלומת זהב בפינה העליונה מצד ההתחלה, H1 של וריאנט A ("תדמית" בזהב), 3 מסגרות טלפון מעומעמות, `{{DOMAIN}}` |
+| `app/opengraph-image.tsx` | רקע `#08080C`, אלומת זהב בפינה העליונה מצד ההתחלה, H1 של וריאנט A ("תדמית" בזהב; כשהתנאי `campaigns` מתקיים — H1 של A-קמפיינים, "קמפיין" בזהב), 3 מסגרות טלפון מעומעמות, `{{DOMAIN}}` |
 | `app/(marketing)/niches/[niche]/opengraph-image.tsx` | אייקון הנישה, "סרטון תדמית ל{short_name_he}", הוק מומלץ אחד בצ׳יפ לימון, `{{BRAND_NAME}}` |
 | `app/(marketing)/hooks/[niche]/opengraph-image.tsx` | "{count, plural, one {הוק אחד} two {שני הוקים} other {# הוקים}} ל{short_name_he}", 2 הוקים לדוגמה |
 | `app/(marketing)/hooks/types/[type]/opengraph-image.tsx` | ה-`h1` מה-frontmatter של הסוג (§5.7), `example_he` |
 | `app/(marketing)/hooks/h/[id]/opengraph-image.tsx` | טקסט ההוק בגדול (עד 3 שורות), צ׳יפ סוג, "ספריית ההוקים של {{BRAND_NAME}}" |
 | `app/(marketing)/blog/[slug]/opengraph-image.tsx` | כותרת המאמר, תגית, `{{BRAND_NAME}}` |
+| `app/(marketing)/campaigns/opengraph-image.tsx` | ה-H1 של עמוד הקמפיינים, ארבעה אריחי KPI מעומעמים בלי מספרים, `{{BRAND_NAME}}` |
+| `app/(marketing)/trends/opengraph-image.tsx` | ה-H1 של האב הטרנדים, שלושה פוסטרים של טרנדים מומלצים עם התג "הדגמה" |
+| `app/(marketing)/trends/[slug]/opengraph-image.tsx` | `name_he`, `tagline_he`, פוסטר ההדגמה הראשון עם התג "הדגמה", `{{BRAND_NAME}}` |
 
 (תמונת ה-OG של דף השיתוף, `/v/[token]/opengraph-image`, מוגדרת בחלק 03 §8 ומשתמשת באותם `toVisualOrder` ו-`wrapWords`.)
 
@@ -2788,6 +3627,7 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 8. **Breadcrumbs** בכל עמוד חוץ מדף הבית, עם `BreadcrumbList`.
 9. קישורים לעמודי `noindex` (סינון, `/hooks/h/[id]`) מותרים לגולשים, אבל לא מופיעים בפוטר ובתפריטים.
 10. טקסט עוגן לעולם לא "לחצו כאן" או "קראו עוד" לבד; תמיד תיאור של היעד.
+11. **טרנדים וקמפיינים:** כל `/trends/[slug]` מקשר לעמוד סוג ההוק שלו (`/hooks/types/{hook_type_slug}`) ולעד 3 עמודי `/hooks/[niche]` מתוך `niche_adaptations`; כל `/hooks/types/[type]` מקשר לעד 3 טרנדים מאותו סוג (כש-`trends_public` פעיל). `/campaigns` מקושר מהכותרת, מהפוטר, מ-`CampaignFlow` ומעמוד המחירים, ו-`/trends` מהכותרת, מהפוטר ומ-`TrendsTeaser`.
 
 **קריטריוני קבלה**
 - [ ] כל עמוד מאונדקס עובר Rich Results Test בלי שגיאות JSON-LD.
@@ -2796,6 +3636,8 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 - [ ] פריסת Preview מחזירה `X-Robots-Tag: noindex, nofollow`.
 - [ ] תמונות OG בעברית מוצגות בסדר הנכון (בדיקת snapshot), כולל מספרים ומילים באנגלית.
 - [ ] זחילת CI לא מוצאת עמודים יתומים או קישורים שבורים.
+- [ ] כשהדגל `trends_public` כבוי, המפה `trends` ריקה ו-`/trends` מחזיר 404; כשהוא דולק, כל טרנד מפורסם נמצא במפה, ועמוד הטרנד עובר Rich Results Test (`VideoObject`, `HowTo`, `BreadcrumbList`).
+- [ ] `/meta/data-deletion` ו-`/b/*` לא נמצאים באף מפת אתר; `/campaigns` נמצא במפה `static` רק כשהתנאי `campaigns` מתקיים.
 
 ---
 
@@ -2811,6 +3653,8 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 | `/pricing` | < 2.0s | < 0.05 | < 200ms | ≤ 130KB | < 300ms | ≥ 90 / 100 / 100 |
 | `/niches/[niche]` | < 2.5s | < 0.05 | < 200ms | ≤ 150KB | < 300ms | ≥ 90 / 100 / 100 |
 | `/blog/[slug]`, `/legal/*`, `/faq` | < 1.8s | < 0.02 | < 200ms | ≤ 100KB | < 300ms | ≥ 95 / 100 / 100 |
+| `/trends` · `/trends/[slug]` | < 2.5s (H1) | < 0.05 | < 200ms | ≤ 140KB | < 300ms | ≥ 90 / 100 / 100 |
+| `/campaigns` | < 2.5s (H1) | < 0.05 | < 200ms | ≤ 150KB | < 300ms | ≥ 90 / 100 / 100 |
 
 ### §13.2 כללים
 
@@ -2821,7 +3665,7 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 - **Remotion Player** לא נטען בעמודי שיווק, חוץ ממיקרו-הדגמות ב-bento שנטענות בעצלות כשהן נכנסות למסך.
 - **סקריפטים של צד שלישי:** אף אחד לפני הסכמה, חוץ מ-Vercel Speed Insights (נטען מאותו דומיין, `/_vercel/speed-insights/*`, אנונימי ובלי עוגיות). PostHog נטען אחרי הסכמה, ב-`requestIdleCallback`.
 - **סקשנים מתחת לקפל:** `content-visibility: auto` עם `contain-intrinsic-size` מותאם.
-- **מדידה:** Lighthouse CI על כל PR (פריסת Preview) לשישה URL-ים: `/`, `/hooks`, `/hooks/real-estate`, `/pricing`, `/niches/dentists`, `/blog/real-estate-hooks`, עם `lighthouse-budget.json` שנכשל על חריגה. מדידת שדה: Vercel Speed Insights (`@vercel/speed-insights`, מדדים אנונימיים בלי עוגיות, כמו בחלק 06 §17 ובטבלת ספקי המשנה, §10.3). לא שולחים מדדי ביצועים כאירועי PostHog, כי הם לא ברשימת האירועים הקנונית.
+- **מדידה:** Lighthouse CI על כל PR (פריסת Preview) לשמונה URL-ים: `/`, `/hooks`, `/hooks/real-estate`, `/pricing`, `/niches/dentists`, `/blog/real-estate-hooks`, `/campaigns`, `/trends/bait-and-sign` (שני האחרונים בפריסת Preview עם `FEATURE_META_CONNECT=1`, `FEATURE_META_ADS=1` ו-`FEATURE_TRENDS_PUBLIC=1`, ועם טרנד מפורסם ב-seed של ה-Preview), עם `lighthouse-budget.json` שנכשל על חריגה. מדידת שדה: Vercel Speed Insights (`@vercel/speed-insights`, מדדים אנונימיים בלי עוגיות, כמו בחלק 06 §17 ובטבלת ספקי המשנה, §10.3). לא שולחים מדדי ביצועים כאירועי PostHog, כי הם לא ברשימת האירועים הקנונית.
 
 **קריטריוני קבלה**
 - [ ] Lighthouse CI עובר את כל התקציבים בטבלה על פריסת Preview.
@@ -2833,7 +3677,7 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 ## §14. אנליטיקה שיווקית
 
 - כל האירועים עוברים דרך `track()` המוקלד ב-`lib/analytics/events.ts`, שהוא no-op עד שניתנה הסכמה (§11). שמות ב-snake_case; **אין מידע מזהה במאפיינים**: לא מייל, לא טקסט חיפוש, לא שם עסק, לא ערכי התאמה אישית.
-- הרשימה הקנונית של כל 63 האירועים, עם המאפיינים המדויקים והצד (לקוח או שרת), נמצאת בחלק 06 §14.2 (`lib/analytics/events.ts`). הטבלה כאן היא תת-הקבוצה שהאתר השיווקי שולח, וכל שורה בה זהה לשורה המקבילה שם; `?` מסמן מאפיין אופציונלי. מאפייני-העל (`app_env`, `release`, `theme`, `reduced_motion`, `is_mobile`) מתווספים אוטומטית לכל אירוע (חלק 06 §14.1). בנוסף נשלחים רק אירועי ה-PostHog המובנים `$pageview` (ידנית, במעבר עמוד) ו-`$feature_flag_called` (ניסוי הגיבור).
+- הרשימה הקנונית של כל 108 האירועים, עם המאפיינים המדויקים והצד (לקוח או שרת), נמצאת בחלק 06 §14.2 (`lib/analytics/events.ts`). הטבלה כאן היא תת-הקבוצה שהאתר השיווקי שולח, וכל שורה בה זהה לשורה המקבילה שם; `?` מסמן מאפיין אופציונלי. מאפייני-העל (`app_env`, `release`, `theme`, `reduced_motion`, `is_mobile`) מתווספים אוטומטית לכל אירוע (חלק 06 §14.1). בנוסף נשלחים רק אירועי ה-PostHog המובנים `$pageview` (ידנית, במעבר עמוד) ו-`$feature_flag_called` (ניסוי הגיבור).
 
 | אירוע | מאפיינים | מתי נשלח |
 |---|---|---|
@@ -2849,21 +3693,29 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 | `hooks_searched` | `q_length: int`, `results?: int`, `location` (`hub` · `landing_teaser` · `hook_niche_page`; `app_hooks` באפליקציה) | חיפוש בספרייה, בלי הטקסט |
 | `hooks_filtered` | `facet` (`niche` · `type` · `platform` · `goal` · `gender` · `season` · `featured` · `has_video` · `sort`), `value` (ערך enum או slug בלבד) | שינוי מסנן |
 | `savings_calculated` | `videos: int`, `price_bucket` (`lt300` · `300_700` · `700_1500` · `gt1500`), `quality` (`draft` · `standard`) | שימוש במחשבון החיסכון |
-| `faq_expanded` | `question_id`, `location` (`landing` · `faq_page` · `pricing_page` · `niche_page` · `hook_niche_page`) | פתיחת שאלה |
+| `faq_expanded` | `question_id`, `location` (`landing` · `faq_page` · `pricing_page` · `niche_page` · `hook_niche_page` · `campaigns_page` · `trend_page`) | פתיחת שאלה |
 | `example_played` | `example_id`, `location` (`landing_gallery` · `examples` · `niche_page` · `template_page`) | ניגון דוגמה |
 | `contact_submitted` | `topic` (ערכי `topic` של `ContactBody`) | שליחת טופס יצירת הקשר |
 | `pricing_viewed` | `location` (`landing` · `pricing_page`; `app` באפליקציה) | צפייה במחירים |
 | `newsletter_subscribed` | — | שליחת טופס ניוזלטר מוצלחת |
 | `motion_toggled` | `on: boolean` | "עצירת אנימציות" |
 | `theme_changed` | `theme: "dark" \| "light" \| "system"` | החלפת ערכת נושא |
+| `trend_feed_viewed` | `niche: slug \| null`, `location: "public"` (`"app"` באפליקציה) | טעינת `/trends`, ושוב בבחירת נישה במסנן (פעם אחת לכל נישה בסשן) |
+| `trend_opened` | `trend_slug`, `location: "public_page"` (באתר) | טעינת `/trends/[slug]` |
+| `trend_use_clicked` | `trend_slug`, `production_mode: "ai"` (באתר תמיד `ai`) | "צרו את זה לעסק שלכם בלחיצה" בעמוד טרנד |
 
-**ערכי `location` ל-`cta_clicked` באתר** (תת-קבוצה של `CtaLocation`, חלק 06 §14.3): `header` · `mobile_menu` · `hero` · `how_it_works` · `editor_math` · `hooks_teaser` · `landing_gallery` · `final_cta` · `mobile_sticky` · `niche_page_hero` · `niche_page_final` · `hooks_page_cta` · `examples_dialog` · `template_card` · `template_page` · `pricing_card_free` · `pricing_card_starter` · `pricing_card_business` · `pricing_card_agency` · `pricing_pack_150` · `pricing_pack_500` · `pricing_pack_1500` · `blog_cta` · `about` · `not_found`. ערכי החבילות נבנים ממספר הקרדיטים של החבילה, ולא מה-`id` שלה.
+**ערכי `location` ל-`cta_clicked` באתר** (תת-קבוצה של `CtaLocation`, חלק 06 §14.3): `header` · `mobile_menu` · `hero` · `how_it_works` · `editor_math` · `hooks_teaser` · `landing_gallery` · `final_cta` · `mobile_sticky` · `niche_page_hero` · `niche_page_final` · `hooks_page_cta` · `examples_dialog` · `template_card` · `template_page` · `pricing_card_free` · `pricing_card_starter` · `pricing_card_business` · `pricing_card_agency` · `pricing_pack_150` · `pricing_pack_500` · `pricing_pack_1500` · `blog_cta` · `about` · `not_found` · `campaign_flow` · `trends_teaser` · `compare` · `health_check` · `campaigns_page` · `trends_hub` · `trend_page`. ערכי החבילות נבנים ממספר הקרדיטים של החבילה, ולא מה-`id` שלה.
 
 **משפכים שמוגדרים ב-PostHog** (כתובים כקוד ב-`docs/analytics.md` ומוגדרים ידנית בלוח):
 1. **ספרייה → הרשמה:** `$pageview` של `/hooks*` → `hook_copied` או `hook_create_video_clicked` → `signup_started` → `signup_completed` (יעד: ≥ 2.5% מצפיות בספרייה להרשמה).
 2. **דף הבית → סרטון ראשון:** `$pageview /` → `cta_clicked {hero}` → `signup_completed` → `generation_confirmed` → `video_downloaded`.
 3. **מחירים → רכישה:** `pricing_viewed` → `cta_clicked {pricing_card_*}` → `checkout_started` → `checkout_completed`.
-4. **ניסוי הגיבור:** פילוח של משפך 2 לפי `hero_copy_v1`.
+4. **ניסוי הגיבור:** פילוח של משפך 2 לפי `hero_copy_v1`, ומהרגע שהתנאי `campaigns` מתקיים לפי `hero_copy_v2` (§3.3.2).
+5. **קמפיינים:** `$pageview /campaigns` או `cta_clicked {campaign_flow}` → `cta_clicked {campaigns_page}` → `signup_completed` → `meta_connect_completed` → `campaign_published`.
+6. **בדיקת דופק:** `cta_clicked {health_check}` → `signup_completed` → `meta_connect_completed` → `health_check_completed`.
+7. **טרנדים:** `trend_opened {public_page}` → `trend_use_clicked` → `signup_completed` → `generation_confirmed`.
+
+הכפתורים שנוספו בהרחבת 2026-10-17 שולחים רק `cta_clicked`; `signup_started` נשאר עם ערכי `SignupSource` הקיימים, והמשפכים 5–7 נשענים על `cta_clicked` ועל `signup_completed`.
 
 **קריטריוני קבלה**
 - [ ] כל אירוע בטבלה מוגדר בטיפוסים, ושליחת אירוע לא מוגדר נכשלת ב-typecheck.
@@ -2872,13 +3724,195 @@ export function wrapWords(text: string, maxChars: number, maxLines: number): str
 
 ---
 
+## §15. דפי הטרנדים הציבוריים (`/trends`, `/trends/[slug]`)
+
+הדפים האלה הם הצד הציבורי של מנוע הטרנדים (חלק 08 §11): כל טרנד שהצוות מפרסם מקבל עמוד "פירוק טרנד" עם סרטון הדגמה שלנו, הסבר למה זה עובד, שלבים, דוגמאות לנישות וכללי שימוש. הם קיימים רק כשהדגל `trends_public` פעיל, נבנים סטטית ומתעדכנים דרך התגית `trends`: ה-cron `trends-lifecycle` ופעולות הפרסום והפרישה באדמין (חלק 08) קוראים ל-`revalidateTag("trends", "max")`.
+
+**מה לעולם לא מופיע בדפים:** סרטון הייחוס, השם או שם המשתמש של מי שיצר את הטרנד המקורי, הפנים, הקול או הצילומים שלו, המוזיקה מהטרנד, קישור לפוסט המקורי, והשדות הפנימיים (`source_reference_id`, `do_not_copy`).
+
+### §15.1 האב הטרנדים (`/trends`)
+
+- Breadcrumbs: ראשי › טרנדים
+- H1: **"טרנדים לרילס, מפורקים לעסקים"**
+- פתיח: **"כל טרנד כאן פורק לתבנית: מה רואים בשנייה הראשונה, איפה החיתוך ולמה זה עוצר גלילה. בחרו את סוג העסק שלכם, צפו בדוגמה שהכנו, וצרו גרסה משלכם בלחיצה."** כשהתנאי `trendsWeekly` מתקיים נוסף **"טרנדים חדשים עולים כל שבוע, ביום {dropDay}."** (`dropDay` נגזר מ-`app_settings.trends_weekly_drop.dow`; "ראשון" עם ה-seed).
+- **"טרנד השבוע"**: כרטיס רחב לטרנד המומלץ של הדרופ האחרון (`is_featured` מהשבוע הנוכחי, ואם אין — הטרנד האחרון שפורסם), עם סרטון ההדגמה וקישור **"לפירוק הטרנד ←"**.
+- **מסננים** (`TrendHubFilters`; כל הרשומות מוטמעות ב-HTML ומסוננות בצד הלקוח, כמו ב-§1.1):
+  - **"סוג העסק"**: צ׳יפים של נישות שיש להן התאמה בטרנד אחד לפחות, ו-`NichePicker` לחיפוש. ברירת מחדל: **"כל העסקים"**.
+  - **"מצב הטרנד"**: **"הכול"** · **"חדש השבוע"** · **"בשיא"** · **"קלאסיקה"** · **"נגמר בקרוב"**.
+  - Switch **"רק טרנדים שמתאימים למודעה"** (מסתיר `organic_only`).
+  - מצב המסננים נשמר ב-URL (`?niche=&lifecycle=&ads=1`, `history.replaceState`); עם פרמטרים העמוד `noindex,follow` עם canonical ל-`/trends` (§12.2). הנישה שנבחרה נשמרת גם ב-`localStorage` במפתח `trends.feed.niche` (אותו מפתח של הפיד באפליקציה, עטוף ב-try/catch).
+- **רשת `TrendCard`** (3 עמודות בדסקטופ, 2 בטאבלט, 1 במובייל): פוסטר וניגון מושתק ב-hover ובפוקוס בדסקטופ; `name_he`; `tagline_he`; כשנבחרה נישה — שורה **"דוגמה ל{short_name_he}: "{example}""** מתוך `niche_adaptations[].onscreen_examples_he`; התגים `TrendLifecycleBadge`, ההפקה והמודעה (§1.2); קישור **"לפירוק הטרנד ←"**.
+- **"טרנדים קודמים"**: טרנדים שפרשו, מקופלים ב-`<details>` עם הכותרת **"{count, plural, one {טרנד קודם אחד} two {שני טרנדים קודמים} other {# טרנדים קודמים}}"**, כל אחד עם התג "הטרנד הזה כבר פחות חם".
+- **אין תוצאות:** **"אין עדיין טרנד שמתאים לסינון הזה. נסו סוג עסק אחר, או צפו בכל הטרנדים."** + כפתור **"ניקוי הסינון"**.
+- **הנעה לפעולה בתחתית:** כרטיס רחב, כותרת **"רוצים טרנד לעסק שלכם כבר היום?"**, טקסט **"בחרו טרנד, ותוך דקות יש לכם סרטון בעברית עם העסק שלכם. {trialCredits} קרדיטים לניסיון, בלי כרטיס אשראי."**, כפתור **"צרו סרטון מטרנד"** (`/login?next=/app/trends`; מחובר: `/app/trends`; `cta_clicked {location:"trends_hub"}`).
+- מטא: title **"טרנדים לרילס לעסקים, עם דוגמאות | {{BRAND_NAME}}"**; description **"טרנדים ויראליים לרילס, מפורקים לתבנית שכל עסק יכול ליצור: מה רואים בשנייה הראשונה, למה זה עובד ודוגמאות לנישה שלכם. בעברית."**
+- JSON-LD: `BreadcrumbList`, `itemListTrends` (§12.4).
+- אירועים: `trend_feed_viewed {niche: null, location:"public"}` בטעינה, ושוב עם ה-slug כשנבחרת נישה (פעם אחת לכל נישה בסשן).
+
+### §15.2 עמוד טרנד (`/trends/[slug]`)
+
+| אזור | תוכן |
+|---|---|
+| ראש | Breadcrumbs: ראשי › טרנדים › {name_he} · H1 = `name_he` · מתחתיו `tagline_he` ושורת התגים (מצב, הפקה, מודעה) |
+| נגן ההדגמה | `VideoPlayer` בתוך `PhoneFrame` (9:16), כתוביות עבריות מ-VTT פעילות כברירת מחדל, התג "הדגמה", `preload="none"` עם פוסטר. כשיש יותר מהדגמה אחת: צ׳יפים **"דוגמה ל{short_name_he}"**, ו-`?niche=` בוחר מראש (צד לקוח). מתחת לנגן: **"סרטון הדגמה שהכנו לעסק לדוגמה, לפי הטרנד הזה."** |
+| למה זה עובד | H2 **"למה זה עובד"** + `why_it_works_he` |
+| איך עושים את זה | H2 **"איך עושים את זה"** + רשימה ממוספרת מתוך ה-`explainer` (`TrendExplainerV1`, חלק 08), שלב אחרי שלב, עם משך לכל שלב כשהוא קיים (`TrendExplainer`) |
+| בתחום שלכם | H2 **"איך זה נראה בתחום שלכם"** + עד 6 כרטיסים מ-`niche_adaptations`: `short_name_he` של הנישה, דוגמה לטקסט על המסך (`onscreen_examples_he`), וקישור **"להוקים ל{short_name_he} ←"** (`/hooks/[niche]`) |
+| מה חשוב לדעת | H2 **"מה חשוב לדעת"** + `compliance_notes_he`, ובנוסף לפי השדות (רשימה למטה) |
+| שאלות | `FaqAccordion` עם השאלות של ה-`explainer` (אם יש), ותמיד `trends-legal` ו-`trends-music` (§9.3); `faq_expanded {location:"trend_page"}` |
+| הנעה לפעולה | כרטיס דביק בתחתית במובייל ובצד הסוף בדסקטופ (§15.2, למטה) |
+| עוד טרנדים | H2 **"עוד טרנדים"** + 3 `TrendCard` מפורסמים מאותו סוג הוק או מאותה נישה |
+
+**"מה חשוב לדעת" — משפטים לפי השדות** (נוסח קבוע, בנוסף ל-`compliance_notes_he`):
+- `ad_safety = organic_only`: **"הפורמט הזה מתאים רק לפרסום רגיל. מטא לא מאשרת מודעות שמחקות הודעות מערכת או כפתורים מזויפים."**
+- `ad_safety = needs_consent`, `requires_people_consent` או `needs_consent` ב-`extra_gates`: **"בפורמט הזה מופיעים אנשים אמיתיים. צריך את ההסכמה שלהם לפני שמפרסמים, ובלי הסכמה הסרטון לא יעלה כמודעה."**
+- `ad_safety = needs_ai_label` (או ב-`extra_gates`): **"הסרטון ייצא עם התווית "נוצר באמצעות AI", כי הוא נראה מציאותי."**
+- `requires_real_footage`: **"הטרנד הזה עובד רק עם צילומים אמיתיים של העסק שלכם."**
+- תמיד: **"המוזיקה בסרטון שלכם מקורית או מהספרייה שלנו, ומותרת לשימוש גם בפרסום ממומן. לא משתמשים בשיר מהטרנד המקורי."** (אותו `[M0-verify]` של `trends-music`, §9.3.)
+
+**ההנעה לפעולה:**
+- כפתור **"צרו את זה לעסק שלכם בלחיצה"** → `/app/create?trend={slug}&src=trend` (אורח: `/login?next=` עם היעד מקודד ב-`encodeURIComponent`). אירועים: `cta_clicked {location:"trend_page"}` ו-`trend_use_clicked {trend_slug, production_mode:"ai"}`.
+- מתחת: **"{trialCredits} קרדיטים לניסיון, בלי כרטיס אשראי"**; כשהתנאי `guidedFilming` מתקיים והטרנד `guided` או `hybrid`: **"באפליקציה אפשר גם לצלם בעצמכם, לפי רשימת צילומים."**
+- **טרנד שפרש** (`status = retired`): התג **"הטרנד הזה כבר פחות חם"** מעל ה-H1, הכפתור מתחלף ב-**"לטרנדים החדשים ←"** (`/trends`), ושאר התוכן נשאר. העמוד מחזיר 200, לא 404.
+
+**מטא ו-SEO:**
+- title = `seo_title_he`, ואם חסר: **"{name_he}: איך עושים את הטרנד לעסק | {{BRAND_NAME}}"** (קיצור לפי §12.1).
+- description = `seo_description_he`, ואם חסר: **"{tagline_he} פירוק הטרנד בעברית: למה זה עובד, איך עושים את זה ודוגמאות לנישה שלכם."** (חיתוך ל-155 תווים במילה שלמה).
+- JSON-LD: `videoObject` של ההדגמה (`name` = `name_he`, `description` = `tagline_he`, `thumbnailUrl`, `contentUrl`, `uploadDate` = `published_at`, `duration`, `inLanguage: "he"`), `trendHowTo`, `breadcrumb`, ו-`faqPage` כשיש שאלות (§12.4). תמונת OG לפי §12.5.
+- אירוע: `trend_opened {trend_slug, location:"public_page"}` בטעינה.
+
+### §15.3 נתונים
+
+```ts
+// lib/marketing/queries.ts — טרנדים: לקוח ציבורי, עמודות ציבוריות בלבד
+const TREND_PUBLIC_COLUMNS =
+  "slug,name_he,tagline_he,description_he,why_it_works_he,hook_type_slug,lifecycle,production_mode,ad_safety," +
+  "extra_gates,requires_real_footage,requires_people_consent,niche_adaptations,compliance_notes_he,niches," +
+  "expires_at,published_at,published_week,status,demo_assets,explainer,seo_title_he,seo_description_he,is_featured,sort_order";
+// אף פעם לא: source_reference_id, do_not_copy, created_by, updated_by (אין להם grant ל-anon בכלל)
+
+export async function getPublishedTrends(): Promise<PublicTrendCard[]>; // status in ('published','retired'); tags: trends
+export async function getTrend(slug: string): Promise<PublicTrend | null>; // tags: trends
+// PublicTrendCard ו-PublicTrend (lib/marketing/types.ts) = Pick של TrendTemplateV1 (חלק 08) לפי TREND_PUBLIC_COLUMNS
+```
+
+- מדיניות ה-`SELECT` של `anon` על `trend_templates` (חלק 08 §D) צריכה לפתוח `status in ('published','retired')`, באותו column grant: חלק 08 §11 ו-§19 דורשים שטרנד שפרש יישאר אונליין עם תג. טרנד בכל סטטוס אחר לא נקרא מהאתר לעולם.
+- `generateStaticParams` מחזיר את כל ה-slugs שנקראו, ו-`dynamicParams = true` כדי שטרנד שפורסם אחרי הבנייה יירנדר בבקשה הראשונה. slug שלא קיים מחזיר 404.
+- המדיה: `public-media/trends/{slug}/{niche_slug}-{n}.mp4|.jpg|.vtt` (חלק 08 §6.8) דרך `publicMediaUrl()` (חלק 04 §13.4).
+
+**קריטריוני קבלה**
+- [ ] כשהדגל `trends_public` כבוי, `/trends` ו-`/trends/[slug]` מחזירים 404, אין אליהם קישורים, והמפה `trends` ריקה.
+- [ ] ב-HTML של עמוד טרנד אין כתובת של `trend-refs`, אין `source_reference_id` או `do_not_copy`, ואין שם או שם משתמש של יוצר (בדיקת יחידה על השאילתה, ו-snapshot על seed עם `do_not_copy` מלא).
+- [ ] טרנד `organic_only` מציג את התג "רק לפרסום רגיל" ואת המשפט "מתאים רק לפרסום רגיל"; טרנד `retired` מציג את התג "הטרנד הזה כבר פחות חם", בלי כפתור יצירה, ומחזיר 200.
+- [ ] "צרו את זה לעסק שלכם בלחיצה" מוביל ל-`/app/create?trend={slug}&src=trend` (אורח: דרך `/login?next=`), ושולח `cta_clicked {trend_page}` ו-`trend_use_clicked`.
+- [ ] `/trends/[slug]` עומד בתקציבי §13.1 עם Lighthouse ≥ 90 (חלק 06 §24, M8), ו-`VideoObject`, `HowTo` ו-`BreadcrumbList` עוברים Rich Results Test.
+- [ ] אין "כל שבוע" או "כל יום ראשון" באף דף טרנדים לפני שהתנאי `trendsWeekly` מתקיים (snapshot עם 3 דרופים רצופים, ואז עם 4).
+
+---
+
+## §16. עמוד הקמפיינים (`/campaigns`)
+
+עמוד הפיצ׳ר "קמפיינים בפייסבוק ובאינסטגרם בלי סוכנות". הוא קיים רק כשהתנאי `campaigns` מתקיים (§3.0.1), נבנה ב-SSG + ISR עם התגיות `flags`, `plans` ו-`credit_costs`, ומרכיב סקשנים שכבר מוגדרים בחלק הזה. כל טענה בו עוברת את כללי §1.2 ואת שער הטענות, ובתחתית התוכן מוצג `BrandMentionNote`.
+
+### §16.1 ראש העמוד
+
+- Breadcrumbs: ראשי › קמפיינים
+- Eyebrow: **"לעסקים קטנים ולעסקים שגדלים"**
+- H1: **"קמפיינים בפייסבוק ובאינסטגרם, בלי סוכנות"**
+- פתיח: **"מכינים סרטון בעברית, מעלים אותו כקמפיין מכאן, ורואים בעברית פשוטה מה קרה: כמה הוצאתם, כמה אנשים ראו, כמה פניות הגיעו וכמה עלתה כל פנייה. בלי מנהל המודעות של מטא, ובלי דמי ניהול חודשיים של סוכנות."**
+- שורת אמון, שלושה פריטים: `PiggyBank` **"0% מהתקציב"** · `CirclePause` **"הכול נוצר מושהה, ועולה רק באישור שלכם"** · `Gauge` **"תקרת הוצאה חודשית בכל תוכנית"**.
+- כפתורים: ראשי **"צרו סרטון והעלו לקמפיין"** (`/login?next=/app/create`; מחובר: `/app/create`; `cta_clicked {location:"campaigns_page"}`) · משני `HealthCheckCta` **"בדיקת דופק חינם"** (כשהתנאי `healthCheck` מתקיים).
+- מתחת לכפתורים (`micro`): **"הקמפיין עולה לאוויר אחרי בדיקה של מטא."**
+
+### §16.2 איך זה עובד
+
+`CampaignFlow` בווריאנט `page` (§3.17), ואחריו ארבעת השלבים של בונה הקמפיינים (חלק 07 §9.2–§9.5), כרטיס לכל שלב:
+
+| # | שלב | טקסט |
+|---|---|---|
+| 1 | מטרה | בוחרים מה רוצים שיקרה: **הודעות בוואטסאפ**, **לידים בטופס**, **כניסות לאתר** או **חשיפה לאזור**. לכל תחום יש ברירת מחדל שמתאימה לו, ואפשר לשנות. |
+| 2 | מי ואיפה | סביב העסק (רדיוס בקילומטרים), בערים שבוחרים או בכל הארץ. טווח הגילים מוצע לפי התחום, ומטא מחפשת בתוך האזור את מי שסביר שיגיב. |
+| 3 | תקציב | תקציב יומי, למשל {dailyIls} ליום, ורואים מראש בערך כמה זה בחודש. אפשר לקבוע גם תקרה חודשית משלכם. |
+| 4 | סקירה ופרסום | רואים את המודעות כמו שהן ייראו בפייסבוק ובאינסטגרם, מאשרים שהתקציב ייגבה על ידי מטא, ולוחצים "פרסום". |
+
+מתחת לשלבים: **"שלושה הוקים, קמפיין אחד."** **"בתוכניות בתשלום, כל קמפיין יכול להריץ שלוש גרסאות של אותו סרטון עם פתיחות שונות. כשיש מספיק נתונים, רואים איזה הוק מביא פניות בפחות כסף, ואפשר להגביר אותו בלחיצה."**
+
+### §16.3 הדוח
+
+`DashboardPreview` (§3.18), עם אותה תווית "דוגמה להמחשה". מתחתיו שלוש נקודות:
+- **"ארבעה מספרים, תמיד באותו סדר."** "כמה הוצאתם, כמה אנשים ראו, כמה פניות וכמה עלתה כל פנייה. ליד כל מספר יש הסבר קצר."
+- **"כמה משפטים במקום גרף מסובך."** "המערכת מסבירה מה קרה, ומציעה צעד אחד או שניים, כמו לחכות לעוד נתונים או להגביר את המנצח. כשעוד מוקדם לדעת, היא אומרת את זה."
+- **"סיכום שבועי."** "בכל יום ראשון מגיע במייל סיכום של השבוע שעבר: המספרים, ההוק המנצח והסרטון שהכי עבד, בשבוע שהיו בו קמפיינים או פוסטים."
+
+### §16.4 לידים ופניות (רק כשהתנאי `leads` מתקיים)
+
+- H2: **"כל הפניות במקום אחד"**
+- טקסט: **"לידים מטופס המודעה מגיעים לתיבה אחת באפליקציה, עם כפתור להתקשר וכפתור לוואטסאפ עם הודעה מוכנה. ברגע שליד נכנס מקבלים התראה, ואם אף אחד לא טיפל בו תוך {reminderMinutes, plural, one {דקה} two {שתי דקות} other {# דקות}}, מגיעה תזכורת."** (`reminderMinutes` = `lead_notify.untouched_reminder_min`, 15.)
+- **"בתוכניות בתשלום יש גם סטטוסים, הערות, שיוך לאיש צוות וייצוא לקובץ."**
+- **"בקמפיין של הודעות בוואטסאפ, השיחות מגיעות ישר לוואטסאפ העסקי שלכם, ובדוח רואים כמה שיחות התחילו."**
+
+### §16.5 דף העסק (רק כשהתנאי `businessPage` מתקיים)
+
+- H2: **"אין לכם אתר? יש לכם דף עסק"**
+- טקסט: **"המערכת בונה עמוד אחד בעברית מתוך הסרטון, ערכת המותג ופרטי העסק: שירותים, שעות פתיחה, כתובת, כפתור וואטסאפ וטופס לפניות. אפשר לשלוח אליו את מי שלוחץ על המודעה, ופניות מהטופס נכנסות לתיבת הלידים."**
+- **"דף העסק זמין בתוכניות בתשלום. כל בנייה של הדף עולה {landingCredits} קרדיטים, ועריכת טקסט ופרסום לא עולים קרדיטים."**
+- איור: `PhoneFrame` עם צילום מסך של דף לעסק לדוגמה, עם התג "הדגמה".
+
+### §16.6 בדיקת דופק (רק כשהתנאי `healthCheck` מתקיים)
+
+- H2: **"כבר מפרסמים? מתחילים בבדיקת דופק"**
+- טקסט: **"מחברים את חשבון המודעות, והמערכת עוברת על הקמפיינים מ-90 הימים האחרונים: הוצאה בלי תוצאות, קהל שרואה את אותה מודעה שוב ושוב, מודעות שהקהל כבר התעייף מהן, ותקציב שמפוצל ליותר מדי קבוצות. מקבלים דוח בעברית, איפה הכסף נשרף ועד חמישה תיקונים, בלי שום שינוי בחשבון."**
+- `HealthCheckCta` **"בדיקת דופק חינם"**.
+
+### §16.7 מה אנחנו עושים, ומה לא
+
+- H2: **"מה אנחנו עושים, ומה לא"**
+- **"כן:"** "יוצרים כל קמפיין במצב מושהה, ומעלים רק אחרי שלחצתם "פרסום"" · "מראים תצוגה מקדימה של כל מודעה" · "בודקים את המודעה מול כללי הפרסום לפני שהיא נשלחת" · "שומרים יומן של כל שינוי, שלכם או של כלל אוטומטי שהפעלתם" · "מראים את תקרת ההוצאה בכל מסך"
+- **"לא:"** "לא לוקחים אחוז מהתקציב, ולא נוגעים בכסף של הפרסום" · "לא מבטיחים תוצאות" · "לא משנים תקציב בלי אישור שלכם או כלל שהפעלתם" · "לא מפרסמים תוכן פוליטי" · "לא משתמשים בנתונים שלכם בשביל עסקים אחרים"
+
+### §16.8 השוואה, שאלות וסיום
+
+- `ComparisonBlock` (§3.20).
+- `FaqAccordion`: `meta-who-pays`, `meta-fee`, `meta-what-i-need`, `meta-review-time`, `meta-guarantee`, `meta-ad-rejected`, `meta-data-access`, `meta-disconnect`, `meta-whatsapp-number`, ו-`business-page` ו-`health-check` כשהתנאים שלהן מתקיימים (`faq_expanded {location:"campaigns_page"}`); `FAQPage` עם אותן שאלות בדיוק.
+- פס סיום (`FinalCtaBand`, וריאנט `campaigns`): H2 **"הקמפיין הבא שלכם מתחיל בסרטון."** · **"צרו סרטון, ותחליטו אחר כך אם להעלות אותו לקמפיין. {trialCredits} קרדיטים לניסיון, בלי כרטיס אשראי."** · כפתור **"צרו סרטון והעלו לקמפיין"** (`cta_clicked {location:"campaigns_page"}`).
+- `WhatsAppButton` עם הנוסח של עמוד הקמפיינים (§2.5), בפס הסיום.
+- מטא: title **"קמפיינים בפייסבוק ובאינסטגרם בלי סוכנות | {{BRAND_NAME}}"**; description **"מעלים סרטון בעברית כקמפיין בפייסבוק ובאינסטגרם, ורואים בעברית פשוטה כמה הוצאתם וכמה פניות הגיעו. 0% מהתקציב, בלי מנהל המודעות של מטא."**
+- JSON-LD: `BreadcrumbList`, `FAQPage`. בלי `Product` נפרד: המחירים נמצאים בעמוד המחירים.
+- תמונת OG לפי §12.5.
+
+**קריטריוני קבלה**
+- [ ] כשהדגל `meta_ads` או `meta_connect` כבוי, `/campaigns` מחזיר 404 ואינו במפת האתר; כששניהם דולקים — 200 ו-`index`.
+- [ ] תוויות המטרות ושמות ה-KPI בעמוד זהים לתוויות הקנוניות (חלק 07 §1.4, חלק 01 §2.3): "הודעות בוואטסאפ", "לידים בטופס", "כניסות לאתר", "חשיפה לאזור"; "כמה הוצאתם", "כמה אנשים ראו", "כמה פניות", "כמה עלתה כל פנייה"; ואין בעמוד ROAS, CPM, CPC, ODAX, Advantage+, ad set או pixel.
+- [ ] "באוויר" ו"לאוויר" מופיעים רק עם "אחרי בדיקה של מטא" באותה מחרוזת או בזו שאחריה, ואין בעמוד "תוצאות מובטחות", לוגו של מטא או ניסוח של שותפות (`check-content`).
+- [ ] הסקשנים של הלידים, דף העסק ובדיקת הדופק מרונדרים רק כשהתנאי שלהם מתקיים, וכל מספר בהם מוזרק מ-`plans`, מ-`credit_costs` או מ-`app_settings`.
+- [ ] Lighthouse מובייל ל-`/campaigns`: ביצועים ≥ 90, נגישות 100, SEO 100.
+
+---
+
 ## תלויות בין חלקים
 
-- **חלק 01:** הרכיבים הקנוניים של §1.4 (`HookCard`, `VideoTile`, `PhoneFrame`, `Price`, `Num animate`, `LegalPage`, `JsonLd` ועוד), `formatIls` (₪ לפני המספר), הבסיס של `BRAND`, התג "הדגמה", תוויות פריסטי הכתוביות ו-`Watermark`.
-- **חלק 03:** הפרמטרים של `/app/create` (`niche`, `hook`, `template`, `season`, `src` ∈ `hero` · `final_cta` · `hooks` · `template` · `niche_page`), קריאת `hero_draft_v1` ו-`hook_personalize_v1`; `/app/hooks?source={id}&variations=1` ו-`/app/hooks?generate=1&niche=&q=`; `/app/billing/plans?plan=&cycle=` ו-`/app/billing?topup=`; הודעת ההקשר ב-`/login?next=/app/billing/cancel`; דף השיתוף `/v/[token]` (כולל תמונת ה-OG שלו) ו-`/approve/[token]`; כפתור "נבדק" ב-`/admin/niches` שכותב `seo_reviewed_at`; הדגל `bitEnabled` ב-`TopUpDialog`; הקופי של `wizard.facts.q.*` ושל תיבת ההסכמה בהעלאה.
-- **חלק 04:** עמודות הנישה (`short_name_he`, `seo_*`, `landing_intro_he`, `faq` במבנה `{q_he, a_he}`, `sample_scripts`, `seo_reviewed_at`) והקובץ `niche_extras.json` (`fill_if_null`); `search_hooks` + `search_hooks_facets` ו-`GET /api/hooks/search`; החוזים `HookCardDTO`, `HookSearchQuery` ו-`HookSearchResponse` ב-`lib/api/contracts/hooks.ts` (§20.3), שהאתר מייבא ולא מגדיר מחדש; `POST /api/hooks/[id]/event`, `POST /api/hooks/favorites`; `POST /api/contact`, `POST /api/newsletter`, `GET /api/newsletter/confirm` (הפניה 303 ל-`/?newsletter=`), `POST /api/unsubscribe`, `POST /api/consents` (גרסה בפורמט תאריך); מפתחות `app_settings` (`marketing_announcement`, `hook_of_the_day` עם `history`, `typical_video_credits`, `vat_rate`, `allocation_threshold_schedule`, `quiet_day_banner`); ה-cron `hook-of-the-day`; נתיבי `public-media` (`examples/`, `hooks/`, `og/`, `demo/wall/`, `demo/examples/`); ה-buckets של §18.6; ה-rewrite של `exp_hero` ב-`proxy.ts`; ערכי ה-seed של התוכניות, החבילות ו-`credit_costs.label_he`.
+- **חלק 01:** הרכיבים הקנוניים של §1.4 (`HookCard`, `VideoTile`, `PhoneFrame`, `Price`, `Num animate`, `LegalPage`, `JsonLd` ועוד), `formatIls` (₪ לפני המספר), `formatDate`, הבסיס של `BRAND` (כולל `nameEn`), התג "הדגמה", תוויות פריסטי הכתוביות ו-`Watermark`; מהרחבת 2026-10-17: `ClaimFootnote`, `KpiTile`, `SpendCapMeter`, `HookComparisonTable`, `StatusBadge` (סוג `campaign`), `TrendCard`, `TrendLifecycleBadge` (חלק 01 §10.17), כללי `Chart` (שהגרף הסטטי של `DashboardPreview` עומד בהם), והאייקונים `PiggyBank`, `Gauge`, `CirclePause`, `LayoutTemplate`, `Info`, `Inbox`, `LoaderCircle`, `CircleCheck`, בלי אייקונים של מותגי רשתות.
+- **חלק 03:** הפרמטרים של `/app/create` (`niche`, `hook`, `template`, `season`, `trend`, `src` ∈ `hero` · `final_cta` · `hooks` · `template` · `niche_page` · `trend`); `/app/trends`, `/app/campaigns/health` ו-`/app/settings/integrations` (ניתוק ו"מחיקת כל נתוני מטא מהחשבון", שהדפים כאן מתארים); קריאת `hero_draft_v1` ו-`hook_personalize_v1`; `/app/hooks?source={id}&variations=1` ו-`/app/hooks?generate=1&niche=&q=`; `/app/billing/plans?plan=&cycle=` ו-`/app/billing?topup=`; הודעת ההקשר ב-`/login?next=/app/billing/cancel`; דף השיתוף `/v/[token]` (כולל תמונת ה-OG שלו) ו-`/approve/[token]`; כפתור "נבדק" ב-`/admin/niches` שכותב `seo_reviewed_at`; הדגל `bitEnabled` ב-`TopUpDialog`; הקופי של `wizard.facts.q.*` ושל תיבת ההסכמה בהעלאה.
+- **חלק 04:** עמודות הנישה (`short_name_he`, `seo_*`, `landing_intro_he`, `faq` במבנה `{q_he, a_he}`, `sample_scripts`, `seo_reviewed_at`) והקובץ `niche_extras.json` (`fill_if_null`); `search_hooks` + `search_hooks_facets` ו-`GET /api/hooks/search`; החוזים `HookCardDTO`, `HookSearchQuery` ו-`HookSearchResponse` ב-`lib/api/contracts/hooks.ts` (§20.3), שהאתר מייבא ולא מגדיר מחדש; `POST /api/hooks/[id]/event`, `POST /api/hooks/favorites`; `POST /api/contact`, `POST /api/newsletter`, `GET /api/newsletter/confirm` (הפניה 303 ל-`/?newsletter=`), `POST /api/unsubscribe`, `POST /api/consents` (גרסה בפורמט תאריך); מפתחות `app_settings` (`marketing_announcement`, `hook_of_the_day` עם `history`, `typical_video_credits`, `vat_rate`, `allocation_threshold_schedule`, `quiet_day_banner`); ה-cron `hook-of-the-day`; נתיבי `public-media` (`examples/`, `hooks/`, `og/`, `demo/wall/`, `demo/examples/`); ה-buckets של §18.6; ה-rewrite של `exp_hero` ב-`proxy.ts`; ערכי ה-seed של התוכניות, החבילות ו-`credit_costs.label_he`. מהרחבת 2026-10-17: `/meta/data-deletion` ציבורי ב-`proxy.ts` (§17.2); `src: "trend"` ו-`trendSlug` ב-`CreateProjectBody` (§19.3); מפתחות `plans.limits` של חלק 06 §2.1, כולל `landing_pages` (חינם 0, ו-1 אחרי רכישת חבילה) ו-`health_checks_per_month`; שורות `credit_costs` החדשות עם `label_he` זהה לנוסח ב-§7.5 כאן (`ads.copy`, `ads.insight`, `meta.health_check`, `landing.generate` = 10, `plan.generate`, `hooks.score`, `guided.shotlist`, `guided.autocut`); מפתחות `app_settings` `meta_budget_presets_ils`, `meta_spend_cap_grace_days`, `trends_weekly_drop`, `lead_notify`; `createAdminClient()` לעמוד מחיקת הנתונים בלבד.
 - **חלק 05:** `SAMPLE_PRESETS`, `SamplePreset` ו-`estimateSample` (23 / 50 / 107 / 478 עם ה-seed); `seo.niche_intro.v1` (`SeoNicheIntroV1`) ו-`script.generate.v1` לתוכן הנישות; `HOOK_PLACEHOLDERS`, `PLACEHOLDERS` ו-`applyShekel` ב-`lib/hebrew/placeholders.ts`; `withPrefix` ב-`lib/hebrew/text.ts`; הסתייגויות החובה של `COMPLIANCE_RULES`; `data_collection: "deny"` בכל בקשה (`[M0-verify]` לנקודות המדיה).
-- **חלק 06:** קטלוג האירועים (§14.2) והטיפוסים (§14.3); רשימת העוגיות (§11.7) וטבלת השמירה (§11.5), שזהות לדפי העוגיות והפרטיות כאן; `docs/legal/subprocessors.md`; דוגמאות ההחזר של `lib/billing/refunds.ts` (= מדיניות הביטול); `GROW_PAGE_CODE_BIT` ← `bitEnabled`; רשימת משתני התוכן (§20) ושער `check-content.ts --launch`; רשימת ⚖️ ב-§25 (כל הדפים המשפטיים, החזר יחסי במנוי שנתי, ניסוח Bit); המיילים `newsletter_confirm`, `terms_update`, `price_change_notice`; CSP (hash לעמודים הסטטיים, nonce לדינמיים).
+- **חלק 06:** קטלוג האירועים (§14.2, 108 אירועים) והטיפוסים (§14.3), כולל `trend_feed_viewed`, `trend_opened` ו-`trend_use_clicked`, ובטיפוסים: `CtaLocation` מקבל `campaigns_page`, `trends_hub`, `trend_page`, `compare` ובנוסף `campaign_flow`, `trends_teaser`, `health_check` (רשום כאן, §14), ו-`faq_expanded.location` מקבל `campaigns_page` ו-`trend_page`; הדגלים `meta_connect`, `meta_ads`, `meta_lead_forms`, `meta_auto_rules`, `meta_health_check`, `landing_pages`, `trends_public`, `guided_filming`, `hook_score`, `monthly_plan` ו-`revalidateTag("flags", "max")` בכל שינוי באדמין (§21); הניסוי `hero_copy_v2`; העוגייה `meta_oauth_state` ברשימת §11.7; שורות השמירה של §10.3 כאן בטבלה §11.5 (אסימוני מטא עד הניתוק, נתוני מטא גולמיים 90 יום, לידים 24 חודשים, דוחות בדיקת דופק 12 חודשים, דפי עסק, בקשות מחיקה 3 שנים, קובצי ייחוס 30 יום); פסקת מטא ב-`docs/legal/subprocessors.md`; ⚖️ ב-§25: הסכם עיבוד המידע, פרקים 9א–9ב בתנאים, היקף המחיקה בעמוד מחיקת הנתונים, הודעת הפרטיות של דף העסק; כללי `comparisons.json` ב-`check-content --launch`; רשימת העוגיות (§11.7) וטבלת השמירה (§11.5), שזהות לדפי העוגיות והפרטיות כאן; `docs/legal/subprocessors.md`; דוגמאות ההחזר של `lib/billing/refunds.ts` (= מדיניות הביטול); `GROW_PAGE_CODE_BIT` ← `bitEnabled`; רשימת משתני התוכן (§20) ושער `check-content.ts --launch`; רשימת ⚖️ ב-§25 (כל הדפים המשפטיים, החזר יחסי במנוי שנתי, ניסוח Bit); המיילים `newsletter_confirm`, `terms_update`, `price_change_notice`; CSP (hash לעמודים הסטטיים, nonce לדינמיים).
+- **חלק 07:** `/b/[slug]` ו-`/b/[slug]/privacy` (מוגדרים שם; כאן רק כללי האינדוקס, המפות וה-robots, §1.1, §12.2); `/app/campaigns/health` כיעד של `HealthCheckCta`; התשובה של `POST /api/webhooks/meta/data-deletion` שמפנה ל-`/meta/data-deletion?code=`, והעמודות `status`, `received_at` ו-`completed_at` של `meta_data_deletion_requests` שהעמוד קורא; ההסכמה `meta_ads_terms` (`source = meta_connect`) שמתעדת את פרק 9א בתנאים ואת הסכם עיבוד המידע; תבנית הודעת הפרטיות של דף העסק; טופס הלידים של `/b/[slug]` מוגן ב-honeypot ובהגבלה `landing_lead` — אם יתווסף Turnstile, Cloudflare נכנס לטבלת ספקי המשנה כאן ובחלק 06 באותו PR; המכסה של סביבה חינמית שרכשה חבילה, שמותר לה לפרסם דף עסק אחד, נקבעת שם, ו-§7.10 כאן מציג רק "פרסום הדף דורש תוכנית בתשלום או רכישה של חבילת קרדיטים".
+- **חלק 08:** `trend_templates` עם `TREND_PUBLIC_COLUMNS` (§15.3), ומדיניות ה-`SELECT` של `anon` שפותחת `published` ו-`retired` באותו column grant (רשום כאן: חלק 08 §11 דורש שטרנד שפרש יישאר אונליין); `TrendExplainerV1` (שלבים ושאלות לעמוד טרנד); נכסי `public-media/trends/{slug}/`; `revalidateTag("trends", "max")` ב-`trends-lifecycle` ובפעולות הפרסום והפרישה באדמין; הכלל שבוחר את `TrendLifecycleBadge`; `published_week` שעליו נשען `trendsWeekly`.
 - **נספח D:** חמשת סרטוני ההדגמה (`pnpm demo:render --upload` ← `public-media/demo/examples/`) לגלריה, ל-`NicheShowcase` ולעמוד הדוגמאות; האנימטיקים של קיר הווידאו; `toNicheSampleScript`.
-- **נספח E:** ברירות המחדל לנישה (§3.3, דרך `niche_extras.json`); כללי הפיסוק (בלי `·` על המסך, בלי כוכבית להערות שוליים, מירכאות רגילות); `BANNED_PHRASES` שגם הקופי השיווקי עובר מולו ב-`lint:copy`.
+- **נספח E:** ברירות המחדל לנישה (§3.3, דרך `niche_extras.json`); כללי §18 (קופי למודעות) ו-§19 (שפת הדוחות) גם בטקסטים של `DashboardPreview`, של עמוד הקמפיינים ושל מאמרי M11; כללי הפיסוק (בלי `·` על המסך, בלי כוכבית להערות שוליים, מירכאות רגילות); `BANNED_PHRASES` שגם הקופי השיווקי עובר מולו ב-`lint:copy`.
 - **נספח F:** בסיס הנתיבים, דף הבית וה-SEO (§4.2, §11.7, §12.8); בכל סתירה, החלק הזה גובר.
+
+**החלטות של החלק הזה בהרחבת 2026-10-17** (כל אחת עקבית עם חלקים 07–08, ונרשמת ב-`DECISIONS.md`):
+1. `DashboardPreview` הוא סקשן נפרד (`#dashboard`) מיד אחרי `CampaignFlow`, ולא חלק ממנו; הנתונים שלו מומצאים, מסומנים "דוגמה להמחשה", ונבדקים לעקביות.
+2. מספור בלי שבירה: §3.17–§3.20, §7.10, §8.5–§8.6, §10.9–§10.10, §15–§16; בדפים המשפטיים פרקים 9א–9ב, 8א–8ב ו-4א–4ב.
+3. שער הטענות מורכב כך: `campaigns` = `meta_connect` ו-`meta_ads`; `leads` ו-`autoRules` דורשים גם את `campaigns`; `healthCheck` דורש גם את `meta_connect`; `trendsWeekly` = 4 שבועות ISO רצופים עם דרופ (§3.0.1).
+4. בגיבור, וריאנט A מוחלף בגרסת הקמפיינים כשהתנאי מתקיים, B ו-C נשארים, והניסוי עובר ל-`hero_copy_v2` (50/25/25).
+5. שאלות נוספות מעבר לעשר שבהגדרות ההרחבה: `meta-ad-rejected`, `business-page`, `health-check`; סך הכול 47 שאלות כשכל התנאים מתקיימים.
+6. ערכי `cta_clicked.location` נוספים מעבר לארבעה שבהגדרות ההרחבה: `campaign_flow`, `trends_teaser`, `health_check`; ו-`faq_expanded.location` מקבל `campaigns_page` ו-`trend_page`. הכפתורים החדשים לא שולחים `signup_started`.
+7. ב-`comparisons.json`: `unit` הוא `month` או `day`, ו-`reviewed_at: null` מסמן טענה שלא מוצגת. הטענה על שירותי ניהול סושיאל מבוססי AI נשארת לא מוצגת עד אימות ידני.
+8. `/faq` עבר ל-ISR עם התגיות `flags`, `plans` ו-`credit_costs`.
+9. מאמרי M11 נכתבו עם `draft: true`; תגיות הבלוג `ads` ו-`trends` וסוגי `CtaBox` `campaigns` ו-`trends` נוספו.
+10. בכותרת יש לכל היותר 7 קישורים; כשגם הקמפיינים וגם הטרנדים פעילים, "דוגמאות" עובר לפוטר.
+11. תקציר באנגלית לבודקים של מטא רק בדף הפרטיות ובעמוד מחיקת הנתונים (`<EnSummary>`).
+12. בדף העסק, התנאים מתחייבים רק להודעה מראש לפני שדף יורד מהאוויר בגלל שינוי תוכנית; ההתנהגות עצמה בחלק 07.
+13. בעמוד מחיקת הנתונים אין הגבלת קצב ייעודית: קוד האישור (60 ביט) הוא ההרשאה, והשאילתה מחזירה רק סטטוס ותאריכים.

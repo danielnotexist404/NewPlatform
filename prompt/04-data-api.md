@@ -5,6 +5,8 @@
 בסוף יש תוכנית בדיקות RLS מלאה עם מקרי בדיקה קונקרטיים. כל השמות כאן הם חוזה (חלק 00 §4): טבלאות, עמודות, enum-ים, פונקציות, נתיבים וקודי שגיאה כתובים בדיוק כפי שצריך לממש אותם.
 המימוש של הלוגיקה העסקית שיושבת מעל החוזים האלה — הצנרת, הפרומפטים וההרכבה (חלק 05), מנוע החיוב והספקים (חלק 06), המסכים (חלק 03) — מפנה לכאן, ולא להפך.
 
+**הרחבת 2026-10-17** (קמפיינים ופרסום ב-Meta, לידים, מנוע הטרנדים, צילום מודרך, דף העסק, בדיקת דופק, תוכנית 30 יום וציון הוק). ה-SQL המלא של שתי המיגרציות החדשות, הלוגיקה והמסכים נמצאים בחלק 07 (`0013_meta_integration.sql`) ובחלק 08 (`0014_trends.sql`). הרשימות הראשיות נשארות כאן: אינדקס המיגרציות (§2.3), כלל ה-enum-ים (§3), ה-buckets של האחסון (§13.1), אירועי Realtime (§14.1), משימות pg_cron (§15), ה-seed (§16), קודי השגיאה והגבלות הקצב (§18), רשימת האב של הנתיבים (§19.2, §21b), ה-webhooks (§22.6), נתיבי ה-cron (§23), פעולות הביקורת (§24.1) ובדיקות ה-RLS (§25). חלק 04 הוא גם הבעלים של העמודה `project_versions.hook_score` (§2.3, §19.10).
+
 **איך לקרוא את קטעי ה-SQL.** כל בלוק SQL בחלק הזה הוא תוכן אמיתי של קובץ מיגרציה, בסדר שבו הוא צריך להופיע בקובץ. כשכתוב ‏`0004_projects_jobs.sql` מעל בלוק — הבלוק נכנס לקובץ הזה. אין לשנות שמות; מותר לפצל קובץ לקבצים עוקבים אם הוא גדול מדי לביקורת, בתנאי שהסדר נשמר.
 
 ---
@@ -183,12 +185,14 @@ supabase/
 │  ├─ 0009_storage.sql
 │  ├─ 0010_realtime.sql
 │  ├─ 0011_cron.sql
-│  └─ 0012_ops_roles.sql
-├─ tests/ 00_helpers.sql … 10_billing_ops.sql (§25)
+│  ├─ 0012_ops_roles.sql
+│  ├─ 0013_meta_integration.sql   (after launch; full SQL in part 07)
+│  └─ 0014_trends.sql             (after launch; full SQL in part 08 + the part 04 block of §2.3)
+├─ tests/ 00_helpers.sql … 10_billing_ops.sql, 11_meta_rls.sql, 12_trends_rls.sql (§25)
 └─ seed/ seed.ts · schemas.ts · data/*.json (§16)
 ```
 
-- **כל אובייקט חדש נכנס לקובץ הנושאי שלו**, כי שום מיגרציה עוד לא רצה ב-staging או בפרודקשן: זהות וסביבות ← `0002`, קטלוג ← `0003`, פרויקטים ועבודות ← `0004`, קרדיטים וחיוב ← `0005`, שיתוף ותפעול ← `0006`, פונקציות וטריגרים ← `0007`, RLS והרשאות ← `0008`, אחסון ← `0009`, Realtime ← `0010`, ‏pg_cron ← `0011`. הקובץ `0012_ops_roles.sql` מכיל רק את התפקיד `backup_reader` (§15b).
+- **עד ההשקה, כל אובייקט חדש נכנס לקובץ הנושאי שלו** (מ-`0013` והלאה — קבצים חדשים בלבד, §2.3), כי שום מיגרציה עוד לא רצה ב-staging או בפרודקשן: זהות וסביבות ← `0002`, קטלוג ← `0003`, פרויקטים ועבודות ← `0004`, קרדיטים וחיוב ← `0005`, שיתוף ותפעול ← `0006`, פונקציות וטריגרים ← `0007`, RLS והרשאות ← `0008`, אחסון ← `0009`, Realtime ← `0010`, pg_cron ← `0011`. הקובץ `0012_ops_roles.sql` מכיל רק את התפקיד `backup_reader` (§15b).
 - ה-CLI מזהה קבצים לפי התבנית `<מספר>_<שם>.sql` וממיין לפי המספר. [M0-verify] שגרסת ה-CLI המותקנת מקבלת קידומת בת 4 ספרות; אם היא דורשת חותמת זמן בת 14 ספרות, משנים לקידומות `20261013000001_extensions_enums.sql` … באותו סדר ובאותם שמות, ומתעדים ב-`DECISIONS.md`.
 - מיגרציה חדשה אחרי ההשקה: `supabase migration new <name>`, ואז שינוי השם לקידומת הבאה (`0013_<name>.sql`). **אסור לערוך מיגרציה שכבר רצה ב-staging או בפרודקשן.** תיקון = מיגרציה חדשה.
 - שינוי הרסני (מחיקת עמודה, שינוי סוג) נעשה בשני שלבים: expand (עמודה חדשה + כתיבה כפולה) ← פריסה ← contract (מחיקת הישנה) במיגרציה נפרדת.
@@ -203,7 +207,7 @@ supabase/
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:seed": "tsx supabase/seed/seed.ts",
-    "seed:sync": "python3 -I seed/scripts/build_seed.py --check && tsx scripts/seed-sync.ts",
+    "seed:sync": "python3 -I seed/scripts/build_seed.py --check && python3 -I seed/scripts/build_trends.py --check && tsx scripts/seed-sync.ts",
     "db:types": "supabase gen types typescript --local --schema public > lib/supabase/database.types.ts && prettier --write lib/supabase/database.types.ts",
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level warning --fail-on warning",
@@ -216,7 +220,7 @@ supabase/
 | פקודה | מתי | מה בודקים |
 |---|---|---|
 | `pnpm db:reset && pnpm db:seed` | אחרי כל שינוי מיגרציה, וב-CI בכל PR | שתי הרצות רצופות של `db:seed` עוברות (אידמפוטנטיות) |
-| `pnpm seed:sync` | אחרי כל שינוי ב-`/seed` (נספחים A–C) | `build_seed.py --check` עובר, ושבעת קובצי ה-JSON של `/seed` (ששת הקבצים הקנוניים ו-`niche_extras.json`) זהים לעותקים ב-`supabase/seed/data/` (ב-CI: `git diff --exit-code supabase/seed/data`) |
+| `pnpm seed:sync` | אחרי כל שינוי ב-`/seed` (נספחים A–C, ותבניות הטרנדים של חלק 08) | `build_seed.py --check` ו-`build_trends.py --check` עוברים, ושמונת קובצי ה-JSON של `/seed` (ששת הקבצים הקנוניים, `niche_extras.json` ו-`trend_templates.json`) זהים לעותקים ב-`supabase/seed/data/` (ב-CI: `git diff --exit-code supabase/seed/data`) |
 | `pnpm db:types` | אחרי כל שינוי סכמה | ב-CI: `git diff --exit-code lib/supabase/database.types.ts` — טיפוסים שלא עודכנו מכשילים את ה-PR |
 | `pnpm db:lint` | ב-CI | ‏plpgsql_check על כל הפונקציות; אזהרות = שגיאה |
 | `pnpm db:test` | ב-CI | כל קובצי pgTAP ב-§25 |
@@ -225,8 +229,50 @@ supabase/
 
 `SUPABASE_DB_URL` (חיבור ישיר, ‏session pooler) משמש רק את ה-CI ואת בדיקות המקביליות ב-Vitest (§25.4); האפליקציה עצמה לא פותחת חיבורי Postgres — כל הגישה עוברת ב-supabase-js מעל HTTPS.
 
+### 2.3 מיגרציות אחרי ההשקה: `0013` ו-`0014`
+
+שתי המיגרציות של הרחבת 2026-10-17 הן קבצים חדשים, ואף אחת מהן לא עורכת קובץ מ-`0001`–`0012`. ה-DDL המלא, ה-RLS, הפונקציות, הטריגרים וה-pg_cron שלהן כתובים בחלקים 07 ו-08. כאן נמצאים האינדקס, הכללים שחלים עליהן, והבלוק היחיד שחלק 04 הוא הבעלים שלו.
+
+| קובץ | הבעלים של ה-SQL | מי משתמש בו | מה יש בו (בקצרה) |
+|---|---|---|---|
+| `0013_meta_integration.sql` | חלק 07 | הקוד של M9–M10; הקובץ עצמו נכנס כבר במיזוג של M8 (ראו "סדר" למטה) | ערכים חדשים ל-`webhook_provider`, `notification_kind` (8), `ai_task` ו-`consent_kind`; ה-check של `consents.source` נבנה מחדש עם `meta_connect`; 14 enum-ים חדשים (12 של Meta, `landing_page_status`, `lead_source`); 18 טבלאות (14 של Meta, `landing_pages`, `ad_health_reports`, `content_plans`, `content_plan_items`), כולל `leads.source lead_source`; 7 פונקציות (`meta_spend_summary`, `_managed_spend_cap_ils`, `refresh_managed_spend`, `ad_budget_changes_last_hour`, `purge_meta_data`, `purge_leads`, `landing_page_public`); טריגרי Realtime (§14.1); 2 משימות pg_cron (§15) |
+| `0014_trends.sql` | חלק 08, ועוד הבלוק של חלק 04 שלמטה | M8 | ערכים ל-`ai_task`; 8 enum-ים; 6 טבלאות; העמודות החדשות ב-`projects`, `scenes` ו-`workspaces`; ה-FK המאוחרים לעמודות `trend_template_id` של `0013`; 3 פונקציות (`trend_feed`, `refresh_trend_template_stats`, `trend_template_benchmark`); ה-bucket `trend-refs` ו-`video/webm` ב-`uploads` (§13.1); משימת pg_cron אחת; העמודה `project_versions.hook_score` |
+
+**סכומים אחרי שתי המיגרציות:** 58 טיפוסי enum (36 + 22), 24 טבלאות חדשות ו-14 משימות pg_cron (11 + 3).
+
+**סדר.** ה-CLI מריץ קבצים לפי המספר, ו-`supabase db push` מסרב להריץ קובץ שהמספר שלו נמוך מהאחרון שכבר רץ (אלא עם `--include-all`). `0014` מוסיף FK לעמודות `trend_template_id` שנוצרות ב-`0013`, ולכן `0013` חייב לרוץ לפניו. מכאן ההחלטה: **שני הקבצים נכנסים יחד במיזוג הראשון של M8.** הטבלאות של Meta, של דף העסק ושל תוכנית 30 יום נוצרות אז ונשארות בלי שימוש עד M9–M10, כי כל הנתיבים שלהן מחזירים 404 כל עוד הדגלים כבויים. לכן `0013` צריך להיות שלם כבר במיזוג של M8, כולל הטבלאות של M9 ו-M10. כל שינוי סכמה שיתגלה אחר כך נכנס לקובץ חדש (`0015_…`), לפי הכלל של §2.1.
+
+**כללים לכל קובץ אחרי ההשקה** (בנוסף ל-§2.1; בדיקות ה-pgTAP של §25.2 אוכפות אותם):
+1. **ערכי enum חדשים** יושבים בראש הקובץ, ב-`alter type … add value if not exists …`, ואף משפט באותו קובץ לא משתמש בהם (§3).
+2. **טבלה חדשה:** `enable row level security`, ואז `revoke all on public.<table> from anon, authenticated;` ורק אחריו grants מפורשים. ה-revoke הגורף של `0008` חל רק על הטבלאות שהיו קיימות אז, וברירות המחדל של Supabase נותנות לטבלה חדשה ב-`public` את כל ההרשאות ל-`anon` ול-`authenticated` [M0-verify את ה-default ACL בפרויקט]. בכל טבלאות ההרחבה הכתיבה היא בצד השרת בלבד, ולכן אף אחת מהן לא מקבלת `insert`, `update` או `delete` ל-`authenticated`. החריג היחיד הוא העמודה `workspaces.benchmarks_opt_out` (grant עמודה, §12.7).
+3. **פונקציה חדשה:** `set search_path = ''`; `revoke execute … from public, anon, authenticated;`; `grant execute … to service_role` רק לפונקציות שהשרת קורא להן; ורק אחר כך ה-grants ל-`anon` או ל-`authenticated` שמופיעים ב-§12.7. פונקציה שמקבלת מזהה סביבה ופתוחה ל-`authenticated` מתחילה בבדיקת הגישה של R39 (`can_access_workspace` או מנהל פלטפורמה), ואחרת מחזירה `null` או אפס שורות.
+4. **מפתח זר ל-`profiles`** הוא תמיד `on delete set null`, והעמודה nullable, כדי שמחיקת חשבון לא תיחסם (§9.6). זה כולל את `trend_references.rights_attested_by`.
+5. **טריגר ששולח ל-Realtime** בנוי כמו `broadcast_job_change` (§14.1): `security definer`, payload מצומצם, `exception when others` שלא מפיל את הכתיבה, ו-revoke בלי grant.
+
+**הבלוק של חלק 04 בתוך `0014_trends.sql`** (ציון הוק, §19.10). חלק 08 מעתיק אותו כלשונו לסוף הקובץ:
+
+```sql
+-- ── part 04 block (hook score, §19.10); keep verbatim at the end of 0014_trends.sql ──
+alter table public.project_versions
+  add column hook_score jsonb
+    check (hook_score is null
+           or (jsonb_typeof(hook_score) = 'object'
+               and case when (hook_score->>'score') ~ '^[0-9]{1,3}$' then (hook_score->>'score')::int <= 100 else false end));
+
+-- writing the score must not bump updated_at: it is the ifUnmodifiedSince base of PATCH …/script (§19.5).
+-- Same pattern as hooks (§9.1): set_updated_at fires only for the listed columns. A future column of
+-- project_versions is added to this list on purpose, in the migration that adds the column.
+drop trigger if exists set_updated_at on public.project_versions;
+create trigger set_updated_at
+  before update of project_id, version, script, storyboard, caption_track, voiceover_asset_id, moderation, source, created_by
+  on public.project_versions for each row execute function public.set_updated_at();
+-- no grant changes: authenticated has no UPDATE on project_versions, and its INSERT column grant (§12.2) does not list hook_score
+```
+
 ### קריטריוני קבלה
 - [ ] `pnpm db:reset && pnpm db:seed && pnpm db:seed` מסתיים בהצלחה על מכונה נקייה.
+- [ ] `pnpm db:reset` מריץ את `0001`–`0014` לפי הסדר; הרצה של `0014` על מסד בלי `0013` נכשלת על ה-FK המאוחרים.
+- [ ] אחרי `db reset`, עדכון `hook_score = '{"score":72}'` בלקוח הסודי לא משנה את `updated_at` של הגרסה; `'{"score":101}'` ו-`'{"x":1}'` נכשלים ב-check.
 - [ ] `pnpm db:types` לא משנה את הקובץ המחויב ב-git אחרי reset.
 - [ ] `pnpm db:lint` ו-`pnpm db:test` ירוקים ב-CI; PR שמוסיף טבלה בלי RLS נכשל.
 - [ ] ה-CI לא מריץ `db push` לפרודקשן בלי אישור ידני.
@@ -297,11 +343,13 @@ alter default privileges in schema public revoke execute on functions from publi
 
 - `linkedin` שמור לנישות B2B ולא מופיע ב-seed בהשקה; סכמת `HookBatchV1` (חלק 05) לא מתירה אותו עדיין.
 - סדר הערכים ב-`member_role` הוא חוזה: `effective_role()` (§9) בוחרת את התפקיד החזק ביותר לפי סדר ה-enum.
-- הוספת ערך ל-enum **אחרי ההשקה**: `alter type … add value '…'` במיגרציה נפרדת (אי אפשר להשתמש בערך החדש באותה טרנזקציה). אף פעם לא מוחקים ערך. הערך `whatsapp` ב-`webhook_provider` (ה-webhook של WhatsApp ב-v2) כתוב ישירות ב-`0001`, כי שום מיגרציה עוד לא רצה; זה השינוי היחיד ב-enum-ים, וכל שאר הערכים החדשים (`consents.source`, `abuse_reports.source`, `email_messages.status`) הם `check` על עמודת טקסט.
+- הוספת ערך ל-enum **אחרי ההשקה**: `alter type … add value if not exists '…'` **בראש** קובץ מיגרציה חדש (`0013` והלאה), בתנאי שאף משפט באותו קובץ לא משתמש בערך: לא ברירת מחדל, לא `check`, לא מדיניות, לא תנאי של אינדקס חלקי, לא גוף של פונקציה בשפת `sql` (שנבדק כבר ביצירה), ולא `insert`. ערך חדש לא שמיש לפני שהטרנזקציה שהוסיפה אותו נסגרה, ולכן הוא משמש רק בזמן ריצה, מקוד האפליקציה או מגוף `plpgsql` שמתפענח רק כשהוא רץ. אף פעם לא מוחקים ערך. הערך `whatsapp` ב-`webhook_provider` (ה-webhook של WhatsApp ב-v2) כתוב ישירות ב-`0001`, כי אז שום מיגרציה עוד לא רצה; שאר הערכים שנוספו לפני ההשקה (`consents.source`, `abuse_reports.source`, `email_messages.status`) הם `check` על עמודת טקסט.
+- **ערכים שנוספים אחרי ההשקה** (בראש `0013` ו-`0014`, לפי הכלל שלמעלה): `webhook_provider` + `meta`; `notification_kind` + `meta_campaign_live`, `meta_ad_rejected`, `meta_connection_lost`, `lead_received`, `spend_cap_warning`, `social_post_published`, `social_post_failed`, `weekly_results`; `ai_task` + `llm_ads` (ב-`0013`) ו-`llm_trend_analysis`, `llm_trend_template`, `llm_guided` (ב-`0014`); `consent_kind` + `meta_ads_terms`. ה-check של `consents.source` נבנה מחדש ב-`0013` עם `meta_connect` (drop + add של אותו constraint). 22 טיפוסי enum חדשים נוצרים בשני הקבצים (14 ב-`0013`, 8 ב-`0014`), וסך הכול 58 (§2.3).
 - המראות ב-TypeScript נוצרים אוטומטית (`Constants.public.Enums.*` ב-`database.types.ts`) ומיוצאים מ-`lib/supabase/enums.ts` (§17.4). לא כותבים איחודי מחרוזות ידנית.
 
 ### קריטריוני קבלה
-- [ ] `select count(*) from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'` מחזיר 36.
+- [ ] `select count(*) from pg_type t join pg_namespace n on n.oid = t.typnamespace where n.nspname = 'public' and t.typtype = 'e'` מחזיר 36 אחרי `0001`–`0012`, ו-58 אחרי `0014`.
+- [ ] `select enum_range(null::public.webhook_provider)` אחרי `0013` מסתיים ב-`meta`, ו-`0013` עובר `db reset` על מסד נקי (אף משפט בו לא משתמש בערכים שהוא מוסיף).
 - [ ] `select enum_range(null::public.member_role)` מחזיר `{owner,admin,editor,viewer}` בסדר הזה.
 - [ ] כל ההרחבות קיימות אחרי `db reset`, ו-`pg_trgm` נמצאת בסכמה `extensions`.
 
@@ -458,7 +506,7 @@ create table public.pronunciation_entries (
 - **`profiles.trial_status`** נקבע ב-`handle_new_user`: `granted` כשניתנו קרדיטי ניסיון, או הסיבה שלא ניתנו (`already_claimed`, `disposable_email`, `no_identifier`). ‏NULL עד שהטריגר רץ. ממנו הדשבורד בוחר את הכרטיס המתאים (חלק 03 §3.5; ל-`no_identifier` יש כרטיס משלו).
 - **`profiles.notification_prefs`** — אובייקט בצורה הקנונית:
   `{ "kinds": { "<notification_kind>": { "email": true, "whatsapp": false } }, "whatsapp": { "phone_e164": "+9725XXXXXXXX", "verified_at": "ISO|null", "opted_in_at": "ISO|null", "opted_out_at": "ISO|null" } }`.
-  מפתח חסר ב-`kinds` = ברירת המחדל: מייל פעיל, וואטסאפ כבוי. ‏`payment_failed` ו-`invite` מתעלמים מ-`email: false` (נשלחים תמיד). סכמת Zod: `NotificationPrefs` ב-`lib/api/contracts/account.ts` (§24.2). המשתמש עורך רק את `kinds` (Server Action `updateProfile`); תת-האובייקט `whatsapp` נכתב רק בנתיבי האימות של WhatsApp (§21.3, v2) וב-webhook של WhatsApp (§22.6).
+  המפתחות של `kinds` הם ערכי `notification_kind`, ובנוסף מפתח המייל בלבד `monthly_plan` (המייל `monthly_plan_ready`, חלק 06 §12.4; אין לו התראה באפליקציה). מפתח חסר ב-`kinds` = ברירת המחדל: מייל פעיל, וואטסאפ כבוי. ‏`payment_failed` ו-`invite` מתעלמים מ-`email: false` (נשלחים תמיד). סכמת Zod: `NotificationPrefs` ב-`lib/api/contracts/account.ts` (§24.2). המשתמש עורך רק את `kinds` (Server Action `updateProfile`); תת-האובייקט `whatsapp` נכתב רק בנתיבי האימות של WhatsApp (§21.3, v2) וב-webhook של WhatsApp (§22.6).
 - **`workspaces.plan_override`** — שינוי תוכנית ידני מהאדמין (`{ "plan_id": "business", "until": "2026-12-31T21:59:59Z", "reason": "…" }`). כל עוד `until` בעתיד, `workspace_plan()` מחזירה את תוכנית ה-override במקום `plan_id`. ‏`PATCH /api/admin/workspaces/[id]/plan-override` עם `{ clear: true }` מאפס את העמודה ל-NULL.
 - **`brand_kits.end_card`** — ברירות המחדל של כרטיס הסיום לכל הסביבה: `headline_he` ("דברו איתנו עוד היום"; ה-CTA עצמו נבנה מ-`cta_type`, חלק 05), מתגי `show_*` (כולל `show_instagram`, שהערך שלו נלקח מ-`business_profiles.instagram_url`), ו-`logo_bug` (לוגו קטן בפינה מהשנייה השלישית). פרויקט בודד יכול לדרוס כל אחד מהם ב-`projects.render_options` (§6).
 
@@ -1043,8 +1091,9 @@ create index render_runs_job_idx on public.render_runs (job_id);
 הערות:
 - **`job_steps.step_key`** נאכף ב-regex: `keyframe:{sceneId}` ו-`clip:{sceneId}` עם uuid, ו-`render:{aspect}` עם `9x16`/`1x1`/`16x9` (אותו כתיב כמו בנתיבי האחסון).
 - **`project_versions`** — גרסה היא "טיוטה" כל עוד אף עבודה לא השתמשה בה: השרת רשאי לעדכן בה `script` ו-`source`. מרגע שעבודה כלשהי נוצרה עליה, `script` ו-`source` קפואים (טריגר `project_versions_guard`, §11.3), ועריכה פותחת גרסה חדשה (`POST /api/projects/[id]/versions`, §19). העמודות הנגזרות (`storyboard`, `caption_track`, `voiceover_asset_id`, `moderation`) נכתבות רק בצד השרת. למשתמשים אין הרשאת `update` על הטבלה בכלל. עריכה ידנית של תסריט בגרסת טיוטה עוברת ב-`PATCH /api/projects/[id]/script` (§19.5), ו-`updated_at` (טריגר `set_updated_at`) הוא הבסיס של `ifUnmodifiedSince` שלה.
+- **`project_versions.hook_score`** (נוספה ב-`0014`, §2.3) — מטמון של ציון ההוק של הגרסה (§19.10): `{ version: 1, score, checks, suggestions, llm, degraded, input_hash, prompt_version, computed_at }`. נכתבת רק בצד השרת, גם בגרסה נעולה (השומר `project_versions_guard` חוסם רק את `script` ו-`source`), ולא מקדמת את `updated_at`. `input_hash` שלא תואם לסטוריבורד ולכתוביות הנוכחיים של הגרסה = ציון ישן, שמחושב מחדש בקריאה הבאה.
 - **`assets.metadata.upload_state`**: ‏`pending` (נוצרה כתובת העלאה) → `ready` (אחרי `complete`) → או `rejected`. העלאה שנשארה `pending` יותר מ-24 שעות נמחקת ב-`/api/cron/cleanup`.
-- **מפתחות `assets.metadata`** (כל השאר אסור): `upload_state`, ‏`original_filename`, ‏`probe`, ‏`purge_reason`, ‏`purge_marked_at`, ‏`storage_deleted_at`, ‏`consent_attested: {by, at}` (הסכמה בכתב של מי שמופיע בהעלאה), ‏`moderation: {allowed, categories, checked_at, prompt_version}` — או `{pending: true}` כשהמודרציה של ההעלאה לא רצה בגלל תקלה אצל הספק (§20.2).
+- **מפתחות `assets.metadata`** (כל השאר אסור): `upload_state`, `original_filename`, `probe`, `purge_reason`, `purge_marked_at`, `storage_deleted_at`, `consent_attested: {by, at}` (הסכמה בכתב של מי שמופיע בהעלאה), `moderation: {allowed, categories, checked_at, prompt_version}` — או `{pending: true}` כשהמודרציה של ההעלאה לא רצה בגלל תקלה אצל הספק (§20.2); ובצילום מודרך (מ-`0014`, חלק 08): `guided_shoot_id`, `shot_key`, `source` (`"camera"` או `"file"`; זה לא העמודה `assets.source`), שנכתבים ב-`uploads/sign` (§20.2); ומההרחבה גם `meta_spec: {ok, issues[], checked_at}` ברינדורים של 9:16 ו-1:1 (תוצאת `assertMetaVideoSpec`, נכתבת ב-`finalize`, חלק 05 §18.10, §20.11).
 - **`jobs.billing_workspace_id`** הוא `billing_workspace_id(workspace_id)` ברגע היצירה (סוכנות לסביבת לקוח); מגבלת המקביליות נספרת עליו (`jobs_active_billing_idx`).
 - **`jobs.options`** (camelCase, כמו גוף הבקשות): `{ formats: AspectRatio[]; sceneIds?: uuid[]; what?: "visual" | "clip" | "keyframe"; promptOverrideEn?: string; afterJobId?: uuid }`. ‏`afterJobId` קיים רק בעבודות של גרסאות הוק (עבודות "אחים") ומצביע על העבודה הראשית; עבודות כאלה לעולם לא נספרות במגבלת המקביליות (§10.4).
 - **`job_steps.output`** — המבנה לכל סוג צעד שייך לחלק 05 §18.4 (למשל `{asset_id, duration_ms, model, fallback_voice, tts_hash}` ל-`voice`, ו-`{attempts:[…]}` ל-`clip:*`). השכבה הזו לא מפרשת אותו.
@@ -1340,7 +1389,7 @@ create index refund_requests_status_idx on public.refund_requests (status, creat
 ```
 
 הערות:
-- **`plans` ‏`free`** נוצרת כבר במיגרציה, כדי ש-`handle_new_user` יעבוד גם לפני ה-seed. ה-seed דורס אותה בשורה המלאה מ-§10 בנספח F (כולל `features_he`). מפתחות `limits` הם המפתחות של §10.3 בנספח F ועוד `max_ai_clips` ו-`max_ai_clip_sec`: ‏`seats, client_workspaces, brand_kits, max_duration_sec, quality_tiers, visual_mix, max_ai_clips, max_ai_clip_sec, max_formats, max_resolution, watermark, concurrent_jobs, daily_credit_cap, music_generate, hook_variants_max, approval_links, white_label, projects_max` (‏`null` = ללא הגבלה). ‏`visual_mix` של `free` נשמר כרשימת ערכים מותרים, והמגבלה "קליפ AI אחד של עד 5 שניות" נשמרת ב-`max_ai_clips` וב-`max_ai_clip_sec` (ב-`starter` ומעלה הם `null`). ‏`watermark` חל רק כל עוד `workspaces.has_paid = false`.
+- **`plans` `free`** נוצרת כבר במיגרציה, כדי ש-`handle_new_user` יעבוד גם לפני ה-seed. ה-seed דורס אותה בשורה המלאה מ-§10 בנספח F (כולל `features_he`). מפתחות `limits` הם המפתחות של §10.3 בנספח F ועוד `max_ai_clips` ו-`max_ai_clip_sec`: `seats, client_workspaces, brand_kits, max_duration_sec, quality_tiers, visual_mix, max_ai_clips, max_ai_clip_sec, max_formats, max_resolution, watermark, concurrent_jobs, daily_credit_cap, music_generate, hook_variants_max, approval_links, white_label, projects_max` (`null` = ללא הגבלה), ומהרחבת 2026-10-17 גם עשרת המפתחות של Meta, דף העסק ובדיקת הדופק (§16.4). `visual_mix` של `free` נשמר כרשימת ערכים מותרים, והמגבלה "קליפ AI אחד של עד 5 שניות" נשמרת ב-`max_ai_clips` וב-`max_ai_clip_sec` (ב-`starter` ומעלה הם `null`). `watermark` חל רק כל עוד `workspaces.has_paid = false`.
 - **`subscriptions` — עמודות מנוע החיוב** (המימוש בחלק 06 §1.7): ‏`anchor_at` — עוגן התקופה, כדי שמנוי שהתחיל ב-31 בחודש ימשיך להתחדש ב-31 (או ביום האחרון של חודש קצר) גם אחרי פברואר; ‏`next_grant_at` — במנוי שנתי, מועד ההענקה החודשית הבאה של המכסה (`subscriptions_next_grant_idx` משרת את ה-cron); ‏`scheduled_change` — שינוי תוכנית שנקבע לסוף התקופה (`{plan_id, cycle, requested_at, requested_by}`), ‏NULL כשאין; ‏`past_due_since` — תחילת תהליך הגבייה החוזרת (dunning), מתאפס בחיוב מוצלח.
 - **`payments.idempotency_key`** — מפתח ייחודי לכל ניסיון חיוב של המנוע: `checkout:{checkoutSessionId}` · ‏`renew:{subscriptionId}:{periodEndISO}` · ‏`plan_change:{subscriptionId}:{toPlan}:{requestKey}`. ‏**`payments.confirmation_sent_at`** — מתי יצא מייל אישור העסקה (ממנו נספרים 14 ימי הביטול).
 - **מוסכמות `payments`:** שורת `pending` נכנסת עם `provider_txn_id = 'pending:' || id` (העמודה `not null`, והייחודיות על `(provider, provider_txn_id)` נשמרת), ומתעדכנת למזהה האמיתי כשהשער עונה. ערכי `failure_reason`: ‏`declined`, ‏`card_expired`, ‏`insufficient_funds`, ‏`invalid_token`, ‏`provider_error`, ‏`amount_mismatch`, ‏`chargeback`.
@@ -1647,7 +1696,7 @@ create index api_idempotency_keys_expiry_idx on public.api_idempotency_keys (exp
 
 **כללים לכל הפונקציות:** `security definer`, `set search_path = ''`, כל אובייקט בשם מלא (`public.…`, `extensions.…`, `auth.uid()`), ו-`auth.uid()` עטוף ב-`(select auth.uid())` כשהוא בתוך שאילתה. אחרי היצירה, 0008 מבטל `execute` מכולם ומעניק רק לפי הטבלה ב-§12.6. פונקציות שמתחילות ב-`_` הן פנימיות — אף תפקיד חיצוני לא מקבל עליהן `execute`.
 
-**מוסכמת שגיאות מ-SQL.** כל שגיאה עסקית נזרקת עם `errcode = 'P0001'`, ‏`message` = אחד מ-22 הקודים של `ERROR_CODES` (§18.2: `INSUFFICIENT_CREDITS`, `PLAN_LIMIT`, `FORBIDDEN`…), ו-`detail` = JSON. שתי חריגות פנימיות של בסיס הנתונים — `LEDGER_BALANCE_MISMATCH` (§10.6) ו-`AUDIT_LOG_IMMUTABLE` (§10.6) — נזרקות גם הן עם `P0001`, אבל אינן קודי API: `fromDbError` ממפה אותן ל-`INTERNAL_ERROR`. ‏`lib/errors.ts` (§18.2) ממפה את זה לתשובת API: supabase-js מחזיר `error.code = 'P0001'`, ‏`error.message` = הקוד ו-`error.details` = ה-JSON.
+**מוסכמת שגיאות מ-SQL.** כל שגיאה עסקית נזרקת עם `errcode = 'P0001'`, `message` = אחד מ-27 הקודים של `ERROR_CODES` (§18.2: `INSUFFICIENT_CREDITS`, `PLAN_LIMIT`, `FORBIDDEN`…; וגם קודי ההרחבה, כשפונקציה של `0013`/`0014` זורקת אותם), ו-`detail` = JSON. שתי חריגות פנימיות של בסיס הנתונים — `LEDGER_BALANCE_MISMATCH` (§10.6) ו-`AUDIT_LOG_IMMUTABLE` (§10.6) — נזרקות גם הן עם `P0001`, אבל אינן קודי API: `fromDbError` ממפה אותן ל-`INTERNAL_ERROR`. `lib/errors.ts` (§18.2) ממפה את זה לתשובת API: supabase-js מחזיר `error.code = 'P0001'`, `error.message` = הקוד ו-`error.details` = ה-JSON.
 
 ### 9.1 עזרים, `set_updated_at` ושגיאות
 
@@ -2388,6 +2437,15 @@ end $$;
 
 סדר העבודה של ה-worker (`/api/cron/cleanup`, §23): ‏`prepare_user_deletion` ← מחיקת אובייקטים מהאחסון לכל נכס עם `purge_reason` וסימון `metadata.storage_deleted_at` ← `purge_deleted_content` לכל סביבה ← `supabase.auth.admin.deleteUser(userId)` (מוחק את `profiles` ב-cascade; ‏`workspaces.owner_id` מתאפס) ← `data_requests.status = 'completed'` ומייל `account_deleted`.
 
+**נתוני Meta ונתוני ההרחבה במחיקת חשבון** (מ-`0013`; הפונקציות בחלק 07). לכל סביבה ב-`owned_workspaces` ש-`prepare_user_deletion` מחזירה, ה-worker מריץ את הצעדים האלה מיד אחריה, לפני מחיקת האובייקטים מהאחסון. כל צעד אידמפוטנטי:
+1. **חיבור Meta חי** (`meta_connections.status <> 'revoked'`): ביטול ההרשאות אצל Meta (`DELETE /me/permissions` דרך `lib/meta/tokens.ts`, חלק 07 [M0-verify לטוקן מסוג BISU]), ואז `status = 'revoked'` ו-`revoked_reason = 'workspace_deleted'`. כשל בצד של Meta לא עוצר את המחיקה: הוא נרשם ב-Sentry, והטוקנים נמחקים אצלנו בכל מקרה בצעד 2.
+2. **`purge_meta_data(ws, 'all')`** — טוקנים, מראות של קמפיינים ומודעות, תובנות, כללים, יומן שינויים, טפסי לידים, לידים (גם לידים מדף העסק), פוסטים ומדדים.
+3. **דף העסק, בדיקת דופק ותוכנית 30 יום:** מחיקת השורות של `landing_pages`, `ad_health_reports` ו-`content_plans` (הפריטים נמחקים ב-cascade) בלקוח הסודי, revalidate של הדפים הציבוריים `/b/[slug]` (חלק 07), כך שהם מחזירים 404 מיד, ומחיקת התיקייה `public-media/landing/{landing_page_id}/` (§13.1).
+
+קמפיינים שרצים במטא ממשיכים לרוץ שם גם אחרי המחיקה, כי הם שייכים לחשבון המודעות של העסק ולא לנו. דיאלוג מחיקת החשבון (חלק 03) אומר את זה ומציע להשהות אותם קודם, בדיוק כמו דיאלוג הניתוק.
+
+**מחיקה לוגית של סביבה מהאדמין** (`POST /api/admin/workspaces/[id]/soft-delete`, §24.1) היא הפיכה (`restore`), ולכן היא מריצה רק את צעד 1 ואת `purge_meta_data(ws, 'tokens')`, ומעבירה את דפי העסק של הסביבה ל-`unpublished`. שאר הנתונים נשמרים עד שחזור הסביבה או עד מחיקת החשבון.
+
 **סטיות NOT NULL מכוונות** — העמודות הבאות, שמצביעות על משתמש, מותרות כ-NULL (או בלי FK בכלל), כדי ש-`deleteUser` לא ייחסם על שורה שנשארה, ובלי למחוק רשומות שהחוק מחייב לשמור:
 - `workspaces.owner_id` — ‏NULL רק כש-`deleted_at` מלא (`workspaces_owner_present`); הסביבה שנמחקה נשמרת כשורה אנונימית עם היומן, התשלומים והחשבוניות.
 - `trial_claims.user_id` — שורת הניסיון שורדת את מחיקת החשבון, כדי שאי אפשר יהיה להירשם שוב ולקבל 70 קרדיטים נוספים.
@@ -2395,6 +2453,7 @@ end $$;
 - `data_requests.user_id` — בקשת המחיקה עצמה שורדת את הפרופיל.
 - `credit_ledger.job_id` ו-`credit_ledger.actor_id` — בלי FK בכלל; היומן לא נמחק לעולם.
 - `projects.created_by`, ‏`project_versions.created_by`, ‏`jobs.requested_by`, ‏`share_links.created_by`, ‏`workspace_hooks.created_by`, ‏`pronunciation_entries.created_by` — ‏`on delete set null`. ‏`prepare_user_deletion` עדיין מעביר את השורות בסביבות משותפות לבעלי הסביבה (ייחוס); ה-FK רק מבטיח ש-`deleteUser` לא ייכשל על שארית. מדיניות ההכנסה ב-RLS (`created_by = auth.uid()`) לא השתנתה, והממשק מציג "משתמש שנמחק" כשהמחבר חסר.
+- עמודות המחבר, המאשר וההקצאה בטבלאות של `0013` ו-`0014` (למשל `meta_connections.connected_by`, `ad_campaigns.created_by`, `leads.assigned_to`, `trend_references.rights_attested_by`, `guided_shoots.attested_by`) — `on delete set null` ו-nullable (§2.3, כלל 4).
 
 ### קריטריוני קבלה
 - [ ] משתמש חדש מקבל: פרופיל, סביבה אחת מסוג `business` בשם "העסק שלי", חברות `owner`, ערכת מותג ברירת מחדל, יתרה 70 ושורת יומן `grant_trial` אחת.
@@ -2403,6 +2462,7 @@ end $$;
 - [ ] `accept_invite` עם מייל שונה מזה של ההזמנה נכשל ב-`FORBIDDEN`; קבלה כפולה מחזירה את אותה סביבה בלי שגיאה; קבלה שעוברת את מכסת המושבים נכשלת ב-`PLAN_LIMIT` עם `{"limit":"seats"}`.
 - [ ] עורך בסוכנות מקבל `effective_role = 'editor'` בסביבת לקוח; צופה בסוכנות מקבל `null`.
 - [ ] `prepare_user_deletion` למשתמש שבבעלותו סביבה עם חברים נוספים נכשל ב-`INVALID_INPUT` (`transfer_ownership_first`).
+- [ ] מחיקת חשבון של בעלים יחיד עם חיבור Meta, לידים ודף עסק שפורסם (ב-mock של Meta): החיבור עובר ל-`revoked` עם `workspace_deleted`, אין שורות ב-`meta_tokens`, `leads` ו-`landing_pages` של הסביבה, ו-`/b/[slug]` מחזיר 404; ריצה שנייה של ה-worker לא נכשלת.
 - [ ] משתמש שהיה עורך בסביבה של מישהו אחר ומחק את חשבונו: `auth.admin.deleteUser` מצליח, והשורות שנשארו (פרויקט, גרסה, עבודה, קישור שיתוף) מקבלות מחבר `NULL` או את בעלי הסביבה.
 - [ ] `platform_admin_status()` מחזירה `none` למשתמש רגיל, `needs_mfa` למנהל עם JWT ברמת `aal1`, ו-`ok` למנהל ברמת `aal2`; ‏`is_platform_admin()` = `true` רק במקרה האחרון.
 - [ ] בתוכנית בסיס (מושב אחד): הזמנה של `viewer` מתקבלת ונכנסת גם כשהמושב תפוס; הזמנה של `editor` נכשלת ב-`PLAN_LIMIT`. ‏`seats_used` לא סופר צופים.
@@ -4008,7 +4068,35 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 
 `storage_ws` ו-`storage_upload_allowed` (0009) ו-`realtime_topic_allowed` (0010) מקבלות את ה-grant ל-`authenticated` בסוף המיגרציה שבה הן נוצרות (§13.3, §14.1), כי `grant` על פונקציה שעוד לא קיימת נכשל. ה-`revoke … on all functions` שלמעלה לא חל עליהן, כי הן נוצרות אחריו. הן נוצרות פרטיות בזכות ה-revoke הגלובלי ב-0001 (`alter default privileges revoke execute on functions from public`) וה-revoke המפורש בסוף כל מיגרציה; בדיקת ה-allow-list אוכפת (§25.2).
 
-**כלל לכל מיגרציה מ-0009 והלאה:** כל מיגרציה שיוצרת פונקציה מסתיימת ב-`revoke execute on function public.<name>(<args>) from public, anon, authenticated;` לכל פונקציה שהיא יוצרת, **לפני** ה-`grant` שלה (אם יש). לא סומכים על ברירת המחדל לבד. בדיקת ה-pgTAP של §25.2 בוחרת כל פונקציה ב-`public` ש-`anon` או `authenticated` יכולים להריץ (`has_function_privilege`), והקבוצה חייבת להיות בדיוק רשימת ה-grants שבסעיף הזה ועוד `storage_ws`, ‏`storage_upload_allowed`, ‏`realtime_topic_allowed`.
+**כלל לכל מיגרציה מ-0009 והלאה:** כל מיגרציה שיוצרת פונקציה מסתיימת ב-`revoke execute on function public.<name>(<args>) from public, anon, authenticated;` לכל פונקציה שהיא יוצרת, **לפני** ה-`grant` שלה (אם יש). לא סומכים על ברירת המחדל לבד. בדיקת ה-pgTAP של §25.2 בוחרת כל פונקציה ב-`public` ש-`anon` או `authenticated` יכולים להריץ (`has_function_privilege`), והקבוצה חייבת להיות בדיוק רשימת ה-grants שבסעיף הזה ועוד `storage_ws`, `storage_upload_allowed`, `realtime_topic_allowed`, ועוד ארבע הפונקציות של ההרחבה (§12.7).
+
+### 12.7 טבלאות ופונקציות של ההרחבה (`0013`, `0014`)
+
+ה-SQL המלא של המדיניות כתוב בחלקים 07 ו-08, לפי הכללים של §2.3. זו מטריצת החוזה ש-§25.2 בודק:
+
+| טבלה | SELECT ל-`authenticated` | כתיבה | `anon` |
+|---|---|---|---|
+| `meta_connections` (כל העמודות חוץ מ-`meta_user_id`) · `meta_assets` (חוץ מ-`min_budgets`) · `ad_campaigns` · `ad_variants` · `ad_insights_daily` (חוץ מ-`raw`) · `ad_change_log` · `ad_rules` · `lead_forms` · `social_posts` · `social_post_metrics` (לפי הסביבה של הפוסט) | חבר בסביבה | שרת בלבד | — |
+| `leads` | חבר בסביבה, כולל צופים (הצוות של העסק) | שרת בלבד (`PATCH` ו-`DELETE /api/leads/[id]`, §21b) | — |
+| `managed_spend_monthly` | אין grant ישיר; בעלים או מנהל של סביבת החיוב קוראים דרך `meta_spend_summary` | שרת בלבד | — |
+| `meta_tokens` · `meta_data_deletion_requests` | **אין שום grant** | שרת בלבד | — |
+| `landing_pages` | חבר בסביבה | שרת בלבד (נתיבי דף העסק, §21b) | רק דרך `landing_page_public(p_slug)` |
+| `ad_health_reports` · `content_plans` · `content_plan_items` | חבר בסביבה | שרת בלבד | — |
+| `trend_templates` | כמו `anon`; כל השאר דרך `/api/admin/*` בלקוח הסודי | שרת בלבד (אדמין) | `status = 'published'`, או `status = 'retired'` עם `published_at` (כדי ש-`/trends/[slug]` של טרנד שפרש יישאר זמין, חלק 02 §15, חלק 08 §19), ב-grant עמודות בלי `source_reference_id`, `do_not_copy`, `created_by`, `updated_by` |
+| `trend_references` · `trend_analyses` | מנהל פלטפורמה בלבד (`aal2`) | שרת בלבד | — |
+| `trend_template_uses` · `guided_shoots` | חבר בסביבה | שרת בלבד | — |
+| `trend_template_stats_daily` | אין grant ישיר; רק דרך `trend_template_benchmark` | pg_cron | — |
+| `workspaces.benchmarks_opt_out` (עמודה חדשה) | כמו שאר `workspaces` | grant עמודה ל-`update`, תחת מדיניות ה-update הקיימת של `workspaces` (בעלים או מנהל) | — |
+
+| פונקציה | `anon` | `authenticated` | הערה |
+|---|---|---|---|
+| `landing_page_public(text)` | ✓ | ✓ | מחזירה רק דף `published`, בלי `workspace_id` ובלי `brand_kit_id` |
+| `meta_spend_summary(uuid)` | — | ✓ | בדיקת R39; שורות רק לבעלים או למנהל של סביבת החיוב |
+| `trend_feed(uuid, text, int, int)` | — | ✓ | בדיקת R39; גם `service_role` (grant מפורש), כי `plan.month.v1` רץ בתהליך (חלק 08 §19) |
+| `trend_template_benchmark(uuid, text)` | — | ✓ | שורות רק כש-`cross_customer_benchmarks.enabled` ו-`businesses_count >= k_min` |
+| `_managed_spend_cap_ils(uuid)` · `refresh_managed_spend(date)` · `ad_budget_changes_last_hour(uuid)` · `purge_meta_data(uuid, text)` · `refresh_trend_template_stats(date)` | — | — | `service_role` בלבד (grant מפורש) |
+| `purge_leads()` | — | — | רצה רק מ-pg_cron: נשללת גם מ-`service_role`, כמו פונקציות ה-`purge_*` של §12.6 |
+| פונקציות הטריגר של `0013`/`0014` (שידורי Realtime `broadcast_meta_change`, השומרים `meta_same_workspace_guard`, `projects_trend_guard` ו-`trend_same_workspace_guard`, `updated_at`) | — | — | בלי grant |
 
 ### קריטריוני קבלה
 - [ ] `select tablename from pg_tables where schemaname = 'public' and not rowsecurity` מחזיר אפס שורות.
@@ -4017,6 +4105,7 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 - [ ] משתמש מחובר לא יכול לקרוא `payment_methods.token_enc` (שגיאת הרשאה על העמודה), ולא לעדכן `profiles.is_platform_admin` (שגיאת הרשאה).
 - [ ] בעלים שקורא `select meta from ai_generations` מקבל שגיאת הרשאה על העמודה; ‏`select id, cost_usd …` עובד.
 - [ ] `has_function_privilege('service_role', 'public.purge_audit_logs()', 'execute')` = `false`; ‏`has_function_privilege('anon', 'public.health_ping()', 'execute')` = `true`.
+- [ ] אחרי `0014`: `has_table_privilege('authenticated', 'public.meta_tokens', 'select')` = `false` (וכך גם ל-`anon` ול-`meta_data_deletion_requests`); לאף טבלה של `0013`/`0014` אין `insert`, `update` או `delete` ל-`authenticated`; `has_function_privilege('anon', 'public.landing_page_public(text)', 'execute')` = `true`; `has_function_privilege('service_role', 'public.purge_leads()', 'execute')` = `false`.
 - [ ] כל מקרי הבדיקה ב-§25.2 עוברים.
 
 ---
@@ -4028,12 +4117,13 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 | Bucket | ציבורי | מגבלת קובץ (bucket) | MIME מותרים | כותבים | נתיב |
 |---|---|---|---|---|---|
 | `brand-assets` | לא | 20MB | `image/png`, `image/jpeg`, `image/webp`, `image/svg+xml` | עורך+ (כתובת העלאה חתומה) | `{workspace_id}/brand/{kit_id}/{asset_id}.{ext}` |
-| `uploads` | לא | 500MB | `video/mp4`, `video/quicktime`, `image/jpeg`, `image/png`, `image/webp`, `image/heic`, `image/heif` | עורך+ (חתומה; TUS מעל 6MB) | `{workspace_id}/uploads/{asset_id}.{ext}` |
+| `uploads` | לא | 500MB | `video/mp4`, `video/quicktime`, `image/jpeg`, `image/png`, `image/webp`, `image/heic`, `image/heif`; ומ-`0014` גם `video/webm` (צילום במצלמה בדפדפן, ש-`guidedAutocut` ממיר ל-MP4 ב-H.264) | עורך+ (חתומה; TUS מעל 6MB) | `{workspace_id}/uploads/{asset_id}.{ext}` |
 | `generated` | לא | 250MB | `image/png`, `image/jpeg`, `image/webp`, `video/mp4`, `audio/mpeg`, `application/json` | שרת בלבד | `{workspace_id}/{project_id}/keyframes/{scene_id}-{attempt}.png` · `/clips/{scene_id}-{attempt}.mp4` · `/voice/v{version}.mp3` · `/music/{asset_id}.mp3` · `/captions/v{version}.json`; ותצוגות קול: `{workspace_id}/voice-previews/{sha256}.mp3`; ובדיקות מודלים מהאדמין: `_admin-tests/{YYYY-MM-DD}/{uuid}.{ext}` (בלי סביבה, ראו מתחת לטבלה) |
 | `renders` | לא | 1GB | `video/mp4`, `image/jpeg`, `application/x-subrip`, `text/vtt` | שרת בלבד | `{workspace_id}/{project_id}/{job_id}/{9x16\|1x1\|16x9}.mp4` · `poster.jpg` · `captions.srt` · `captions.vtt` |
-| `public-media` | **כן** | 100MB | `video/mp4`, `image/avif`, `image/webp`, `image/png`, `image/jpeg`, `audio/mpeg`, `text/vtt` | אדמין/שרת | `examples/{id}.mp4` · `hooks/{hook_id}.mp4` · `hooks/{hook_id}.jpg` (פוסטר: הפריים ב-1.0 שניות, נכתב עם העלאת סרטון הדוגמה באדמין) · `niches/{slug}/cover.avif` · `music-library/{mood}/{id}.mp3` · `og/{type}/{slug}.png` · `voices/{voice_id}.mp3` · `sfx/{id}.mp3` · `tests/keyframe-9x16.png` · `demo/wall/{n}-{hook_id}.{mp4\|avif\|vtt}` · `demo/examples/{id}-{9x16\|1x1\|16x9}.mp4`, `{id}-poster.jpg`, `{id}.vtt`, `{id}-loop.mp4` |
+| `public-media` | **כן** | 100MB | `video/mp4`, `image/avif`, `image/webp`, `image/png`, `image/jpeg`, `audio/mpeg`, `text/vtt` | אדמין/שרת | `examples/{id}.mp4` · `hooks/{hook_id}.mp4` · `hooks/{hook_id}.jpg` (פוסטר: הפריים ב-1.0 שניות, נכתב עם העלאת סרטון הדוגמה באדמין) · `niches/{slug}/cover.avif` · `music-library/{mood}/{id}.mp3` · `og/{type}/{slug}.png` · `voices/{voice_id}.mp3` · `sfx/{id}.mp3` · `tests/keyframe-9x16.png` · `demo/wall/{n}-{hook_id}.{mp4\|avif\|vtt}` · `demo/examples/{id}-{9x16\|1x1\|16x9}.mp4`, `{id}-poster.jpg`, `{id}.vtt`, `{id}-loop.mp4` · מ-M8: `trends/{slug}/{niche_slug}-{n}.{mp4\|jpg\|vtt}` (רינדורי ההדגמה שלנו לתבניות טרנד, חלק 08) · מ-M10: `landing/{landing_page_id}/hero.{mp4\|jpg\|vtt}` (סרטון הפתיחה של דף עסק שפורסם, למטה) |
 | `exports` | לא | 2GB | `application/zip` | שרת בלבד | `{user_id}/{request_id}.zip` (נמחק אחרי 7 ימים) |
 | `invoices` | לא | 10MB | `application/pdf` | שרת בלבד | `{workspace_id}/{invoice_id}.pdf` — **אין** מדיניות קריאה; רק `GET /api/billing/invoices/[id]` (בעלים/מנהל) מנפיק כתובת חתומה |
+| `trend-refs` (מ-`0014`, ה-SQL בחלק 08) | לא | 200MB | `video/mp4`, `video/quicktime`, `video/webm`, `image/jpeg` | שרת בלבד (העלאה חתומה שמונפקת רק מ-`/api/admin/*`) | `{reference_id}/source.{ext}` · `{reference_id}/hook.mp4` · `{reference_id}/frames/{t_ms}.jpg` — **אין** מדיניות ל-`authenticated`; מסכי האדמין מקבלים כתובות חתומות ל-10 דקות. הקבצים נמחקים אחרי `retention_until` (§23, `cleanup` סעיף 9) |
 
 ה-bucket `invoices` נוסף על אלה שבנספח F: חשבוניות שייכות לבעלים ולמנהלים בלבד, ואילו `generated`/`renders` קריאים לכל חבר בסביבה. כתובת חתומה ל-5 דקות מונפקת רק דרך `GET /api/billing/invoices/[id]`.
 
@@ -4044,6 +4134,12 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 - `tests/keyframe-9x16.png` — קלט קבוע ל-`POST /api/admin/models/test` (§24.1).
 - מדיית הדגמה לאתר השיווק: `demo/wall/{n}-{hook_id}.{mp4|avif|vtt}` (קיר הסרטונים, 18 אריחים) ו-`demo/examples/…` (חמש הדוגמאות של נספח D), שמועלים ב-`pnpm demo:render --upload`. הקובץ היחיד בריפו הוא `public/media/demo/logo-demo.svg`.
 
+**תוספות האחסון של ההרחבה:**
+- **אין bucket חדש ל-Meta.** סרטונים מגיעים ל-Meta בכתובת חתומה ל-`renders` עם תוקף של שעתיים לפחות (או בהעלאה ניתנת לחידוש), והתמונה הממוזערת היא נכס ה-`poster` הקיים (הפריים ב-1.2 שניות). כתובת כזו לא נשמרת בשום טבלה ולא נכתבת ללוג.
+- **`trend-refs`** ו-`video/webm` ב-`uploads` נוצרים ב-`0014` (`insert … on conflict (id) do update` כמו ב-`0009`, ועדכון של `allowed_mime_types` ל-`uploads`); ה-SQL בחלק 08.
+- **רינדורי הדגמה של טרנדים** נוצרים בסביבת הסטודיו `ws-trends-studio` (§16.3, `--studio`), וה-finalize של `POST /api/admin/trends/templates/[id]/demo-render` מעתיק אותם ל-`public-media/trends/{slug}/`. אלה תמיד הרינדורים שלנו, לעולם לא סרטון הייחוס.
+- **דף העסק** (`/b/[slug]`) הוא דף ISR ציבורי, ולכן הוא לא יכול להשתמש בכתובת חתומה שפגה. בפרסום (`POST /api/landing-pages/[id]/publish`, §21b) השרת מעתיק את הרינדור שנבחר, את הפוסטר ואת קובץ הכתוביות ל-`public-media/landing/{landing_page_id}/hero.{mp4|jpg|vtt}`. בביטול פרסום, במחיקת הדף ובמחיקת החשבון (§9.6) התיקייה נמחקת. רינדור מעל מגבלת ה-bucket (100MB) לא מועתק, והדף מוצג עם הפוסטר בלבד.
+
 ### 13.2 מגבלות לפי סוג נכס (נאכפות בשרת, מעל מגבלת ה-bucket)
 
 | `asset_kind` | Bucket | MIME | מקסימום | בדיקות ב-`/api/uploads/complete` |
@@ -4051,7 +4147,7 @@ revoke execute on function public.purge_ai_generations(), public.purge_support_d
 | `logo` | `brand-assets` | png · jpeg · webp · svg | 5MB | רסטר: צלע קצרה ≥ 256px; SVG: מנוקה בצד השרת (הסרת `<script>`, `on*`, `foreignObject`, קישורים חיצוניים) ונשמר מחדש; מוצג תמיד ב-`<img>` |
 | `brand_image` | `brand-assets` | png · jpeg · webp | 20MB | צלע קצרה ≥ 512px |
 | `upload_image` | `uploads` | jpeg · png · webp · heic · heif | 25MB | צלע קצרה ≥ 720px; HEIC/HEIF מומר ל-JPEG (איכות 90) ונשמר במקום המקור [M0-verify ספריית ההמרה ב-Node] |
-| `upload_video` | `uploads` | mp4 · quicktime | 500MB | עד 10 דקות, עד 3840px, קודק H.264/HEVC, נבדק עם `@remotion/media-parser`; נשמרים `width`, `height`, `duration_ms` |
+| `upload_video` | `uploads` | mp4 · quicktime · webm (מ-`0014`) | 500MB | עד 10 דקות, עד 3840px, קודק H.264/HEVC (וב-webm גם VP8/VP9, שמומר ל-H.264 לפני כל שימוש), נבדק עם `@remotion/media-parser`; נשמרים `width`, `height`, `duration_ms` |
 
 הבדיקה לא סומכת על ה-`mime` שהדפדפן הצהיר: היא קוראת את 4KB הראשונים (Range request) ומזהה לפי "magic bytes". אי-התאמה ← מחיקת האובייקט, `metadata.upload_state = 'rejected'`, ותשובת `INVALID_INPUT` עם `details.reason`.
 
@@ -4185,6 +4281,8 @@ export function publicMediaUrl(path: string): string; // `${NEXT_PUBLIC_SUPABASE
 - [ ] קובץ `.exe` ששמו שונה ל-`.png` נדחה ב-`complete` ונמחק מהאחסון.
 - [ ] SVG עם `<script>` נשמר בלי הסקריפט.
 - [ ] אין דרך לקרוא אובייקט מ-`invoices` או מ-`generated` של סביבה אחרת, גם לא עם שם נתיב מדויק.
+- [ ] אחרי `0014`: משתמש מחובר (גם מנהל פלטפורמה) לא יכול לקרוא או לכתוב ב-`trend-refs` דרך ה-Storage API; העלאת `video/webm` ל-`uploads` עם שורת `assets` ממתינה מצליחה.
+- [ ] פרסום דף עסק יוצר את `public-media/landing/{id}/hero.mp4`, וביטול הפרסום מוחק אותו.
 
 ---
 
@@ -4198,6 +4296,11 @@ export function publicMediaUrl(path: string): string; // `${NEXT_PUBLIC_SUPABASE
 | `job:{jobId}` | `step.updated` | הכנסה / שינוי `status`, `attempt`, `error_code` ב-`job_steps` | `{ id, job_id, step_key, scene_id, status, attempt, error_code, updated_at }` |
 | `job:{jobId}` | `scene.updated` | שינוי `status`, נכסים, `visual_source`, `degraded_reason` ב-`scenes` (לעבודה האחרונה של הפרויקט) | `{ id, version_id, index, status, visual_source, keyframe_asset_id, clip_asset_id, user_asset_id, degraded_reason, updated_at }` |
 | `workspace:{workspaceId}` | `job.updated` | כמו למעלה (לתור בדשבורד) | אותו payload |
+| `workspace:{workspaceId}` | `campaign.updated` (מ-`0013`) | שינוי `status` או `effective_status` ב-`ad_campaigns` | `{ id, status, effective_status, updated_at }` |
+| `workspace:{workspaceId}` | `lead.created` (מ-`0013`) | הכנסה ל-`leads` (מטופס של Meta, מדף העסק או מה-backfill) | `{ id, campaign_id, received_at }` — **בלי** שם, טלפון, מייל או תשובות |
+| `workspace:{workspaceId}` | `social_post.updated` (מ-`0013`) | שינוי `status` ב-`social_posts` | `{ id, status, platform, updated_at }` |
+
+שלושת האירועים של `0013` משתמשים באותו ערוץ ובאותה הרשאה (`realtime_topic_allowed('workspace:…')` לא משתנה). הטריגרים שלהם כתובים בחלק 07 לפי התבנית של `broadcast_job_change` (§2.3, כלל 5): `after insert` / `after update of status, effective_status` עם תנאי `when` שמדלג על עדכונים שלא שינו את העמודות האלה, ו-`exception when others` שרושם אזהרה ולא מפיל את הכתיבה. backfill שמכניס לידים רבים בבת אחת (`meta-leads-backfill`, §23) שולח אירוע לכל ליד; הלקוח מאחד אותם לרענון אחד של הרשימה.
 
 ```sql
 -- 0010_realtime.sql
@@ -4292,7 +4395,7 @@ create trigger scenes_broadcast_update
 ```ts
 // lib/realtime/subscribe.ts (browser)
 import { createClient } from "@/lib/supabase/browser";
-import { JobBroadcast, StepBroadcast, SceneBroadcast } from "@/lib/api/contracts/realtime";
+import { JobBroadcast, StepBroadcast, SceneBroadcast, CampaignBroadcast, LeadBroadcast, SocialPostBroadcast } from "@/lib/api/contracts/realtime";
 
 export async function subscribeJob(jobId: string, h: {
   onJob: (p: JobBroadcast) => void; onStep: (p: StepBroadcast) => void; onScene: (p: SceneBroadcast) => void;
@@ -4309,9 +4412,12 @@ export async function subscribeJob(jobId: string, h: {
   return () => { void supabase.removeChannel(ch); };
 }
 
-// dashboard queue: `workspace:{workspaceId}` carries job.updated only
+// dashboard queue + the 0013 events: `workspace:{workspaceId}` carries job.updated, campaign.updated, lead.created, social_post.updated
 export async function subscribeWorkspace(workspaceId: string, h: {
   onJob: (p: JobBroadcast) => void;
+  onCampaign?: (p: CampaignBroadcast) => void;       // campaigns list / campaign page (part 07)
+  onLead?: (p: LeadBroadcast) => void;               // leads inbox, sidebar unread badge (part 07, part 03)
+  onSocialPost?: (p: SocialPostBroadcast) => void;   // publish calendar (part 07)
   onStatus: (s: "SUBSCRIBED" | "CHANNEL_ERROR" | "TIMED_OUT" | "CLOSED") => void;
 }) {
   const supabase = createClient();
@@ -4319,6 +4425,9 @@ export async function subscribeWorkspace(workspaceId: string, h: {
   const ch = supabase
     .channel(`workspace:${workspaceId}`, { config: { private: true } })
     .on("broadcast", { event: "job.updated" }, ({ payload }) => h.onJob(JobBroadcast.parse(payload)))
+    .on("broadcast", { event: "campaign.updated" }, ({ payload }) => h.onCampaign?.(CampaignBroadcast.parse(payload)))
+    .on("broadcast", { event: "lead.created" }, ({ payload }) => h.onLead?.(LeadBroadcast.parse(payload)))
+    .on("broadcast", { event: "social_post.updated" }, ({ payload }) => h.onSocialPost?.(SocialPostBroadcast.parse(payload)))
     .subscribe((status) => h.onStatus(status));
   return () => { void supabase.removeChannel(ch); };
 }
@@ -4348,6 +4457,18 @@ export const SceneBroadcast = z.object({
 export type JobBroadcast = z.infer<typeof JobBroadcast>;
 export type StepBroadcast = z.infer<typeof StepBroadcast>;
 export type SceneBroadcast = z.infer<typeof SceneBroadcast>;
+
+// 0013 (part 07): workspace channel only; ids and statuses, never lead PII
+export const CampaignBroadcast = z.object({
+  id: z.uuid(), status: z.enum(E.ad_campaign_status), effective_status: z.string().nullable(), updated_at: z.string(),
+});
+export const LeadBroadcast = z.object({ id: z.uuid(), campaign_id: z.uuid().nullable(), received_at: z.string() });
+export const SocialPostBroadcast = z.object({
+  id: z.uuid(), status: z.enum(E.social_post_status), platform: z.enum(E.social_platform), updated_at: z.string(),
+});
+export type CampaignBroadcast = z.infer<typeof CampaignBroadcast>;
+export type LeadBroadcast = z.infer<typeof LeadBroadcast>;
+export type SocialPostBroadcast = z.infer<typeof SocialPostBroadcast>;
 ```
 
 - כשהטוקן מתרענן (`onAuthStateChange` עם `TOKEN_REFRESHED`) קוראים שוב ל-`supabase.realtime.setAuth(session.access_token)` [M0-verify אם הגרסה המותקנת עושה זאת אוטומטית].
@@ -4358,6 +4479,7 @@ export type SceneBroadcast = z.infer<typeof SceneBroadcast>;
 - [ ] עדכון `jobs.progress` מ-10 ל-25 שולח אירוע `job.updated` אחד לכל אחד משני הערוצים; עדכון `heartbeat_at` בלבד לא שולח כלום.
 - [ ] `realtime_topic_allowed('job:not-a-uuid')` מחזיר `false` בלי שגיאה.
 - [ ] ה-payload לא מכיל `options`, `error_detail`, `input`/`output` של צעדים, או טקסט של פרומפטים.
+- [ ] אחרי `0013`: הכנסת ליד שולחת `lead.created` אחד ל-`workspace:{ws}`, וה-payload מכיל בדיוק את המפתחות `id`, `campaign_id`, `received_at`; עדכון `ad_campaigns.status` ל-`active` שולח `campaign.updated` אחד; עדכון של `last_synced_at` בלבד לא שולח כלום; משתמש מסביבה אחרת לא מקבל אף אחד מהם.
 
 ---
 
@@ -4395,11 +4517,17 @@ select cron.schedule('purge-audit-logs',         '30 4 1 * *',   $$select public
 | `purge-ai-generations` | ב-1 לחודש, 04:10 | `purge_ai_generations()`: מוחק שורות `ai_generations` בנות יותר מ-24 חודשים |
 | `purge-support-data` | ב-1 לחודש, 04:20 | `purge_support_data()`: ‏`contact_messages`, ‏`abuse_reports` ו-`email_messages` אחרי 24 חודשים; הסכמות — 7 שנים אחרי סגירת החשבון או ביטול ההסכמה (שורות באנר אנונימיות — 7 שנים מהרישום; §11.4); ‏`trial_claims` אחרי 5 שנים |
 | `purge-audit-logs` | ב-1 לחודש, 04:30 | `purge_audit_logs()`: ‏36 חודשים, ופעולות חיוב (`payment.*`, ‏`invoice.*`, ‏`refund_request.*`, ‏`subscription.*`, ‏`credits.*`, ‏`billing.*`) — 7 שנים |
+| `purge-meta-raw` (`0013`, חלק 07) | כל יום 03:35 (`35 3 * * *`) | מאפס את `raw` ב-`ad_insights_daily` וב-`social_post_metrics` בשורות בנות יותר מ-90 יום |
+| `purge-leads` (`0013`, חלק 07) | ב-1 לחודש, 04:40 (`40 4 1 * *`) | `purge_leads()`: מוחק לידים עם `received_at` לפני יותר מ-24 חודשים |
+| `refresh-trend-stats` (`0014`, חלק 08) | כל יום 04:50 (`50 4 * * *`) | `refresh_trend_template_stats(p_from)` (הפקודה המדויקת בחלק 08): לא עושה כלום כל עוד `app_settings.cross_customer_benchmarks.enabled = false`, ומדלג על סביבות עם `benchmarks_opt_out` |
+
+**משימות ההרחבה** נקבעות בסוף `0013` ו-`0014` עם אותו `cron.schedule(name, schedule, command)` (בטוח להרצה חוזרת), והפקודות שלהן כתובות בחלקים 07 ו-08. אחרי שתי המיגרציות יש **14 משימות**. השעות נבחרו כך שלא יחפפו את המשימות הקיימות (03:20–03:50, 04:10–04:30). שמירת דוחות בדיקת הדופק (12 חודשים) ובקשות המחיקה של Meta שהושלמו (3 שנים) נעשית בתוך המשימה `purge-meta-raw` של `0013` (חלק 07 §6.7), בלי משימת pg_cron נוספת.
 
 `cron.schedule` עם שם קיים מעדכן את המשימה, ולכן המיגרציה בטוחה להרצה חוזרת. מעקב: `/admin` מציג את 20 הריצות האחרונות שנכשלו (דרך `GET /api/admin/ops/cron`, שקורא ל-`cron_recent_failures()` עם המפתח הסודי — הסכמה `cron` לא חשופה ב-Data API, ולכן הקריאה עוברת דרך פונקציה ב-`public`, §11.4).
 
 ### קריטריוני קבלה
-- [ ] `select jobname, schedule from cron.job order by jobname` מחזיר בדיוק את 11 המשימות עם הלוחות שלמעלה.
+- [ ] `select jobname, schedule from cron.job order by jobname` מחזיר בדיוק את 11 המשימות עם הלוחות שלמעלה אחרי `0012`, ובדיוק 14 אחרי `0014`.
+- [ ] שורת `leads` עם `received_at` לפני 25 חודשים נמחקת בהרצת `purge-leads`, ושורה בת 23 חודשים נשארת; `refresh_trend_template_stats` מחזירה 0 כל עוד `app_settings.cross_customer_benchmarks.enabled = false`.
 - [ ] הרצה ידנית של כל פקודה עוברת בלי שגיאה על מסד עם seed.
 - [ ] דלי עם `expires_at` בעבר מתאפס אחרי הרצת `expire-credit-grants`, ו-`credit_invariant_violations()` ריקה.
 - [ ] שורת `ai_generations` בת 31 יום עם `meta` מתאפסת אחרי `purge-ai-generation-meta`; שורת `audit_logs` מסוג `payment.refund` בת 4 שנים שורדת את `purge_audit_logs()`, ושורת `model.toggle` בת 4 שנים נמחקת.
@@ -4456,14 +4584,16 @@ alter default privileges in schema public grant select on tables to backup_reade
 | 12 | `voices.json` | `[]` בהשקה (האדמין ממפה אחרי מבחן השמיעה) | `insert_missing` | `id` |
 | 13 | `music_tracks.json` | `[]` בהשקה (האדמין מייצר ב-Lyria ומאשר) | `insert_missing` | `id` |
 | 14 | `templates.json` | `[]` או תבניות שנכתבו ב-PR | `insert_missing` | `slug` |
+| 14b | `trend_templates.json` | `/seed/trend_templates.json` (12 תבניות טרנד, נבנה ב-`seed/scripts/build_trends.py`; התוכן בחלק 08) | `insert_missing` (האדמין עורך ומפרסם; ה-seed לא דורס) | `slug` |
 | 15 | `app_settings.json` | §16.4 | `insert_missing` (הגדרות חיות שייכות לאדמין) | `key` |
 | 16 | `feature_flags.json` | §16.4 | `insert_missing` | `key` |
 
-- **הסדר הוא בדיוק הסדר של §5.8 בנספח F**, ועוד שלב 3b מיד אחרי `niches.json`. הוא שונה מעט מהסדר שב-`/seed/README.md` (שם `hook_families` אחרי `niches`), ושניהם תקינים כי אין תלות בין המשפחות לנישות; הסדר הקובע הוא של נספח F.
+- **הסדר הוא בדיוק הסדר של §5.8 בנספח F**, ועוד שלב 3b מיד אחרי `niches.json` ושלב 14b (תבניות הטרנד של ההרחבה) מיד אחרי `templates.json`. הוא שונה מעט מהסדר שב-`/seed/README.md` (שם `hook_families` אחרי `niches`), ושניהם תקינים כי אין תלות בין המשפחות לנישות; הסדר הקובע הוא של נספח F.
 - **`niche_extras.json`** (חדש; `seed/scripts/build_seed.py` בונה אותו אל `/seed/niche_extras.json` ובודק אותו ב-`--check`, ו-`pnpm seed:sync` מעתיק אותו ל-`supabase/seed/data/` כמו את שאר קובצי `/seed`): מערך של `{ slug, short_name_he, default_register, default_audience_gender, default_cta, default_music_mood }` לכל 36 הנישות. ‏`short_name_he` מחלק 02 §1.2; ‏`default_register`, ‏`default_audience_gender` ו-`default_cta` מנספח E §3.3; ‏`default_music_mood` = `null` בהשקה (האדמין קובע; אחרת הסטוריבורד בוחר מצב רוח). ל-`local-politics` כל הערכים `null`. **מצב `fill_if_null`:** כל עמודה נכתבת רק כשהערך במסד הוא NULL, כך שעריכה באדמין לעולם לא נדרסת.
 - **"שדות קנוניים בלבד"** = רק המפתחות שבקובץ. עמודות DB-only (`is_active`, `seo_*`, `short_name_he`, `sample_scripts`, `starts_on`, מונים, `status`…) מקבלות ברירת מחדל בהכנסה ראשונה ולא נדרסות אחר כך, כי upsert של PostgREST מעדכן רק את העמודות שנשלחו.
+- **`trend_templates.json`** (שלב 14b, אחרי `hook_types` ו-`niches` שהוא מצביע עליהם; הטבלה קיימת רק מ-`0014`): כל 12 השורות נכנסות עם `status = 'draft'`, `demo_assets = []`, `published_week = null` ו-`source_reference_id = null`. הן עוברות ל-`published` רק מהאדמין, אחרי רינדורי ההדגמה (חלק 08). `build_trends.py --check` בונה את הקובץ מחדש בזיכרון ונכשל אם הוא שונה מהקובץ שב-`/seed` או אם שורה לא עוברת את כללי `TrendTemplateV1`.
 - **הוקים שנערכו באדמין** מקבלים `source = 'admin'` בעת העריכה, וה-seed מדלג עליהם. הסקריפט מושך מראש את רשימת ה-`id` עם `source <> 'seed'` ומסנן אותם.
-- `/seed` (בשורש הריפו) נשאר מקור האמת לנספחים A–C (נבנה מ-`seed/scripts/build_seed.py`); `pnpm seed:sync` מריץ `python3 -I seed/scripts/build_seed.py --check` ואז מעתיק את שבעת הקבצים (ששת הקבצים הקנוניים ו-`niche_extras.json`) ל-`supabase/seed/data/`. לא עורכים את ה-JSON ידנית, לא ב-`/seed` ולא בעותק. קובצי הנתונים העסקיים (`plans.json`, ‏`credit_packs.json`, …, ‏`feature_flags.json`, מ-§16.4–§16.5) קיימים רק ב-`supabase/seed/data/`.
+- `/seed` (בשורש הריפו) נשאר מקור האמת לנספחים A–C (נבנה מ-`seed/scripts/build_seed.py`); `pnpm seed:sync` מריץ `python3 -I seed/scripts/build_seed.py --check` ו-`python3 -I seed/scripts/build_trends.py --check`, ואז מעתיק את שמונת הקבצים (ששת הקבצים הקנוניים, `niche_extras.json` ו-`trend_templates.json`) ל-`supabase/seed/data/`. לא עורכים את ה-JSON ידנית, לא ב-`/seed` ולא בעותק. קובצי הנתונים העסקיים (`plans.json`, `credit_packs.json`, …, `feature_flags.json`, מ-§16.4–§16.5) קיימים רק ב-`supabase/seed/data/`.
 
 ### 16.2 סכמות Zod (`supabase/seed/schemas.ts`)
 
@@ -4593,6 +4723,15 @@ const LimitsSchema = z.strictObject({
   concurrent_jobs: z.number().int().min(1), daily_credit_cap: z.number().int().min(1), music_generate: z.boolean(),
   hook_variants_max: z.number().int().min(1).max(5), approval_links: z.boolean(), white_label: z.boolean(),
   projects_max: z.number().int().min(1).nullable(),
+  // 2026-10-17 extension (part 07): Meta, organic scheduling, landing pages, health checks. Money keys are decimal shekels (R1)
+  meta_ad_accounts: z.number().int().min(0),               // connected ad accounts across the billing workspace
+  meta_active_campaigns: z.number().int().min(0).nullable(),
+  meta_monthly_spend_cap_ils: z.number().min(0),           // managed spend, all campaigns, Asia/Jerusalem month
+  meta_test_spend_ils: z.number().min(0),                  // one lifetime test campaign (Meta spend_cap)
+  meta_split_test: z.boolean(), meta_auto_rules: z.number().int().min(0), meta_lead_inbox: z.boolean(),
+  social_scheduled_max: z.number().int().min(0).nullable(),
+  landing_pages: z.number().int().min(0),                  // published pages per workspace (agency: per client workspace); 0 = preview only, but a free workspace with has_paid may publish 1 (landingPageLimit, part 06 §2.7)
+  health_checks_per_month: z.number().int().min(0),        // per workspace per Asia/Jerusalem month (agency: per client workspace)
 });
 export const PlanSeed = z.strictObject({
   id: z.enum(["free", "starter", "business", "agency"]), name_he: He, tagline_he: He,
@@ -4610,6 +4749,9 @@ export const REQUIRED_ACTION_KEYS = [
   "script.generate", "storyboard.generate", "hooks.generate", "brand.extract", "scene.rewrite", "voice.preview",
   "captions.transcribe", "music.library", "image.draft", "image.standard", "image.premium", "clip.draft", "clip.standard",
   "clip.premium", "voice.tts", "music.generate", "render.base", "render.extra_format", "avatar.second",
+  // 2026-10-17 extension (parts 05, 07, 08)
+  "ads.copy", "ads.insight", "trends.analyze", "guided.shotlist", "guided.autocut",
+  "landing.generate", "meta.health_check", "plan.generate", "hooks.score",
 ] as const;
 export const CreditCostSeed = z.strictObject({
   action_key: z.string().regex(/^[a-z]+\.[a-z_]+$/), credits: z.number().int().min(0), credits_long: z.number().int().min(0).nullable(),
@@ -4654,18 +4796,23 @@ export const FeatureFlagSeed = z.strictObject({
   key: z.string().regex(/^[a-z][a-z0-9_]*$/), enabled: z.boolean(), plans: z.array(z.string()).nullable(),
   workspace_ids: z.array(z.uuid()).nullable(), description: He,
 });
+
+// step 14b: the row shape belongs to part 08 (TrendTemplateV1 + the seed-only rules: status "draft", empty demo_assets,
+// canonical key order); the seed only imports it and adds the cross-file checks of §16.3
+export { TrendTemplateSeed, TREND_TEMPLATE_KEY_ORDER } from "../../lib/trends/seed-schema";
 ```
 
 ### 16.3 האלגוריתם (`supabase/seed/seed.ts`)
 
 ```ts
-// pnpm db:seed [--dry-run] [--only=hooks,niches] [--force-pricing] [--force-models] [--prune-hooks] [--fixtures]
+// pnpm db:seed [--dry-run] [--only=hooks,niches] [--force-pricing] [--force-models] [--prune-hooks] [--fixtures] [--studio]
 async function main() {
   const env = loadSeedEnv();                 // NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY (sb_secret_…)
-  guardProduction(env);                      // production URL requires --yes-production; --fixtures is refused in production
-  const files = await readAll("supabase/seed/data");            // 17 files; a missing file is an error
+  guardProduction(env);                      // production URL requires --yes-production; --fixtures is refused in production (--studio is allowed)
+  const files = await readAll("supabase/seed/data");            // 18 files; a missing file is an error
 
-  // 1) shape: Zod per row + canonical key order for the seven /seed files (six canonical + niche_extras); collect ALL errors, then exit(1)
+  // 1) shape: Zod per row + canonical key order for the eight /seed files (six canonical + niche_extras + trend_templates);
+  //    collect ALL errors, then exit(1)
   const parsed = validateShapes(files);      // errors printed as "hooks.json[41].placeholders: …"
 
   // 2) normalize season aliases (seasons.slug, hooks.season_slug); unknown slug -> error
@@ -4679,6 +4826,11 @@ async function main() {
   //    templates.niche_slug / default_hook_type_slug exist · credit_costs covers REQUIRED_ACTION_KEYS
   //    niche_extras: exactly one row per niche slug, no unknown slug
   //    plans: exactly free/starter/business/agency; packs: pack-150/pack-500/pack-1500
+  //    trend_templates: exactly 12 rows, unique slug · hook_type_slug ∈ types · niches[] and niche_adaptations[].niche_slug ⊂ niches
+  //    (never local-politics) · ≥ 3 hook_variants with distinct keys A/B/C · ≥ 3 niche_adaptations · ad_safety "organic_only"
+  //    ⇒ recommended_ad_goal null (fake-system-popup is organic_only) · status "draft" · demo_assets [] · Hebrew text rules of HookSeed
+  //    (no gendered slash/dot forms, no banned phrase, "←" not "→")
+  //    model_routes: llm.video primary/fallbacks carry capabilities.video_in = true in model_registry
   assertIntegrity(parsed);
 
   if (flags.dryRun) return printSummary(parsed);
@@ -4700,6 +4852,7 @@ async function main() {
   await write("voices", parsed.voices, "id", "insert_missing");
   await write("music_tracks", parsed.music_tracks, "id", "insert_missing");
   await write("templates", parsed.templates, "slug", "insert_missing");
+  await write("trend_templates", parsed.trend_templates, "slug", "insert_missing");   // 14b (table from 0014)
   await write("app_settings", parsed.app_settings, "key", "insert_missing");
   await write("feature_flags", parsed.feature_flags, "key", "insert_missing");
 
@@ -4708,6 +4861,7 @@ async function main() {
   if (flags.pruneHooks) await archiveSeedHooksMissingFrom(parsed.hooks);                         // status='archived', never delete
   await admin.rpc("refresh_hook_popularity");
   if (flags.fixtures) await seedFixtures();  // local/staging only: users owner@, editor@, viewer@, agency@ + client workspace, 500 credits each
+  if (flags.studio) await seedTrendsStudio(); // ws-trends-studio for the trend demo renders (below); allowed in production
   printSummary();                            // inserted / updated / skipped per table
 }
 ```
@@ -4723,6 +4877,8 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 - `insert_missing` = upsert עם `ignoreDuplicates: true`.
 - **סוד ה-Vault ב-local:** כשה-URL הוא `localhost`, הסקריפט מתחבר גם ב-`SUPABASE_DB_URL` (חבילת `pg`) ויוצר את `trial_hash_pepper` מ-`TRIAL_HASH_PEPPER` אם הוא חסר. בסביבות מרוחקות הוא רק בודק שהסוד קיים (`rpc("trial_pepper_configured")`, §9.4), ונכשל עם הוראה ברורה אם לא.
 - **Fixtures** (`--fixtures`, לא בפרודקשן): משתמשי בדיקה ב-`auth.admin.createUser({ email_confirm: true })` — `owner@test.local`, `editor@test.local`, `viewer@test.local`, `agency-owner@test.local` (סביבת `agency` + שתי סביבות לקוח), יתרה 500 לכל סביבת חיוב ב-`grant_credits(…, 'promo', …)` עם מפתחות `grant:fixture:{email}`. זה הבסיס לבדיקות e2e ולבדיקות RLS ב-staging.
+- **סביבת הסטודיו** (`--studio`, `seedTrendsStudio()`, מותר גם בפרודקשן עם `--yes-production`): סביבה פנימית אחת מסוג `business` עם `slug = 'ws-trends-studio'` והשם "סטודיו הטרנדים", שהבעלים שלה הוא מנהל הפלטפורמה הראשון (`profiles.is_platform_admin`, לפי `created_at`; אין מנהל ← הסקריפט נכשל עם הוראה להיכנס קודם עם כתובת מ-`ADMIN_EMAILS`). הסקריפט יוצר את הסביבה, את החברות `owner` ואת ערכת המותג שלנו כברירת מחדל, קובע `plan_override = {"plan_id":"agency","until":"2099-12-31T21:59:59Z","reason":"trends studio (internal)"}`, ומעניק 5,000 קרדיטים פעם בחודש (`grant_credits(…, 'admin', …, 'grant:studio:{YYYY-MM}')`). הרצה חוזרת לא יוצרת סביבה שנייה ולא מעניקה פעמיים באותו חודש. רינדורי ההדגמה של חלק 08 (`POST /api/admin/trends/templates/[id]/demo-render`) רצים בסביבה הזו, וה-finalize שלהם מעתיק את הקבצים ל-`public-media/trends/{slug}/` (§13.1).
+- **השחרור של ההרחבה בפרודקשן:** אחרי `0013` ו-`0014` מריצים `pnpm db:seed --only=plans,credit_costs,app_settings,feature_flags,model_registry,model_routes,trend_templates --yes-production`, ואז `pnpm db:seed --studio --yes-production`. `plans` נכתבים ב-`upsert` (קובץ התוכניות הוא הקנוני, §16.1), ושאר הקבצים ב-`insert_missing`, כך שרק המפתחות, הנתיבים והתבניות החדשים נוספים. עד שהשלב הזה רץ, הקוד קורא מפתח `limits` חסר כערך של התוכנית החינמית (ברירות המחדל של `PlanLimits`), כלומר במצב המחמיר.
 - הפלט של `--dry-run` הוא טבלה: קובץ · שורות · שגיאות. CI מריץ `pnpm db:seed --dry-run` על כל PR שנוגע ב-`supabase/seed/` או ב-`/seed`.
 
 ### 16.4 תוכן קובצי הנתונים העסקיים
@@ -4736,7 +4892,10 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
     "limits": { "seats": 1, "client_workspaces": 0, "brand_kits": 1, "max_duration_sec": 30, "quality_tiers": ["draft"],
                 "visual_mix": ["images", "smart"], "max_ai_clips": 1, "max_ai_clip_sec": 5, "max_formats": 1, "max_resolution": "720p",
                 "watermark": true, "concurrent_jobs": 1, "daily_credit_cap": 70, "music_generate": false, "hook_variants_max": 1,
-                "approval_links": false, "white_label": false, "projects_max": 3 },
+                "approval_links": false, "white_label": false, "projects_max": 3,
+                "meta_ad_accounts": 1, "meta_active_campaigns": 1, "meta_monthly_spend_cap_ils": 0, "meta_test_spend_ils": 300,
+                "meta_split_test": false, "meta_auto_rules": 0, "meta_lead_inbox": false, "social_scheduled_max": 3,
+                "landing_pages": 0, "health_checks_per_month": 1 },
     "features_he": ["70 קרדיטים לניסיון (כ-2 סרטונים קצרים באיכות טיוטה, עם סימן מים)", "איכות טיוטה, 720p, פורמט 9:16", "סימן מים של {{BRAND_NAME}}",
                     "גישה מלאה לספריית ההוקים", "בלי כרטיס אשראי"],
     "is_public": true, "is_highlighted": false, "sort_order": 10 },
@@ -4745,7 +4904,10 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
     "limits": { "seats": 1, "client_workspaces": 0, "brand_kits": 1, "max_duration_sec": 60, "quality_tiers": ["draft", "standard"],
                 "visual_mix": ["images", "smart", "full"], "max_ai_clips": null, "max_ai_clip_sec": null, "max_formats": 3,
                 "max_resolution": "1080p", "watermark": false, "concurrent_jobs": 2, "daily_credit_cap": 400, "music_generate": false,
-                "hook_variants_max": 3, "approval_links": false, "white_label": false, "projects_max": null },
+                "hook_variants_max": 3, "approval_links": false, "white_label": false, "projects_max": null,
+                "meta_ad_accounts": 1, "meta_active_campaigns": 2, "meta_monthly_spend_cap_ils": 3000, "meta_test_spend_ils": 0,
+                "meta_split_test": true, "meta_auto_rules": 2, "meta_lead_inbox": true, "social_scheduled_max": 30,
+                "landing_pages": 1, "health_checks_per_month": 2 },
     "features_he": ["400 קרדיטים בחודש (כ-8 סרטונים)", "איכות טיוטה וסטנדרט, Full HD", "3 פורמטים: 9:16, 1:1, 16:9", "בלי סימן מים",
                     "קריינות וכתוביות בעברית", "עד 3 גרסאות הוק לסרטון", "2 יצירות במקביל"],
     "is_public": true, "is_highlighted": false, "sort_order": 20 },
@@ -4754,7 +4916,10 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
     "limits": { "seats": 3, "client_workspaces": 0, "brand_kits": 3, "max_duration_sec": 60, "quality_tiers": ["draft", "standard", "premium"],
                 "visual_mix": ["images", "smart", "full"], "max_ai_clips": null, "max_ai_clip_sec": null, "max_formats": 3,
                 "max_resolution": "1080p", "watermark": false, "concurrent_jobs": 3, "daily_credit_cap": 800, "music_generate": true,
-                "hook_variants_max": 5, "approval_links": true, "white_label": false, "projects_max": null },
+                "hook_variants_max": 5, "approval_links": true, "white_label": false, "projects_max": null,
+                "meta_ad_accounts": 2, "meta_active_campaigns": null, "meta_monthly_spend_cap_ils": 15000, "meta_test_spend_ils": 0,
+                "meta_split_test": true, "meta_auto_rules": 5, "meta_lead_inbox": true, "social_scheduled_max": null,
+                "landing_pages": 3, "health_checks_per_month": 4 },
     "features_he": ["1,000 קרדיטים בחודש (כ-20 סרטונים)", "כל רמות האיכות, כולל פרימיום", "מוזיקה מקורית לכל סרטון",
                     "עד 5 גרסאות הוק לסרטון", "3 משתמשים ו-3 ערכות מותג", "קישורי אישור ללקוח", "3 יצירות במקביל"],
     "is_public": true, "is_highlighted": true, "sort_order": 30 },
@@ -4763,7 +4928,10 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
     "limits": { "seats": 10, "client_workspaces": 15, "brand_kits": null, "max_duration_sec": 60, "quality_tiers": ["draft", "standard", "premium"],
                 "visual_mix": ["images", "smart", "full"], "max_ai_clips": null, "max_ai_clip_sec": null, "max_formats": 3,
                 "max_resolution": "1080p", "watermark": false, "concurrent_jobs": 6, "daily_credit_cap": 2500, "music_generate": true,
-                "hook_variants_max": 5, "approval_links": true, "white_label": true, "projects_max": null },
+                "hook_variants_max": 5, "approval_links": true, "white_label": true, "projects_max": null,
+                "meta_ad_accounts": 15, "meta_active_campaigns": null, "meta_monthly_spend_cap_ils": 100000, "meta_test_spend_ils": 0,
+                "meta_split_test": true, "meta_auto_rules": 5, "meta_lead_inbox": true, "social_scheduled_max": null,
+                "landing_pages": 1, "health_checks_per_month": 4 },
     "features_he": ["3,300 קרדיטים בחודש (כ-66 סרטונים)", "עד 15 סביבות לקוח, ערכת מותג לכל לקוח", "10 משתמשים והרשאות",
                     "דפי שיתוף בלי המיתוג שלנו (White label)", "קישורי אישור ללקוח", "6 יצירות במקביל"],
     "is_public": true, "is_highlighted": false, "sort_order": 40 }
@@ -4771,6 +4939,25 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 ```
 
 `{{BRAND_NAME}}` בתוך `features_he` נשאר כמשתנה ב-JSON ומוחלף בזמן הצגה מ-`BRAND.nameHe` (`lib/constants.ts`), כמו כל טקסט אחר.
+
+**מפתחות ה-`limits` של ההרחבה** (חלק 07 אוכף אותם; `PLAN_LIMIT.details.limit` משתמש בשמות האלה, §18.2):
+
+| מפתח | חינם | בסיס | עסק | סוכנות | משמעות |
+|---|---|---|---|---|---|
+| `meta_ad_accounts` | 1 | 1 | 2 | 15 | חשבונות מודעות מחוברים בכל סביבת החיוב (סוכנות: כולל סביבות הלקוח) |
+| `meta_active_campaigns` | 1 | 2 | `null` | `null` | קמפיינים פעילים בבת אחת בסביבה (אילו סטטוסים נספרים — חלק 07) |
+| `meta_monthly_spend_cap_ils` | 0 | 3,000 | 15,000 | 100,000 | הוצאה מנוהלת בכל הקמפיינים בחודש לפי Asia/Jerusalem (`managed_spend_monthly`; סוכנות: סכום כל הלקוחות) |
+| `meta_test_spend_ils` | 300 | 0 | 0 | 0 | קמפיין ניסיון אחד לכל החיים (`is_free_test`, `spend_cap` של Meta) |
+| `meta_split_test` | `false` | `true` | `true` | `true` | בדיקת 3 הוקים בקמפיין אחד |
+| `meta_auto_rules` | 0 | 2 | 5 | 5 | כללים אוטומטיים שמותר להפעיל בסביבה |
+| `meta_lead_inbox` | `false` | `true` | `true` | `true` | ניהול הלידים (סטטוס, הערות, אחראי, CSV); צפייה בלידים, כפתורי חיוג ו-WhatsApp והתראות זמינים בכל תוכנית |
+| `social_scheduled_max` | 3 | 30 | `null` | `null` | פוסטים מתוזמנים לעתיד בבת אחת |
+| `landing_pages` | 0 | 1 | 3 | 1 | דפי עסק **שפורסמו** בסביבה (סוכנות: בכל סביבת לקוח). בחינם אפשר ליצור תצוגה מקדימה עם סימן מים, בלי לפרסם; סביבה חינמית שרכשה חבילת קרדיטים (`workspaces.has_paid = true`) רשאית לפרסם דף אחד, עם "נבנה עם {{BRAND_NAME}}" (`landingPageLimit(ws)`, חלק 06 §2.1, §2.7). הערך ב-JSON נשאר 0 |
+| `health_checks_per_month` | 1 | 2 | 4 | 4 | בדיקות דופק בחודש לפי Asia/Jerusalem בסביבה (סוכנות: בכל סביבת לקוח) |
+
+- **`features_he` לא משתנה.** הטקסטים של Meta, דף העסק ובדיקת הדופק בדף המחירים מוצגים ברכיב נפרד (`PlanMetaFeatures`, חלק 02) רק כשהדגלים שלהם דולקים (שער הטענות), ולכן הם לא נכנסים לשורה הסטטית של התוכנית.
+- **סכומים** (`*_ils`) הם שקלים עשרוניים (R1). `null` = ללא הגבלה, כמו בשאר המפתחות.
+- **שורת `free` שנוצרת ב-`0005`** לא כוללת את המפתחות האלה עד שה-seed רץ; `PlanLimits` נותן לכל מפתח חדש ברירת מחדל ששווה לערך של `free`, כך ששורה ישנה נקראת במצב המחמיר (§16.3, "השחרור של ההרחבה").
 
 **`credit_packs.json`:** ‏`pack-150` "חבילת 150" · 150 קרדיטים · ₪59 · ‏`pack-500` "חבילת 500" · 500 · ₪179 · ‏`pack-1500` "חבילת 1,500" · 1,500 · ₪449 (כולם `is_active: true`, ‏`sort_order` 10/20/30).
 
@@ -4793,10 +4980,19 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 | `render.base` | 3 | 5 | `format` | הרכבת הסרטון, פורמט ראשון (עד 30 שניות / 31–60 שניות) | 0.05 |
 | `render.extra_format` | 2 | 3 | `format` | פורמט נוסף (עד 30 שניות / 31–60 שניות) | 0.04 |
 | `avatar.second` | 3 | — | `second` | אווטאר מדבר, לכל שנייה | 0.053 |
+| `ads.copy` | 0 | — | `call` | טקסטים למודעה (3 גרסאות) | 0.01 |
+| `ads.insight` | 0 | — | `call` | הסבר בעברית לתוצאות הקמפיין | 0.005 |
+| `trends.analyze` | 0 | — | `call` | ניתוח סרטון השראה (צוות בלבד) | 0.05 |
+| `guided.shotlist` | 0 | — | `call` | רשימת צילומים מותאמת | 0.005 |
+| `guided.autocut` | 1 | — | `clip` | עריכה אוטומטית של צילום, לכל קליפ | 0.01 |
+| `landing.generate` | 10 | — | `page` | בניית דף העסק (יצירה או יצירה מחדש) | 0.03 |
+| `meta.health_check` | 0 | — | `call` | בדיקת דופק לחשבון המודעות | 0.02 |
+| `plan.generate` | 0 | — | `call` | בניית תוכנית 30 יום | 0.02 |
+| `hooks.score` | 0 | — | `call` | ציון הוק לפני פרסום | 0.002 |
 
-(בקובץ כל שורה עם התווית שלה בנפרד, למשל `image.draft` ← "תמונה לסצנה: טיוטה".) בדיקת יחידה: `estimateSample()` (חלק 05) על ה-seed מחזירה 23 / 50 / 107 / 478 לארבע הדוגמאות של §10.4 בנספח F (`SAMPLE_PRESETS`: ‏`images15`, ‏`draft30`, ‏`standard30`, ‏`premium60`).
+(בקובץ כל שורה עם התווית שלה בנפרד, למשל `image.draft` ← "תמונה לסצנה: טיוטה".) **שורות ההרחבה:** ניהול קמפיינים, פרסום ודוחות לא עולים קרדיטים בכלל; פעולות ה-LLM שעולות 0 מוגנות ב-buckets של הגבלות הקצב (§18.6), לא בקרדיטים. `landing.generate` (10 קרדיטים) נגבה על כל יצירה או יצירה מחדש של דף העסק, גם בתצוגה המקדימה של התוכנית החינמית; עריכת טקסט בעורך, פרסום וביטול פרסום חינמיים. מזהה הפרומפט נשאר `landing.copy.v1` (חלק 07). ערכי ה-COGS של ארבע השורות האחרונות הם הערכה ראשונית לפי הנתיב והמודל, ומתעדכנים לפי `ai_generations` אחרי M10 [M0-verify]. בדיקת יחידה: `estimateSample()` (חלק 05) על ה-seed מחזירה 23 / 50 / 107 / 478 לארבע הדוגמאות של §10.4 בנספח F (`SAMPLE_PRESETS`: `images15`, `draft30`, `standard30`, `premium60`).
 
-**`app_settings.json`** — הרשימה המלאה של המפתחות (21). לכל מפתח יש סכמת Zod ב-`lib/settings/schema.ts` (`APP_SETTINGS: Record<AppSettingKey, z.ZodType>`); ‏`PUT /api/admin/settings/[key]` מאמת מולה, והקוראים משתמשים ב-`getSetting(key)` (מטמון 60 שניות). עורך ההגדרות באדמין (חלק 03 §22.17) מציג את כל המפתחות, בקבוצות, עם טופס שנבנה מהסכמה.
+**`app_settings.json`** — הרשימה המלאה של המפתחות (30: 21 מההשקה ו-9 של הרחבת 2026-10-17, בסוף הטבלה). לכל מפתח יש סכמת Zod ב-`lib/settings/schema.ts` (`APP_SETTINGS: Record<AppSettingKey, z.ZodType>`); `PUT /api/admin/settings/[key]` מאמת מולה, והקוראים משתמשים ב-`getSetting(key)` (מטמון 60 שניות). עורך ההגדרות באדמין (חלק 03 §22.17) מציג את כל המפתחות, בקבוצות, עם טופס שנבנה מהסכמה.
 
 | `key` | `value` (seed) | צורה / משמעות | `description` |
 |---|---|---|---|
@@ -4820,12 +5016,23 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 | `dunning_retry_days` | `[1, 3, 7]` | מערך שלמים | Days after a failed renewal on which the charge is retried (part 06 §6.1) |
 | `non_business_days` | תאריכי החגים בישראל ל-12 החודשים הבאים (ISO) | מערך תאריכים | Holidays for business-day counting (part 06 §10.2) |
 | `renewals_paused` | `false` | בוליאני | Pauses renewal charges during a provider incident (runbook R3) |
+| `meta_budget_presets_ils` | `{"presets":[30,40,70,100],"recommended":40,"floor":20}` | שקלים עשרוניים (R1); `floor` = הרצפה שלנו לתקציב יומי, והמינימום בפועל הוא הגבוה מבין הרצפה והמינימום של Meta לחשבון (`meta_assets.min_daily_budget_ils`) | Daily budget presets, recommended preset and floor for the campaign builder (part 07) |
+| `meta_min_sample` | `{"impressions":1000,"days":3,"results":5}` | לכל מודעה: חשיפות וימים; תוצאות — לכל הקמפיין | Minimum sample before a winner is declared or an action is recommended (part 07) |
+| `meta_spend_cap_grace_days` | `7` | שלם | Grace days after the managed-spend cap is reached before new launches are blocked |
+| `social_daily_caps` | `{"instagram":25,"facebook":25}` | לחשבון אינסטגרם / לעמוד ביום | Our own daily publishing caps (Meta limits are read at runtime) |
+| `trends_weekly_drop` | `{"dow":0,"time":"08:00","tz":"Asia/Jerusalem"}` | `dow`: 0 = יום ראשון | Weekly trend drop slot (part 08) |
+| `trend_analysis_limits` | `{"max_usd":0.5,"monthly_usd":50,"max_ref_mb":200,"max_ref_sec":180,"base64_max_mb":8}` | דולרים, מגה-בייט, שניות | Spend and size guards for admin trend analysis (BUDGET_GUARD above them) |
+| `trend_ref_retention_days` | `30` | שלם | Days a reference file is kept when its rights basis is not own, licensed, partner or customer-owned |
+| `cross_customer_benchmarks` | `{"enabled":false,"k_min":5}` | נשאר `false` עד אישור עורך דין | Cross-customer aggregates (off; minimum number of businesses per row) |
+| `lead_notify` | `{"include_phone_in_whatsapp":true,"untouched_reminder_min":15}` | ⚖️ הטלפון בהודעת WhatsApp ממתין לאישור עורך דין (חלק 06) | Lead notification options |
 
-**`feature_flags.json`** (13 דגלים; ‏`plans` ו-`workspace_ids` הם `null` אלא אם צוין אחרת): `phone_otp` false · `avatar` false, ‏`plans: ["business","agency"]` · `voice_clone` false, ‏`plans: ["business","agency"]` · `stock_broll` false · `chat_edit` false · `music_generate` **true** (מתג חירום; ההרשאה עצמה ב-`plans.limits.music_generate`) · `premium_video` **true** (מתג חירום; ההרשאה ב-`limits.quality_tiers`) · `whatsapp_notify` false · `annual_billing` **true** · `hook_submissions` false · `format_4x5` false · `maintenance_mode` false (עקיפה מקומית בלבד) · `billing_checkout` **true** (מתג חירום לרכישות חדשות; כבוי ← ‏503 `MAINTENANCE` ‏`{ scope: "checkout" }`). מצב התחזוקה נקבע ב-`app_settings.maintenance_mode`; הדגל באותו שם קיים רק לעקיפה מקומית (`FEATURE_MAINTENANCE_MODE`), ו-`lib/flags.ts` מחזיר `true` אם אחד מהם דולק. הבדלים בין סביבות (למשל `chat_edit` דולק מקומית) נעשים רק במשתני `FEATURE_*`, לעולם לא בקובצי seed שונים; ניסויי PostHog (`hero_copy_v1`) אינם דגלים כאן.
+**`feature_flags.json`** (13 דגלים מההשקה, ועוד 11 של ההרחבה בפסקה הבאה — 24 בסך הכול; `plans` ו-`workspace_ids` הם `null` אלא אם צוין אחרת): `phone_otp` false · `avatar` false, `plans: ["business","agency"]` · `voice_clone` false, `plans: ["business","agency"]` · `stock_broll` false · `chat_edit` false · `music_generate` **true** (מתג חירום; ההרשאה עצמה ב-`plans.limits.music_generate`) · `premium_video` **true** (מתג חירום; ההרשאה ב-`limits.quality_tiers`) · `whatsapp_notify` false · `annual_billing` **true** · `hook_submissions` false · `format_4x5` false · `maintenance_mode` false (עקיפה מקומית בלבד) · `billing_checkout` **true** (מתג חירום לרכישות חדשות; כבוי ← 503 `MAINTENANCE` `{ scope: "checkout" }`). מצב התחזוקה נקבע ב-`app_settings.maintenance_mode`; הדגל באותו שם קיים רק לעקיפה מקומית (`FEATURE_MAINTENANCE_MODE`), ו-`lib/flags.ts` מחזיר `true` אם אחד מהם דולק. הבדלים בין סביבות (למשל `chat_edit` דולק מקומית) נעשים רק במשתני `FEATURE_*`, לעולם לא בקובצי seed שונים; ניסויי PostHog (`hero_copy_v1`) אינם דגלים כאן.
+
+**דגלי ההרחבה** (11 נוספים, **כולם `false` ב-seed**; סך הכול 24, כמו הרשימה הראשית של חלק 06 §21.1): טרנדים וצילום — `trends` · `trends_public` · `guided_filming`; Meta — `meta_connect` · `meta_ads` · `meta_lead_forms` · `meta_auto_rules`; התוספות — `landing_pages` · `meta_health_check` · `monthly_plan` · `hook_score`. **דגלי מפת הדרכים** אחרי M11 — `whatsapp_bot` · `review_videos` · `human_review` · `partners` — **לא נזרעים** ב-`feature_flags.json` עד אבן הדרך שבונה אותם (חלק 06 §21.1): `isEnabled` מחזיר `false` לדגל שאין לו שורה, ומסך הדגלים באדמין מציג אותם מתוך הקבוע `ROADMAP_FLAGS` (`lib/flags.ts`) בקבוצה נפרדת, כבויים ונעולים (חלק 03 §22). כל נתיב של דגל כבוי מחזיר 404, חוץ מהחריג של §21b.1: כיבוי `meta_ads` אחרי ההשקה עוצר רק השקות חדשות, וקמפיינים שכבר פורסמו עדיין אפשר לראות, להשהות ולסיים (חלק 06).
 
 ### 16.5 רישום המודלים והנתיבים
 
-**`model_routes.json`** — בדיוק לפי §7.1 בנספח F:
+**`model_routes.json`** — בדיוק לפי §7.1 בנספח F, ועוד שלושת הנתיבים של ההרחבה בסוף (21 נתיבים; `llm.ads` לחלק 07, `llm.video` ו-`llm.vision_frames` לחלק 08, והמימוש של `route()` בחלק 05):
 
 ```json
 [
@@ -4846,11 +5053,14 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
   { "task_key": "tts.alt",         "primary_slug": "google/gemini-3.8-flash-tts", "fallback_slugs": [], "params": { "response_format": "mp3" } },
   { "task_key": "stt.default",     "primary_slug": "elevenlabs/scribe-v2",        "fallback_slugs": [], "params": { "language": "he", "response_format": "verbose_json" } },
   { "task_key": "music.default",   "primary_slug": "google/lyria-3-pro-preview",  "fallback_slugs": [], "params": {} },
-  { "task_key": "avatar.default",  "primary_slug": "heygen/avatar-iv",            "fallback_slugs": [], "params": {} }
+  { "task_key": "avatar.default",  "primary_slug": "heygen/avatar-iv",            "fallback_slugs": [], "params": {} },
+  { "task_key": "llm.ads",           "primary_slug": "anthropic/claude-sonnet-5.5", "fallback_slugs": ["openai/gpt-6.1-sol", "google/gemini-3.8-flash"], "params": { "temperature": 0.7, "structured": "json_schema_strict", "require_parameters": true } },
+  { "task_key": "llm.video",         "primary_slug": "google/gemini-3.8-flash",     "fallback_slugs": ["google/gemini-3.1-pro-preview"], "params": { "temperature": 0.2, "structured": "json_schema_strict", "require_parameters": true, "max_output_tokens": 4000 } },
+  { "task_key": "llm.vision_frames", "primary_slug": "anthropic/claude-sonnet-5.5", "fallback_slugs": ["google/gemini-3.8-flash"], "params": { "temperature": 0.2, "structured": "json_schema_strict", "require_parameters": true } }
 ]
 ```
 
-**`model_registry.json`** — שורה לכל slug שמופיע בנתיבים (22 שורות), `source: "manual"`, ‏`is_enabled: true` לכל מה שבנתיבים חוץ מ-`heygen/avatar-iv` (מאחורי דגל `avatar`). מחירי הרשימה לפי §7.1 בנספח F, במבנה המנורמל של `pricing`; לדוגמה:
+**`model_registry.json`** — שורה לכל slug שמופיע בנתיבים (23 שורות: 22 מההשקה ו-`google/gemini-3.1-pro-preview`, שנוסף כגיבוי של `llm.video`), `source: "manual"`, `is_enabled: true` לכל מה שבנתיבים חוץ מ-`heygen/avatar-iv` (מאחורי דגל `avatar`). מחירי הרשימה לפי §7.1 בנספח F, במבנה המנורמל של `pricing`; לדוגמה:
 
 ```json
 [
@@ -4869,6 +5079,17 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 
 `capabilities` של מודלי הווידאו בקובץ הם ערכי פתיחה בלבד; `sync-models` (חלק 05) מעדכן אותם מ-`/videos/models` ולעולם לא מפעיל מודל לבד.
 
+**קלט וידאו (`llm.video`):** לשורות `google/gemini-3.8-flash` ו-`google/gemini-3.1-pro-preview` יש `capabilities.video_in: true`, ו-`route("llm.video", { needsVideoInput: true })` (חלק 05) מדלג על כל מודל בלי הדגל הזה. ב-M0 בודקים את הערך מול `GET /api/v1/models` (השדה `architecture.input_modalities` [M0-verify את שם השדה]), ו-`sync-models` שומר אותו. השורה החדשה:
+
+```json
+[
+  { "slug": "google/gemini-3.1-pro-preview", "task": "llm", "display_name_he": "Gemini 3.1 Pro (תצוגה מקדימה)", "family": "google", "is_enabled": true,
+    "tiers": ["standard", "premium"], "pricing": { "per_m_input": 2, "per_m_output": 12 },
+    "capabilities": { "structured_outputs": true, "video_in": true }, "source": "manual",
+    "notes_he": "גיבוי לניתוח סרטוני השראה (llm.video). מחיר רשימה [M0-verify]" }
+]
+```
+
 ### קריטריוני קבלה
 - [ ] `pnpm db:seed` על מסד נקי טוען 8 משפחות, 13 קטגוריות, 36 נישות, 27 סוגים, 25 עונות ו-326 הוקים; הרצה שנייה מדווחת 0 הכנסות ו-0 שינויים.
 - [ ] שינוי `category_slug` של נישה ל-`nope` בקובץ גורם ל-`--dry-run` להיכשל עם הודעה שמצביעה על `niches.json[i].category_slug`, ובלי שום כתיבה.
@@ -4879,7 +5100,11 @@ as $$ refresh materialized view concurrently public.hook_popularity; $$;
 - [ ] `--fixtures` נכשל מיד כשה-URL הוא של פרויקט הפרודקשן.
 - [ ] אחרי `db:seed`, ל-35 הנישות הפעילות יש `short_name_he`; ‏`short_name_he` שנערך באדמין לא נדרס בהרצה חוזרת (`fill_if_null`).
 - [ ] הוק עם `"₪349"` בטקסט נכשל ב-`--dry-run`; ‏`"349 ₪"` ו-`"{מחיר} ₪"` מתקבלים.
-- [ ] `app_settings` מכיל בדיוק 21 מפתחות ו-`feature_flags` בדיוק 13, וכל ערך עובר את הסכמה שלו ב-`lib/settings/schema.ts`.
+- [ ] `app_settings` מכיל בדיוק 30 מפתחות ו-`feature_flags` בדיוק 24 (כל 11 הדגלים של ההרחבה `false`, ואין שורות לארבעת דגלי מפת הדרכים), וכל ערך עובר את הסכמה שלו ב-`lib/settings/schema.ts`.
+- [ ] אחרי `db:seed`: 12 שורות ב-`trend_templates`, כולן `draft`, ו-`fake-system-popup` עם `ad_safety = 'organic_only'` ו-`recommended_ad_goal` ריק; 21 שורות ב-`model_routes` ו-23 ב-`model_registry`; `credit_costs` כולל את כל `REQUIRED_ACTION_KEYS`, ו-`landing.generate` = 10.
+- [ ] שינוי `niche_slug` של התאמת נישה בתבנית טרנד ל-`nope` מכשיל את `--dry-run` עם הודעה שמצביעה על `trend_templates.json[i]`; תבנית עם 2 גרסאות הוק בלבד נכשלת.
+- [ ] `pnpm db:seed --studio` פעמיים יוצר סביבת `ws-trends-studio` אחת והענקה אחת לחודש; בלי מנהל פלטפורמה הוא נכשל בהודעה ברורה.
+- [ ] כל ארבע התוכניות ב-`plans.json` עוברות את `LimitsSchema` עם עשרת המפתחות החדשים, ו-`landing_pages` של `free` הוא 0 (החריג של `has_paid` מחושב בקוד, לא ב-seed).
 
 ---
 
@@ -5051,7 +5276,8 @@ export async function proxy(request: NextRequest) {
   let csp: string | null = null;
   if (NONCE_ROUTES.test(pathname)) {
     const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-    csp = buildCsp({ nonce, themeHash: THEME_HASH, env: env.APP_ENV });
+    // pathname: part 06 §15.3 adds frame-src https://www.facebook.com only on the campaign builder (Meta ad previews)
+    csp = buildCsp({ nonce, themeHash: THEME_HASH, env: env.APP_ENV, pathname });
     requestHeaders.set("x-nonce", nonce);                              // read by layouts via headers() (part 06 §15.3)
     requestHeaders.set("content-security-policy", csp);                // lets Next.js put the nonce on its own scripts
   }
@@ -5088,6 +5314,12 @@ export const config = {
 - דפי השיווק (חוץ מ-`/`) לא עוברים ב-proxy בכלל, כדי לא להוסיף זמן ל-TTFB ולא לגעת ב-ISR. הכותרת השיווקית מציגה "התחברות"/אווטאר לפי בדיקה בצד הלקוח.
 - `GET /api/health` לא עובר ב-proxy (§21.5), וגם לא `/.well-known/workflow/*` (נוצר על ידי `withWorkflow`).
 - ה-proxy הוא שכבה גסה. כל Route Handler בודק שוב משתמש, סביבה ותפקיד (§18.4), ו-`app/(admin)/admin/layout.tsx` קורא ל-`platform_admin_status()` ומחזיר `notFound()` לכל ערך שאינו `ok` (חוץ מהדף `/admin/mfa`, שיש לו layout משלו).
+- **נתיבי ההרחבה:**
+  - `/api/webhooks/meta`, `/api/webhooks/meta/deauthorize` ו-`/api/webhooks/meta/data-deletion` כבר מחוץ ל-matcher (התבנית `webhooks/`). הם קוראים את הגוף הגולמי בעצמם (§22.1), בלי עטיפת Zod על הגוף ובלי בדיקת Origin.
+  - `/meta/data-deletion` (דף הסטטוס הציבורי של בקשת מחיקה, `noindex`, חלק 02), `/trends` ו-`/trends/[slug]` (חלק 02), `/b/[slug]` ו-`/b/[slug]/privacy` (דף העסק, חלק 07) הם דפים ציבוריים ב-ISR. הם לא נכנסים ל-matcher ומקבלים את ה-CSP מבוסס ה-hash, כמו שאר דפי השיווק.
+  - `POST /api/b/[slug]/lead` עובר ב-proxy כמו כל `/api` (רענון session לא מזיק לבקשה אנונימית). הטופס נשלח מאותו origin, ולכן בדיקת ה-Origin של העטיפה עוברת.
+  - `/api/meta/connect/callback` הוא `GET` שחוזר מ-Facebook: אין בו בדיקת Origin, ובמקומה העוגייה החתומה `meta_oauth_state` (`Path=/api/meta/connect`, 10 דקות; חלק 07) והשוואת `state` ב-timing-safe.
+  - `/dev/mock-meta-login` נופל תחת הכלל של `/dev/*`, ולכן מחזיר 404 בפרודקשן.
 
 ### 17.3 סביבת העבודה הנוכחית (`lib/workspace/current.ts`)
 
@@ -5127,13 +5359,14 @@ export type Row<T extends keyof Database["public"]["Tables"]> = Database["public
 ```
 
 - `Constants` (מערכי הערכים של כל enum) מחולל על ידי ה-CLI בגרסאות הנוכחיות [M0-verify]; אם הוא חסר, `scripts/gen-enum-constants.ts` מייצר אותו מ-`pg_enum` אחרי `db:types`. בשום מקרה לא כותבים את המערכים ידנית.
-- עמודות `jsonb` מוקלדות כ-`Json`; הקוד מפענח אותן תמיד דרך סכמת Zod (`ScriptV1`, `StoryboardV1`, `CaptionTrackV1`, `BrandProfileV1`, `PlanLimits`, `ProjectBrief`, `RenderOptions`, `NotificationPrefs`), ולא ב-cast. ערך שמור שלא עובר את הסכמה (למשל אחרי כתיבה ישירה דרך PostgREST) מטופל כאילו הוא ריק ונרשם בלוג — הוא לא מגיע לרינדור.
+- עמודות `jsonb` מוקלדות כ-`Json`; הקוד מפענח אותן תמיד דרך סכמת Zod (`ScriptV1`, `StoryboardV1`, `CaptionTrackV1`, `BrandProfileV1`, `PlanLimits`, `ProjectBrief`, `RenderOptions`, `NotificationPrefs`, ומההרחבה גם `HookScoreV1`, `SceneOverlayV1` ושאר הסכמות של חלקים 07 ו-08), ולא ב-cast. ערך שמור שלא עובר את הסכמה (למשל אחרי כתיבה ישירה דרך PostgREST) מטופל כאילו הוא ריק ונרשם בלוג — הוא לא מגיע לרינדור.
 
 ### קריטריוני קבלה
 - [ ] `grep -r "SUPABASE_SECRET_KEY" components app --include=*.tsx` לא מוצא כלום; build שמייבא את `lib/supabase/admin.ts` מקומפוננטת לקוח נכשל.
 - [ ] משתמש לא מחובר שנכנס ל-`/app/projects` מופנה ל-`/login?next=%2Fapp%2Fprojects`; משתמש רגיל שנכנס ל-`/admin` מקבל 404.
 - [ ] מנהל פלטפורמה ב-session של `aal1` שנכנס ל-`/admin/jobs` מופנה ל-`/admin/mfa?next=%2Fadmin%2Fjobs`; אחרי אימות TOTP הוא מגיע ל-`/admin/jobs`.
-- [ ] בפרודקשן `/dev/mock-gateway/x` מחזיר 404; ב-preview הוא נטען.
+- [ ] בפרודקשן `/dev/mock-gateway/x` ו-`/dev/mock-meta-login` מחזירים 404; ב-preview הם נטענים.
+- [ ] בקשת `POST /api/webhooks/meta` לא עוברת ב-proxy (אין עוגיית session בתשובה), ו-`/b/[slug]` נבנה כ-ISR בלי nonce.
 - [ ] לתשובה של `/app` יש `Content-Security-Policy` עם `nonce-…` ששונה בין שתי בקשות; ל-`/pricing` אין nonce והדף נשאר ISR; ‏`GET /api/health` לא עובר ב-proxy (אין עוגיית session מתרעננת בתשובה).
 - [ ] session שפג תוקפו מתרענן בגלישה ל-`/app` בלי התחברות מחדש (refresh token).
 - [ ] דף `/hooks/[niche]` נבנה סטטית (`○`/`●` בפלט ה-build) גם כשהוא קורא מ-Supabase דרך `createStaticClient()`.
@@ -5162,6 +5395,8 @@ export const ERROR_CODES = [
   "WEBHOOK_INVALID_SIGNATURE", "MAINTENANCE",
   // added by parts 03/04 (same convention)
   "UNAUTHENTICATED", "EDIT_CONFLICT", "INTERNAL_ERROR",
+  // 2026-10-17 extension (parts 07/08): Meta connection, campaigns and organic publishing
+  "META_NOT_CONNECTED", "META_ACCOUNT_NOT_READY", "META_API_ERROR", "AD_NOT_ELIGIBLE", "SOCIAL_PUBLISH_FAILED",
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -5171,6 +5406,7 @@ export const ERROR_STATUS: Record<ErrorCode, number> = {
   VIDEO_JOB_FAILED: 502, TTS_FAILED: 502, RENDER_FAILED: 502, BUDGET_GUARD: 503, INVALID_INPUT: 400,
   NOT_FOUND: 404, FORBIDDEN: 403, PAYMENT_FAILED: 402, WEBHOOK_INVALID_SIGNATURE: 401, MAINTENANCE: 503,
   UNAUTHENTICATED: 401, EDIT_CONFLICT: 409, INTERNAL_ERROR: 500,
+  META_NOT_CONNECTED: 409, META_ACCOUNT_NOT_READY: 409, META_API_ERROR: 502, AD_NOT_ELIGIBLE: 422, SOCIAL_PUBLISH_FAILED: 502,
 };
 
 /** server-side Hebrew fallback; the UI shows errors.{code}.title/body from messages/he.json */
@@ -5197,6 +5433,11 @@ export const ERROR_MESSAGE_HE: Record<ErrorCode, string> = {
   UNAUTHENTICATED: "צריך להתחבר כדי להמשיך.",
   EDIT_CONFLICT: "התוכן השתנה בזמן העריכה. כדאי לטעון מחדש כדי לראות את הגרסה העדכנית.",
   INTERNAL_ERROR: "משהו השתבש אצלנו. לא בוצע חיוב על הפעולה הזו.",
+  META_NOT_CONNECTED: "אין חיבור פעיל לפייסבוק ולאינסטגרם. אפשר לחבר את החשבון בהגדרות, תחת אינטגרציות.",
+  META_ACCOUNT_NOT_READY: "חשבון המודעות עדיין לא מוכן לקמפיין. צריך להשלים כמה פרטים לפני הפרסום.",
+  META_API_ERROR: "מטא החזירה שגיאה, והפעולה לא הושלמה.",
+  AD_NOT_ELIGIBLE: "הסרטון הזה לא מתאים למודעה במטא כמו שהוא. אפשר לתקן לפי ההסבר, או להשתמש בו בפרסום רגיל.",
+  SOCIAL_PUBLISH_FAILED: "הפרסום באינסטגרם או בפייסבוק לא הושלם. הסרטון נשמר, ואפשר לנסות שוב.",
 };
 
 export class ApiError extends Error {
@@ -5219,9 +5460,26 @@ export function fromDbError(e: { code?: string; message?: string; details?: stri
 }
 ```
 
-**22 קודים בדיוק** = 19 הקודים של §12.10 בנספח F ועוד `UNAUTHENTICATED`, ‏`EDIT_CONFLICT` ו-`INTERNAL_ERROR`. אסור להחזיר ב-`error.code` שום קוד אחר. הסטטוס תמיד נלקח מ-`ERROR_STATUS` — לקוד יש סטטוס אחד בלבד (למשל `INVALID_INPUT` הוא תמיד 400, גם בכללים עסקיים).
+**27 קודים בדיוק** = 19 הקודים של §12.10 בנספח F, ועוד `UNAUTHENTICATED`, `EDIT_CONFLICT` ו-`INTERNAL_ERROR`, ועוד חמשת הקודים של הרחבת 2026-10-17 (`META_NOT_CONNECTED`, `META_ACCOUNT_NOT_READY`, `META_API_ERROR`, `AD_NOT_ELIGIBLE`, `SOCIAL_PUBLISH_FAILED`). אסור להחזיר ב-`error.code` שום קוד אחר. הסטטוס תמיד נלקח מ-`ERROR_STATUS` — לקוד יש סטטוס אחד בלבד (למשל `INVALID_INPUT` הוא תמיד 400, גם בכללים עסקיים).
 
 **`details` לפי קוד** (חוזה עם חלק 03; הטקסטים לכל `reason`/`scope`/`limit` ב-`messages/he.json → errors.*`): `INSUFFICIENT_CREDITS` ← `{ needed, balance }` · `PLAN_LIMIT` ← `{ limit, max?, required?, cap?, used?, reason? }` (`limit` = מפתח של `plans.limits`; ‏`reason: "client_workspace_read_only"` יחד עם `limit: "client_workspaces"`) · `CONCURRENCY_LIMIT` ← `{ max, running }` · `RATE_LIMITED` ← `{ scope, retryAfter }` (שניות; גם בכותרת `Retry-After`; ‏`daily_credit_cap` מחזיר `PLAN_LIMIT`, לא את הקוד הזה) · `MODERATION_BLOCKED` ← `{ reason_he, categories }` · `ELECTION_POLICY_BLOCKED` ← `{ until }` · `MISSING_FACTS` ← `{ facts: string[] }` (תוויות בעברית) · `PROVIDER_UNAVAILABLE` ← `{ refunded? }` (קרדיטים שהוחזרו) · `INVALID_INPUT` ← `{ issues: [{ path, key, params }] }` או `{ reason, … }` · `FORBIDDEN` ← `{ requiredRoles }` או `{ reason }` · `EDIT_CONFLICT` ← `{ reason: "stale" | "version_locked" | "duplicate" | "request_in_progress", currentUpdatedAt? }` (‏`request_in_progress` מטופל אוטומטית ב-`lib/api/client.ts` בניסיון חוזר; אם הוא מגיע לממשק מוצג הטקסט הכללי של `errors.EDIT_CONFLICT`) · `PAYMENT_FAILED` ← `{ providerMessage? }` · `MAINTENANCE` ← `{ until, scope?: "checkout" }` · `INTERNAL_ERROR` ← `{ requestId }`.
+
+**הקודים של ההרחבה** (הקופי לכל `reason`/`check` בחלק 03; ההקשר בחלקים 07 ו-08):
+
+| קוד | סטטוס | `details` | מתי |
+|---|---|---|---|
+| `META_NOT_CONNECTED` | 409 | `{ reason: "no_connection" \| "no_assets" \| "needs_reconnect" \| "missing_permission" }` | כל נתיב של Meta, קמפיינים, פרסום רגיל ובדיקת דופק כשאין חיבור חי או שלא נבחרו נכסים (§21b.1) |
+| `META_ACCOUNT_NOT_READY` | 409 | `{ checks: ("account_disabled" \| "currency_not_ils" \| "no_payment_method" \| "page_no_advertise_task" \| "ig_not_linked" \| "whatsapp_not_confirmed" \| "privacy_url_missing" \| "leads_access" \| "lead_terms_not_accepted" \| "min_budget_unknown")[] }` | הכנה, פרסום וחידוש של קמפיין כשבדיקת המוכנות (`MetaPreflightV1`) נכשלה; `checks` מכיל רק את הבדיקות שנכשלו |
+| `META_API_ERROR` | 502 | `{ metaCode, metaSubcode?, retryable, userMessageHe? }` | Meta החזירה שגיאה שלא ממופה לקוד אחר; `retryable: true` אחרי שלושה ניסיונות חוזרים שנכשלו (חלק 07). לעולם לא כולל טוקן, `appsecret_proof` או גוף בקשה |
+| `AD_NOT_ELIGIBLE` | 422 | `{ reason: "organic_only_template" \| "deceptive_ui" \| "missing_consent" \| "needs_ai_label" \| "music_not_licensed" \| "political" \| "special_category" \| "video_spec" \| "no_render_9x16" }` | שער הבטיחות של המודעה, לפני כל קריאה ל-Meta |
+| `SOCIAL_PUBLISH_FAILED` | 502 | `{ platform: "instagram" \| "facebook", metaCode?, subcode? }` | פרסום רגיל נכשל. נשמר בעיקר ב-`social_posts.error_code` ומגיע לממשק דרך `social_post.updated` (§14.1); כשהוא חוזר בתשובת HTTP — בסטטוס שבטבלה |
+
+**הרחבות לקודים קיימים:**
+- `PLAN_LIMIT.limit` מקבל גם את עשרת מפתחות ה-`limits` של ההרחבה (§16.4). ב-`meta_monthly_spend_cap_ils` מגיעים גם `cap` ו-`used` (שקלים עשרוניים); ב-`landing_pages` של סביבה חינמית שלא רכשה חבילה `{ max: 0, required: "starter" }` (אחרי רכישת חבילה המכסה היא 1, ואז `{ max: 1, required: "starter" }`).
+- `RATE_LIMITED.scope` מקבל את ה-buckets החדשים של §18.6, ועוד ארבע מגבלות עסקיות שאינן bucket: `meta_budget` (יותר מ-3 שינויי תקציב בשעה לקמפיין), `meta_account` (Meta עצרה זמנית את התור של חשבון המודעות), `ig_publish_daily`, `fb_reels_daily`.
+- `NOT_FOUND` ← גם `{ reason: "retired" }` (תבנית טרנד שהוצאה משימוש). נתיב של דגל כבוי מחזיר `NOT_FOUND` בלי `details`, כמו נתיבי ה-WhatsApp של v2 (§21.1).
+- `BUDGET_GUARD` ← גם `{ scope: "trend_analysis_limits" }` (ניתוח טרנד מהאדמין מעל `app_settings.trend_analysis_limits`).
+- `INVALID_INPUT.reason` מקבל את הערכים שבעמודת השגיאות של §21b ושל §19.2 (#1, #24).
 
 **חריגות פנימיות של בסיס הנתונים אינן קודי API.** ‏`LEDGER_BALANCE_MISMATCH` ו-`AUDIT_LOG_IMMUTABLE` נזרקות עם `P0001` אבל אינן ב-`ERROR_CODES`, ולכן `fromDbError` ממפה אותן ל-`INTERNAL_ERROR` (ההודעה המקורית נשלחת ל-Sentry). גם קודי השגיאה הפנימיים של לקוח OpenRouter (`OrErrorCode`: ‏`bad_request`, ‏`timeout`, ‏`upstream_error`…) ממופים לקודי API לפי חלק 05 §2.3.
 
@@ -5349,7 +5607,7 @@ export const POST = route({
 
 | סוג | נתיבים | פורמט | סיום / שגיאה |
 |---|---|---|---|
-| **NDJSON** | `POST …/script`, ‏`POST …/hooks`, ‏`POST /api/hooks/variations` | ‏`200` עם `Content-Type: application/x-ndjson; charset=utf-8`, אובייקט JSON אחד בכל שורה: `partial` (תצוגה חלקית של הסכמה, לכל היותר כל 80ms) · `done` (פעם אחת, בסוף) · `error`. נצרך ב-`useNdjsonObject(schema)` (‏`lib/ai/client/use-ndjson-object.ts`, חלק 05 §3.5) | כותרות שנקבעות **לפני** הגוף: `X-Request-Id`, ‏`X-Credits-Spent`. מזהה הגרסה של התסריט מגיע באירוע `done` (‏`versionId`), לא בכותרת. שגיאה לפני הזרם ← JSON רגיל עם סטטוס. שגיאה באמצע ← אירוע `error` עם `details.refunded` (הקרדיטים כבר הוחזרו ב-`refund_reservation`), והזרם נסגר; הקליינט מאפשר לנסות שוב עם **מפתח חדש** |
+| **NDJSON** | `POST …/script`, `POST …/hooks`, `POST /api/hooks/variations`; ומההרחבה: `POST /api/campaigns/[id]/copy` (`AdCopyV1`), `POST /api/campaigns/[id]/explain` (`InsightExplainV1`), `POST /api/admin/trends/templates/[id]/explainer` (`TrendExplainerV1`) | `200` עם `Content-Type: application/x-ndjson; charset=utf-8`, אובייקט JSON אחד בכל שורה: `partial` (תצוגה חלקית של הסכמה, לכל היותר כל 80ms) · `done` (פעם אחת, בסוף) · `error`. נצרך ב-`useNdjsonObject(schema)` (`lib/ai/client/use-ndjson-object.ts`, חלק 05 §3.5) | כותרות שנקבעות **לפני** הגוף: `X-Request-Id`, `X-Credits-Spent`. מזהה הגרסה של התסריט מגיע באירוע `done` (`versionId`), לא בכותרת. שגיאה לפני הזרם ← JSON רגיל עם סטטוס. שגיאה באמצע ← אירוע `error` עם `details.refunded` (הקרדיטים כבר הוחזרו ב-`refund_reservation`), והזרם נסגר; הקליינט מאפשר לנסות שוב עם **מפתח חדש** |
 | **SSE** | `/api/brand/extract` | `text/event-stream`, שורות `data: {json}\n\n`; אירועים `{type:"progress",key,label_he}` · `{type:"result",profile}` · `{type:"error",error:{code,message_he}}` | heartbeat (`: ping`) כל 10 שניות; תמיד מסתיים ב-`result` או ב-`error` |
 
 ```ts
@@ -5365,7 +5623,7 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 
 זרם האובייקטים של AI SDK (`streamObject` כזרם טקסט, וה-hook שצורך אותו בדפדפן) לא בשימוש: זרם טקסט לא יכול לשאת שגיאה טיפוסית באמצע הזרם או את תוצאת ההחזר, ו-`streamObject` מסומן כ-deprecated ב-AI SDK v6 (חלק 05 §3.2).
 
-`maxDuration`: נתיבי AI אינטראקטיביים 300 שניות, עם תקציב זמן פנימי של 240 שניות (חלק 05 §2.2; ‏§19.5 שלב 6), `generate`/`render`/`regenerate` 60, שאר הנתיבים 30, webhooks 30, ‏cron ‏300.
+`maxDuration`: נתיבי AI אינטראקטיביים 300 שניות, עם תקציב זמן פנימי של 240 שניות (חלק 05 §2.2; §19.5 שלב 6), `generate`/`render`/`regenerate` 60, שאר הנתיבים 30, webhooks 30, cron 300. בהרחבה: נתיבי ה-NDJSON שלמעלה ו-`POST /api/landing-pages` הם נתיבי AI אינטראקטיביים (300); `POST /api/projects/[id]/hook-score` מחזיר תשובה תוך 5 שניות (§19.10); עבודה מול Meta שלוקחת יותר מכמה שניות (הכנת קמפיין והעלאת הסרטונים, פרסום רגיל, בדיקת דופק) רצה ב-Vercel Workflow, והנתיב רק מתחיל אותה ומחזיר `202`.
 
 ### 18.6 הגבלות קצב (Upstash, `lib/ratelimit.ts`)
 
@@ -5380,8 +5638,8 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 | `rewrite` | `…/scenes/[sceneId]/rewrite`, ‏`…/script/beats/[index]/rewrite`, ‏`…/post-caption`, ‏`…/edit-plan` | workspace | 50 / יום (משותף) | `rewrite` |
 | `inflect` | `/api/hooks/inflect`, ‏`…/script/inflect` | workspace | 50 / יום | `rewrite` |
 | `voice_preview` | `POST /api/voices/preview` | workspace | 20 / יום | `voice_preview` |
-| `generate` | `…/generate`, ‏`…/regenerate`, ‏`…/render` | workspace | 10 / שעה | `generate` |
-| `llm` | `…/script`, ‏`…/storyboard`, ‏`…/hooks`, ‏`/api/hooks/variations` | workspace | 60 / שעה | `generate` |
+| `generate` | `…/generate`, `…/regenerate`, `…/render`; ומההרחבה `POST /api/guided/shoots/[id]/autocut` | workspace | 10 / שעה | `generate` |
+| `llm` | `…/script`, `…/storyboard`, `…/hooks`, `/api/hooks/variations`; ומההרחבה `POST /api/campaigns/[id]/copy`, `…/explain`, `POST /api/guided/shoots`, `POST /api/landing-pages`, `POST /api/landing-pages/[id]/generate`, `POST /api/projects/[id]/hook-score` | workspace | 60 / שעה | `generate` |
 | `estimate` | `…/estimate` | user | 120 / דקה | — |
 | `uploads` | `/api/uploads/sign` | workspace | 120 / שעה | — |
 | `share` | `POST /api/share` | workspace | 60 / שעה | — |
@@ -5393,20 +5651,34 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 | `checkout_ip` | `POST /api/billing/checkout` (בנוסף ל-`billing`) | IP | 20 / שעה | `checkout` |
 | `account` | `/api/account/export` · `/api/account/delete` | user | 2 / יום · 3 / יום | — |
 | `whatsapp_verify` | `/api/account/whatsapp/start`, ‏`/api/account/whatsapp/confirm` (v2) | user | 5 / שעה | `whatsapp_verify` |
+| `meta_write` | כתיבות מול Meta: `POST /api/meta/connect/start`, `…/assets/select`, `…/disconnect`, `POST /api/campaigns`, `…/prepare`, `…/publish`, `…/pause`, `…/resume`, `…/end`, `…/duplicate`, `…/boost-winner` (§21b) | workspace | 30 / דקה | `meta_write` |
+| `meta_read` | קריאות מ-Meta: `GET /api/meta/assets`, `POST /api/meta/preflight`, `GET /api/meta/geo/search`, `GET /api/meta/dashboard`, `GET /api/campaigns/[id]/previews`, `GET /api/social/posts/[id]/boost-eligibility` | workspace | 120 / דקה | — |
+| `meta_refresh` | `POST /api/campaigns/[id]/insights/refresh` | campaign | 1 / 15 דקות | `meta_refresh` |
+| `social_publish` | `POST /api/social/posts`, `…/retry` | workspace | 20 / שעה | `social_publish` |
+| `leads_export` | `GET /api/leads/export.csv` | user | 5 / שעה | `leads_export` |
+| `trends` | `GET /api/trends`, `GET /api/trends/[slug]` | user | 120 / דקה | — |
+| `landing_lead` | `POST /api/b/[slug]/lead` (טופס הלידים הציבורי של דף העסק) | IP | 10 / שעה | `landing_lead` |
+| `health_check` | `POST /api/meta/health-check` | workspace | 1 / יום | `health_check` |
+| `plan_generate` | `POST /api/plan/generate` | workspace | 3 / יום | `plan_generate` |
 | `admin` | `/api/admin/*` | user | 120 / דקה | — |
 | `health` | `GET /api/health` | IP | 60 / דקה | — |
 | `default` | כל בקשה כותבת אחרת של משתמש מחובר | user | 300 / דקה | — |
 
 מגבלה עסקית שאינה bucket: יותר מ-6 רכישות חבילה ב-24 שעות לסביבה ← ‏429 `RATE_LIMITED` ‏`{ scope: "topup_daily" }` (חלק 06 §7.2). ‏**Webhooks** לא מוגבלים בקצב, אבל הגוף מוגבל ל-1MB וחתימה שגויה נדחית מיד (§22.1).
 
-**מפתחות Upstash** (כל המפתחות במערכת; אין אחרים): `rl:{bucket}:{scope}:{id}` (הגבלות קצב) · `cron:{name}` (נעילת cron, §23) · `cron:last:{name}` (הריצה האחרונה של כל cron, §23) · `or:halt` (עצירת AI, חלק 05 §2.3) · `or:spend:{yyyy-mm-dd}` (מונה שומר התקציב, חלק 05 §7.3) · `alert:{kind}:{bucket}` (מניעת הצפת התראות, חלק 06 §16.4) · `trial:ip:{ip}` (קצב הרשמות לניסיון, חלק 06 §7.1) · `wa:verify:{userId}` (קוד אימות WhatsApp, §21.3) · `hookevt:{ip}:{hookId}:{kind}` (מניעת כפילות באירועי הוקים, §20.3) · `consent:{userId}` (מטמון הסכמה לאנליטיקה, 10 דקות, חלק 06 §14.1) · `checkout:fail:{ws}` (מונה תשלומים שנכשלו, חלק 06 §7.2).
+**ההרחבה:**
+- **מגבלות עסקיות שאינן bucket** (הכול 429 `RATE_LIMITED` עם `retryAfter`): `meta_budget` — לכל היותר 3 שינויי תקציב בשעה לקמפיין, נספרים מ-`ad_change_log` ב-`ad_budget_changes_last_hour` (Meta מתירה 4; `POST /api/campaigns/[id]/budget` לא משתמש ב-bucket אחר); `meta_account` — שער ה-BUC של חשבון המודעות (`meta:acct:{actId}`, חלק 07) עצר את התור, ופעולה של משתמש לא יכולה לחכות; `ig_publish_daily` ו-`fb_reels_daily` — המכסה של Meta (נקראת בזמן ריצה) או `app_settings.social_daily_caps`, הנמוך מביניהם.
+- **כשל של Upstash:** `meta_write`, `social_publish`, `health_check` ו-`plan_generate` ב-**fail-closed** (503 `PROVIDER_UNAVAILABLE`), כי הם נוגעים בכסף של הלקוח במטא או מפעילים AI; `meta_read`, `trends` ו-`landing_lead` ב-**fail-open** (ה-honeypot של הטופס הציבורי ממשיך לעבוד).
+- **נתיבי האדמין** של ההרחבה (`/api/admin/trends/*`, `/api/admin/meta/*`) נמצאים ב-bucket `admin`.
+
+**מפתחות Upstash** (כל המפתחות במערכת; אין אחרים): `rl:{bucket}:{scope}:{id}` (הגבלות קצב) · `cron:{name}` (נעילת cron, §23) · `cron:last:{name}` (הריצה האחרונה של כל cron, §23) · `or:halt` (עצירת AI, חלק 05 §2.3) · `or:spend:{yyyy-mm-dd}` (מונה שומר התקציב, חלק 05 §7.3) · `alert:{kind}:{bucket}` (מניעת הצפת התראות, חלק 06 §16.4) · `trial:ip:{ip}` (קצב הרשמות לניסיון, חלק 06 §7.1) · `wa:verify:{userId}` (קוד אימות WhatsApp, §21.3) · `hookevt:{ip}:{hookId}:{kind}` (מניעת כפילות באירועי הוקים, §20.3) · `consent:{userId}` (מטמון הסכמה לאנליטיקה, 10 דקות, חלק 06 §14.1) · `checkout:fail:{ws}` (מונה תשלומים שנכשלו, חלק 06 §7.2) · מההרחבה (חלק 07): `meta:acct:{actId}` (מצב השער לפי כותרות השימוש של Meta לכל חשבון מודעות) · `meta:write:{actId}` (נעילה של זרימת כתיבה אחת לכל חשבון מודעות, 120 שניות) · `meta:previews:{campaignId}` (התצוגות המקדימות של Meta, 30 דקות) · `meta:explain:{campaignId}:{range}` (ההסבר בעברית לתוצאות, 6 שעות) · `lpview:{pageId}:{ipHash}` (מניעת כפילות בספירת הצפיות של דף העסק, LP9, 30 דקות; ה-IP עובר hash עם מלח יומי, חלק 07 §14.5).
 
 מעבר למגבלות הקצב: תקרת קרדיטים יומית (`daily_credit_cap`, ב-SQL בתוך `reserve_credits`), מגבלת מקביליות (`create_job_and_reserve`) ושומר התקציב הגלובלי (`BUDGET_GUARD`, חלק 05).
 IP נלקח מ-`ipAddress(req)` של `@vercel/functions` (ב-Next 16 אין `req.ip`).
 
 ### 18.7 אידמפוטנטיות (`lib/idempotency.ts`)
 
-**מתי חובה:** כל נתיב שמוציא קרדיטים — `POST …/hooks`, ‏`…/script`, ‏`…/storyboard`, ‏`…/generate`, ‏`…/scenes/[sceneId]/regenerate`, ‏`…/render`, ‏`/api/hooks/variations`. הכותרת `Idempotency-Key` חייבת להיות UUID v4; חסרה או לא תקינה ← 400 `INVALID_INPUT` ‏`{ reason: "idempotency_key_required" }`.
+**מתי חובה:** כל נתיב שמוציא קרדיטים — `POST …/hooks`, `…/script`, `…/storyboard`, `…/generate`, `…/scenes/[sceneId]/regenerate`, `…/render`, `/api/hooks/variations`, ומההרחבה `POST /api/landing-pages` ו-`POST /api/landing-pages/[id]/generate` (`landing.generate`) ו-`POST /api/guided/shoots/[id]/autocut` (`guided.autocut`). **בנוסף, כל נתיב שמשנה משהו אצל Meta או מפרסם בשם הלקוח:** `POST /api/campaigns/[id]/prepare`, `…/publish`, `…/boost-winner`, `POST /api/campaigns/[id]/copy`, `POST /api/social/posts` ו-`POST /api/plan/generate` (PL1). הם עוברים דרך `api_idempotency_keys` כמו נתיבי ה-LLM שלמטה, וכשהם מתחילים זרימה (`orchestrator.startFlow`) מפתח הזרימה הוא `{routeId}:{key}`, כך שלחיצה כפולה לא יוצרת קמפיין כפול, פרסום כפול או פוסט כפול. הכותרת `Idempotency-Key` חייבת להיות UUID v4; חסרה או לא תקינה ← 400 `INVALID_INPUT` `{ reason: "idempotency_key_required" }`.
 
 **הקליינט:** מפתח חדש לכל **פעולה יזומה** של המשתמש (לחיצה), ואותו מפתח לכל ניסיון חוזר אוטומטי של אותה לחיצה (רשת שנפלה, 409 `in_progress`). `lib/api/client.ts` עושה את זה אוטומטית.
 
@@ -5451,7 +5723,7 @@ export async function api<TRes>(input: { method: "GET" | "POST" | "PATCH" | "DEL
 ```
 
 ### קריטריוני קבלה
-- [ ] בדיקת יחידה עוברת על כל `ERROR_CODES`: לכל קוד יש סטטוס, ‏`message_he` ומפתח `errors.{CODE}` ב-`messages/he.json`.
+- [ ] בדיקת יחידה עוברת על כל `ERROR_CODES` (27): לכל קוד יש סטטוס, `message_he` ומפתח `errors.{CODE}` ב-`messages/he.json`, ולכל `reason`/`check` של חמשת הקודים החדשים יש מפתח קופי.
 - [ ] `fromDbError({ code: "P0001", message: "INSUFFICIENT_CREDITS", details: '{"needed":107,"balance":40}' })` מחזיר ‏402 עם `details` מפוענח; ‏`fromDbError({ code: "P0001", message: "AUDIT_LOG_IMMUTABLE" })` מחזיר ‏500 `INTERNAL_ERROR`.
 - [ ] בדיקה סטטית: אין קובץ שמחזיר `error.code` שאינו ב-`ERROR_CODES`, ואין שימוש ב-`toTextStreamResponse`, ב-`experimental_useObject` או בכותרת `X-Version-Id`.
 - [ ] זרם `script` מסתיים בשורה `{"type":"done","versionId":…}` שהמזהה שלה שווה ל-`projects.current_version_id`; כשל מדומה של הספק באמצע הזרם מסתיים בשורת `error` עם `details.refunded = 2`.
@@ -5460,6 +5732,8 @@ export async function api<TRes>(input: { method: "GET" | "POST" | "PATCH" | "DEL
 - [ ] שתי בקשות `generate` עם אותו `Idempotency-Key` (במקביל) יוצרות עבודה אחת ושמירת קרדיטים אחת; השנייה מחזירה 202 עם אותו `jobId`.
 - [ ] בקשת `script` שנכשלה ב-503 ונשלחה שוב עם אותו מפתח מחייבת פעם אחת בלבד בסך הכול (היומן מראה `reserve`+`capture`+`refund` לניסיון הראשון ו-`reserve`+`capture` לשני).
 - [ ] 6 בקשות `brand/extract` באותו יום מאותה סביבה ← השישית 429 עם `details.scope = "brand_extract"`.
+- [ ] שינוי תקציב רביעי באותה שעה לאותו קמפיין ← 429 `{ scope: "meta_budget", retryAfter }`, ובלי קריאה ל-Meta; בדיקת דופק שנייה באותו יום ← 429 `{ scope: "health_check" }`; טופס ליד אחד-עשר מאותו IP בשעה ← 429 `{ scope: "landing_lead" }`.
+- [ ] `META_NOT_CONNECTED` מוחזר בסטטוס 409 גם כשהוא נזרק מתוך RPC (`raise_app_error`), ו-`META_API_ERROR` לעולם לא כולל `access_token` או `appsecret_proof` ב-`details` או ב-Sentry (בדיקה עם fixture של Meta).
 
 ---
 
@@ -5509,7 +5783,7 @@ export const looseRow = z.looseObject({ id: z.string() });                      
 
 | # | Method · Path | Auth · סביבה | Idempotency | Rate limit | הצלחה | שגיאות עיקריות |
 |---|---|---|---|---|---|---|
-| 1 | `POST /api/projects` | editor · cookie | — | default | `201 { projectId, step }` | `PLAN_LIMIT` (`projects_max`), `NOT_FOUND` (תבנית/הוק) |
+| 1 | `POST /api/projects` | editor · cookie | — | default | `201 { projectId, step }`; מההרחבה גם מתבנית טרנד (`trendSlug`, `productionMode`, `src: "trend"`, §19.3) | `PLAN_LIMIT` (`projects_max`), `NOT_FOUND` (תבנית/הוק; `retired` לתבנית טרנד שהוצאה משימוש), `INVALID_INPUT` (`production_mode_unavailable`) |
 | 2 | `PATCH /api/projects/[id]` | editor · project | — | default | `200 { project }` | `EDIT_CONFLICT`, `PLAN_LIMIT`, `INVALID_INPUT` |
 | 3 | `POST /api/projects/[id]/duplicate` | editor · project | — | default | `201 { projectId }` | `PLAN_LIMIT` |
 | 4 | `POST /api/projects/[id]/versions` | editor · project | — | default | `201 { versionId, version }` | `NOT_FOUND` |
@@ -5529,10 +5803,13 @@ export const looseRow = z.looseObject({ id: z.string() });                      
 | 17 | `POST /api/projects/[id]/generate` | editor · project | **חובה** | `generate` | `202 { jobId, variantProjectIds }` | `402 INSUFFICIENT_CREDITS` · `403 PLAN_LIMIT` (כולל `client_workspace_read_only`) · `409 CONCURRENCY_LIMIT` · `422 MISSING_FACTS` · `422 MODERATION_BLOCKED` · `451 ELECTION_POLICY_BLOCKED` · `503 BUDGET_GUARD` · `503 MAINTENANCE` |
 | 18 | `POST /api/projects/[id]/scenes/[sceneId]/regenerate` | editor · project | **חובה** | `generate` | `202 { jobId }` | כמו 17 |
 | 19 | `POST /api/projects/[id]/render` | editor · project | **חובה** | `generate` | `202 { jobId }` | כמו 17 (בלי `MISSING_FACTS`) |
-| 20 | `POST /api/projects/[id]/post-caption` | editor · project | — | `rewrite` | `200 { post_caption_he, hashtags_he }` | `RATE_LIMITED`, `MODERATION_BLOCKED`, `PROVIDER_UNAVAILABLE` |
+| 20 | `POST /api/projects/[id]/post-caption` | editor · project | — | `rewrite` | `200 { post_caption_he, hashtags_he, first_line_cta_he }` (`post.caption.v2`; עד 5 האשטגים ל-`reels` ול-`facebook`) | `RATE_LIMITED`, `MODERATION_BLOCKED`, `PROVIDER_UNAVAILABLE` |
 | 21 | `POST /api/projects/[id]/edit-plan` (v2, דגל `chat_edit`) | editor · project | — | `rewrite` | `200 { plan: EditPlanV1 }` | `NOT_FOUND` (דגל כבוי), `RATE_LIMITED` |
 | 22 | `GET /api/jobs/[id]` | member · job | — | — | `200 { job, steps, scenes }` | `NOT_FOUND` |
 | 23 | `POST /api/jobs/[id]/cancel` | editor · job | — | default | `200 { status }` | `INVALID_INPUT` (`not_cancelable`) |
+| 24 | `POST /api/projects/[id]/hook-score` (דגל `hook_score`) | member · project | — (אידמפוטנטי לפי גרסה) | `llm` | `200 { versionId, hookScore, cached }` (סינכרוני, עד 5 שניות, 0 קרדיטים, §19.10) | `NOT_FOUND` (דגל כבוי, גרסה של פרויקט אחר), `INVALID_INPUT` (`no_storyboard`) |
+
+**נתיבי ההרחבה** (Meta, קמפיינים, לידים, פרסום רגיל, טרנדים, צילום מודרך, דף העסק, בדיקת דופק ותוכנית 30 יום) רשומים ברשימת האב של §21b; נתיבי האדמין שלה ב-§24.1. כאן נשארים רק #1 (יצירה מתבנית טרנד), #20 (גרסה 2 של טקסט הפוסט) ו-#24 (ציון הוק), כי הם חלק מחוזה הפרויקט.
 
 ### 19.3 פרויקטים
 
@@ -5546,9 +5823,12 @@ export const CreateProjectBody = z.strictObject({
   videoType: z.enum(ENUMS.video_type).optional(),
   seasonSlug: Slug.optional(),                       // /app/create?season=
   fast: z.boolean().optional(),                      // "צרו לי הכל אוטומטית" fast path
+  trendSlug: Slug.optional(),                        // /app/create?trend= ; a published, unexpired trend_templates.slug (part 08)
+  productionMode: z.enum(["ai", "guided"]).optional(),   // only with trendSlug; default "ai"; "guided" needs flag guided_filming
   // same values as /app/create?src= ; an unknown value is ignored, not an error
-  src: z.enum(["hero", "final_cta", "onboarding", "hooks", "template", "dashboard", "niche_page"]).optional().catch(undefined),
-}).refine((b) => !(b.hookId && b.workspaceHookId), { params: { key: "custom" }, path: ["workspaceHookId"] });
+  src: z.enum(["hero", "final_cta", "onboarding", "hooks", "template", "dashboard", "niche_page", "trend", "plan"]).optional().catch(undefined),   // "plan" = from a 30-day plan item (part 03 §6.0, part 07 §16.3)
+}).refine((b) => !(b.hookId && b.workspaceHookId), { params: { key: "custom" }, path: ["workspaceHookId"] })
+  .refine((b) => !b.productionMode || !!b.trendSlug, { params: { key: "custom" }, path: ["productionMode"] });
 export const CreateProjectResponse = z.object({ projectId: Uuid, step: WizardStep });
 // step = first incomplete step computed by lib/wizard/progress.ts (part 03 §6.0), not always "business"
 
@@ -5573,12 +5853,16 @@ export const ProjectBrief = z.strictObject({
   })).max(40).optional(),
   // one row per ComplianceChecklist checkbox (part 03 §6.5) = the ScriptV1 compliance flags that require a confirmation
   attestations: z.array(z.strictObject({
-    kind: z.enum(["testimonial_requires_consent", "urgency_must_be_true", "results_claim", "price_claim", "kashrut_claim", "minors"]),
+    kind: z.enum(["testimonial_requires_consent", "urgency_must_be_true", "results_claim", "price_claim", "kashrut_claim", "minors",
+                  "people_on_camera_consent"]),                            // guided filming with people on camera (part 08)
     at: IsoDateTime, by: Uuid })).max(10).optional(),
   testimonial: z.strictObject({ quote_he: HeText(5, 400), name_he: HeText(2, 60), consent_attested: z.boolean() }).nullable().optional(),
   audio_mix: z.strictObject({ music_level: z.number().min(0).max(1), ducking: z.boolean(), ducked_level: z.number().min(0).max(1) }).optional(),
   post_caption: z.strictObject({ text_he: z.string().max(1500), hashtags_he: z.array(z.string()).max(8), platform: z.enum(ENUMS.platform),
-    generated_at: IsoDateTime }).nullable().optional(),
+    first_line_cta_he: z.string().trim().max(150).nullable().optional(),   // post.caption.v2
+    generated_at: IsoDateTime })
+    .refine((c) => !["reels", "facebook"].includes(c.platform) || c.hashtags_he.length <= 5, { params: { key: "custom" }, path: ["hashtags_he"] })
+    .nullable().optional(),
 });
 
 // per-project overrides of the brand kit (projects.render_options, §6); all keys optional
@@ -5644,6 +5928,13 @@ export const ProjectPatchResponse = z.object({ project: looseRow });
 - **איזה לקוח כותב:** `PATCH` ו-`POST /api/projects` כותבים דרך הלקוח של המשתמש, כך שה-RLS והשומרים של §11.3 חלים. כתיבה של עמודות שהשרת מנהל (`stage`, ‏`current_version_id`, ‏`latest_job_id`) ושל `project_versions.moderation` — ב-`duplicate`, ב-`versions`, ביצירת תסריט ובשכתובים — עוברת בלקוח הסודי, אחרי שהעטיפה כבר בדקה את ההרשאה על הפרויקט.
 
 **`POST /api/projects` (יצירה):** בודק `projects_max` (ספירת פרויקטים שאינם מחוקים בסביבה). ממלא ברירות מחדל מהתבנית (`video_type`, `goal`, `duration_target_sec`, `visual_style`, `visual_mix`, `caption_preset`, `music_mood`), מההוק (`hook_id`, `hook_text_he`, `niche_slug`), מהנישה (`default_register`, `default_audience_gender`, `default_music_mood`, `default_cta`) ומערכת המותג המוגדרת כברירת מחדל (`brand_kit_id`, `caption_preset`, `default_voice_id`). כש-`hookId` מגיע, `increment_hook_event(hookId, 'generate')` נקרא **רק אחרי** שהיצירה הראשונה של הפרויקט הצליחה (בצנרת), לא כאן.
+
+**יצירה מתבנית טרנד** (`trendSlug`, מ-`0014`; הזרימה המלאה בחלק 08):
+- התבנית חייבת להיות `published` ולא אחרי `expires_at`; אחרת 404 `NOT_FOUND` `{ reason: "retired" }`. דגל `trends` כבוי ← 404 בלי `details`.
+- `productionMode = "guided"` דורש את הדגל `guided_filming` ותבנית עם `production_mode` `guided` או `hybrid`; אחרת 400 `INVALID_INPUT` `{ reason: "production_mode_unavailable" }`.
+- הפרויקט נוצר עם `trend_template_id` ו-`production_mode`, וברירות המחדל באות **קודם** מהתבנית (`default_goal`, `default_video_type`, `default_duration_sec`, `default_visual_style`, `default_caption_preset`, `default_music_mood`, ו-`no_voice` כש-`vo_mode = 'none'`), ואחר כך מהנישה של הסביבה ומערכת המותג, כמו למעלה. גרסאות ההוק של התבנית נבחרות מראש ב-`brief.variant_hooks`, עד `limits.hook_variants_max − 1`.
+- באותה כתיבה נוצרת שורת `trend_template_uses` אחת לפרויקט (`niche_slug`, `hook_variant_keys`, `production_mode`), בלקוח הסודי, כי הטבלה נכתבת רק בשרת.
+- `projects_max` נבדק כרגיל; ה-`step` שחוזר הוא השלב הראשון שלא הושלם באשף הקיים (אין שלב חדש).
 
 **`POST /api/projects/[id]/duplicate`:** מעתיק את שורת הפרויקט (כותרת + " (עותק)"), את הגרסה הנוכחית כגרסה 1 ואת הסצנות שלה עם אותם `*_asset_id` (בלי ליצור מדיה מחדש), ‏`stage = 'storyboard'` אם היו סצנות, אחרת `'brief'`.
 
@@ -5727,10 +6018,14 @@ export const StoryboardResponse = z.object({ versionId: Uuid, storyboard: Storyb
 export const SceneRewriteBody = BeatRewriteBody;
 export const SceneRewriteResponse = z.object({ scene: looseRow });
 
-// "כתיבה מחדש · חינם" of the post text in the downloads panel; runs post.caption.v1 (part 05), 0 credits, bucket `rewrite`
+// "כתיבה מחדש · חינם" of the post text in the downloads panel and in the publish dialog (part 07); 0 credits, bucket `rewrite`.
+// From the 2026-10-17 extension it runs post.caption.v2 (part 07 holds the text; part 05 registers it): CTA in the first line,
+// at most 5 hashtags for reels/facebook (Instagram API limit), sanitized by lib/social/caption.ts
 export const PostCaptionBody = z.strictObject({ versionId: Uuid, platform: z.enum(ENUMS.platform) });
-export const PostCaptionResponse = z.object({ post_caption_he: z.string(), hashtags_he: z.array(z.string()) });
-// stored in projects.brief.post_caption {text_he, hashtags_he, platform, generated_at} (the version may be locked);
+export const PostCaptionResponse = z.object({
+  post_caption_he: z.string(), hashtags_he: z.array(z.string()), first_line_cta_he: z.string(),
+});
+// stored in projects.brief.post_caption {text_he, hashtags_he, platform, first_line_cta_he, generated_at} (the version may be locked);
 // the downloads panel shows brief.post_caption when present, else version.script.post_caption_he
 
 // v2, flag chat_edit (flag off → 404): plans edits only, writes nothing, 0 credits, bucket `rewrite`.
@@ -5777,7 +6072,13 @@ export const ScenePatchBody = z.strictObject({
   camera: z.enum(["static", "push_in", "pull_out", "pan_left", "pan_right", "tilt_up", "tilt_down", "handheld", "orbit", "drone"]).optional(),
   imagePromptEn: z.string().trim().max(1000).optional(),           // "מתקדם" only
   motionPromptEn: z.string().trim().max(600).optional(),
-});
+  // 2026-10-17 extension (0014, part 08): text slots of the trend overlay ("טקסט על השלט", "טקסט בהודעה") and user-media trims.
+  // Only the Hebrew text of an EXISTING scenes.overlay may change here; kind, position, style and timing stay server-written (R7).
+  overlayTexts: z.record(z.string().regex(/^[a-z][a-z0-9_]{0,30}$/), z.string().trim().min(1).max(60)).optional(),
+  userMediaInMs: z.number().int().min(0).optional(),
+  userMediaOutMs: z.number().int().min(1).optional(),
+}).refine((b) => b.userMediaInMs === undefined || b.userMediaOutMs === undefined || b.userMediaOutMs - b.userMediaInMs >= 500,
+  { params: { key: "custom" }, path: ["userMediaOutMs"] });
 export const SceneDeleteQuery = z.object({ ifUnmodifiedSince: IsoDateTime });
 export const SceneReorderBody = z.strictObject({ versionId: Uuid, sceneIds: z.array(Uuid).min(1).max(12), ifUnmodifiedSince: IsoDateTime });
 export const ScenesIndexResponse = z.object({ scenes: z.array(z.object({ id: Uuid, index: z.number().int() })) });
@@ -5787,6 +6088,8 @@ export const ScenesIndexResponse = z.object({ scenes: z.array(z.object({ id: Uui
 - **נעילת גרסה:** כל שינוי בסצנה של גרסה נעולה ← ‏409 `EDIT_CONFLICT` ‏`{ reason: "version_locked" }`; הקליינט מפצל (`POST …/versions`) וחוזר על הפעולה על הגרסה החדשה (חלק 03).
 - `ifUnmodifiedSince` מושווה ל-`scenes.updated_at` (בשינוי סצנה) או ל-`max(updated_at)` של סצנות הגרסה (מחיקה וסידור). התנגשות ← `EDIT_CONFLICT` ‏`{ reason: "stale" }`.
 - `userAssetId` חייב להיות `upload_image`/`upload_video` של אותה סביבה; בחירה בו קובעת `visual_source = 'user_media'` (וידאו) או `'user_photo_animated'` (תמונה) אם לא נשלח אחרת.
+- **`overlayTexts`** (מ-`0014`): כל מפתח חייב להיות שם של משבצת טקסט שקיימת ב-`scenes.overlay` הנוכחי לפי ה-`kind` שלו (`SceneOverlayV1`, חלק 08), והאורך נבדק מול `LENGTH_LIMITS` של נספח E §12 (למשל `sign_text` 40, `popup_title` 24, `popup_body` 60, `meme_caption` 40). סצנה בלי שכבה, או מפתח שלא קיים בשכבה ← 400 `INVALID_INPUT` `{ reason: "overlay_slot_unknown" }`; טקסט ארוך מדי ← `issues` על `overlayTexts.{slot}`. הטקסט החדש נכנס ל-`scenes_digest` (חלק 05) ועובר מודרציה ב-`generate` כמו כל טקסט אחר בסצנה (§19.8).
+- **`userMediaInMs` / `userMediaOutMs`** (מ-`0014`) נשמרים ב-`scenes.user_media_in_ms` / `user_media_out_ms`. מותרים רק כש-`visual_source = 'user_media'` ונכס הווידאו קיים; `out` חייב להיות עד `duration_ms` של הנכס, וקטע של חצי שנייה לפחות. אחרת ← 400 `INVALID_INPUT` `{ reason: "trim_out_of_range" }`. החיתוך האוטומטי של `guidedAutocut` כותב את אותן עמודות בצד השרת, והעורך יכול לתקן אותו כאן.
 - סצנת ההוק (`is_hook_scene`) תמיד באינדקס 0: סידור שמזיז אותה ← ‏400 `INVALID_INPUT` ‏`{ reason: "hook_scene_first" }`; מחיקתה ← `{ reason: "hook_scene_required" }`.
 - מחיקה וסידור מעדכנים את `index` של כל הסצנות בטרנזקציה אחת (RPC פנימי `reindex_scenes(p_version uuid, p_ids uuid[])`, ‏service_role, §11.3, שמזיז קודם את כל הסצנות לאינדקסים זמניים מעל 1000 — לא שליליים, כי `index >= 0` — כדי לא להתנגש ב-`unique (version_id, index)`).
 
@@ -5869,6 +6172,30 @@ export const CancelJobResponse = z.object({ status: z.enum(ENUMS.job_status) });
 - `GET /api/jobs/[id]`: ‏`job` (‏`JobDTO`), ‏`steps` (‏`JobStepDTO[]` ממוינים לפי `created_at`), ‏`scenes` (סצנות הגרסה של העבודה). זה נתיב ה-polling (5 שניות) — שאילתה אחת לכל טבלה, בלי כתובות חתומות.
 - `POST /api/jobs/[id]/cancel`: מותר כש-`status ∈ {queued, running, waiting_external}`; מגדיר `canceled_at = now()` (לקוח סודי), קורא ל-`orchestrator.cancel`, ומחזיר את הסטטוס הנוכחי. הצנרת מסיימת את השלב הנוכחי, מחייבת רק שלבים שהסתיימו ומסלקת את השמירה (`settle_reservation`, חלק 05). אחרת ← ‏400 `INVALID_INPUT` ‏`{ reason: "not_cancelable" }`.
 
+### 19.10 ציון הוק (`POST /api/projects/[id]/hook-score`, דגל `hook_score`)
+
+הלוגיקה — הבדיקות הדטרמיניסטיות ב-`lib/hooks/score.ts` והפרומפט `hooks.score.v1` על הנתיב `llm.cheap` — שייכת לחלק 05, והממשק (`HookScoreBadge`, הפאנל ו"תקנו בקליק") לחלק 03. כאן החוזה והעמודה `project_versions.hook_score` (§2.3, §6).
+
+```ts
+// lib/api/contracts/projects.ts (hook score)
+import { HookScoreV1 } from "@/lib/ai/schemas/hooks";     // part 05 §11.2 owns the Zod; it is exactly what the column stores
+export const HookScoreBody = z.strictObject({ versionId: Uuid });
+export const HookScoreResponse = z.object({
+  versionId: Uuid,
+  hookScore: HookScoreV1,       // { version: 1, score (int 0–100), checks[], suggestions[] (≤ 3, each with a fix action),
+                                //   llm: HookScoreLlmV1 | null, degraded, input_hash, prompt_version, computed_at }
+  cached: z.boolean(),          // true = read from the column, nothing recomputed
+});
+```
+
+1. **הרשאה:** חבר בסביבה של הפרויקט, כולל צופים, כי הציון הוא נתון נגזר והתג מוצג לכולם. דגל כבוי, או גרסה שלא שייכת לפרויקט ← 404.
+2. גרסה בלי סטוריבורד ← 400 `INVALID_INPUT` `{ reason: "no_storyboard" }`.
+3. **אידמפוטנטיות לפי גרסה:** `input_hash` = sha256 של JSON קנוני של מה שהציון תלוי בו (הסצנות של הסטוריבורד, הכתוביות, פלטפורמת היעד והאורך; הרשימה המדויקת בחלק 05). אם `hook_score.input_hash` שווה ו-`degraded = false`, מחזירים את הערך השמור עם `cached: true`, בלי קריאה למודל.
+4. אחרת: השכבה הדטרמיניסטית (בלי רשת), ואז `hooks.score.v1` עם תקציב זמן של 3.5 שניות. כשל או חריגת זמן של המודל אינם שגיאה: התשובה היא 200 עם `llm: null`, `degraded: true` וציון מהשכבה הדטרמיניסטית בלבד, והקריאה הבאה מנסה שוב. כל הנתיב עונה תוך 5 שניות.
+5. **כתיבה:** `update project_versions set hook_score = …` בלקוח הסודי, גם בגרסה נעולה, בלי לקדם את `updated_at` (§2.3). שתי קריאות במקביל על אותו קלט כותבות את אותה תוצאה, ולכן האחרונה מנצחת בלי נזק.
+6. **עלות:** 0 קרדיטים (`hooks.score`), ב-bucket `llm`. הציון הוא הערכה בלבד: הוא לעולם לא חוסם רינדור, פרסום רגיל או קמפיין. הממשק מציג לידו את המשפט "הערכה לפי כללי הוקים — לא הבטחה לתוצאות." (חלק 03).
+7. דמו של תבנית טרנד הוא גרסה רגילה של פרויקט בסביבת הסטודיו (§16.3), ולכן גם הציון שלו נשמר באותה עמודה; איך כרטיס הטרנד מציג אותו — חלק 08.
+
 ### קריטריוני קבלה
 - [ ] `POST /api/projects` בתוכנית החינמית עם 3 פרויקטים קיימים ← 403 `PLAN_LIMIT` ‏`{ limit: "projects_max", max: 3 }`.
 - [ ] `PATCH` עם `qualityTier: "premium"` בתוכנית בסיס ← 403 `PLAN_LIMIT` ‏`{ limit: "quality_tiers", required: "business" }`.
@@ -5885,6 +6212,10 @@ export const CancelJobResponse = z.object({ status: z.enum(ENUMS.job_status) });
 - [ ] `PATCH` עם `renderOptions: { logo_bug: true }` ואחר כך `renderOptionsReset: ["logo_bug"]` משאיר `render_options = {}`.
 - [ ] `GET /api/jobs/[id]` של סביבה אחרת ← 404 (לא 403).
 - [ ] `PATCH` לסצנה של גרסה שכבר רונדרה ← 409 `{ reason: "version_locked" }`.
+- [ ] `POST /api/projects` עם `trendSlug` של תבנית `retired` ← 404 `{ reason: "retired" }`; עם תבנית `published` ← פרויקט עם `trend_template_id`, `production_mode = 'ai'` ושורת `trend_template_uses` אחת; `productionMode: "guided"` כשהדגל `guided_filming` כבוי ← 400 `{ reason: "production_mode_unavailable" }`; `productionMode` בלי `trendSlug` ← 400.
+- [ ] `post-caption` עם `platform: "reels"` מחזיר `first_line_cta_he` ולכל היותר 5 האשטגים.
+- [ ] `PATCH` לסצנה עם `overlayTexts: { text_he: "…" }` בסצנה בלי שכבה ← 400 `{ reason: "overlay_slot_unknown" }`; `userMediaOutMs` מעבר לאורך הנכס ← 400 `{ reason: "trim_out_of_range" }`.
+- [ ] `hook-score` פעמיים על אותה גרסה בלי שינוי ← השנייה `cached: true` ובלי שורת `ai_generations` חדשה; כשהמודל המדומה חורג מהזמן ← 200 עם `degraded: true` תוך 5 שניות; על גרסה שרונדרה — הציון נשמר ו-`updated_at` לא משתנה; צופה מקבל 200, וחבר בסביבה אחרת 404.
 
 ---
 
@@ -5909,6 +6240,8 @@ export const CancelJobResponse = z.object({ status: z.enum(ENUMS.job_status) });
 | 13 | `POST /api/abuse-reports` | public | `public_forms` | `204` | `INVALID_INPUT` (נשמר עם `source = 'share_page'`) |
 | 14 | `POST /api/invites/accept` | user | default | `200 { workspaceId }` | `NOT_FOUND`, `FORBIDDEN` (`invite_email_mismatch`), `PLAN_LIMIT` (`seats`) |
 
+נתיבי הצילום המודרך (`/api/guided/*`, G1–G4) ונתיבי הטרנדים (`/api/trends*`, T1–T2) רשומים ב-§21b. הם משתמשים ב-`uploads/sign` וב-`uploads/complete` שלמעלה כמו שהם, עם השדות של הצילום המודרך (§20.2).
+
 ### 20.2 העלאות ונכסים
 
 ```ts
@@ -5917,7 +6250,7 @@ export const UPLOAD_RULES = {
   logo:         { bucket: "brand-assets", maxBytes: 5 * 1024 ** 2,   mimes: ["image/png", "image/jpeg", "image/webp", "image/svg+xml"] },
   brand_image:  { bucket: "brand-assets", maxBytes: 20 * 1024 ** 2,  mimes: ["image/png", "image/jpeg", "image/webp"] },
   upload_image: { bucket: "uploads",      maxBytes: 25 * 1024 ** 2,  mimes: ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"] },
-  upload_video: { bucket: "uploads",      maxBytes: 500 * 1024 ** 2, mimes: ["video/mp4", "video/quicktime"] },
+  upload_video: { bucket: "uploads",      maxBytes: 500 * 1024 ** 2, mimes: ["video/mp4", "video/quicktime", "video/webm"] }, // webm: 0014
 } as const;
 export const RESUMABLE_THRESHOLD = 6 * 1024 ** 2;
 
@@ -5929,11 +6262,18 @@ export const UploadSignBody = z.strictObject({
   brandKitId: Uuid.optional(),                        // required for logo / brand_image
   projectId: Uuid.optional(),                         // optional link (scene media)
   consentAttested: z.boolean().optional(),            // "יש לי הסכמה בכתב מכל מי שמופיע" → metadata.consent_attested {by, at}
+  // guided filming (0014, part 08): stored as metadata { guided_shoot_id, shot_key, source }; upload_video only
+  guidedShootId: Uuid.optional(),
+  shotKey: z.string().regex(/^[a-z0-9_]{1,40}$/).optional(),
+  captureSource: z.enum(["camera", "file"]).optional(),
 }).superRefine((b, ctx) => {
   const r = UPLOAD_RULES[b.kind];
   if (!(r.mimes as readonly string[]).includes(b.mime)) ctx.addIssue({ code: "custom", path: ["mime"], params: { key: "invalid_enum" } });
   if (b.bytes > r.maxBytes) ctx.addIssue({ code: "custom", path: ["bytes"], params: { key: "too_big_number" } });
   if ((b.kind === "logo" || b.kind === "brand_image") && !b.brandKitId) ctx.addIssue({ code: "custom", path: ["brandKitId"], params: { key: "required" } });
+  if (b.guidedShootId && (b.kind !== "upload_video" || !b.shotKey || !b.captureSource))
+    ctx.addIssue({ code: "custom", path: ["guidedShootId"], params: { key: "custom" } });
+  if (b.mime === "video/webm" && !b.guidedShootId) ctx.addIssue({ code: "custom", path: ["mime"], params: { key: "invalid_enum" } });
 });
 export const UploadSignResponse = z.object({
   assetId: Uuid, bucket: z.enum(["brand-assets", "uploads"]), path: z.string(),
@@ -5953,6 +6293,7 @@ export const AssetUrlResponse = z.object({ url: z.url(), expiresAt: IsoDateTime 
 2. ≤ 6MB: `supabase.storage.from(bucket).uploadToSignedUrl(path, token, file, { contentType: mime })`. ‏> 6MB: ‏`tus-js-client` אל `${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable` עם `authorization: Bearer <access_token>`, ‏`apikey: <publishable>`, ‏`x-upsert: false`, ‏metadata ‏`{ bucketName, objectName: path, contentType: mime, cacheControl: "3600" }`, ‏`chunkSize: 6MB`; ה-RLS (`storage_upload_allowed`) מאשר רק את הנתיב הרשום.
 3. `complete`: בודק שהאובייקט קיים וגודלו ≤ המגבלה, magic bytes, ‏probe (‏§13.2), מנקה SVG, ממיר HEIC, מעדכן `width/height/duration_ms/aspect_ratio/mime/bytes/sha256`, ‏`upload_state='ready'`. כשל ← מחיקת האובייקט, `upload_state='rejected'`, ‏`is_deleted=true`, ו-400 עם `reason`.
    **מודרציה של העלאות** (`moderation.upload.v1`, חלק 05 §10.14) — רק ל-`upload_image` (ה-JPEG השמור) ול-`upload_video` (הפריים הראשון, שמחולץ ב-`@remotion/media-parser`/ffmpeg); לא ל-`logo` ולא ל-`brand_image`. הקלט: התמונה (כתובת חתומה ל-10 דקות) ושם הקובץ. מותר ← `metadata.moderation = {allowed: true, categories: [], checked_at, prompt_version}`. נחסם ← מחיקת האובייקט, `upload_state='rejected'`, ותשובת ‏422 `MODERATION_BLOCKED` ‏`{ reason_he, categories }` (תוכן מיני שקשור לקטינים מפעיל גם התראת אדמין). תקלה אצל הספק ← הנכס נשמר עם `metadata.moderation = {pending: true}`, ה-cron ‏`cleanup` בודק אותו שוב, ו-`plan.ts` (חלק 05) לא משתמש בנכס כזה ברינדור עד שהבדיקה עוברת.
+   **צילום מודרך** (מ-`0014`): `sign` עם `guidedShootId` בודק שהצילום שייך לאותה סביבה ושה-`status` שלו `planning` או `shooting`, ושומר ב-`assets.metadata` את `guided_shoot_id`, `shot_key` ו-`source` (מ-`captureSource`). `video/webm` מתקבל **רק** בזרימה הזו, כי רק `guidedAutocut` ממיר אותו ל-MP4 ב-H.264; ב-`complete` הוא מזוהה לפי חתימת EBML (`1A 45 DF A3`). הקישור לצילום עצמו (`guided_shoots.shots`) נעשה אחרי `complete`, ב-`POST /api/guided/shoots/[id]/shots/[shotKey]` (§21b).
 4. `GET /api/assets/[id]/url`: קריאת השורה דרך הלקוח של המשתמש (RLS = ההרשאה); `is_deleted` או `upload_state ≠ ready` ← 404; אחרת כתובת חתומה לשעה (`download` עם שם ASCII כש-`?download=1`). `public-media` ← כתובת ציבורית.
 
 ### 20.3 ספריית ההוקים
@@ -6108,6 +6449,7 @@ export const InviteAcceptResponse = z.object({ workspaceId: Uuid });
 
 ### קריטריוני קבלה
 - [ ] `uploads/sign` עם `mime: "application/pdf"` ← 400 עם `issues[0].path = ["mime"]`; עם וידאו של 600MB ← 400.
+- [ ] `uploads/sign` עם `video/webm` בלי `guidedShootId` ← 400; עם צילום מודרך של אותה סביבה ← 200, ו-`assets.metadata` מכיל `guided_shoot_id`, `shot_key` ו-`source`; עם צילום של סביבה אחרת ← 404.
 - [ ] העלאת קובץ של 80MB ב-TUS מצליחה ממובייל (Playwright עם חיתוך רשת באמצע וחידוש).
 - [ ] `assets/[id]/url` לנכס של סביבה אחרת ← 404; לנכס `pending` ← 404.
 - [ ] `GET /api/hooks/search?q=נדל"ן&platform=tiktok&page=2` מחזיר `page: 2` ו-`facets.platform.tiktok` = `total`.
@@ -6148,6 +6490,8 @@ export const InviteAcceptResponse = z.object({ workspaceId: Uuid });
 | 17 | `GET /api/newsletter/confirm?token=` | public + token | `unsubscribe` | `303 → /?newsletter=confirmed` | `303 → /?newsletter=invalid` |
 | 18 | `POST /api/unsubscribe?token=` | public + token | `unsubscribe` | `200` (RFC 8058 one-click) | `400` טוקן לא תקין |
 | 19 | `GET /api/health` | public | `health` | `200 { ok, db, redis, version, time }` | ‏`503` (אותו גוף, `ok: false`) |
+
+הטופס הציבורי של דף העסק (`POST /api/b/[slug]/lead`), חיבור Meta, הקמפיינים, הלידים, הפרסום הרגיל, בדיקת הדופק ותוכנית 30 יום רשומים ב-§21b.
 
 ### 21.2 חיוב
 
@@ -6201,7 +6545,7 @@ export const PlanChangeBody = z.strictObject({
 export const PlanChangeResponse = z.object({
   effectiveAt: IsoDateTime, chargeNowIls: z.number(), creditsGrantedNow: z.number().int(), immediate: z.boolean(),
   newCycle: z.enum(ENUMS.billing_cycle), newPriceIls: z.number(),
-  downgradeImpacts: z.array(z.object({ limit: z.string(), current: z.number(), allowed: z.number() })),   // seats, brand_kits, client_workspaces
+  downgradeImpacts: z.array(z.object({ limit: z.string(), current: z.number(), allowed: z.number() })),   // seats, brand_kits, client_workspaces; + meta_ad_accounts, meta_active_campaigns, meta_auto_rules, social_scheduled_max, landing_pages (part 06 §5.3–§5.4)
 });
 ```
 
@@ -6224,7 +6568,8 @@ export const DataRequestResponse = z.object({ requestId: Uuid });
 
 // profiles.notification_prefs (§4) — canonical shape
 export const NotificationPrefs = z.strictObject({
-  kinds: z.record(z.enum(ENUMS.notification_kind), z.strictObject({ email: z.boolean(), whatsapp: z.boolean() })).default({}),
+  kinds: z.record(z.enum([...ENUMS.notification_kind, "monthly_plan"]),     // + the email-only key of monthly_plan_ready (part 06 §12.4)
+    z.strictObject({ email: z.boolean(), whatsapp: z.boolean() })).default({}),
   whatsapp: z.strictObject({ phone_e164: z.string().regex(/^\+9725\d{8}$/), verified_at: IsoDateTime.nullable(),
     opted_in_at: IsoDateTime.nullable(), opted_out_at: IsoDateTime.nullable() }).optional(),
 });
@@ -6244,7 +6589,8 @@ export const WhatsappConfirmResponse = z.object({ verifiedAt: IsoDateTime });
 ```ts
 // lib/api/contracts/public.ts
 // only the kinds a person grants or withdraws by hand; terms/privacy (ensureFirstLogin, checkout), biometric_* (likeness
-// route, v2) and ai_content_policy (generate, §19.8) are written by their own server routes through recordConsent()
+// route, v2), ai_content_policy (generate, §19.8) and meta_ads_terms (first Meta connection, source "meta_connect", 0013, part 07)
+// are written by their own server routes through recordConsent()
 export const ConsentBody = z.strictObject({
   kind: z.enum(["marketing_email", "marketing_sms", "marketing_whatsapp", "analytics_cookies"]),
   granted: z.boolean(),
@@ -6309,12 +6655,134 @@ export const HealthResponse = z.object({
 
 ---
 
+## §21b. רשימת האב של נתיבי ההרחבה (2026-10-17)
+
+כל נתיב של ההרחבה רשום כאן: שיטה, נתיב, הרשאה, אידמפוטנטיות, bucket, תשובה ושגיאות עיקריות. הסכמות המלאות ב-Zod והלוגיקה כתובות בחלק 07 (Meta, קמפיינים, לידים, פרסום רגיל, דף העסק, בדיקת דופק, תוכנית 30 יום) ובחלק 08 (טרנדים וצילום מודרך), בקבצים `lib/api/contracts/meta.ts`, `campaigns.ts`, `leads.ts`, `social.ts`, `landing.ts`, `plan.ts`, `trends.ts` ו-`guided.ts` (בדיקת הדופק ב-`meta.ts`). נתיבי האדמין של ההרחבה נמצאים ב-§24.1, ה-webhooks ב-§22.6 וה-cron-ים ב-§23. מזהי השורות (M, C, L, S, LP, HC, PL, T, G) הם המזהים שחלקים 03, 07 ו-08 מפנים אליהם.
+
+### 21b.1 כללים
+
+- **המוסכמות של §18 חלות כמו שהן:** עטיפת `route()`, Zod על כל קלט, מעטפת השגיאה `{ error: { code, message_he, details } }`, מעטפות ב-camelCase ו-DTO בשמות העמודות, ו-`Idempotency-Key` בנתיבים שמסומנים (§18.7). סכומים הם שקלים עשרוניים (`*Ils`, R1). יחידות המטבע של Meta (`MetaMinor`) קיימות רק בתוך `lib/meta/**` ולעולם לא בחוזה של API.
+- **הרשאות:** member, editor+ ו-owner/admin של הסביבה, כמו ב-§19.2. נתיבי משאב (`/api/campaigns/[id]`, `/api/leads/[id]`, `/api/social/posts/[id]`, `/api/landing-pages/[id]`, `/api/plan/items/[id]`) גוזרים את הסביבה מהשורה, כמו §17.3; משאב של סביבה אחרת ← 404.
+- **DTO ללקוח לעולם לא כולל** את `meta_tokens.token_enc`, `meta_connections.meta_user_id`, `meta_assets.min_budgets`, `ad_insights_daily.raw`, `social_post_metrics.raw`, `trend_templates.source_reference_id` או `trend_templates.do_not_copy`. שני האחרונים מוצגים רק במסכי Trend Studio של האדמין; טוקנים לא מוצגים בשום מקום, גם לא באדמין.
+- **דגלים.** כל נתיב מחזיר 404 `NOT_FOUND` (בלי `details`) כל עוד הדגל שלו כבוי:
+
+| נתיבים | דגל |
+|---|---|
+| `/api/meta/connect/*`, `/api/meta/assets*`, `/api/meta/preflight`, `/api/meta/disconnect`, `/api/meta/geo/*`, `/api/social/*` | `meta_connect` |
+| `/api/meta/dashboard`, `/api/campaigns/*` | `meta_ads` (ו-C18 גם `meta_auto_rules`; היעד `lead_form` גם `meta_lead_forms`) |
+| `/api/leads/*` | `meta_lead_forms` **או** `landing_pages`, או שיש לסביבה לידים קיימים (הלידים שייכים לעסק, ולכן לא נעלמים כשדגל נכבה) |
+| `/api/meta/health-check*` | `meta_health_check` |
+| `/api/landing-pages*`, `/api/b/*` (וגם הדפים `/b/[slug]`) | `landing_pages` |
+| `/api/plan/*` | `monthly_plan` |
+| `/api/trends*` | `trends` |
+| `/api/guided/*` | `guided_filming` |
+| `POST /api/projects/[id]/hook-score` (§19.10) | `hook_score` |
+
+  נתיבי האדמין של ההרחבה (§24.1) לא תלויים בדגלים, כדי שאפשר יהיה להכין תוכן לפני ההשקה.
+- **מתג החירום של `meta_ads`.** כשהדגל נכבה אחרי ההשקה, סביבה שיש לה קמפיין שפורסם (`ad_campaigns.published_at` לא ריק) ממשיכה לקבל את C1, C3, C9 (השהיה), C12 (סיום), C15 ו-M8, כדי שלעולם לא יישארו מודעות רצות בלי כפתור עצירה. כל מה שמשיק או מגדיל הוצאה מחזיר 404. באותו אופן, M6 (ניתוק ומחיקת נתוני Meta) עובד תמיד כשיש חיבור, גם כש-`meta_connect` כבוי.
+- **`META_NOT_CONNECTED`** (409) מוחזר מכל נתיב של Meta, קמפיינים, פרסום רגיל ובדיקת דופק כשאין חיבור חי או שלא נבחרו נכסים, חוץ מ-M1, M2 ו-M6. נתיבי הלידים לא דורשים חיבור (לידים מדף העסק קיימים גם בלעדיו).
+
+### 21b.2 Meta, קמפיינים, לידים ופרסום רגיל (חלק 07)
+
+| # | Method · Path | Auth | Idem. | Rate limit | הצלחה | שגיאות עיקריות |
+|---|---|---|---|---|---|---|
+| M1 | `POST /api/meta/connect/start` | owner/admin | — | `meta_write` | `200 MetaConnectStartResponse { authUrl }` + העוגייה `meta_oauth_state` | `PLAN_LIMIT` (`meta_ad_accounts`) |
+| M2 | `GET /api/meta/connect/callback?code=&state=` | user (העוגייה) | — | default | `303 → /app/settings/integrations/meta?step=assets` (או `returnTo`) | הפניה עם `?error=denied\|no_assets\|state_mismatch\|exchange_failed\|tech_provider` (לא JSON) |
+| M3 | `GET /api/meta/assets` | member | — | `meta_read` | `200 MetaAssetsResponse { connection, adAccounts, pages, instagramAccounts, selected, preflight }` | `META_NOT_CONNECTED` |
+| M4 | `POST /api/meta/assets/select` | owner/admin | — | `meta_write` | `200 { preflight: MetaPreflightV1 }` (גוף `MetaAssetSelectBody { adAccountId, pageId, instagramId?, whatsappE164?, whatsappConfirmed?, privacyPolicyUrl? }`) | `INVALID_INPUT`, `META_API_ERROR`, `PLAN_LIMIT` (`meta_ad_accounts`) |
+| M5 | `POST /api/meta/preflight` | member | — | `meta_read` | `200 { preflight }` | `META_NOT_CONNECTED` |
+| M6 | `POST /api/meta/disconnect` | owner/admin | — | `meta_write` | `200 { status: "revoked" }` (גוף `{ purge: "tokens" \| "all", confirmText? }`) | `INVALID_INPUT` (`confirm_text`) |
+| M7 | `GET /api/meta/geo/search?q=` | member | — | `meta_read` | `200 { items: GeoOption[] }` | — |
+| M8 | `GET /api/meta/dashboard?range=7d\|14d\|30d` | member | — | `meta_read` | `200 MetaDashboardResponse { spendSummary, kpis, campaigns, actions }` | — |
+| C1 | `GET /api/campaigns?status=&cursor=` | member | — | default | `200 { items: CampaignListItemDTO[], nextCursor }` | — |
+| C2 | `POST /api/campaigns` | editor+ | — | `meta_write` | `201 { campaignId }` (גוף `CreateCampaignBody { projectId? \| variantGroupId? \| socialPostId?, goal?, seasonSlug?, duplicateOf? }`) | `NOT_FOUND`, `AD_NOT_ELIGIBLE`, `PLAN_LIMIT` (`meta_active_campaigns`, `meta_split_test`) |
+| C3 | `GET /api/campaigns/[id]` | member | — | default | `200 { campaign: CampaignDTO, variants: AdVariantDTO[], changeLog }` | `NOT_FOUND` |
+| C4 | `PATCH /api/campaigns/[id]` | editor+ | — | default | `200 { campaign }` (גוף `CampaignDraftPatch`, טיוטות בלבד, עם `ifUnmodifiedSince`) | `EDIT_CONFLICT` (`stale`, `not_draft`), `INVALID_INPUT` (`below_min_budget`, `radius_out_of_range`) |
+| C5 | `POST /api/campaigns/[id]/copy` | editor+ | **חובה** | `llm` | **NDJSON** `AdCopyV1` (`ads.copy.v1`, 0 קרדיטים) | `MODERATION_BLOCKED`, `PROVIDER_UNAVAILABLE` |
+| C6 | `POST /api/campaigns/[id]/prepare` | owner/admin | **חובה** | `meta_write` | `202 { runId }` ← סטטוס `preparing` ← `ready` (Realtime) | `META_ACCOUNT_NOT_READY`, `AD_NOT_ELIGIBLE`, `MODERATION_BLOCKED`, `ELECTION_POLICY_BLOCKED`, `PLAN_LIMIT` (`meta_monthly_spend_cap_ils`) |
+| C7 | `GET /api/campaigns/[id]/previews` | member | — | `meta_read` | `200 { previews: [{ variantId, placement, html }] }` (מטמון 30 דקות) | `INVALID_INPUT` (`not_ready`) |
+| C8 | `POST /api/campaigns/[id]/publish` | owner/admin | **חובה** | `meta_write` | `200 { status: "in_review" }` (גוף `PublishCampaignBody { confirmSpend: true }`) | כמו C6, ועוד `META_API_ERROR` |
+| C9 | `POST /api/campaigns/[id]/pause` | editor+ | — | `meta_write` | `200 { status }` | `META_API_ERROR` |
+| C10 | `POST /api/campaigns/[id]/resume` | owner/admin | — | `meta_write` | `200 { status }` | `PLAN_LIMIT` (התקרה), `META_ACCOUNT_NOT_READY` |
+| C11 | `POST /api/campaigns/[id]/budget` | owner/admin | — | שומר במסד (`meta_budget`) | `200 { campaign, budgetChangesLeft }` (גוף `BudgetChangeBody { dailyBudgetIls }`) | `RATE_LIMITED` (`meta_budget`), `PLAN_LIMIT`, `INVALID_INPUT` (`below_min_budget`) |
+| C12 | `POST /api/campaigns/[id]/end` | owner/admin | — | `meta_write` | `200 { status: "completed" }` | — |
+| C13 | `POST /api/campaigns/[id]/duplicate` | editor+ | — | `meta_write` | `201 { campaignId }` (גוף `{ newHooks?: boolean }`) | `PLAN_LIMIT` |
+| C14 | `POST /api/campaigns/[id]/boost-winner` | owner/admin | **חובה** | `meta_write` | `200 { campaign }` (גוף `BoostWinnerBody { variantId, raiseBudgetPct: 0 \| 10 \| 20 }`) | `INVALID_INPUT` (`no_winner_yet`), `RATE_LIMITED` (`meta_budget`) |
+| C15 | `GET /api/campaigns/[id]/insights?range=` | member | — | default | `200 CampaignInsightsResponse { kpis, daily, variants, sampleReady, freshness }` | — |
+| C16 | `POST /api/campaigns/[id]/insights/refresh` | member | — | `meta_refresh` | `202` | `RATE_LIMITED` (`meta_refresh`) |
+| C17 | `POST /api/campaigns/[id]/explain` | member | — | `llm` | **NDJSON** `InsightExplainV1` (`ads.insight_explain.v1`, 0 קרדיטים; מטמון 6 שעות לקמפיין ולטווח) | `PROVIDER_UNAVAILABLE` |
+| C18 | `GET` · `PUT /api/campaigns/[id]/rules` | member · owner/admin | — | default | `200 { rules: AdRuleDTO[] }` (גוף ה-PUT: `AdRulesBody { rules: [{ kind, enabled, params }] }`) | `PLAN_LIMIT` (`meta_auto_rules`), `NOT_FOUND` (הדגל `meta_auto_rules` כבוי) |
+| L1 | `GET /api/leads?status=&campaignId=&from=&to=&cursor=` | member | — | default | `200 { items: LeadDTO[], counts, nextCursor }` | — |
+| L2 | `PATCH /api/leads/[id]` | editor+ | — | default | `200 { lead }` (גוף `LeadPatchBody { status?, notesHe?, assignedTo?, contacted? }`) | `NOT_FOUND`, `PLAN_LIMIT` (`meta_lead_inbox`) |
+| L3 | `DELETE /api/leads/[id]` | owner/admin | — | default | `204` | — |
+| L4 | `GET /api/leads/export.csv?from=&to=&status=` | owner/admin | — | `leads_export` | `200 text/csv` (UTF-8 עם BOM, כותרות בעברית) | `PLAN_LIMIT` (`meta_lead_inbox`) |
+| S1 | `POST /api/social/posts` | editor+ | **חובה** | `social_publish` | `201 { postIds }` (גוף `CreateSocialPostBody`) | `INVALID_INPUT` (`video_spec`, `hashtags_max`, `schedule_past`, `quiet_day`), `PLAN_LIMIT` (`social_scheduled_max`), `RATE_LIMITED` (`ig_publish_daily`, `fb_reels_daily`) |
+| S2 | `GET /api/social/calendar?from=&to=` | member | — | default | `200 CalendarResponse { posts, campaigns, seasons, quietDays }` (פריטי תוכנית 30 יום מגיעים מ-PL2 ומוצגים באותו לוח) | — |
+| S3 | `PATCH /api/social/posts/[id]` | editor+ | — | default | `200 { post }` (מתוזמנים בלבד: שעה, טקסט, האשטגים) | `EDIT_CONFLICT` (`not_scheduled`) |
+| S4 | `POST /api/social/posts/[id]/cancel` | editor+ | — | default | `200 { status: "canceled" }` | `EDIT_CONFLICT` |
+| S5 | `POST /api/social/posts/[id]/retry` | editor+ | — | `social_publish` | `202` | `INVALID_INPUT` (`not_failed`) |
+| S6 | `GET /api/social/posts/[id]/boost-eligibility` | member | — | `meta_read` | `200 BoostEligibilityResponse { eligible, reasonHe? }` | `META_API_ERROR` |
+
+### 21b.3 דף העסק, בדיקת דופק ותוכנית 30 יום (חלק 07)
+
+| # | Method · Path | Auth | Idem. | Rate limit | הצלחה | שגיאות עיקריות |
+|---|---|---|---|---|---|---|
+| LP1 | `GET /api/landing-pages` | member | — | default | `200 { items, allowance }` (הדפים של הסביבה, כל הסטטוסים; `allowance` = `landingAllowance(ws)` של חלק 07 §14.1: `{ max, published, previewOnly, showBranding }`) | — |
+| LP2 | `POST /api/landing-pages` | editor+ | **חובה** | `llm` | **NDJSON** `LandingPageContentV1`; האירוע `done` כולל `landingPageId` ו-`credits` (`landing.copy.v1`, `landing.generate` = 10 קרדיטים; בסביבה חינמית שלא רכשה חבילה נוצרת תצוגה מקדימה עם סימן מים שאי אפשר לפרסם) | `INSUFFICIENT_CREDITS`, `MODERATION_BLOCKED`, `PROVIDER_UNAVAILABLE`, `INVALID_INPUT` (`too_many_pages`: עד 10 דפים לסביבה בכל מצב) |
+| LP3 | `POST /api/landing-pages/[id]/generate` | editor+ | **חובה** | `llm` | **NDJSON** — יצירה מחדש של דף קיים (גוף `RegenerateLandingBody { keep? }`; `landing.generate` = 10 קרדיטים) | כמו LP2 |
+| LP4 | `PATCH /api/landing-pages/[id]` | editor+ | — | default | `200 { page }` (עריכת טקסטים בעורך, `slug`, `indexable`; חינם; עם `ifUnmodifiedSince`) | `EDIT_CONFLICT` (`stale`), `INVALID_INPUT` (`slug_invalid`, `slug_taken`, `slug_reserved`), `MODERATION_BLOCKED` |
+| LP5 | `DELETE /api/landing-pages/[id]` | owner/admin | — | default | `204` (גם מוחק את `public-media/landing/{id}/`, §13.1) | — |
+| LP6 | `POST /api/landing-pages/[id]/publish` | owner/admin | — | default | `200 { page, url }` | `PLAN_LIMIT` (`landing_pages`; בסביבה חינמית שלא רכשה חבילה `{ max: 0, required: "starter" }`), `INVALID_INPUT` (`legal_identity_missing`, `no_contact_channel`), `MODERATION_BLOCKED` |
+| LP7 | `POST /api/landing-pages/[id]/unpublish` | owner/admin | — | default | `200 { page }` | — |
+| LP8 | `POST /api/b/[slug]/lead` | public | — | `landing_lead` | `204` (honeypot מלא, או טופס שמולא בפחות מ-3 שניות ← 204 בלי לשמור) | `INVALID_INPUT`, `NOT_FOUND` (הדף לא פורסם), `RATE_LIMITED` (`landing_lead`) |
+| LP9 | `POST /api/b/[slug]/view` | public | — | — (מניעת כפילות ב-Upstash, `lpview:{pageId}:{ipHash}`, 30 דקות) | `204` (מעלה את `views_count`; `landing_page_viewed` במדגם של 10%) | — |
+| HC1 | `POST /api/meta/health-check` | owner/admin | — | `health_check` | `202 { reportId }` (שורת `ad_health_reports` ב-`running`, ואז הזרימה `metaHealthCheck({ reportId })`; 0 קרדיטים) | `META_NOT_CONNECTED`, `PLAN_LIMIT` (`health_checks_per_month`), `RATE_LIMITED` (`health_check`) |
+| HC2 | `GET /api/meta/health-check/latest` | member | — | default | `200 { report, usedThisMonth, max }` (`report` = השורה האחרונה של `ad_health_reports` עם `HealthCheckReportV1`, `score`, `period_start`, `period_end`, `created_at`, או `null`) | — |
+| PL1 | `POST /api/plan/generate` | editor+ | **חובה** | `plan_generate` | **NDJSON** `MonthlyPlanV1`; האירוע `done` כולל `planId` (`plan.month.v1`, 0 קרדיטים; גוף `GeneratePlanBody { month?, inputs }`, ברירת המחדל היא החודש הנוכחי לפי Asia/Jerusalem) | `RATE_LIMITED` (`plan_generate`), `PROVIDER_UNAVAILABLE` |
+| PL2 | `GET /api/plan/current?month=` | member | — | default | `200 { plan, items }` | — |
+| PL3 | `PATCH /api/plan/items/[id]` | editor+ | — | default | `200 { item }` (גוף `PlanItemPatch`: `status`, `plannedFor`, `projectId`, `socialPostId`, `campaignId`) | `NOT_FOUND`, `INVALID_INPUT` (`quiet_day`, `outside_month`) |
+
+- **LP8 (הטופס הציבורי):** Zod על הגוף, honeypot `website` כמו בשאר הטפסים הציבוריים (§21.4; אין CAPTCHA, חלק 01), נוסח ההסכמה של הדף (חלק 07), כתיבה ל-`leads` בלקוח הסודי עם `source = 'landing_page'`, ואז Realtime `lead.created`, התראה `lead_received` ומייל `lead_new`. התשובה זהה לכל דף שלא פורסם, כך שאי אפשר לגלות דרכה אילו `slug` קיימים.
+- **LP2 ו-LP3:** הקרדיטים נשמרים ב-`begin_spend` לפני הקריאה למודל ונגבים ב-`commit_spend` רק אחרי שהדף נשמר, לפי השערים של §19.5; כשל ← החזר מלא. "החל מ-₪X" ומחירים אחרים נכנסים לדף רק מתוך פרטי העסק שאושרו (נספח E), אף פעם לא מהמודל.
+
+### 21b.4 טרנדים וצילום מודרך (חלק 08)
+
+| # | Method · Path | Auth | Idem. | Rate limit | הצלחה | שגיאות עיקריות |
+|---|---|---|---|---|---|---|
+| T1 | `GET /api/trends?niche=&lifecycle=&cursor=` | user | — | `trends` | `200 { items: TrendCardDTO[], weekLabel, nextCursor }` (דרך `trend_feed`) | — |
+| T2 | `GET /api/trends/[slug]` | user | — | `trends` | `200 { template: TrendTemplateDTO, adaptation: TrendNicheAdaptationV1 \| null, adEligibility }` | `NOT_FOUND` (`retired`) |
+| T3 | `POST /api/projects` (#1 של §19.2) | editor+ | — | default | `201 { projectId, step }` עם `trendSlug`, `productionMode`, `src: "trend"` | `NOT_FOUND` (`retired`), `PLAN_LIMIT`, `INVALID_INPUT` (`production_mode_unavailable`) |
+| G1 | `POST /api/guided/shoots` | editor+ | — | `llm` | `201 { shootId, shotList: GuidedShotListV1 }` (`guided.shotlist.v1`, 0 קרדיטים; גוף `{ projectId }`) | `NOT_FOUND`, `INVALID_INPUT` (`production_mode_unavailable`: התבנית לא `guided` או `hybrid`) |
+| G2 | `POST /api/guided/shoots/[id]/shots/[shotKey]` | editor+ | — | default | `200 { shoot }` (גוף `{ assetId, source: "camera" \| "file" }`, אחרי `/api/uploads/complete`) | `INVALID_INPUT` (`too_short`, `too_long`, `wrong_orientation`) |
+| G3 | `POST /api/guided/shoots/[id]/attest` | editor+ | — | default | `200 { shoot }` (גוף `{ peopleConsent: true }`; נרשם גם כ-`brief.attestations` מסוג `people_on_camera_consent`) | — |
+| G4 | `POST /api/guided/shoots/[id]/autocut` | editor+ | **חובה** | `generate` | `202 { runId, credits }` (`guided.autocut` × מספר הקליפים) | `INSUFFICIENT_CREDITS`, `INVALID_INPUT` (`missing_shots`, `consent_required`) |
+
+### 21b.5 חריגים ופרטים שחלים על כמה נתיבים
+
+- **M2** הוא הנתיב היחיד שמחזיר הפניה במקום JSON גם בשגיאה: המשתמש חוזר מ-Facebook לדפדפן, ולכן כל כשל הוא `303` למסך האינטגרציות עם `?error=`. ה-`state` מושווה ב-timing-safe לעוגייה החתומה, והעוגייה נמחקת בכל תשובה.
+- **L4 (CSV):** `Content-Type: text/csv; charset=utf-8`, BOM בתחילת הקובץ, `Content-Disposition: attachment; filename="leads-{yyyy-mm-dd}.csv"`. תא שמתחיל ב-`=`, `+`, `-` או `@` מקבל גרש בודד בתחילתו (הגנה מהזרקת נוסחאות), וכל ייצוא נרשם ב-`audit_logs` `leads.export` עם מספר השורות בלבד.
+- **C7:** ה-HTML של התצוגות המקדימות מגיע מ-Meta ומוצג רק בתוך iframe מבודד במסך הבונה (`frame-src https://www.facebook.com` רק שם, חלק 06). התשובה עצמה `no-store`; המטמון של 30 דקות ב-Upstash (§18.6).
+- **פעולות ביקורת** של הנתיבים כאן — לפי הטבלה של §24.1 ("פעולות הביקורת של ההרחבה").
+
+### קריטריוני קבלה
+- [ ] בדיקת כיסוי הנתיבים (§25.5) מוצאת את כל הנתיבים של §21b, וכל אחד מהם בנוי ב-`route()` ויש לו קובץ בדיקה.
+- [ ] כשכל דגלי ההרחבה כבויים, כל נתיב בטבלאות שלמעלה מחזיר 404 בלי `details`; `/b/[slug]` מחזיר 404.
+- [ ] כיבוי `meta_ads` בסביבה עם קמפיין פעיל: C9 ו-C12 עדיין עובדים, ו-C2, C6, C8 ו-C10 מחזירים 404.
+- [ ] צופה שקורא ל-C9 או ל-L2 ← 403 `FORBIDDEN` עם `requiredRoles`; עורך שקורא ל-C8 ← 403.
+- [ ] LP6 בסביבה חינמית שלא רכשה חבילה ← 403 `PLAN_LIMIT` `{ limit: "landing_pages", max: 0, required: "starter" }`; אחרי רכישת חבילה (`workspaces.has_paid = true`) דף אחד מתפרסם, עם "נבנה עם {{BRAND_NAME}}"; בתוכנית בסיס, פרסום של דף שני ← 403 עם `max: 1`.
+- [ ] LP2 או LP3 בלי `Idempotency-Key` ← 400; שתי בקשות עם אותו מפתח ← דף אחד ו-10 קרדיטים פעם אחת; כשל מדומה של המודל ← החזר מלא.
+- [ ] C8 פעמיים עם אותו מפתח ← פרסום אחד במטא (ב-mock) ושורת `ad_change_log` `publish` אחת.
+- [ ] L4: הקובץ מתחיל ב-BOM, ותא עם `=HYPERLINK("x")` יוצא כ-`'=HYPERLINK("x")`.
+- [ ] LP8 עם honeypot מלא ← 204 בלי שורת `leads`; עם טופס תקין ← שורה עם `source = 'landing_page'` ואירוע `lead.created`.
+
+---
+
 ## §22. Webhooks
 
 ### 22.1 כללים לכל webhook
 
 1. **גוף גולמי קודם:** `const raw = await req.text()` (עד 1MB; מעבר לזה ← 413 בלי עיבוד); אימות חתימה על המחרוזת הגולמית, ורק אחר כך `JSON.parse`. אין עטיפת `route()` עם Zod על הגוף (אבל כן `requestId`, לוגים וטיפול בשגיאות). אין הגבלת קצב על webhooks.
-2. **השוואות** ב-`crypto.timingSafeEqual` בלבד. ‏`OPENROUTER_CALLBACK_TOKEN_SECRET` ו-`GROW_WEBHOOK_SECRET` יכולים להכיל רשימה מופרדת בפסיקים לצורך רוטציה: חותמים עם הראשון (`hmacSign(secrets[0], data)`) ומאמתים מול כולם (`hmacVerifyAny(secrets, data, mac)`), כש-`secrets = secretList(value)` מפצל את הערך לפי פסיקים; שלושת העזרים ב-`lib/crypto.ts` (חלק 06 §15.5).
+2. **השוואות** ב-`crypto.timingSafeEqual` בלבד. `OPENROUTER_CALLBACK_TOKEN_SECRET`, `GROW_WEBHOOK_SECRET` ו-`META_APP_SECRET` (מ-`0013`) יכולים להכיל רשימה מופרדת בפסיקים לצורך רוטציה: חותמים עם הראשון (`hmacSign(secrets[0], data)`) ומאמתים מול כולם (`hmacVerifyAny(secrets, data, mac)`), כש-`secrets = secretList(value)` מפצל את הערך לפי פסיקים; שלושת העזרים ב-`lib/crypto.ts` (חלק 06 §15.5).
 3. **אידמפוטנטיות** דרך `webhook_events` (`unique (provider, external_id)`) ועזר אחד:
 
 ```ts
@@ -6450,6 +6918,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | `POST /api/webhooks/resend` | `resend` | Svix: `svix-id`, `svix-timestamp`, `svix-signature`, סוד `RESEND_WEBHOOK_SECRET` | `email.bounced` (hard) ← `email_suppressions('bounce')`; ‏`email.complained` ← `('complaint')` + ביטול הסכמות שיווק |
 | `POST /api/auth/hooks/send-sms` (דגל `phone_otp`) | — | Standard Webhooks: `webhook-id`, `webhook-timestamp`, `webhook-signature`, סוד `SEND_SMS_HOOK_SECRET` [M0-verify פורמט ה-hook של Supabase] | שליחת SMS דרך `SMS_PROVIDER` בנוסח: "קוד הכניסה שלכם ל{{BRAND_NAME}}: {otp}. הקוד תקף ל-10 דקות. לא מוסרים אותו לאף אחד." ← ‏200 `{}`; דגל כבוי ← 404 |
 | `GET` + `POST /api/webhooks/whatsapp` (v2, דגל `whatsapp_notify`) | `whatsapp` | `GET`: אתגר האימות של Meta — `hub.mode=subscribe` ו-`hub.verify_token` שווה לטוקן שנגזר ב-HMAC מ-`WHATSAPP_APP_SECRET` ← מחזיר את `hub.challenge`. ‏`POST`: ‏`X-Hub-Signature-256` = HMAC-SHA256 של הגוף הגולמי עם `WHATSAPP_APP_SECRET`; ‏`external_id` = מזהה ההודעה | סטטוסי מסירה ← לוג; הודעה נכנסת "הסרה" או "STOP" ← `notification_prefs.whatsapp.opted_out_at = now()`, ‏`audit_logs` ‏`notifications.whatsapp_opt_out`, ותשובת ההסרה של חלק 06 §13.3; דגל כבוי ← 404 |
+| `GET /api/webhooks/meta` (מ-`0013`) | `meta` | אתגר האימות: `hub.mode = subscribe` ו-`hub.verify_token` שווה ל-`META_WEBHOOK_VERIFY_TOKEN` (השוואה ב-timing-safe) ← `200 text/plain` עם `hub.challenge`; אחרת 403 | אין שורת `webhook_events` |
+| `POST /api/webhooks/meta` | `meta` | `X-Hub-Signature-256: sha256=<hex>` = HMAC-SHA256 של הגוף הגולמי, מול כל ערך של `secretList(META_APP_SECRET)`; חתימה שגויה ← 401 `WEBHOOK_INVALID_SIGNATURE` ושורה בלי payload | `claimWebhook` אחד **לכל שינוי** (`entry[].changes[]`), עם `external_id`: `leadgen:{leadgen_id}` · `issues:{object_id}:{entry.time}` · `inproc:{object_id}:{status_name}` · ובכל מקרה אחר `{object}:{entry.id}:{field}:{entry.time}`. `page.leadgen` ← הזרימה `metaLeadIngest`; `ad_account.with_issues_ad_objects` ← רענון סטטוס של האובייקט והתראה על `DISAPPROVED`/`WITH_ISSUES`; `ad_account.in_process_ad_objects` ← `resume('meta-obj:{id}', …)` של `metaPrepareCampaign`; `user.permissions` (אם Meta שולחת אותו [M0-verify]) עם הרשאה נדרשת שהוסרה ← `needs_reconnect`; כל השאר ← `ignored`. תשובה תוך כ-10 שניות; כל עבודה כבדה בזרימות. הלוגיקה בחלק 07 |
+| `POST /api/webhooks/meta/deauthorize` | `meta` | גוף טופס עם `signed_request` = `base64url(sig).base64url(payload)`, HMAC-SHA256 עם כל ערך של `META_APP_SECRET`, `payload.algorithm = "HMAC-SHA256"`; חתימה שגויה ← 401 | `external_id = deauth:{user_id}:{issued_at}`; כל החיבורים עם אותו `meta_user_id` עוברים ל-`revoked` (`meta_deauthorize`) והטוקנים נמחקים; `audit_logs` `meta.deauthorize`; אירוע `meta_disconnected {by: "meta_deauthorize"}` ← 200 |
+| `POST /api/webhooks/meta/data-deletion` | `meta` | `signed_request`, כמו למעלה | `external_id = deletion:{user_id}:{issued_at}`; שורת `meta_data_deletion_requests` עם `confirmation_code` (12 תווי base32) והזרימה `metaDataDeletion`; `audit_logs` `meta.data_deletion` ← `200 {"url":"https://{{DOMAIN}}/meta/data-deletion?code={code}","confirmation_code":"{code}"}`. משלוח כפול מחזיר את אותו קוד |
+
+הרישום ל-webhooks של Meta: פעם אחת ברמת האפליקציה (משימת בעלים, חלק 07), ולכל לקוח בבחירת הנכסים (M4): `POST /act_{id}/subscribed_apps`, ו-`POST /{page_id}/subscribed_apps?subscribed_fields=leadgen` עם הטוקן של העמוד (רק כש-`meta_lead_forms` דולק). כשל ברישום נשמר ב-`meta_assets.preflight` (`leadgen_subscription`), לא נזרק.
 
 ### קריטריוני קבלה
 - [ ] webhook של OpenRouter עם חתימה שגויה ← 401, שורת `webhook_events` עם `signature_valid = false`, ושום `resume`.
@@ -6460,6 +6934,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 - [ ] `POST /api/webhooks/payments/mock` בפרודקשן ← 404; ‏`POST /api/webhooks/invoices/mock` כש-`INVOICE_PROVIDER=morning` ← 404.
 - [ ] אחרי רוטציה (`OPENROUTER_CALLBACK_TOKEN_SECRET="new,old"`), callback עם `?t=` שנחתם בסוד הישן עדיין מתקבל, וכתובות חדשות נחתמות בסוד החדש.
 - [ ] `GET /api/webhooks/whatsapp` כשהדגל כבוי ← 404; כשהוא דולק ועם `hub.verify_token` נכון ← מחזיר את `hub.challenge`.
+- [ ] `GET /api/webhooks/meta` עם `hub.verify_token` שגוי ← 403; עם הנכון ← 200 עם `hub.challenge` כטקסט.
+- [ ] `POST /api/webhooks/meta` עם `X-Hub-Signature-256` שגוי ← 401 ושורת `webhook_events` עם `signature_valid = false`; אותו `leadgen_id` פעמיים ← ליד אחד והתראה אחת; משלוח עם שני שינויים ← שתי שורות `webhook_events`.
+- [ ] אחרי רוטציה (`META_APP_SECRET="new,old"`), webhook וגם `signed_request` שנחתמו בסוד הישן עדיין מתקבלים.
+- [ ] `data-deletion` עם `signed_request` תקין ← JSON עם `url` ו-`confirmation_code` שתואם ל-`^[A-Z2-7]{12}$`; משלוח חוזר ← אותו קוד.
 
 ---
 
@@ -6478,7 +6956,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
     { "path": "/api/cron/sync-models",       "schedule": "10 1 * * *" },
     { "path": "/api/cron/hook-of-the-day",   "schedule": "2 22 * * *" },
     { "path": "/api/cron/reminders",         "schedule": "0 7 * * *" },
-    { "path": "/api/cron/cleanup",           "schedule": "30 2 * * *" }
+    { "path": "/api/cron/cleanup",           "schedule": "30 2 * * *" },
+    // 2026-10-17 extension: logic in lib/cron/{name}.ts, specified in part 07 (Meta, social, weekly summary) and part 08 (trends)
+    { "path": "/api/cron/meta-insights-hourly",  "schedule": "20 * * * *" },
+    { "path": "/api/cron/meta-insights-backfill", "schedule": "40 0 * * *" },
+    { "path": "/api/cron/meta-review-poll",      "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/social-publish",        "schedule": "*/5 * * * *" },
+    { "path": "/api/cron/social-insights",       "schedule": "50 * * * *" },
+    { "path": "/api/cron/meta-token-health",     "schedule": "10 3 * * *" },
+    { "path": "/api/cron/meta-rules",            "schedule": "45 * * * *" },
+    { "path": "/api/cron/meta-leads-backfill",   "schedule": "20 1 * * *" },
+    { "path": "/api/cron/weekly-summary",        "schedule": "0 6 * * 0" },
+    { "path": "/api/cron/trends-lifecycle",      "schedule": "5 * * * *" }
   ]
 }
 ```
@@ -6489,8 +6978,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | `/api/cron/billing-renewals` | 50 דק׳ | חלק 06 §4.2 (`runBillingCron`): התאמת סשנים פתוחים (`reconcilePendingCheckouts`), שינויים מתוזמנים, סיום מנויים שבוטלו, חיוב מנויים ב-`next_charge_at <= now()`, ניסיונות חוזרים ל-`past_due` (לפי `app_settings.dunning_retry_days`), סיום הגבייה החוזרת (`expired`), והענקות חודשיות למנויים שנתיים (`grant:plan:{subscriptionId}:{periodStartISO}`); כש-`app_settings.renewals_paused` דולק, רק שלבי החיוב (חידוש וניסיון חוזר) מדלגים | `{ reconciled, scheduled, ended, charged, failed, downgraded, granted }` |
 | `/api/cron/sync-models` | 30 דק׳ | חלק 05: סנכרון `model_registry` מ-`/models` ו-`/videos/models`; לעולם לא מפעיל מודל; מסמן הוצאה משימוש ומתריע לאדמין אם מודל בנתיב פעיל נעלם | `{ added, updated, deprecated, alerts }` |
 | `/api/cron/hook-of-the-day` | 10 דק׳ | בחירת הוק **להיום** (`todayIL()` בזמן הריצה; ה-cron ‏`2 22 * * *` UTC רץ אחרי חצות שעון ישראל, גם בשעון קיץ וגם בשעון חורף): `published`, נישה פעילה, לא נבחר ב-60 הימים האחרונים (`app_settings.hook_of_the_day.history`); עדיפות להוקים של עונה שתחילתה בתוך `promo_lead_days`, ואחר כך ל-`is_featured`; ביום שקט — רק הוק אוניברסלי לא שיווקי **ממשפחת** `education` (`hook_types.family_slug = 'education'`); כתיבה ל-`app_settings.hook_of_the_day = { hook_id, date, history }` ו-`revalidateTag('hooks:hotd', "max")` | `{ hookId, date }` |
-| `/api/cron/reminders` | 30 דק׳ | `renewal_upcoming` למנויים שנתיים 7 ימים לפני החידוש; `low_credits` כש-`balance < lowThreshold(summary, planId)` (`lib/billing/credits.ts`, §10.5; בלי מכסה חודשית ← עלות סרטון אחד, אחרת `max(perVideoCredits, ceil(0.15 × planAllowance))`), לכל היותר פעם בשבוע לסביבה (לפי `notifications` מסוג `credits_low`); מכבד `email_suppressions` ו-`notification_prefs` | `{ renewalUpcoming, lowCredits }` |
-| `/api/cron/cleanup` | 50 דק׳ | (1) נכסים עם `is_deleted` ו-`purge_reason` בלי `storage_deleted_at` ← מחיקה מהאחסון (500 לריצה) וסימון; (2) `purge_deleted_content` לכל סביבה שטופלה; (3) העלאות `pending` מעל 24 שעות ← מחיקה; (4) קובצי `exports` מעל 7 ימים ← מחיקה; (5) `data_requests` תקועים (`processing` מעל שעה) ← הפעלה מחדש של ה-workflow; (6) Blob זמני של הרינדור שנשאר (`@remotion/vercel`) ← מחיקה; (7) העלאות עם `metadata.moderation.pending` ← הרצה חוזרת של `moderation.upload.v1` (חסימה ← כמו ב-§20.2); (8) תיקיות `generated/_admin-tests/{date}` בנות יותר מ-7 ימים ← מחיקה (§13.1) | `{ objectsDeleted, rowsPurged, pendingRemoved, exportsRemoved, requestsRetried, moderationRechecked, adminTestsRemoved }` |
+| `/api/cron/reminders` | 30 דק׳ | `renewal_upcoming` למנויים שנתיים 7 ימים לפני החידוש; `low_credits` כש-`balance < lowThreshold(summary, planId)` (`lib/billing/credits.ts`, §10.5; בלי מכסה חודשית ← עלות סרטון אחד, אחרת `max(perVideoCredits, ceil(0.15 × planAllowance))`), לכל היותר פעם בשבוע לסביבה (לפי `notifications` מסוג `credits_low`); מכבד `email_suppressions` ו-`notification_prefs`; ומ-`0013` גם **תוכנית חודשית:** ביום הראשון של החודש לפי Asia/Jerusalem, לכל סביבה עם הדגל `monthly_plan` שבתוכנית האחרונה שלה `inputs.auto_next_month = true` ← `startFlow("monthlyPlanGenerate", { workspaceId, month }, { idempotencyKey: "plan:{ws}:{month}" })` (חלק 07 §8.3, §16.2), שמסתיים במייל `monthly_plan_ready` | `{ renewalUpcoming, lowCredits, monthlyPlans }` |
+| `/api/cron/cleanup` | 50 דק׳ | (1) נכסים עם `is_deleted` ו-`purge_reason` בלי `storage_deleted_at` ← מחיקה מהאחסון (500 לריצה) וסימון; (2) `purge_deleted_content` לכל סביבה שטופלה; (3) העלאות `pending` מעל 24 שעות ← מחיקה; (4) קובצי `exports` מעל 7 ימים ← מחיקה; (5) `data_requests` תקועים (`processing` מעל שעה) ← הפעלה מחדש של ה-workflow; (6) Blob זמני של הרינדור שנשאר (`@remotion/vercel`) ← מחיקה; (7) העלאות עם `metadata.moderation.pending` ← הרצה חוזרת של `moderation.upload.v1` (חסימה ← כמו ב-§20.2); (8) תיקיות `generated/_admin-tests/{date}` בנות יותר מ-7 ימים ← מחיקה (§13.1); (9) מ-`0014`: קובצי ייחוס של טרנדים שעבר `retention_until` שלהם ← מחיקה של כל התיקייה `trend-refs/{reference_id}/` (המקור, `hook.mp4` והפריימים) ו-`trend_references.file_deleted_at = now()`; הניתוח נשאר (דוחות בדיקת הדופק בני 12 חודשים נמחקים ב-pg_cron ‏`purge-meta-raw`, §15) | `{ objectsDeleted, rowsPurged, pendingRemoved, exportsRemoved, requestsRetried, moderationRechecked, adminTestsRemoved, trendRefsDeleted }` |
+| `/api/cron/meta-insights-hourly` | 50 דק׳ | תובנות למודעות שהיו פעילות ב-48 השעות האחרונות (היום ואתמול, `time_increment=1`, `level=ad`), ואז `refresh_managed_spend` לחודש הנוכחי והתראות 80% ו-100% של התקרה; חלק 07 | `{ ads, rows, accountsPaused }` |
+| `/api/cron/meta-insights-backfill` | 50 דק׳ | 28 הימים האחרונים למודעות שהיו פעילות ב-35 הימים האחרונים (Meta מעדכנת נתונים עד 28 יום אחורה); דוחות אסינכרוניים לחשבונות גדולים; חלק 07 | `{ ads, rows, asyncReports }` |
+| `/api/cron/meta-review-poll` | 12 דק׳ | אובייקטים ב-`PENDING_REVIEW`, `IN_PROCESS`, `WITH_ISSUES`, `PREAPPROVED` וסטטוס עיבוד של סרטונים ← הסטטוסים שלנו; `ACTIVE` ראשון ← מייל `meta_campaign_live`; `DISAPPROVED` ← `meta_ad_rejected`; קמפיינים שעבר `end_date` שלהם ← `completed`; חלק 07 | `{ checked, changed, completed }` |
+| `/api/cron/social-publish` | 4 דק׳ | פוסטים `scheduled` עם `scheduled_at <= now() + 10 min` ← `socialPublish(postId)` (מפתח `social:{postId}:{attempt}`); הזרימה ישנה עד הזמן; חלק 07 | `{ started }` |
+| `/api/cron/social-insights` | 40 דק׳ | מדדי פרסום רגיל אחרי שעה, 6 שעות, 24 שעות, 72 שעות ושבוע, ואחר כך פעם ביום עד היום ה-28; חלק 07 | `{ posts, snapshots }` |
+| `/api/cron/meta-token-health` | 30 דק׳ | בדיקת הטוקן לכל חיבור `active` (`debug_token` ו-`/me`) וסנכרון נכסים (שמות, `account_status`, `has_funding_source`, `min_budgets`); טוקן לא תקף ← `needs_reconnect` עם התראה ומייל אחד; חלק 07 | `{ checked, needsReconnect, synced }` |
+| `/api/cron/meta-rules` | 40 דק׳ | הערכה של `ad_rules` שהופעלו, על התובנות המסונכרנות; כל פעולה ← `ad_change_log` (`source = 'rule'`); חלק 07 | `{ evaluated, fired }` |
+| `/api/cron/meta-leads-backfill` | 30 דק׳ | לידים שחסרים מטפסים של קמפיינים שהיו פעילים ב-90 הימים האחרונים, מאז `meta_created_time` האחרון; התראה מרוכזת אחת ולא התראה לכל ליד; חלק 07 | `{ forms, inserted }` |
+| `/api/cron/weekly-summary` | 50 דק׳ | סיכום יום ראשון (מייל `weekly_results`, ו-WhatsApp כשמופעל) רק לסביבות עם הוצאה או פרסום באותו שבוע; מפתח `weekly_results:{ws}:{isoWeek}`; חלק 07 | `{ workspaces, sent }` |
+| `/api/cron/trends-lifecycle` | 10 דק׳ | מפרסם תבניות עם `publish_at <= now()` (`status = 'published'`, `published_at`, `published_week`), מוציא משימוש תבניות שעבר `expires_at` שלהן, `revalidateTag('trends', "max")`; ביום ראשון אחרי 08:00 שעון ישראל שולח `trends_weekly` פעם אחת בשבוע ISO; חלק 08 | `{ published, retired, weeklySent }` |
+
+**cron-ים של ההרחבה** (עשרה; סך הכול 16 [M0-verify את מגבלת מספר ה-cron בתוכנית Pro של Vercel]): כולם עוברים דרך אותה עטיפה (`CRON_SECRET`, נעילה `cron:{name}`, `cron:last:{name}`, Sentry Cron Monitor), והלוגיקה שלהם ב-`lib/cron/{name}.ts` לפי חלקים 07 ו-08. כל אחד מסתיים מיד (`{ skipped: "nothing_to_do" }`) כשאין לו עבודה: אין חיבור חי, אין קמפיין שפורסם, אין פוסט מתוזמן, או שהדגל של התחום כבוי ואין נתונים קיימים. ה-cron-ים של הקמפיינים (`meta-insights-*`, `meta-review-poll`, `weekly-summary`) ממשיכים לרוץ כל עוד יש קמפיין שפורסם, גם כש-`meta_ads` כבוי (§21b.1); `meta-rules` רץ רק כש-`meta_auto_rules` דולק, ו-`trends-lifecycle` רק כש-`trends` דולק. הזמנים ב-UTC, ושום cron לא מחזיק את הנעילה יותר מהזמן שבטבלה.
 
 ### קריטריוני קבלה
 - [ ] קריאה בלי `CRON_SECRET` ← 401; שתי קריאות מקבילות ל-`sweep-jobs` ← השנייה מחזירה `{ skipped: "locked" }`.
@@ -6500,6 +7001,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 - [ ] שמירה של `begin_spend` בלי `commit_spend`, בת יותר מ-6 דקות, מוחזרת בריצת `sweep-jobs` הבאה (`orphanedSpendsRefunded: 1`), ומפתח האידמפוטנטיות שלה עובר ל-`failed`.
 - [ ] עבודה שרצה יותר מ-120 דקות מ-`started_at` נכשלת עם `PROVIDER_TIMEOUT` והחזר מלא.
 - [ ] אחרי `cleanup`, אין אובייקט באחסון לנכס עם `storage_deleted_at`, ואין שורת `assets` שהאובייקט שלה חסר (למעט `rejected`).
+- [ ] `vercel.json` מכיל בדיוק 16 cron-ים, ולכל נתיב יש קובץ ב-`lib/cron/`; `social-publish` מתחיל פוסט שמתוזמן לעוד 8 דקות ולא מתחיל פוסט שמתוזמן לעוד 20 דקות; ריצה מקבילה של `meta-insights-hourly` מחזירה `{ skipped: "locked" }`.
+- [ ] אחרי `cleanup`: קובץ ייחוס שעבר `retention_until` נמחק מ-`trend-refs` ו-`file_deleted_at` מתמלא, והניתוח שלו עדיין נקרא באדמין; דוח בדיקת דופק בן 13 חודשים נמחק.
 
 ---
 
@@ -6509,9 +7012,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 
 כל נתיב: `auth: "platform_admin"` (‏`platform_admin_status()` = `ok`, כלומר דגל + session ברמת `aal2`, דרך הלקוח של המשתמש), bucket ‏`admin` (120 לדקה), לקוח סודי לכל השאר, Zod על כל קלט, ו**כל פעולה כותבת יוצרת `audit_logs`** עם `action` מהרשימה הקנונית שלמטה, `actor_id`, ‏`ip`, ‏`target_type`, ‏`target_id` ו-`metadata` עם before/after של השדות שהשתנו. שינוי שנוגע בדפים ציבוריים קורא ל-`revalidateTag(tag, "max")` המתאים (חלק 02).
 
-**הרשימה הקנונית של פעולות הביקורת** (`audit_logs.action`, ‏regex `^[a-z_]+(\.[a-z_]+)+$`; אין שמות אחרים): `user.ban` · `user.unban` · `user.admin_grant` · `user.admin_revoke` · `workspace.plan_override` · `workspace.white_label` · `workspace.soft_delete` · `workspace.restore` · `member.role_change` · `job.retry` · `job.cancel` · `job.force_refund` · `model.toggle` · `model.sync` · `model.route_update` · `prompt.activate` · `niche.update` · `season.update` · `hook.create` · `hook.update` · `hook.publish` · `hook.archive` · `hook.batch_generate` · `template.update` · `example.publish` · `voice.update` · `music.approve` · `payment.refund` · `payment.chargeback` · `invoice.attach` · `refund_request.approve` · `refund_request.reject` · `subscription.retry_charge` · `subscription.cancel_on_behalf` · `billing.cancel` · `billing.resume` · `billing.plan_change` · `plan.update` · `pack.update` · `credits.adjust` · `credits.revoke` · `credit_cost.update` · `settings.update` · `flag.update` · `share_link.revoke` · `abuse.action` · `ops.cron_run` · `privacy.request` · `notifications.whatsapp_opt_in` · `notifications.whatsapp_opt_out` · `security.incident`.
+**הרשימה הקנונית של פעולות הביקורת** (`audit_logs.action`, regex `^[a-z_]+(\.[a-z_]+)+$`; אין שמות אחרים): `user.ban` · `user.unban` · `user.admin_grant` · `user.admin_revoke` · `workspace.plan_override` · `workspace.white_label` · `workspace.soft_delete` · `workspace.restore` · `member.role_change` · `job.retry` · `job.cancel` · `job.force_refund` · `model.toggle` · `model.sync` · `model.route_update` · `prompt.activate` · `niche.update` · `season.update` · `hook.create` · `hook.update` · `hook.publish` · `hook.archive` · `hook.batch_generate` · `template.update` · `example.publish` · `voice.update` · `music.approve` · `payment.refund` · `payment.chargeback` · `invoice.attach` · `refund_request.approve` · `refund_request.reject` · `subscription.retry_charge` · `subscription.cancel_on_behalf` · `billing.cancel` · `billing.resume` · `billing.plan_change` · `plan.update` · `pack.update` · `credits.adjust` · `credits.revoke` · `credit_cost.update` · `settings.update` · `flag.update` · `share_link.revoke` · `abuse.action` · `ops.cron_run` · `privacy.request` · `notifications.whatsapp_opt_in` · `notifications.whatsapp_opt_out` · `security.incident`; ומהרחבת 2026-10-17: `meta.connect` · `meta.disconnect` · `meta.assets_select` · `meta.data_purge` · `meta.deauthorize` · `meta.data_deletion` · `meta.campaign_publish` · `meta.campaign_budget` · `meta.campaign_pause` · `meta.campaign_resume` · `meta.campaign_end` · `meta.rule_toggle` · `meta.admin_health_check` · `leads.export` · `leads.delete` · `landing.publish` · `landing.unpublish` · `landing.delete` · `trend.reference_create` · `trend.reference_file_delete` · `trend.analysis_run` · `trend.template_update` · `trend.template_publish` · `trend.template_retire`.
 - שינויי תפקיד שאינם עריכה ידנית נרשמים כ-`member.role_change` עם `metadata.reason`: ‏`invite_accepted` (`accept_invite`), ‏`ownership_transfer` (`transfer_workspace_ownership`), ‏`plan_downgrade` (`enforce_plan_limits`). הענקת אדמין ראשונה מ-`ADMIN_EMAILS` היא `user.admin_grant` עם `metadata.source = 'admin_emails_bootstrap'`.
 - שמירה: 7 שנים לפעולות שמתחילות ב-`payment.`, ‏`invoice.`, ‏`refund_request.`, ‏`subscription.`, ‏`billing.`, ‏`credits.`; ‏36 חודשים לכל השאר (`purge_audit_logs`, §11.4).
+
+**פעולות הביקורת של ההרחבה** — רובן נכתבות מנתיבי משתמש ומ-webhooks, לא מהאדמין, ולכן הן מופיעות כאן עם המקור שלהן. `metadata` לעולם לא כולל טוקן, פרטי ליד או את גוף הבקשה ל-Meta; רק מזהים, ערכים לפני ואחרי (למשל `daily_budget_ils`) ו-`requestId`:
+
+| `audit action` | נכתבת כש… |
+|---|---|
+| `meta.connect` | M2 הצליח (חיבור חדש או חיבור מחדש) |
+| `meta.assets_select` | M4 |
+| `meta.disconnect` · `meta.data_purge` | M6 (`purge: "tokens"` / `"all"`); וגם במחיקת חשבון (§9.6) |
+| `meta.deauthorize` · `meta.data_deletion` | ה-webhooks של §22.6 |
+| `meta.campaign_publish` · `meta.campaign_pause` · `meta.campaign_resume` · `meta.campaign_end` | C8 · C9 · C10 · C12, וגם כשכלל אוטומטי משהה (`metadata.source = 'rule'`) |
+| `meta.campaign_budget` | C11, C14 עם העלאת תקציב, וכלל `boost_winner` |
+| `meta.rule_toggle` | C18 (`PUT`), שורה לכל כלל שהשתנה |
+| `meta.admin_health_check` | AM2 |
+| `leads.export` · `leads.delete` | L4 (עם מספר השורות בלבד) · L3 |
+| `landing.publish` · `landing.unpublish` · `landing.delete` | LP6 · LP7 · LP5 |
+| `trend.reference_create` · `trend.analysis_run` · `trend.template_update` · `trend.template_publish` · `trend.template_retire` · `trend.reference_file_delete` | נתיבי האדמין A1–A11 בטבלה למטה, וגם `trends-lifecycle` כשהוא מפרסם או מוציא משימוש (`actor_id = null`, `metadata.source = 'cron'`) |
 
 | Method · Path | גוף / Query | פעולה | `audit action` |
 |---|---|---|---|
@@ -6541,13 +7060,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 | `PUT /api/admin/plans/[id]` · `PUT /api/admin/packs/[id]` · `PUT /api/admin/credit-costs/[key]` | שדות הטבלה | מחירון | `plan.update` · `pack.update` · `credit_cost.update` |
 | `POST /api/admin/credits/adjust` | `{ workspaceId, amount (≠0, -10000..10000), reasonHe }` | חיובי ← `grant_credits(…,'admin',…, 'grant:admin:{auditLogId}')`; שלילי ← `debit_credits(…, 'debit:admin:{auditLogId}')`. שורת היומן נכתבת **לפני** הקריאה כדי שמזהה שלה יהיה המפתח | `credits.adjust` |
 | `POST /api/admin/credits/revoke-grant` | `{ grantId: Uuid, reasonHe: HeText(5, 300) }` | "הסרת היתרה מהדלי": שורת `audit_logs` קודם, ואז `revoke_grant_remaining(grantId, 'revoke:admin:{auditLogId}', reasonHe, actorId)` ← ‏`200 { removed }` | `credits.revoke` |
-| `PUT /api/admin/settings/[key]` · `PUT /api/admin/flags/[key]` | `{ value }` (Zod לפי מפתח) · `{ enabled, plans?, workspaceIds? }` | הגדרות ודגלים | `settings.update` · `flag.update` |
+| `PUT /api/admin/settings/[key]` · `PUT /api/admin/flags/[key]` | `{ value }` (Zod לפי מפתח) · `{ enabled, plans?, workspaceIds? }` | הגדרות ודגלים; הדלקת `meta_connect` בפרודקשן כש-`META_PROVIDER=mock` ← 400 `INVALID_INPUT {reason: "meta_mock_in_production"}` (חלק 06 §20) | `settings.update` · `flag.update` |
 | `GET /api/admin/abuse` | `?status=&source=&page=` (50 לעמוד) | רשימת דיווחים עם סינון לפי מצב ומקור (`share_page` / `system` / `support`) | — |
 | `POST /api/admin/share-links/[id]/revoke` · `PATCH /api/admin/abuse/[id]` | `{ status, notes }` | דיווחים ושיתוף (טיפול בדיווח יכול לבטל את קישור השיתוף) | `share_link.revoke` · `abuse.action` |
 | `GET /api/admin/audit` · `GET /api/admin/costs` · `GET /api/admin/ops/cron` · `GET /api/admin/ops/credit-invariants` | פילטרים | יומן ביקורת, עלויות ומרווח, 20 הריצות האחרונות של pg_cron שנכשלו (`cron_recent_failures()`) + הריצה האחרונה של כל cron של Vercel (`cron:last:{name}` ב-Upstash), `credit_invariant_violations()` | — |
-| `POST /api/admin/ops/cron` | `{ name: "sweep-jobs" \| "billing-renewals" \| "sync-models" \| "hook-of-the-day" \| "reminders" \| "cleanup" }` | הרצה מיידית של אותה פונקציה (`lib/cron/{name}.ts`) בתוך התהליך, תחת אותה נעילה; הכפתור "התאמת תשלומים עכשיו" שולח `billing-renewals` (שמתחיל ב-`reconcilePendingCheckouts`) ← ‏`200 { summary }` או `{ skipped: "locked" }` | `ops.cron_run` |
+| `POST /api/admin/ops/cron` | `{ name: "sweep-jobs" \| "billing-renewals" \| "sync-models" \| "hook-of-the-day" \| "reminders" \| "cleanup" }`, ומההרחבה גם עשרת השמות של §23 (`meta-insights-hourly` … `trends-lifecycle`) | הרצה מיידית של אותה פונקציה (`lib/cron/{name}.ts`) בתוך התהליך, תחת אותה נעילה; הכפתור "התאמת תשלומים עכשיו" שולח `billing-renewals` (שמתחיל ב-`reconcilePendingCheckouts`) ← `200 { summary }` או `{ skipped: "locked" }` | `ops.cron_run` |
 | `POST /api/admin/models/test` | `{ taskKey, slug? }` | "בדיקה" של נתיב משימה עם קלט קבוע (חלק 05 §6.4): לא מחויב, נרשם ב-`ai_generations` עם `workspace_id = NULL` ← ‏`200 { ok, modelServed, latencyMs, costUsd, output }` (טקסט/JSON ל-LLM; במדיה — כתובת חתומה ל-10 דקות לקובץ ב-`generated/_admin-tests/{YYYY-MM-DD}/{uuid}.{ext}`, שנמחק אחרי 7 ימים, §13.1) | — |
 | `POST /api/admin/revalidate` | `{ tags: string[] }` | revalidate יזום | `settings.update` |
+| `POST /api/admin/trends/references` (A1) | `CreateTrendReferenceBody { sourcePlatform, sourceUrl?, rightsBasis, rightsNote, attest: true, file?: { mime, bytes } }` | ייחוס חדש עם בסיס זכויות והצהרה; עם קובץ ← כתובת העלאה חתומה ל-`trend-refs` ← `201 { referenceId, upload? }`; `INVALID_INPUT` (`rights_required`, `scraping_not_allowed`) | `trend.reference_create` |
+| `POST /api/admin/trends/references/[id]/complete` (A2) | `{}` | בדיקת הקובץ (עד 180 שניות), phash למניעת כפילות ← `200 { reference }`; `INVALID_INPUT` (`duplicate`, `too_long`) | `trend.reference_create` (`metadata.op = 'complete'`) |
+| `POST /api/admin/trends/references/[id]/analyze` (A3) | `{}` | הזרימה `trendAnalyze` ← `202 { analysisId }`; `BUDGET_GUARD` (`trend_analysis_limits`) | `trend.analysis_run` |
+| `GET /api/admin/trends/analyses/[id]` (A4) | — | הניתוח, חבילת ההוק וכתובות חתומות לפריימים (10 דקות) ← `200 { analysis, hookPackage, frameUrls }` | — |
+| `POST /api/admin/trends/analyses/[id]/draft-template` (A5) | `{}` | `trends.adapt.v1` ← טיוטת תבנית ← `201 { templateId }`; `MODERATION_BLOCKED` (דמיון או סיכון) | `trend.template_update` (`metadata.op = 'draft_from_analysis'`) |
+| `PATCH /api/admin/trends/templates/[id]` (A6) | `TrendTemplateV1` חלקי, עם `ifUnmodifiedSince`; וגם `explainer` (`TrendExplainerV1`) ו-`demoAssetPaths` (סינון וסידור מחדש של הקיים בלבד; קובץ שהוסר נמחק מ-`public-media`, חלק 08 §7.4) | עריכת תבנית ← `200 { template }`; `INVALID_INPUT`, `EDIT_CONFLICT` | `trend.template_update` |
+| `POST /api/admin/trends/templates/[id]/demo-render` (A7) | `{ nicheSlug }` | עבודה בסביבת `ws-trends-studio` (§16.3); ה-finalize מעתיק ל-`public-media/trends/{slug}/` ← `202 { jobId }`; תבנית `guided` בלי צילום מוכן בסטודיו לאותה נישה ← `INVALID_INPUT` (`guided_footage_required`) | `trend.template_update` (`metadata.op = 'demo_render'`) |
+| `POST /api/admin/trends/templates/[id]/publish` (A8) | `{ publishAt? }` | פרסום מיידי או מתוזמן; דורש לפחות נכס הדגמה אחד והסבר ← `200 { status }`; `INVALID_INPUT` (`no_demo`, `missing_explainer`) | `trend.template_publish` |
+| `POST /api/admin/trends/templates/[id]/retire` (A9) | `{}` | `status = 'retired'`, `revalidateTag('trends', "max")` ← `200 { status: "retired" }` | `trend.template_retire` |
+| `POST /api/admin/trends/templates/[id]/explainer` (A10) | `{}` | **NDJSON** `TrendExplainerV1` (`trends.explainer.v1`); נשמר כטיוטה ב-`explainer` לעריכה | `trend.template_update` (`metadata.op = 'explainer_draft'`) |
+| `DELETE /api/admin/trends/references/[id]/file` (A11) | — | מחיקת הקובץ השמור, הניתוח נשאר ← `204` | `trend.reference_file_delete` |
+| `GET /api/admin/meta/connections?status=` (AM1) | פילטרים | חיבורים: סטטוס, בדיקה אחרונה ושגיאות, **בלי טוקנים** ← `200 { items }` | — |
+| `POST /api/admin/meta/connections/[id]/health-check` (AM2) | `{}` | אותה בדיקה כמו `meta-token-health` לחיבור אחד ← `200 { status }` | `meta.admin_health_check` |
+| `GET /api/admin/meta/campaigns?status=&q=` (AM3) | פילטרים | מעקב: סטטוס, סיבות דחייה, הוצאה ושגיאות ← `200 { items }` | — |
 
 ### 24.2 Server Actions (שמירות טפסים פשוטות)
 
@@ -6580,6 +7113,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pro
 - [ ] `POST /api/admin/credits/revoke-grant` כותב שורת `audit_logs` ‏`credits.revoke` ושורת `adjustment` אחת ביומן; קריאה כפולה לא מסירה פעמיים.
 - [ ] `POST /api/admin/ops/cron { name: "billing-renewals" }` בזמן שה-cron רץ ← `{ skipped: "locked" }`; אחרי ריצה, `GET /api/admin/ops/cron` מציג את `cron:last:billing-renewals`.
 - [ ] מנהל פלטפורמה עם session ברמת `aal1` מקבל 403 מכל `/api/admin/*`.
+- [ ] `POST /api/admin/trends/references` בלי `attest: true` ← 400 `{ reason: "rights_required" }`; עם `sourceUrl` של TikTok ובלי קובץ ובסיס `link_only_notes` ← 201 בלי כתובת העלאה.
+- [ ] `GET /api/admin/meta/connections` לא מחזיר אף שדה שמכיל `token` (בדיקה על המפתחות של ה-JSON); AM2 כותב שורת `audit_logs` `meta.admin_health_check` אחת.
+- [ ] פרסום דף עסק, פרסום קמפיין וייצוא לידים כותבים כל אחד שורת `audit_logs` אחת עם ה-`action` מהטבלה של ההרחבה, וב-`metadata` שלהן אין שם, טלפון או מייל של ליד.
 
 ---
 
@@ -6647,14 +7183,16 @@ end $$;
 |---|---|---|
 | `01_schema.sql` | RLS פעיל על כל טבלה ב-`public` | 0 טבלאות בלי `rowsecurity` |
 | | אין מדיניות `to public` | 0 שורות ב-`pg_policies` עם `public` |
-| | כל טבלה עם `updated_at` (חוץ מ-`hooks` שיש לה טריגר עמודות) מחוברת ל-`set_updated_at` | 0 חסרות |
+| | כל טבלה עם `updated_at` (חוץ מ-`hooks` ו-`project_versions`, שיש להן טריגר עמודות, §9.1 ו-§2.3) מחוברת ל-`set_updated_at` | 0 חסרות |
 | | אף פונקציה `security definer` ב-`public` בלי `search_path` קבוע | 0 (`proconfig` מכיל `search_path=`) |
-| | `anon` יכול להריץ רק: `search_hooks`, `search_hooks_facets`, `normalize_he`, `escape_like`, `health_ping` | רשימה זהה בדיוק |
-| | **allow-list של `execute`:** כל פונקציה ב-`public` (`pg_proc` ⋈ `pg_namespace`) שבה `has_function_privilege('anon', oid, 'execute')` או `has_function_privilege('authenticated', oid, 'execute')` | הקבוצה שווה בדיוק לרשימת ה-grants של §12.6 (כולל `change_member_role`) ועוד `storage_ws`, ‏`storage_upload_allowed`, ‏`realtime_topic_allowed`; כל פונקציה חדשה בלי revoke מפורש נכשלת כאן |
-| | `authenticated` לא יכול להריץ `reserve_credits`, `capture_credits`, `settle_reservation`, `refund_reservation`, `refund_credits`, `begin_spend`, `commit_spend`, `sweep_orphaned_spends`, `cap_rollover`, `effective_white_label`, `_billing_workspace_id`, `_workspace_plan`, `_lock_billing_workspace`, `grant_credits`, `debit_credits`, `revoke_grant_remaining`, `create_job_and_reserve`, `claim_idempotency_key`, `prepare_user_deletion`, `enforce_plan_limits`, `billing_apply_payment`, `billing_apply_renewal`, `billing_apply_plan_change`, `cron_recent_failures`, `trial_pepper_configured` | `has_function_privilege = false` לכולן |
-| | `purge_ai_generations`, `purge_support_data`, `purge_audit_logs` לא ניתנות להרצה ל-`anon`, ל-`authenticated` וגם לא ל-`service_role` | `false` לכולן |
-| | מפתחות זרים שמצביעים על `profiles` עם `on delete restrict` (‏`pg_constraint.confdeltype = 'r'`) | 0 (כולם `cascade` או `set null`, §9.6) |
-| | 36 enum-ים; ‏`member_role` בסדר `owner,admin,editor,viewer` | ✓ |
+| | `anon` יכול להריץ רק: `search_hooks`, `search_hooks_facets`, `normalize_he`, `escape_like`, `health_ping`, ומ-`0013` גם `landing_page_public` | רשימה זהה בדיוק |
+| | **allow-list של `execute`:** כל פונקציה ב-`public` (`pg_proc` ⋈ `pg_namespace`) שבה `has_function_privilege('anon', oid, 'execute')` או `has_function_privilege('authenticated', oid, 'execute')` | הקבוצה שווה בדיוק לרשימת ה-grants של §12.6 (כולל `change_member_role`) ועוד `storage_ws`, `storage_upload_allowed`, `realtime_topic_allowed`, ועוד ארבע הפונקציות של §12.7 (`landing_page_public`, `meta_spend_summary`, `trend_feed`, `trend_template_benchmark`); כל פונקציה חדשה בלי revoke מפורש נכשלת כאן |
+| | `authenticated` לא יכול להריץ `reserve_credits`, `capture_credits`, `settle_reservation`, `refund_reservation`, `refund_credits`, `begin_spend`, `commit_spend`, `sweep_orphaned_spends`, `cap_rollover`, `effective_white_label`, `_billing_workspace_id`, `_workspace_plan`, `_lock_billing_workspace`, `grant_credits`, `debit_credits`, `revoke_grant_remaining`, `create_job_and_reserve`, `claim_idempotency_key`, `prepare_user_deletion`, `enforce_plan_limits`, `billing_apply_payment`, `billing_apply_renewal`, `billing_apply_plan_change`, `cron_recent_failures`, `trial_pepper_configured`, ומההרחבה `_managed_spend_cap_ils`, `refresh_managed_spend`, `ad_budget_changes_last_hour`, `purge_meta_data`, `refresh_trend_template_stats` | `has_function_privilege = false` לכולן |
+| | `purge_ai_generations`, `purge_support_data`, `purge_audit_logs`, ומ-`0013` גם `purge_leads`, לא ניתנות להרצה ל-`anon`, ל-`authenticated` וגם לא ל-`service_role` | `false` לכולן |
+| | מפתחות זרים שמצביעים על `profiles` עם `on delete restrict` או `no action` (`pg_constraint.confdeltype in ('r','a')`) | 0 (כולם `cascade` או `set null`, §9.6; כולל הטבלאות של `0013`/`0014`, §2.3) |
+| | **grants של טבלאות:** כל טבלה ב-`public` ש-`has_table_privilege('anon', t, 'select')` | רק טבלאות הקטלוג של §12.2, `hook_popularity`, ו-`trend_templates` (grant עמודות) |
+| | כל טבלה שנוצרה ב-`0013`/`0014` | `has_table_privilege('authenticated', t, 'insert' \| 'update' \| 'delete')` = `false` לכולן; `meta_tokens`, `meta_data_deletion_requests`, `managed_spend_monthly` ו-`trend_template_stats_daily` גם בלי `select` |
+| | 36 enum-ים אחרי `0012`, ו-58 אחרי `0014`; `member_role` בסדר `owner,admin,editor,viewer` | ✓ |
 | `02_tenancy_rls.sql` | משתמש A (בעלים של WA) ומשתמש B (בעלים של WB) | — |
 | | A קורא `projects`, ‏`assets`, ‏`jobs`, ‏`brand_kits` של WB | 0 שורות |
 | | A מכניס `projects` עם `workspace_id = WB` | שגיאת RLS (`42501`) |
@@ -6738,8 +7276,36 @@ end $$;
 | | `effective_white_label`: סוכנות עם `white_label = true` בתוכנית `agency` / אותה סוכנות אחרי מעבר ל-`business` / סביבת לקוח של הסוכנות / `white_label = false` | `true` / `false` / `true` (לפי סביבת החיוב) / `false` |
 | | `email_messages` עם `idempotency_key` כפול | `23505` |
 | | `insert into consents (email, kind, version, granted, source)` עם `source = 'unsubscribe'` ו-`granted = false` כ-`service_role` / אותו דבר עם `source = 'email_link'` | מצליח / `23514` (`check_violation`) |
-| | `cron.job` | בדיוק 11 משימות |
+| | `cron.job` | בדיוק 14 משימות (11 של `0011` ו-3 של ההרחבה) |
 | | `backup_reader` (`set role backup_reader`) | `select` על `credit_ledger` מצליח; `insert` נכשל |
+| `11_meta_rls.sql` (`0013`) | A (בעלים של WA) ו-B (בעלים של WB); בכל סביבה חיבור, קמפיין, ליד, פוסט, דף עסק, דוח בדיקת דופק ותוכנית | — |
+| | A קורא `ad_campaigns`, `leads`, `social_posts`, `landing_pages`, `ad_health_reports`, `content_plans` של WB | 0 שורות |
+| | צופה ב-WA קורא `leads` של WA / מעדכן `leads.status` ישירות | שורות / שגיאת הרשאה (`42501`) |
+| | `select token_enc from meta_tokens` (גם כבעלים) · `select * from meta_data_deletion_requests` · אותו דבר כ-`anon` | שגיאת הרשאה (`42501`) |
+| | `select meta_user_id from meta_connections` · `select min_budgets from meta_assets` · `select raw from ad_insights_daily` | שגיאת הרשאה על העמודה; `select id, status` עובד |
+| | `insert`/`update`/`delete` ישיר כ-`authenticated` על כל טבלה של `0013` | שגיאת הרשאה (`42501`) |
+| | `select * from managed_spend_monthly` ישיר · `meta_spend_summary(WA)` כבעלים / כעורך / כ-A על WB | שגיאת הרשאה · שורה / 0 שורות / 0 שורות (R39) |
+| | `landing_page_public('<slug של טיוטה>')` / `('<slug של דף שפורסם>')` כ-`anon` | 0 שורות / שורה אחת בלי `workspace_id` ו-`brand_kit_id` |
+| | `select * from landing_pages` כ-`anon` | שגיאת הרשאה (`42501`) |
+| | `insert into leads (…)` כ-`service_role` בלי `source` / עם `source = 'landing_page'` | `source = 'meta_form'` / מצליח |
+| | `insert into consents` עם `kind = 'meta_ads_terms'` ו-`source = 'meta_connect'` כ-`service_role` | מצליח; `source = 'meta_oops'` ← `23514` |
+| | `webhook_events` עם `provider = 'meta'` | מצליח |
+| | `meta_connections`: שתי שורות חיות לאותה סביבה | `23505` (`meta_connections_one_live`) |
+| | `purge_meta_data(WA, 'all')` כ-`service_role` | אין שורות ב-`meta_tokens`, `ad_campaigns`, `leads`, `social_posts` של WA; של WB לא השתנה |
+| | `has_function_privilege('authenticated', 'public.ad_budget_changes_last_hour(uuid)', 'execute')` | `false` |
+| `12_trends_rls.sql` (`0014`) | `anon` קורא `slug, name_he` מ-`trend_templates` | רק `published`, ו-`retired` עם `published_at`; טיוטה לא מוחזרת |
+| | `anon` או `authenticated` קוראים `source_reference_id`, `do_not_copy`, `created_by` או `updated_by` | שגיאת הרשאה על העמודה |
+| | משתמש רגיל קורא `trend_references` / `trend_analyses`; מנהל פלטפורמה עם `aal1` / עם `aal2` | 0 שורות; 0 / שורות |
+| | `select * from trend_template_stats_daily` ישיר | שגיאת הרשאה |
+| | `trend_template_benchmark(t, 'restaurants')` כש-`cross_customer_benchmarks.enabled = false` / `true` עם 4 עסקים / עם 5 | 0 / 0 / שורה |
+| | `trend_feed(WB)` כ-A / `trend_feed(WA)` כחבר | 0 שורות (R39) / רק `published` שלא פגו, בלי `retired` |
+| | `trend_templates` עם `ad_safety = 'organic_only'` ו-`recommended_ad_goal = 'lead_form'` | `23514` |
+| | `guided_shoots` ו-`trend_template_uses` של WB כ-A | 0 שורות |
+| | עורך מכניס `project_versions` עם `hook_score` | שגיאת הרשאה (`42501`) |
+| | `update project_versions set hook_score = '{"score":80}'` כ-`service_role` על גרסה עם עבודה | מצליח, ו-`updated_at` לא השתנה; `set script = …` על אותה גרסה עדיין נכשל |
+| | `update workspaces set benchmarks_opt_out = true` כבעלים / כעורך | מצליח / 0 שורות |
+| | `storage.objects` ב-`trend-refs` כ-`authenticated` (קריאה והכנסה) | 0 שורות / נדחה |
+| | `allowed_mime_types` של `uploads` | מכיל `video/webm` |
 
 ### 25.3 נתוני הבדיקה
 
@@ -6774,23 +7340,28 @@ test("create_job_and_reserve respects concurrent_jobs under 10 parallel calls", 
 - webhooks: חתימה שגויה, חתימה תקינה, משלוח כפול, אירוע לא סופי — עם fixtures ב-`tests/fixtures/openrouter/*.json` ו-`tests/fixtures/payments/*.json`.
 - `POST /api/unsubscribe?token=` (`tests/contract/api/unsubscribe.test.ts`): POST חד-קליקי בלי עוגיות ובלי `Origin` ← 200, שורת `email_suppressions` אחת ו-3 שורות `consents` (`granted = false`, ‏`source = 'unsubscribe'`, אחת לכל `marketing_*`); כש-`recordConsent` זורק — עדיין 200 ושורת ההסרה נשמרה; טוקן לא תקין ← 400.
 - בדיקת "כיסוי נתיבים": סקריפט שמוצא כל `route.ts` תחת `app/api` ומוודא שהוא מייצא handler שנבנה ב-`route()` (או ברשימת החריגים: webhooks, ‏`/.well-known/workflow`) ושיש לו לפחות קובץ בדיקה אחד.
+- **ההרחבה:** לכל נתיב של §21b — אותם חמישה מקרים, ועוד דגל כבוי (404) ו-`META_NOT_CONNECTED` כשאין חיבור. Meta נבדקת רק מול ה-mock (`META_PROVIDER=mock`, handlers של MSW ו-fixtures ב-`tests/fixtures/meta/*.json`, חלק 07), כולל כותרות שימוש שמפעילות את השער ושגיאות 190, 613 ו-2207042. ה-webhooks של Meta: אתגר עם טוקן נכון ושגוי, חתימה שגויה, משלוח כפול של `leadgen`, ו-`signed_request` לא תקין ב-deauthorize ובמחיקת נתונים. הטופס הציבורי של דף העסק: honeypot, הגבלת קצב ודף שלא פורסם. M2 (`callback`) לא בנוי ב-`route()` הרגיל, כי הוא מחזיר הפניות; הוא ברשימת החריגים ויש לו בדיקה משלו.
 
 ### קריטריוני קבלה
 - [ ] `pnpm db:test` ירוק ב-CI, וכל שורה בטבלה ב-25.2 ממומשת כ-assertion אחד לפחות.
 - [ ] בדיקת המקביליות רצה 20 פעמים ברצף בלי כישלון (flaky = באג).
 - [ ] בדיקת כיסוי הנתיבים נכשלת כשמוסיפים `route.ts` חדש בלי `route()` או בלי בדיקה.
+- [ ] `11_meta_rls.sql` ו-`12_trends_rls.sql` רצים ב-CI אחרי `db reset`, וכל שורה שלהם ממומשת כ-assertion; בדיקת ה-allow-list ובדיקת ה-grants של הטבלאות נכשלות כשמוסיפים ל-`0013` טבלה בלי `revoke all … from anon, authenticated`.
 
 ---
 
 ## תלויות בין חלקים
 
-החלק הזה הוא הבעלים של הסכמה, ה-RLS, פונקציות ה-SQL, רשימת הנתיבים, קודי השגיאה, ה-buckets של הגבלות הקצב, מפתחות Upstash, רשימת `app_settings`/`feature_flags` ורשימת פעולות הביקורת. החלקים האחרים צורכים אותם כך:
+החלק הזה הוא הבעלים של הסכמה, ה-RLS, פונקציות ה-SQL, רשימת הנתיבים, קודי השגיאה, ה-buckets של הגבלות הקצב, מפתחות Upstash, רשימת `app_settings`/`feature_flags` ורשימת פעולות הביקורת. מאז הרחבת 2026-10-17 הוא גם הבעלים של אינדקס המיגרציות שאחרי ההשקה (§2.3), של העמודה `project_versions.hook_score` (§2.3, §19.10) ושל רשימת האב של נתיבי ההרחבה (§21b), בזמן שה-SQL המלא של `0013`/`0014` כתוב בחלקים 07 ו-08. החלקים האחרים צורכים אותם כך:
 
 - **חלק 01:** `THEME_SCRIPT_SOURCE` (`components/a11y/theme-script.tsx`) — ה-hash שלו נכנס ל-CSP ש-`proxy.ts` מייצר (§17.2). סכומים בשקלים בכל מקום עוברים דרך `formatIls` (תחילית: "₪119").
-- **חלק 02:** קורא את הקטלוג עם `createStaticClient()` ואת `search_hooks` / `search_hooks_facets` (§11.1), ו-`GET /api/hooks/search` לשינויי פאסטים בדפדפן. משתמש בעמודות ה-DB-only של `niches` ובערכי `niche_extras.json` (§5, §16.1), בטפסים הציבוריים (§21.4), בערכי `src` של `CreateProjectBody` (§19.3), בנתיבי `public-media` של קיר ההדגמה (§13.1), וב-`marketingExperiments` (`lib/seo/experiments.ts`: rewrite ל-`/exp/hero/[variant]` רק כשקיימת עוגיית `exp_hero`), שחלק 02 מממש וה-proxy מפעיל על `/`. ערכי ה-seed של התוכניות, החבילות ו-`credit_costs.label_he` (§16.4) הם הקנוניים.
-- **חלק 03:** מציג את 22 קודי השגיאה ואת הווריאנטים לפי `reason` / `scope` / `limit` (§18.2) מ-`messages/he.json → errors.*`; צורך זרמי NDJSON דרך `useNdjsonObject` (§18.5); עוטף את `subscribeJob` / `subscribeWorkspace` ב-`useJobChannel` / `useWorkspaceChannel` (§14.2); כותב את `ProjectBrief`, ‏`RenderOptions` ו-`renderOptionsReset` (§19.3); מציג "משתמש שנמחק" כשעמודת מחבר היא NULL (§9.6); מסכי האדמין ו-`/admin/mfa` עובדים מול §24.1 ו-`platform_admin_status()` (§9.2); Server Actions לפי §24.2.
-- **חלק 05:** מממש את `lib/ai/*`, ‏`estimate()` (כולל `alreadySpent`, §19.7), את מבנה `job_steps.output` (§6), את התחלת עבודות האחים לפי `options.afterJobId` (§10.4, §23), את `buildPromoProps` לפי `projects.render_options` ← ערכת המותג ← ברירת מחדל, את `moderation.upload.v1` ש-`uploads/complete` קורא (§20.2), את `post.caption.v1` ו-`edit.chat.v1` (§19.5), ואת `PLACEHOLDERS` / `HOOK_PLACEHOLDERS` (`lib/hebrew/placeholders.ts`) ו-`BANNED_PHRASES` (`lib/ai/prompts/style-data.ts`) שה-seed מייבא (§16.2). כותב את `ai_generations` (כולל `meta`) וקורא את `hebrew_wps` ו-`tts_fallback_voices`. החוזה עם מנוע הקרדיטים — §10.7.
-- **חלק 06:** כותב את הגוף של `billing_apply_payment` / `billing_apply_renewal` / `billing_apply_plan_change` (§10.8) מעל `lib/billing/engine.ts`; מממש את ספקי התשלום והחשבוניות (`parseWebhook(raw, headers, url?)`, §22.4–§22.5), את `lib/workspace/limits.ts` (`canGenerate`, ‏`availableBrandKits`, §9.5b), את `buildCsp` (`lib/security/csp.ts`), את `lib/crypto.ts` (`hmacSign`, ‏`hmacVerifyAny`, ‏`secretList`, טוקני מייל), את `sendEmail` מעל `email_messages`, את טבלת משתני הסביבה (§20 שם), את תהליכי הגיבוי עם `backup_reader` (§15b) ואת טבלת השמירה של §11.5 שם (= §15 כאן). ההחלטות שממתינות לעורך דין או לרו״ח ונוגעות לחלק הזה (פטור הרינדורים לסביבות שילמו, מילת האישור "מחיקה", ‏`annual_prorata`) רשומות בחלק 06 §25.
-- **נספחים A–C:** הקבצים ב-`/seed` הם מקור האמת; `pnpm seed:sync` מעתיק אותם ל-`supabase/seed/data/`, ו-`pnpm db:seed` טוען אותם (§16).
-- **נספח E:** רשימת הביטויים האסורים (§5.2 שם) וברירות המחדל לכל נישה (§3.3 שם, דרך `niche_extras.json`).
+- **חלק 02:** קורא את הקטלוג עם `createStaticClient()` ואת `search_hooks` / `search_hooks_facets` (§11.1), ו-`GET /api/hooks/search` לשינויי פאסטים בדפדפן. משתמש בעמודות ה-DB-only של `niches` ובערכי `niche_extras.json` (§5, §16.1), בטפסים הציבוריים (§21.4), בערכי `src` של `CreateProjectBody` (§19.3), בנתיבי `public-media` של קיר ההדגמה (§13.1), וב-`marketingExperiments` (`lib/seo/experiments.ts`: rewrite ל-`/exp/hero/[variant]` רק כשקיימת עוגיית `exp_hero`), שחלק 02 מממש וה-proxy מפעיל על `/`. ערכי ה-seed של התוכניות, החבילות ו-`credit_costs.label_he` (§16.4) הם הקנוניים. **מההרחבה:** הדפים `/trends`, `/trends/[slug]` ו-`/meta/data-deletion` קוראים מ-`trend_templates` (grant העמודות של `anon`) ומ-`meta_data_deletion_requests` דרך השרת, ונשארים מחוץ ל-proxy (§17.2); `PlanMetaFeatures` מציג את מפתחות ה-`limits` של §16.4, ו-`features_he` לא משתנה. **רשום בחלק 02:** הדף `/meta/data-deletion?code=` קורא את הסטטוס בלקוח הסודי ומציג רק "התקבלה" / "בטיפול" / "הושלמה".
+- **חלק 03:** מציג את 27 קודי השגיאה ואת הווריאנטים לפי `reason` / `scope` / `limit` (§18.2) מ-`messages/he.json → errors.*`; צורך זרמי NDJSON דרך `useNdjsonObject` (§18.5); עוטף את `subscribeJob` / `subscribeWorkspace` ב-`useJobChannel` / `useWorkspaceChannel` (§14.2); כותב את `ProjectBrief`, `RenderOptions` ו-`renderOptionsReset` (§19.3); מציג "משתמש שנמחק" כשעמודת מחבר היא NULL (§9.6); מסכי האדמין ו-`/admin/mfa` עובדים מול §24.1 ו-`platform_admin_status()` (§9.2); Server Actions לפי §24.2. **מההרחבה:** מציג את ה-`details` של חמשת הקודים החדשים ואת הערכים החדשים של `PLAN_LIMIT.limit` ושל `RATE_LIMITED.scope` (§18.2, §18.6); צורך את `CampaignBroadcast`, `LeadBroadcast` ו-`SocialPostBroadcast` דרך `useWorkspaceChannel` (§14.2); מציג את `HookScoreBadge` מ-§19.10. **רשום בחלק 03:** הקופי ל-`reason` החדשים של `INVALID_INPUT` (`production_mode_unavailable`, `overlay_slot_unknown`, `trim_out_of_range`, `no_storyboard`, `slug_invalid`, `slug_taken`, `slug_reserved`, ומחלק 07 גם `too_many_pages`, `legal_identity_missing`, `no_contact_channel`, `outside_month`) ול-`scope` של ה-buckets החדשים (`meta_write`, `meta_refresh`, `social_publish`, `leads_export`, `landing_lead`, `health_check`, `plan_generate`); ודיאלוג מחיקת החשבון אומר שקמפיינים שרצים במטא ממשיכים לרוץ שם, ומציע להשהות אותם קודם (§9.6).
+- **חלק 05:** מממש את `lib/ai/*`, `estimate()` (כולל `alreadySpent`, §19.7), את מבנה `job_steps.output` (§6), את התחלת עבודות האחים לפי `options.afterJobId` (§10.4, §23), את `buildPromoProps` לפי `projects.render_options` ← ערכת המותג ← ברירת מחדל, את `moderation.upload.v1` ש-`uploads/complete` קורא (§20.2), את `post.caption.v1` ו-`edit.chat.v1` (§19.5), ואת `PLACEHOLDERS` / `HOOK_PLACEHOLDERS` (`lib/hebrew/placeholders.ts`) ו-`BANNED_PHRASES` (`lib/ai/prompts/style-data.ts`) שה-seed מייבא (§16.2). כותב את `ai_generations` (כולל `meta`) וקורא את `hebrew_wps` ו-`tts_fallback_voices`. החוזה עם מנוע הקרדיטים — §10.7. **מההרחבה:** `route()` עם `needsVideoInput` מסנן לפי `model_registry.capabilities.video_in` (§16.5); שלושת הנתיבים `llm.ads`, `llm.video` ו-`llm.vision_frames` קבועים ב-`model_routes.json`; `post.caption.v2` מחזיר `first_line_cta_he` ועד 5 האשטגים (§19.5); `scenes.overlay` וחיתוכי המדיה נכנסים ל-`scenes_digest` (§19.6). **רשום בחלק 05:** `HookScoreV1` (`lib/ai/schemas/hooks.ts`, חלק 05 §11.2) הוא המבנה ששמור ב-`project_versions.hook_score` (§19.10), ו-`lib/hooks/score.ts` מחשב אותו ואת `input_hash`.
+- **חלק 06:** כותב את הגוף של `billing_apply_payment` / `billing_apply_renewal` / `billing_apply_plan_change` (§10.8) מעל `lib/billing/engine.ts`; מממש את ספקי התשלום והחשבוניות (`parseWebhook(raw, headers, url?)`, §22.4–§22.5), את `lib/workspace/limits.ts` (`canGenerate`, `availableBrandKits`, §9.5b), את `buildCsp` (`lib/security/csp.ts`), את `lib/crypto.ts` (`hmacSign`, `hmacVerifyAny`, `secretList`, טוקני מייל), את `sendEmail` מעל `email_messages`, את טבלת משתני הסביבה (§20 שם), את תהליכי הגיבוי עם `backup_reader` (§15b) ואת טבלת השמירה של §11.5 שם (= §15 כאן). ההחלטות שממתינות לעורך דין או לרו״ח ונוגעות לחלק הזה (פטור הרינדורים לסביבות שילמו, מילת האישור "מחיקה", `annual_prorata`) רשומות בחלק 06 §25. **מההרחבה:** טבלאות הדגלים (24) וה-`app_settings` (30) של §16.4 הן הרשימות הראשיות של ה-seed, וחלק 06 §21 מתאר אותן; `META_APP_SECRET` נכנס לכלל הרוטציה של §22.1. **רשום בחלק 06:** `buildCsp` מקבל `pathname` (§17.2) ומוסיף `frame-src https://www.facebook.com` רק בבונה הקמפיינים; שורות השמירה של §11.5 שם כוללות גם את דוחות בדיקת הדופק (12 חודשים) ואת `public-media/landing/` (עד ביטול הפרסום).
+- **חלק 07 (Meta, קמפיינים, לידים, פרסום רגיל, דף העסק, בדיקת דופק, תוכנית 30 יום):** כותב את ה-SQL המלא של `0013_meta_integration.sql` לפי הכללים של §2.3 ו-§12.7, את החוזים ב-Zod ואת הלוגיקה של הנתיבים ב-§21b.2–§21b.3, את הלוגיקה של ה-webhooks של Meta (§22.6), של ה-cron-ים החדשים של §23 (כולם חוץ מ-`trends-lifecycle`) ושל הזרימות, ואת הטריגרים של אירועי Realtime (§14.1). צורך מכאן: קודי השגיאה ו-`details` (§18.2), ה-buckets והמגבלות העסקיות (§18.6), `claimWebhook` (§22.1), עטיפת ה-cron (§23), `begin_spend`/`commit_spend` ל-`landing.generate` (§19.5), מפתחות ה-`limits` (§16.4) ומפתחות Upstash (§18.6). **רשום בחלק 07:** `0013` נכנס כבר במיזוג של M8 ושלם מראש (§2.3); `revoke all … from anon, authenticated` לכל טבלה חדשה; `purge_leads()` נשללת גם מ-`service_role`; כל FK ל-`profiles` הוא `on delete set null`; `leads.source` הוא `lead_source` עם ברירת המחדל `meta_form`; מזהי הנתיבים LP1–LP9, HC1–HC2, PL1–PL3 ותפקידי ההרשאה שלהם (פרסום דף עסק והרצת בדיקת דופק = owner/admin; LP3 ליצירה מחדש ו-LP9 לספירת צפיות הם החלטה של חלק 07 §24, וחלק 07 §7.1 משתמש באותם מזהים); `landing_page_public` מחזירה דף `published` בלי `workspace_id`; העתקת סרטון הפתיחה ל-`public-media/landing/{id}/` בפרסום ומחיקתו בביטול (§13.1); honeypot ולא CAPTCHA בטופס הציבורי; פעולות הביקורת `landing.publish`/`landing.unpublish`/`landing.delete` ומיפוי שאר הפעולות (§24.1); ה-`external_id` של deauthorize ושל מחיקת נתונים (§22.6); מפתחות המטמון `meta:previews:*` ו-`meta:explain:*`; שמירת `ad_health_reports` ל-12 חודשים בתוך `purge-meta-raw` (§15); וחריג מתג החירום של `meta_ads` ודגלי הלידים (§21b.1).
+- **חלק 08 (טרנדים וצילום מודרך):** כותב את ה-SQL המלא של `0014_trends.sql`, ומעתיק לסופו **כלשונו** את הבלוק של חלק 04 (`project_versions.hook_score` והטריגר של `set_updated_at`, §2.3); כותב את החוזים והלוגיקה של §21b.4 ושל נתיבי האדמין A1–A11 (§24.1), את `trends-lifecycle` ואת סעיף 9 של `cleanup` (§23), ואת ה-bucket `trend-refs` (§13.1). **רשום בחלק 08:** `seed/scripts/build_trends.py` מקבל `--check` (§2.2, §16.1); `lib/trends/seed-schema.ts` מייצא את `TrendTemplateSeed` ואת `TREND_TEMPLATE_KEY_ORDER` (§16.2); `trend_references.rights_attested_by` הוא nullable עם `on delete set null`; רינדורי ההדגמה רצים בסביבה `ws-trends-studio` של `pnpm db:seed --studio` (§16.3); משבצות הטקסט של `SceneOverlayV1` הן המפתחות של `overlayTexts` (§19.6).
+- **נספחים A–C:** הקבצים ב-`/seed` הם מקור האמת (ומההרחבה גם `/seed/trend_templates.json` של חלק 08); `pnpm seed:sync` מעתיק אותם ל-`supabase/seed/data/`, ו-`pnpm db:seed` טוען אותם (§16).
+- **נספח E:** רשימת הביטויים האסורים (§5.2 שם) וברירות המחדל לכל נישה (§3.3 שם, דרך `niche_extras.json`); מגבלות האורך של `LENGTH_LIMITS` (§12 שם) לטקסטים של שכבות הטרנד (§19.6) ולכללי האמת של דף העסק (§21b.3).
 - **נספח F:** המפרט המקורי. כשיש סתירה, החלק הזה גובר; תיבת התיקונים בראש נספח F מפנה לכאן בנושאי הזרימה (NDJSON), ‏`afterJobId`, ‏`realtime.send`, תוספות הסכמה, קודי השגיאה, משימות pg_cron, המושבים, הגבלות הקצב, `app_settings` ו-`webhook_provider`.
+- **החלטות שנקבעו כאן בהרחבה** (אין להן מקור אחר, וכל חלק שנוגע בהן מפנה לכאן): (1) `0013` ו-`0014` נכנסים יחד במיזוג הראשון של M8, כי ל-`0014` יש FK לעמודות של `0013` (§2.3); (2) `set_updated_at` של `project_versions` עובר לרשימת עמודות בלי `hook_score` (§2.3); (3) כל טבלה חדשה מתחילה ב-`revoke all … from anon, authenticated`, ופונקציה שהשרת קורא לה מקבלת grant מפורש ל-`service_role` (§2.3); (4) `purge_leads` רצה רק מ-pg_cron (§12.7); (5) סרטון הפתיחה של דף העסק מועתק ל-`public-media/landing/{id}/` בפרסום (§13.1); (6) `video/webm` מתקבל רק בצילום מודרך (§20.2); (7) דוחות בדיקת הדופק נמחקים אחרי 12 חודשים בתוך `purge-meta-raw` הקיימת (חלק 07 §6.7, חלק 06 §11.5), ולא במשימה נוספת (§15); (8) נתיבי הלידים פתוחים כשאחד מ-`meta_lead_forms` או `landing_pages` דולק או כשיש לידים, מתג החירום של `meta_ads` משאיר צפייה, השהיה וסיום, ו-M6 (ניתוק) עובד תמיד כשיש חיבור (§21b.1); (9) ארבעת דגלי מפת הדרכים לא נזרעים (הרשימה הראשית של חלק 06 §21.1), וסך הדגלים ב-seed הוא 24 (§16.4); (10) פרסום דף עסק והרצת בדיקת דופק הם owner/admin (כמו חלק 07 §7.1), וציון הוק פתוח ל-member (§21b.3, §19.10); (11) `landing_pages` סופר דפים **שפורסמו** בלבד, ו-`features_he` של התוכניות לא משתנה (§16.4); (12) השמות שנוספו כאן: פעולות הביקורת `landing.*`, מפתחות Upstash `meta:previews:*` ו-`meta:explain:*`, ה-`external_id` `deauth:*` ו-`deletion:*`, וה-`reason` החדשים של `INVALID_INPUT` שברשימה של חלק 03 למעלה.

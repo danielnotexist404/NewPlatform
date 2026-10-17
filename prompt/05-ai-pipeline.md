@@ -4,6 +4,8 @@
 
 הטבלאות, הפונקציות והנתיבים שהחלק הזה משתמש בהם מוגדרים בחלק 04 (סכמה, מנוע הקרדיטים §10, Realtime §14, אחסון §13, seed §16). המסכים שמציגים את התוצאות מוגדרים בחלק 03, ומראה הכתוביות בחלק 01 §16. כאן מוגדרת הלוגיקה, והשמות כאן הם חוזה.
 
+**הרחבת 2026-10-17 (M8–M11):** החלק הזה הוא גם המנוע של קמפייני Meta (חלק 07) ושל מנוע הטרנדים והצילום המודרך (חלק 08). הוא מוסיף שלושה נתיבי מודל (`llm.ads`, `llm.video`, `llm.vision_frames`, §6), קלט וידאו לצ׳אט (`video_url` ב-base64, §4.7), את רישום כל מזהי הפרומפטים החדשים (§8.1; הטקסטים בחלקים 07 ו-08, ראו §10.16), את מבנה התסריט `trend` (§12.2), את `startFlow` לתהליכים שאינם סרטון (§19.1), את שכבות הטרנד ב-Remotion (`TrendOverlays`, §20.3), את פרופיל הרינדור `meta_reels` ואת סימון התוכן שנוצר ב-AI בקובץ עצמו (§20.11, §21.7), ואת "ציון הוק" במלואו (§10.15, §24).
+
 ---
 
 ## §1. ארכיטקטורה, גבולות ומבנה קבצים
@@ -42,7 +44,7 @@
 ```
 lib/ai/
   openrouter/http.ts          # orFetch(), orUrl(), orProvider(): headers, timeouts, error taxonomy, retry/backoff
-  openrouter/chat.ts          # raw /chat/completions client (fallback to AI SDK; also used for Lyria)
+  openrouter/chat.ts          # raw /chat/completions client (fallback to AI SDK; also used for Lyria; ★ multimodal parts incl. video_url, §4.7)
   openrouter/images.ts        # POST /images (+ chat-modalities fallback for Gemini)
   openrouter/videos.ts        # submit / poll / download content / validate against capabilities
   openrouter/audio.ts         # /audio/speech, /audio/transcriptions
@@ -64,6 +66,11 @@ lib/ai/
   prompts/{types,compose,style-data}.ts ★   # PromptTemplate, sanitizeForPrompt/tag, BANNED_PHRASES & LENGTH_LIMITS (Appendix E)
   prompts/{one file per prompt ID}.ts · prompts/examples/*.json ★ (Appendix D few-shots)
   schemas/{brand,script,storyboard,hooks,captions,moderation,misc ★}.ts + json.ts ★ (toStrictJsonSchema) + json/*.json ★
+  schemas/{ads,landing,plan,trends,guided}.ts ★   # LLM output schemas of the part 07/08 prompts + SceneOverlayV1 (owners write the Zod, §11.4)
+lib/hooks/        score.ts ★                       # hook score (§24): deterministic checks, hooks.score.v1, "fix in one click" plans
+lib/trends/       ★ part 08: preprocess.ts · preprocess-sandbox.ts · analyze.ts · adapt.ts · similarity.ts · risk.ts · feed.ts
+lib/guided/       ★ part 08: shotlist.ts · autocut.ts
+lib/workflows/    ★ index.ts (FLOWS registry, §19.1) + one file per flow ("use workflow" + "use step" wrappers; owners 07/08)
 lib/pipeline/
   workflow.ts                 # "use workflow" videoPipeline + "use step" wrappers ONLY
   flow.ts ★                   # runFlow(jobId, rt) — the single flow body (§19.1)
@@ -73,22 +80,27 @@ lib/pipeline/
   state.ts                    # runStep(), setJob/setStep/setScene, heartbeat, recomputeProgress
 lib/orchestrator/ types.ts · vercel-workflow.ts · inline.ts · index.ts
 lib/render/       types.ts · vercel-sandbox.ts · lambda.ts · local.ts · props.ts · settings.ts ★ · index.ts
+                  postprocess.ts ★ (faststart + XMP DigitalSourceType, §20.11) · meta-spec.ts ★ (META_REELS_SPEC, assertMetaVideoSpec)
 lib/captions/     align.ts · paginate.ts · subtitles.ts
 lib/audio/        concat.ts ★                          # ffmpeg-static inside steps (concat, loudnorm, WAV→MP3)
 lib/hebrew/       placeholders.ts · inflect.ts · bidi.ts · text.ts · numbers.ts · tts.ts ★ · pronunciation.ts ★ · lint.ts (חלק 03)
                   data/{acronyms,loanwords,noun-gender}.json ★
 lib/zod.ts ★      # the single zod import point (§11.1)
 remotion/         index.ts · Root.tsx · schema.ts · fonts.ts · rtl.ts · compositions/* · layers/* (incl. transitions.ts ★) · captions/{presets,paginate}.ts
+                  layers/trends/ ★ TrendOverlays.tsx (container, §20.3) · the 11 overlay components and layout.ts (part 08 §J.5)
+                  layers/scene-transform.ts ★ (sceneTransformAt: the Ken Burns / fit transform shared by SceneLayer and SignOverlay)
 scripts/          bundle-remotion.ts ★ · eval-prompts.ts ★ · spikes/* ★ · render-demo-videos.ts (נספח D)
 ```
 
 **`steps/` מול `workflow.ts`:** הלוגיקה של כל צעד נכתבת פעם אחת כפונקציה רגילה ב-`lib/pipeline/steps/{voice,captions,keyframe,clip,music,render,finalize,…}.ts`. הקובץ `workflow.ts` מכיל רק עטיפות דקות עם `"use workflow"` / `"use step"` שקוראות לפונקציות האלה. כך התזמור `inline` (בדיקות ופיתוח) מריץ בדיוק את אותו קוד בלי ה-directives, ומעבר ל-Trigger.dev בעתיד לא נוגע בלוגיקה.
 
+**התיקיות החדשות (★, 2026-10-17):** `lib/trends/`, `lib/guided/` ו-`remotion/layers/trends/` (חוץ מ-`TrendOverlays.tsx`) נכתבים לפי חלק 08; `lib/meta/*` ו-`lib/social/*` לפי חלק 07 (לא מופיעים בעץ הזה); `lib/workflows/` משותף: המבנה, הרישום והכללים כאן (§19.1), וגוף כל תהליך בחלק שבבעלותו. `lib/hooks/score.ts`, `lib/render/{postprocess,meta-spec}.ts`, `TrendOverlays.tsx` ו-`scene-transform.ts` שייכים לחלק הזה. אותו כלל של `steps/` מול `workflow.ts` חל על התהליכים: ב-`lib/workflows/{name}.ts` יש רק עטיפות עם directives, והלוגיקה בפונקציות רגילות בתיקייה של החלק הבעלים.
+
 ### 1.3 כללים שנאכפים בקוד
 
 | כלל | אכיפה |
 |---|---|
-| כל קובץ תחת `lib/ai/`, `lib/pipeline/`, `lib/orchestrator/`, `lib/render/` מתחיל ב-`import "server-only"`. חריגים: `lib/ai/schemas/**` (סכמות Zod טהורות, בלי סודות ובלי קריאות רשת, כי גם הדפדפן מאמת מולן) ו-`lib/ai/client/**` (הוק דפדפן שמייבא מ-`lib/ai/` רק סכמות) | ESLint `no-restricted-imports` + בדיקת CI שמחפשת את השורה |
+| כל קובץ תחת `lib/ai/`, `lib/pipeline/`, `lib/orchestrator/`, `lib/render/`, וגם ★ `lib/workflows/`, `lib/trends/`, `lib/guided/` ו-`lib/hooks/`, מתחיל ב-`import "server-only"`. חריגים: `lib/ai/schemas/**` (סכמות Zod טהורות, בלי סודות ובלי קריאות רשת, כי גם הדפדפן מאמת מולן) ו-`lib/ai/client/**` (הוק דפדפן שמייבא מ-`lib/ai/` רק סכמות) | ESLint `no-restricted-imports` + בדיקת CI שמחפשת את השורה |
 | אין slug של מודל כמחרוזת בקוד | ESLint `no-restricted-syntax` על literal שמתאים ל-`/^(anthropic|openai|google|kwaivgi|bytedance|alibaba|minimax|elevenlabs|heygen)\//`, חוץ מ-`supabase/seed/data/*.json`, `tests/**` ו-`scripts/spikes/**` |
 | אין קריאה ל-`fetch("https://openrouter.ai…")` מחוץ ל-`lib/ai/openrouter/http.ts` | ESLint `no-restricted-syntax` על המחרוזת |
 | אין קריאת AI בלי `record()` | הדרך היחידה לקרוא למודל היא `runStructured()` (טקסט) או פונקציה ב-`lib/ai/tasks/*` (מדיה, מעל `orFetch()`), ושתיהן קוראות ל-`record()` גם בהצלחה וגם בכישלון; בדיקת יחידה שסופרת בקשות ב-MSW מול שורות ב-`ai_generations` |
@@ -339,6 +351,7 @@ export interface RunContext {
   qualityTier?: "draft" | "standard" | "premium";
   signal?: AbortSignal;                         // interactive routes: req.signal; pipeline: the step's signal (§18.3)
   deadlineAt?: number;                          // interactive routes only: request start + INTERACTIVE_BUDGET_MS (240 s; maxDuration 300), §2.2
+  timeoutMs?: number;                           // ★ short sync routes (hook score, §24): one hard per-call timeout instead of deadlineAt
   onPartial?: (partial: unknown) => void;       // when set → streaming
 }
 
@@ -352,7 +365,7 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
     validate: (v) => { const r = tpl.schema.safeParse(v); return r.success ? { success: true, value: r.data } : { success: false, error: r.error }; },
   });
   const started = Date.now();
-  const callTimeoutMs = attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt);   // min(110 s, deadlineAt − now − 5 s)
+  const callTimeoutMs = ctx.timeoutMs ?? attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt);   // min(110 s, deadlineAt − now − 5 s)
   if (callTimeoutMs === null) throw new AppError("PROVIDER_TIMEOUT", { phase: "call" }); // < 30 s left: no call; the route refunds (§3.4)
   const common = {
     model: chatModel(route), messages,
@@ -375,11 +388,11 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
     }
     const issues = tpl.validate?.(raw, input) ?? [];               // semantic validation (§11.3)
     const needsRepair = issues.some((i) => i.severity === "error");
-    if (needsRepair && attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt) === null)
+    if (needsRepair && tpl.repair !== false && attemptTimeoutMs(POLICY.chat.timeoutMs, ctx.deadlineAt) === null)
       throw new AppError("PROVIDER_TIMEOUT", { phase: "repair" });          // < 30 s left: no repair round; the route refunds (§3.4)
-    const output = needsRepair
-      ? await repairOnce(tpl, input, route, messages, raw, issues, ctx)   // one repair round, non-streamed, same maxRetries: 0
-      : raw;
+    const output = !needsRepair ? raw
+      : tpl.repair === false ? pruneOrThrow(tpl, raw, issues)             // ★ no second call: drop the invalid items (§8.1, §24.4)
+      : await repairOnce(tpl, input, route, messages, raw, issues, ctx);  // one repair round, non-streamed, same maxRetries: 0
     await recordLlm({ ...ctx, tpl, route, meta, latencyMs: Date.now() - started, status: "ok" });   // maps to record() §7.1
     return { output, modelServed: meta.modelServed, fallbackUsed: meta.modelServed !== route.primary.slug, usage: meta.usage, generationId: meta.id };
   } catch (e) {
@@ -394,6 +407,8 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
 - **ה-API של AI SDK v6:** `generateText`/`streamText` עם `output: Output.object(...)` (ה-API המומלץ ב-v6; `generateObject`/`streamObject` עדיין קיימים אבל מסומנים כמיושנים). אם בגרסה הנעולה רק `streamObject` מעביר `json_schema` strict כמו שצריך — משתמשים בו מאחורי אותה פונקציה [M0-verify].
 - **`repairOnce()`**: בקשה אחת נוספת, בלי סטרימינג, לאותו נתיב: ההודעות המקוריות + הודעת `assistant` עם ה-JSON שנכשל + הודעת `user`: "התשובה לא עברה בדיקה. השגיאות: {רשימה}. החזירו את אותו JSON מתוקן, בלי לשנות שדות תקינים." התיקון רץ **רק אם נשארו לפחות 30 שניות** עד `ctx.deadlineAt` (`deadlineAt − now ≥ 30 000`); אחרת `runStructured` זורק `PROVIDER_TIMEOUT`, והנתיב מחזיר את הקרדיטים (§3.4). גם הקריאה של התיקון נשלחת עם `maxRetries: 0` ועם timeout שמחושב מחדש ב-`attemptTimeoutMs`. אם גם התיקון נכשל — `PROVIDER_UNAVAILABLE` (המשתמש מקבל החזר, §3.4). שתי הקריאות נרשמות.
 - **`maxRetries: 0` בכל קריאה של AI SDK:** ברירת המחדל של `generateText`/`streamText`/`generateObject`/`streamObject` היא שני ניסיונות חוזרים, שהיו מכפילים את זמן הקריאה מעבר ל-`maxDuration`. אצלנו הגיבוי בצ׳אט הוא `models[]` של OpenRouter בתוך אותה בקשה, וב-pipeline — מדיניות הניסיונות של הצעד (§18.2). בדיקת יחידה עם spy על `generateText`/`streamText` מוודאת `maxRetries: 0` ו-`abortSignal` בכל קריאה.
+- ★ **`tpl.transport = "fetch"`** (חובה כש-`tpl.media(input)` מחזיר חלק `video_url`, §4.7): אותה זרימה בדיוק — תקציב, `route`, הודעות, ולידציה, תיקון ו-`recordLlm` — אבל הקריאה עצמה עוברת ב-`chatCompletion()` של `lib/ai/openrouter/chat.ts` במקום `generateText`, בלי סטרימינג, והחלקים של `media()` מצורפים להודעת ה-user אחרי הטקסט של `buildUser()`. תבנית עם `media()` שמחזיר רק `image_url` נשארת על AI SDK (כמו `moderation.upload.v1` היום), אלא אם ספייק 2 מראה שה-provider משנה את החלקים.
+- ★ **`tpl.repair = false` ו-`ctx.timeoutMs`** משמשים נתיבים סינכרוניים קצרים (ציון הוק, §24): קריאה אחת עם timeout קשיח, בלי סבב תיקון. `pruneOrThrow()` מפעיל את `tpl.prune(raw, issues)`, שמסיר את הפריטים הפסולים (למשל הצעה עם מספר שלא בעובדות); כש-`prune` מחזיר `null` (הפלט כולו לא שמיש) נזרק `PROVIDER_UNAVAILABLE { phase: "validate" }`, והקורא ממשיך בלי שכבת ה-LLM. שתי האפשרויות נרשמות ב-`ai_generations` כמו כל קריאה.
 
 ### 3.3 הגוף שנשלח בפועל (לבדיקה מול ספייק M0)
 
@@ -425,6 +440,8 @@ export async function runStructured<I, O>(tpl: PromptTemplate<I, O>, input: I, c
 | `POST /api/projects/[id]/script` | אותו דבר עם `script.generate` (2) | אותו דבר |
 | `POST /api/projects/[id]/storyboard` | `storyboard.generate` (1) | אותו דבר |
 | `POST /api/brand/extract`, `…/scenes/[sceneId]/rewrite`, `…/script/beats/[index]/rewrite`, `…/script/inflect`, `POST /api/hooks/inflect`, `POST /api/projects/[id]/post-caption` (`post.caption.v1`), `POST /api/projects/[id]/edit-plan` (v2), ו-`tts.normalize`/`captions.emphasis` שרצים בתוך הצנרת | 0 קרדיטים; מגבלות קצב לפי הדליים של חלק 04 §18.6 (`brand_extract`, `rewrite`, `inflect`) | — |
+| ★ קריאות ה-LLM החינמיות של חלקים 07 ו-08 ושל §24: `ads.copy.v1` (C5), `ads.insight_explain.v1` (C17 והסיכום השבועי), `moderation.ad.v1` (בתוך C6/C8), `post.caption.v2` (נתיב #20), `ads.health_check.v1` (בתוך `metaHealthCheck`), `plan.month.v1` (`POST /api/plan/generate`), `guided.shotlist.v1` (G1), `trends.sign_quad.v1` (בתוך הצנרת), `hooks.score.v1` (§24), ו-`trends.*` של האדמין | 0 קרדיטים (`ads.copy`, `ads.insight`, `meta.health_check`, `plan.generate`, `guided.shotlist`, `hooks.score`, `trends.analyze` ב-`credit_costs`, חלק 04 §16.4); מגבלות קצב לפי הדליים של חלק 04 §18.6; האדמין — מגן התקציב של §7.6 | — |
+| ★ יצירה ויצירה מחדש של "דף העסק" (`landing.copy.v1`; הנתיבים והמסך בחלק 07) | `landing.generate` — **10 קרדיטים** לכל יצירה או יצירה מחדש, באותו דפוס של `/script`: `begin_spend` לפני הקריאה, ו-`commit_spend` רק אחרי שהתוכן נשמר בדף. עריכת טקסט בעורך הדף, פרסום והסרה מפרסום חינמיים | `refund_reservation` כמו בשורה הראשונה |
 
 השערים שלפני `begin_spend` (תקציב, מצב בחירות, מודרציה, שער עובדות), תקציב הזמן (`maxDuration = 300`, `deadlineAt` של 240 שניות, §2.2) ומפתחות האידמפוטנטיות מוגדרים בחלק 04 §19.5 ו-§18.7. הזרימה: שערים ← `begin_spend` ← קריאות המודל ← שמירת הגרסה/ההוקים ← `commit_spend` ← `complete_idempotency_key`; כל חריגה בדרך ← `refund_reservation`. אם הפונקציה נקטעה אחרי השמירה ולפני `commit_spend`, המשתמש מקבל את התוצר בחינם — כשל בטוח בכוונה. אחרי הצלחה נשלחים אירועי השרת `script_generated` / `storyboard_generated` `{model_served, ms}` (חלק 06 §14.2).
 
@@ -454,6 +471,8 @@ export const StreamEvent = <T extends z.ZodType>(partial: T) => z.discriminatedU
 ובשגיאה: `{"type":"error","error":{"code":"PROVIDER_UNAVAILABLE","message_he":"…","details":{"refunded":2}}}`. הכותרות `X-Request-Id` ו-`X-Credits-Spent` נשלחות לפני הגוף; מזהה הגרסה מגיע רק באירוע `done` (אין כותרת `X-Version-Id`). שגיאה שקורית **לפני** שהזרם התחיל (מגבלה, מודרציה, תקציב) היא תשובת JSON רגילה עם סטטוס HTTP. בהוקים ובווריאציות, `done.workspaceHookIds` מחזיק את מזהי השורות שנשמרו ב-`workspace_hooks`, לפי סדר ההוקים.
 
 הלקוח: `useNdjsonObject(schema)` (`lib/ai/client/use-ndjson-object.ts`), שמשמש את המסכים של חלק 03. הוא מציג את ה-`partial` האחרון, מחליף אותו במצב הסופי רק אחרי `done`, ובאירוע `error` מציג `errors.{code}` (ו"הקרדיטים חזרו" כש-`details.refunded > 0`); ניסיון חוזר נשלח עם `Idempotency-Key` **חדש**. אירוע `partial` נשלח לכל היותר כל 80ms (throttle בצד השרת) כדי לא להציף את React. הטוקנים הראשונים צריכים להגיע תוך פחות מ-3 שניות (§12.7 בנספח F).
+
+★ **נתיבים זורמים של חלקים 07 ו-08:** `POST /api/campaigns/[id]/copy` (C5, `AdCopyV1`), `POST /api/campaigns/[id]/explain` (C17, `InsightExplainV1`) ו-`POST /api/admin/trends/templates/[id]/explainer` (A10, `TrendExplainerV1`) משתמשים באותו `StreamEvent` ובאותו `useNdjsonObject`, עם `versionId: null` ו-`credits: 0` באירוע `done`.
 
 ### קריטריוני קבלה
 - [ ] ספייק M0 מספר 2 שמור ב-`scripts/spikes/02-chat-json-schema.ts` ותוצאתו ב-`DECISIONS.md`: הגוף שנשלח מכיל את כל השדות של §3.3.
@@ -582,11 +601,11 @@ export async function synthesizeSpeech(i: { model: string; input: string; voice:
 }
 
 /** POST /audio/transcriptions, JSON body with base64 (no data: prefix). */
-export async function transcribe(i: { model: string; audio: Buffer; format: "mp3"; language: "he" }) {
+export async function transcribe(i: { model: string; audio: Buffer; format: "mp3" | "wav"; language: "he" | "auto" }) {
   const res = await orFetch("transcriptions", "/audio/transcriptions", { body: {
     model: i.model,
     input_audio: { data: i.audio.toString("base64"), format: i.format },
-    language: i.language,
+    ...(i.language === "auto" ? {} : { language: i.language }),   // ★ "auto": field omitted → provider auto-detect [M0-verify spike 24]
     response_format: "verbose_json",
     provider: orProvider("transcriptions"),
   } });
@@ -597,6 +616,7 @@ export async function transcribe(i: { model: string; audio: Buffer; format: "mp3
 - **קריינות ארוכה:** קלט מעל 9,000 תווים מפוצל בגבולות משפט (`. ! ? …` ואחריהם רווח), נוצר בחלקים, ומחובר ברצף עם 120ms שקט ביניהם (`lib/audio/concat.ts`, `ffmpeg-static` בתוך הצעד; סרטון של 60 שניות הוא כ-900 תווים, ולכן זה קורה רק בבדיקות קצה).
 - **עלות קריינות:** נקודת הקריינות מחזירה אודיו, לא JSON, ולכן `usage.cost` לא זמין בתשובה. אם יש מזהה generation בכותרת — `reconcileCosts()` (§7.4) שולף את העלות מ-`GET ${OPENROUTER_BASE_URL}/generation?id={id}` עד 48 שעות אחר כך; עד אז `cost_usd = NULL` ו-`cost_estimated_usd = תווים × per_m_chars / 1e6`, לפי **מחיר הרשימה** של ElevenLabs (ההנחה הזמנית של 50% ב-OpenRouter מסתיימת ב-2026-10-19 ולא נכנסת לחישובים, §6.3).
 - **גודל התמלול:** MP3 של 60 שניות ב-128kbps הוא כמיליון בתים, כ-1.3MB ב-base64. תמיד שולחים JSON עם `input_audio: { data, format }` (base64 בלי קידומת `data:`); לא משתמשים ב-multipart (שמוגבל ל-25MB ממילא). מעל 20MB של אודיו (לא אמור לקרות בסרטון של עד 60 שניות) — הצעד עובר ישר ליישור החלופי (§16.8).
+- ★ **שפת התמלול:** הנתיב `stt.default` שולח `language: "he"` (מ-`model_routes.params`), וזה נשאר כך לקריינות שלנו ולצילומים המודרכים של הלקוח (`guidedAutocut`, חלק 08 §J.7). רק תמלול של סרטון השראה (`trendAnalyze`, חלק 08 §J.2) קורא ל-`transcribe` עם `language: "auto"`, שדורס את הפרמטר של הנתיב ומשמיט את השדה, כי סרטוני ייחוס הם לרוב באנגלית, בספרדית או בערבית. הקלט שם הוא `hook.wav` (מונו, 16 kHz, מ-`ffmpeg-static`), ולכן `format` מקבל גם `wav`. הפלט עובר את אותו `TranscriptionResponse` ונשמר ב-`trend_analyses.hook_package.transcript_excerpt`, לא כ-`CaptionTrackV1`.
 
 ### 4.4 מוזיקה (`lib/ai/tasks/music.ts` דרך `openrouter/chat.ts`)
 
@@ -625,12 +645,92 @@ WAV מומר ל-MP3 192k בתוך הצעד (`ffmpeg-static`), כדי שהקוב�
 
 `heygen/avatar-iv` דרך `/videos`: תמונת המציג (מתוך `likeness_profiles` מאושר בלבד) כ-`first_frame`, והאודיו העברי **שלנו** כ-`input_references` מסוג אודיו, כדי שהעברית לא תלויה ב-TTS של HeyGen. מבנה הבקשה (כולל השם של שדה האודיו וה-passthrough של HeyGen) מאומת בספייק לפני שהדגל נפתח [M0-verify]. עד אז `lib/ai/tasks/avatar.ts` זורק שגיאה פנימית (`feature_disabled`, לא קוד API — הדגל כבוי ולכן אף נתיב לא מגיע אליו). העלות: `avatar.second` (3 קרדיטים לשנייה, חלק 04 §16.4) מול כ-$0.05 לשנייה ב-OpenRouter.
 
+### 4.7 ★ קלט מולטימודלי לצ׳אט: תמונות ו-`video_url` (`lib/ai/openrouter/chat.ts`)
+
+ניתוח סרטון השראה (`trends.analyze.v1`, חלק 08 §J.2) שולח וידאו למודל שפה דרך נקודת הצ׳אט הרגילה, `POST /chat/completions`, בחלק תוכן מסוג `video_url`. **הכתובת היא תמיד data URL של base64** (`data:video/mp4;base64,…`) ולעולם לא כתובת מרוחקת: Gemini דרך Vertex לא מקבל כתובות וידאו בכלל, ודרך AI Studio רק קישורי YouTube, ו-`google/gemini-3.8-flash` מוגש בשניהם, כך ש-base64 הוא הצורה היחידה שעובדת אצל שניהם (`docs/research/13-viral-trends-engine.md` §1.1). החריג היחיד הוא `public_youtube_url` (חלק 08 §J.1): קישור YouTube ציבורי שנשלח כמו שהוא, עם נעיצת הספק ל-AI Studio [M0-verify ה-slug של הספק]. הבקשות האלה עוברות בלקוח ה-`fetch` המוקלד ולא ב-AI SDK, עד שספייק M0 מספר 24 יוכיח שה-provider מעביר חלקי `video_url` בלי לשנות אותם.
+
+```ts
+// lib/ai/openrouter/chat.ts (additions)
+export type ChatContentPart =
+  | { type: "text"; text: string; cache_control?: { type: "ephemeral" } }
+  | { type: "image_url"; image_url: { url: string } }      // 10-min signed https URL, or data:image/jpeg;base64,… (timed frames)
+  | { type: "video_url"; video_url: { url: string } };     // data:video/mp4;base64,… ONLY — exact part shape [M0-verify spike 24]
+
+export class MediaTooLargeError extends Error {
+  constructor(readonly base64Mb: number, readonly maxMb: number) { super(`media_too_large ${base64Mb.toFixed(1)}MB > ${maxMb}MB`); }
+}
+
+/** H.264 MP4 bytes → one video part. Throws BEFORE any network call when the request would pass the cap. */
+export function videoPart(bytes: Buffer, budget: { maxBase64Mb: number; usedBase64Mb: number }): ChatContentPart {
+  const b64Mb = (Math.ceil(bytes.length / 3) * 4) / (1024 * 1024);
+  if (budget.usedBase64Mb + b64Mb > budget.maxBase64Mb) throw new MediaTooLargeError(budget.usedBase64Mb + b64Mb, budget.maxBase64Mb);
+  if (bytes.subarray(4, 8).toString("latin1") !== "ftyp") throw new Error("video part must be MP4 (transcode first)");
+  return { type: "video_url", video_url: { url: `data:video/mp4;base64,${bytes.toString("base64")}` } };
+}
+/** One JPEG frame preceded by its timestamp, so the model reasons over measured timing (docs/research/13 §1.3). */
+export const timedFrameParts = (tMs: number, jpeg: Buffer): ChatContentPart[] => [
+  { type: "text", text: `t=${tMs}ms` },
+  { type: "image_url", image_url: { url: `data:image/jpeg;base64,${jpeg.toString("base64")}` } },
+];
+/** public_youtube_url only. */
+export function youtubePart(url: string): { part: ChatContentPart; provider: Record<string, unknown> } {
+  if (!/^https:\/\/(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)[\w-]{6,}/.test(url)) throw new Error("not a public YouTube URL");
+  return { part: { type: "video_url", video_url: { url } }, provider: { only: [AI_STUDIO_PROVIDER_SLUG] } };   // [M0-verify slug]
+}
+
+export async function chatCompletion(i: {
+  route: ResolvedRoute;
+  messages: { role: "system" | "user" | "assistant"; content: string | ChatContentPart[] }[];
+  schemaName: string; jsonSchema: JSONSchema7; temperature: number; maxTokens: number;
+  provider?: Record<string, unknown>; signal?: AbortSignal; deadlineAt?: number;
+}): Promise<{ raw: unknown; modelServed: string; usage: LlmUsage; id: string | null }>;
+// body = §3.3 + parts; provider = orProvider("chat", { require_parameters: true, ...i.provider }); stream: false;
+// orFetch("chat", "/chat/completions", { body, signal, deadlineAt }) — same POLICY, same error taxonomy (§2.3)
+```
+
+הגוף שנשלח בפועל (לבדיקה מול ספייק 24):
+
+```json
+{
+  "model": "google/gemini-3.8-flash",
+  "models": ["google/gemini-3.8-flash", "google/gemini-3.1-pro-preview"],
+  "provider": { "require_parameters": true, "data_collection": "deny" },
+  "temperature": 0.2,
+  "max_tokens": 4000,
+  "stream": false,
+  "messages": [
+    { "role": "system", "content": [ { "type": "text", "text": "<trends.analyze.v1 system>" } ] },
+    { "role": "user", "content": [
+      { "type": "text", "text": "<instructions + ffmpeg facts (cuts, loudness peaks) + transcript>" },
+      { "type": "video_url", "video_url": { "url": "data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28y…" } },
+      { "type": "text", "text": "t=0ms" },
+      { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ…" } },
+      { "type": "text", "text": "t=250ms" },
+      { "type": "image_url", "image_url": { "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ…" } }
+    ] }
+  ],
+  "response_format": { "type": "json_schema", "json_schema": { "name": "trend_analysis_v1", "strict": true,
+    "schema": { "…": "lib/ai/schemas/json/trend_analysis_v1.json" } } }
+}
+```
+
+- **תקרת גודל:** כל הבקשה — הקליפ וכל הפריימים יחד — עד `app_settings.trend_analysis_limits.base64_max_mb` (8MB של base64). `lib/trends/preprocess.ts` מכין קליפ הוק של 0–6 שניות ב-720p לכל היותר (הערכה: 1.4–2.7MB ב-base64) ומוריד רזולוציה או קצב פריימים כשצריך. `MediaTooLargeError` לא מגיע לספק לעולם. התקרה של OpenRouter עצמה לא ידועה [M0-verify ספייק 24].
+- **סוג הקובץ:** רק `video/mp4` עם H.264. התיעוד מונה גם mpeg/mov/webm, אבל אנחנו תמיד ממירים קודם (`ffmpeg-static`, חלק 08 §J.2).
+- **`media_resolution`** (Gemini 3) לא נשלח עד שספייק 24 מוכיח שהוא עובר דרך OpenRouter. אם הוכח — הוא נכנס כמפתח ב-`model_routes.params` (הרשימה הסגורה של חלק 04 §8) באותו PR, ונרשם ב-`DECISIONS.md`.
+- **עלות ורישום:** כמו כל קריאת צ׳אט — `usage.cost` מהתשובה, `unit_type = tokens`, שורה ב-`ai_generations` גם בכישלון (§7.1). הלוג לא כותב base64 לעולם (§2.3).
+- **מעבר לפריימים בלבד:** כש-`route("llm.video", { needsVideoInput: true })` לא מוצא מודל (§6.2), או שהקריאה נכשלת ב-`bad_request` (חלק לא נתמך), או ש-`MediaTooLargeError` חוזר גם אחרי הקטנה אחת — `lib/trends/analyze.ts` מריץ את **אותה תבנית** על `llm.vision_frames` עם אותם פריימים, תמלול ועובדות ובלי חלק הווידאו, ומסמן `hook_package.used_fallback = true` (חלק 08 §J.2).
+- **`runStructured`:** תבנית שמחזירה חלק `video_url` ב-`media(input)` מוגדרת עם `transport: "fetch"` (§8.1), ו-`runStructured` קורא ל-`chatCompletion` במקום AI SDK (§3.2); כל השאר — ולידציה, תיקון אחד, `record()` — לא משתנה.
+- **תמונות למודל הזול:** `moderation.upload.v1` ו-`trends.sign_quad.v1` שולחים חלק `image_url` אחד (כתובת חתומה ל-10 דקות) דרך AI SDK, כמו היום.
+
 ### קריטריוני קבלה
 - [ ] `generateImage` שולח תמיד `resolution` (בדיקת MSW: בקשה בלי השדה נכשלת בבדיקה).
 - [ ] `submitVideo` לסצנה של 7 שניות על מודל עם `supported_durations: [4,6,8]` שולח `duration: 8`; על מודל עם `[5,10]` — 10; וכשהמשך המבוקש מעל המקסימום — המקסימום (ההשלמה ב-Remotion, §20.4).
 - [ ] `downloadVideo` שולח `Authorization: Bearer` (MSW מחזיר 401 בלעדיה) ומסרב ל-`content-type: text/html`.
 - [ ] `transcribe` שולח `input_audio.data` בלי קידומת `data:` ומפענח את שני מבני המילים (`words[]` ו-`segments[].words[]`) מתוך `tests/fixtures/openrouter/transcription-*.json`.
 - [ ] ספייקים 3, 4 ו-5 של M0 (וידאו, תמלול, קריינות עם ניקוד) שמורים ב-`scripts/spikes/` עם קובצי התשובה האמיתיים (בלי מפתחות) תחת `tests/fixtures/openrouter/`.
+- [ ] ★ ספייק 24 שמור ב-`scripts/spikes/24-video-input.ts`: קליפ של 6 שניות ב-base64 נותח בהצלחה על `google/gemini-3.8-flash` גם דרך Vertex וגם דרך AI Studio (נעיצת ספק בכל פעם), והצורה המדויקת של חלק `video_url`, התקרה שנמדדה והתנהגות `media_resolution` רשומות ב-`DECISIONS.md`.
+- [ ] ★ בדיקת MSW: הגוף של `trends.analyze.v1` מכיל חלק `video_url` אחד שה-`url` שלו מתחיל ב-`data:video/mp4;base64,`, 12–16 חלקי `image_url` שלפני כל אחד מהם חלק `t={ms}ms`, `provider.data_collection = "deny"`; קליפ שחורג מ-8MB נזרק כ-`MediaTooLargeError` ו-MSW לא רושם אף בקשה.
+- [ ] ★ `transcribe({ language: "auto" })` שולח גוף בלי השדה `language`, ו-`transcribe({ language: "he" })` שולח `language: "he"`.
 
 ---
 
@@ -736,6 +836,16 @@ const signedPayload = (t: number, raw: string) => `${t}.${raw}`;   // [M0-verify
 | `language`, `response_format` | `tts.*`, `stt.*` | `heb` / `he`; `mp3` / `verbose_json` |
 | `voice_passthrough` | `tts.*` | אובייקט שעובר כ-`provider.options` (למשל הגדרות יציבות של ElevenLabs) [M0-verify] |
 
+**★ שלושה מפתחות משימה חדשים (סך הכול 21 נתיבים; שורות ה-seed בחלק 04 §16.5):**
+
+| `task_key` | ראשי | גיבויים | `params` | משמש את |
+|---|---|---|---|---|
+| `llm.ads` | `anthropic/claude-sonnet-5.5` | `openai/gpt-6.1-sol`, `google/gemini-3.8-flash` | `temperature` 0.7, `structured: "json_schema_strict"` | `ads.copy.v1`, `ads.insight_explain.v1`, `ads.health_check.v1` (חלק 07) |
+| `llm.video` | `google/gemini-3.8-flash` | `google/gemini-3.1-pro-preview` | `temperature` 0.2, `structured: "json_schema_strict"`, `max_output_tokens` 4000 | `trends.analyze.v1` עם קלט וידאו (§4.7); כל מודל בשרשרת חייב `capabilities.video_in = true` |
+| `llm.vision_frames` | `anthropic/claude-sonnet-5.5` | `google/gemini-3.8-flash` | `temperature` 0.2, `structured: "json_schema_strict"` | `trends.analyze.v1` בלי וידאו (פריימים + תמלול), `guided.autocut.v1` |
+
+`model_registry` מקבל שורה אחת: `google/gemini-3.1-pro-preview` (23 שורות), עם `capabilities.video_in = true`; ל-`google/gemini-3.8-flash` הסנכרון מוסיף `video_in` ו-`image_in` (§6.3). מודלים של Anthropic ו-OpenAI לא מקבלים `video_in` (אין להם קלט וידאו, לפי מה שידוע היום [M0-verify בסנכרון הראשון]), ולכן הם לא נבחרים ל-`llm.video` גם אם מנהל מוסיף אותם לנתיב.
+
 ### 6.2 `route()` — הקוד
 
 ```ts
@@ -743,7 +853,8 @@ const signedPayload = (t: number, raw: string) => `${t}.${raw}`;   // [M0-verify
 export type TaskKey =
   | "llm.script" | "llm.storyboard" | "llm.hooks" | "llm.premium" | "llm.cheap" | "llm.batch"
   | "image.draft" | "image.standard" | "image.premium" | "video.draft" | "video.standard" | "video.premium"
-  | "tts.default" | "tts.preview" | "tts.alt" | "stt.default" | "music.default" | "avatar.default";
+  | "tts.default" | "tts.preview" | "tts.alt" | "stt.default" | "music.default" | "avatar.default"
+  | "llm.ads" | "llm.video" | "llm.vision_frames";                                      // ★ 2026-10-17 (21 keys)
 
 export interface RegistryModel { slug: string; task: ModelTask; family: string; isEnabled: boolean; tiers: QualityTier[];
   pricing: NormalizedPricing; capabilities: Capabilities; deprecatedAt: string | null }
@@ -754,6 +865,7 @@ export interface RouteContext {
   aspect?: "9:16" | "1:1" | "16:9";        // video: prefer models that support it natively
   durationSec?: number;                    // video: prefer models that cover it (max supported ÷ 0.75 ≥ durationSec)
   needsFirstFrame?: boolean;               // video: image-to-video
+  needsVideoInput?: boolean;               // ★ llm: only models with capabilities.video_in === true (never waived)
 }
 
 export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<ResolvedRoute> {
@@ -770,6 +882,8 @@ export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<R
 
 `fits()` בודק לווידאו: `needsFirstFrame` → `supported_frame_images` כולל `first_frame`; `durationSec` ≤ המשך המקסימלי הנתמך ÷ 0.75 (אפשר לכסות את הסצנה בהאטה, §20.4) — ואם אף מודל בשרשרת לא עומד בתנאי המשך, התנאי הזה מוותר והקליפ נוצר במשך המקסימלי (§14.1); הרזולוציה של הנתיב או רזולוציה נמוכה ממנה נתמכת ובתוך `plan.max_resolution`. **יחס לא נתמך לא פוסל** מודל — הוא נפתר במסגור מחדש. אם ה-`aspect` נתמך אצל גיבוי אבל לא אצל הראשי, הסדר **לא** משתנה (העקביות של האיכות חשובה יותר).
 
+★ **`needsVideoInput`** (ל-LLM): `fits()` משאיר רק מודלים עם `capabilities.video_in === true`. בניגוד לתנאי המשך של הווידאו, התנאי הזה **לא מוותר** אף פעם: מודל בלי קלט וידאו היה נכשל או "מנחש" את הסרטון. אין מודל מתאים בשרשרת ← `AppError("PROVIDER_UNAVAILABLE", { taskKey, reason: "no_video_model" })`, והקורא (`lib/trends/analyze.ts`) עובר ל-`llm.vision_frames` (§4.7). `capabilities.video_in` חסר נחשב `false`.
+
 **מיפוי רמת איכות:** `image.{tier}`, `video.{tier}` לפי `projects.quality_tier`; תסריט וסטוריבורד ב-`premium` → `llm.premium`; כל השאר לפי התבנית. תוכנית שלא כוללת את הרמה (`limits.quality_tiers`) נחסמת כבר ב-`POST /generate` עם `PLAN_LIMIT`, ו-`premium` דורש גם שמתג החירום `premium_video` דולק (חלק 04 §16.4) — `route()` לא "מוריד רמה" בשקט.
 
 ### 6.3 סנכרון יומי (`scripts/sync-models.ts`, `/api/cron/sync-models`, `/api/admin/models/sync`)
@@ -784,7 +898,8 @@ export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<R
      normalized = normalizePricing(raw)        // per_m_input/per_m_output from $/token ×1e6; per_second by resolution from pricing_skus
                                                // ("per-video-second", "per-video-second-1080p" …); per_image; per_m_chars; per_song
      capabilities = normalizeCapabilities(raw) // durations, resolutions, aspects, frame types, generate_audio, seed,
-                                               // allowed_passthrough_parameters, structured_outputs (∈ supported_parameters)
+                                               // allowed_passthrough_parameters, structured_outputs (∈ supported_parameters),
+                                               // ★ video_in / image_in (architecture.input_modalities ∋ "video" / "image") [M0-verify field]
      upsert model_registry: raw, pricing, capabilities, source, last_synced_at
        — NEVER touch is_enabled, tiers, display_name_he, notes_he
        — new rows: is_enabled=false, display_name_he = raw.name, tiers = '{}'
@@ -802,7 +917,8 @@ export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<R
 **מקרים ידועים:**
 - **ElevenLabs** (`elevenlabs/eleven-v4`, `elevenlabs/eleven-v4-turbo`, `elevenlabs/scribe-v2`) בהנחה של 50% ב-OpenRouter עד **2026-10-19 08:00 PT**. הסנכרון שומר את המחיר שה-API מחזיר, אבל בדיקת הרווחיות, `credit_costs` ו-`cost_estimated_usd` משתמשים תמיד במחיר הרשימה (כ-$80 למיליון תווים ב-v4, כ-$40 ב-v4 Turbo; מחירי הרשימה לא נקראו מחדש במחקר, ולכן נבדקים בסנכרון הראשון אחרי סוף ההנחה): עד `2026-10-19T15:00:00Z` (= 08:00 PT) `normalizePricing` מכפיל ב-2 את מחירי `elevenlabs/*` ושומר את המחיר המוזל ב-`pricing.discounted`; אחרי המועד — המחיר מה-API הוא מחיר הרשימה, ושינוי של יותר מ-10% מפעיל את ההתראה של שלב 5.
 - **Sora** (`openai/sora-2`, `openai/sora-2-pro`) הוסר ב-2026-09-24: הסנכרון מסמן אותו `deprecated_at` אם הוא מופיע, ו-`model_routes` לעולם לא מקבל אותו (ולידציה באדמין).
-- **slugs מדויקים בלבד:** אף פעם לא `~…-latest` (המחיר משתנה עם המודל שמאחורי הכינוי). Wan הוא `alibaba/wan-3.0` (לא `alibaba/wan-3`); גיבוי OpenAI הוא `openai/gpt-6.1-sol`.
+- **slugs מדויקים בלבד:** אף פעם לא `~…-latest` (המחיר משתנה עם המודל שמאחורי הכינוי). Wan הוא `alibaba/wan-3.0` (לא `alibaba/wan-3`); גיבוי OpenAI הוא `openai/gpt-6.1-sol`; גיבוי `llm.video` הוא `google/gemini-3.1-pro-preview` (לא הכינוי `~google/gemini-pro-latest`).
+- ★ **`video_in`:** מודל בנתיב `llm.video` שהסנכרון מסמן לו `video_in = false` (או שהשדה נעלם) מפיק התראה `capabilitiesChanged` עם שם הנתיב. `google/gemini-3.1-pro-preview` הוא מודל preview, ולכן `deprecated_at` שלו נבדק בכל סנכרון; כשהוא יוצא משימוש, מנהל מחליף את הגיבוי בעורך הנתיבים.
 
 ### 6.4 "בדיקה" של נתיב מהאדמין
 
@@ -813,6 +929,8 @@ export async function route(taskKey: TaskKey, ctx: RouteContext = {}): Promise<R
 - [ ] סנכרון על fixture שבו `alibaba/wan-3.0` נעלם מסמן `deprecated_at` ומפיק התראה כי הוא בגיבויים של `video.draft`.
 - [ ] סנכרון לא משנה `is_enabled` של אף שורה (בדיקה על snapshot לפני/אחרי).
 - [ ] שינוי מחיר של 20% ב-`kwaivgi/kling-v3.0-std` מפיק שורת `audit_logs` והתראת "מתחת ליעד הרווחיות" אם `clip.standard` (5 קרדיטים) כבר לא מכסה.
+- [ ] ★ `route("llm.video", { needsVideoInput: true })` מחזיר את `google/gemini-3.8-flash` כראשי; כשמנהל מוסיף לנתיב מודל בלי `video_in` הוא לא נכנס לשרשרת, וכשכל המודלים בלי `video_in` נזרק `PROVIDER_UNAVAILABLE` עם `reason: "no_video_model"`.
+- [ ] ★ אחרי `pnpm db:seed` יש 21 שורות ב-`model_routes` ו-23 ב-`model_registry`, ו-`TaskKey` מכיל בדיוק את 21 המפתחות (בדיקת יחידה מול ה-seed).
 
 ---
 
@@ -875,6 +993,7 @@ export async function assertBudget(i: { scope: "job_start" | "interactive" | "me
 - **יישור מול ה-DB:** כל 5 דקות (בתוך `/api/cron/sweep-jobs`) מחשבים מחדש את הסכום מ-`ai_generations` ודורסים את המונה ב-Redis, כדי שכשל ב-Redis או התאמת עלויות לא יסטו את המגן.
 - **התראות:** מייל ל-`ADMIN_EMAILS` (תבנית `admin_alert`, חלק 06 §12.4) + אריח אדום בלוח הבקרה + באנר. התוכן: הסכום, התקציב, 5 הסביבות עם העלות הגבוהה היום, 5 העבודות היקרות.
 - **חריגה בעבודה בודדת:** אם `jobs.cost_usd_total` עובר פי 2 משווי הקרדיטים שנשמרו (`credits_estimated × 0.02`), נשלחת התראת חריגה (לא עוצרים את העבודה — המשתמש כבר שילם על הערכה).
+- ★ **ניתוח טרנדים של האדמין** נספר במגן הזה כמו כל קריאה, ובנוסף במגן נפרד לפי `app_settings.trend_analysis_limits` (§7.6).
 
 ### 7.4 התאמת עלויות (`reconcileCosts()`)
 
@@ -884,11 +1003,33 @@ export async function assertBudget(i: { scope: "job_start" | "interactive" | "me
 
 webhook עם `id` לא מוכר (בדרך כלל אחרי submit עמום) נרשם `ignored`. הלוח `/admin/costs` מציג "קליפים יתומים (30 יום)" — ספירה וסכום משוער לפי `payload.data` — כדי שהעלות הנסתרת הזאת תהיה גלויה.
 
+### 7.6 ★ תקציב ניתוח הטרנדים (אדמין)
+
+ניתוח סרטוני השראה וכתיבת טיוטות של תבניות טרנד הם עבודה של הצוות, לא של לקוח: השורות ב-`ai_generations` נרשמות עם `workspace_id = NULL`, `task = llm_trend_analysis` (הניתוח) או `llm_trend_template` (`trends.adapt.v1`, `trends.explainer.v1`), ובלי קרדיטים. הן נספרות במגן היומי של §7.3 כמו כל קריאה, ובנוסף במגן נפרד לפי `app_settings.trend_analysis_limits` (`{"max_usd":0.5,"monthly_usd":50,…}`):
+
+```ts
+// lib/trends/analyze.ts (called before EVERY paid call of a trendAnalyze run, and by route A3 before starting the flow)
+export async function assertTrendBudget(i: { analysisId: string; nextCallEstimateUsd: number }) {
+  const lim = await getSetting("trend_analysis_limits");                      // max_usd per analysis, monthly_usd per Asia/Jerusalem month
+  const spentThis = await analysisSpendUsd(i.analysisId);                     // trend_analyses.cost_usd (accumulated after every call)
+  if (spentThis + i.nextCallEstimateUsd > lim.max_usd)
+    throw new AppError("BUDGET_GUARD", { scope: "trend_analysis_limits", limit: "max_usd", spent: spentThis, cap: lim.max_usd });
+  const month = await adminTrendSpendThisMonthUsd();                          // tasks llm_trend_analysis + llm_trend_template, workspace_id IS NULL
+  if (month + i.nextCallEstimateUsd > lim.monthly_usd)
+    throw new AppError("BUDGET_GUARD", { scope: "trend_analysis_limits", limit: "monthly_usd", spent: month, cap: lim.monthly_usd });
+}
+```
+
+- **ההערכה לפני קריאה** (`nextCallEstimateUsd`): לפי `model_registry.pricing` של הראשי בנתיב, עם קירוב הטוקנים של `docs/research/13-viral-trends-engine.md` §1.3 — 95 טוקנים לשניית וידאו, 1,100 לכל פריים (המקרה הגרוע), ותווי הטקסט חלקי 4 — ועוד 2,000 טוקני פלט. ניתוח טיפוסי עולה כ-$0.02–0.07 (שם).
+- **העלות של ניתוח אחד:** אחרי כל קריאה בתהליך, `costForBudget` שמחזיר `record()` (§7.1) מתווסף ל-`trend_analyses.cost_usd` (העמודה של חלק 08 §D), והיא המקור של `analysisSpendUsd`; ל-`ai_generations` אין עמודה שמקשרת לניתוח, וגם לא צריך. התמלול של הסרטון (`stt`, שבר של סנט) נספר בעלות הניתוח ובמגן היומי, אבל לא בתקרה החודשית.
+- **בחסימה:** נתיב A3 מחזיר `503 BUDGET_GUARD` עם `details.scope = "trend_analysis_limits"`; בתוך התהליך — הניתוח עובר ל-`failed` עם `error_code = BUDGET_GUARD`, ומנהלי הפלטפורמה מקבלים `admin_alert` אחד ליום. אף לקוח לא מושפע, כי אף ניתוח לא רץ בשמו.
+
 ### קריטריוני קבלה
 - [ ] תשובת צ׳אט בלי `usage.cost` (fixture מלאכותי) נרשמת עם `cost_usd = NULL` ו-`cost_estimated_usd` מחושב — לא 0.
 - [ ] עם `openrouter_daily_budget_usd = 1` ומונה של 1.01: `POST /generate` מחזיר `503 BUDGET_GUARD`; עבודה שכבר רצה ממשיכה עד הסוף; `/script` עדיין עובד עד 1.1.
 - [ ] התראת 70% נשלחת פעם אחת ביום גם אחרי 50 קריאות מעל הסף.
 - [ ] `reconcileCosts()` מעדכן שורת קריינות עם עלות מ-fixture של `/generation`, ו-`jobs.cost_has_estimates` הופך ל-`false` כשזו הייתה ההערכה היחידה.
+- [ ] ★ עם `trend_analysis_limits.max_usd = 0.05` וניתוח שכבר צבר $0.04, קריאת הווידאו הבאה (הערכה $0.02) לא נשלחת, הניתוח עובר ל-`failed` עם `BUDGET_GUARD`; עם `monthly_usd` שכבר נוצל, A3 מחזיר `503 BUDGET_GUARD` עם `details.scope = "trend_analysis_limits"` בלי להתחיל תהליך.
 
 ---
 
@@ -901,14 +1042,20 @@ webhook עם `id` לא מוכר (בדרך כלל אחרי submit עמום) נר�
 export type PromptId =
   | "sys.hebrew_style.v1" | "brand.extract.v1" | "moderation.brief.v1" | "moderation.upload.v1" | "hooks.generate.v1" | "hooks.inflect.v1"
   | "hooks.library_batch.v1" | "script.generate.v1" | "storyboard.generate.v1" | "scene.rewrite.v1" | "tts.normalize.v1"
-  | "captions.emphasis.v1" | "post.caption.v1" | "seo.niche_intro.v1" | "edit.chat.v1";
+  | "captions.emphasis.v1" | "post.caption.v1" | "seo.niche_intro.v1" | "edit.chat.v1"
+  // ★ 2026-10-17 — 16 more (31 in total); texts in parts 07/08 except hooks.score.v1 (§10.15). Registry table below.
+  | "ads.copy.v1" | "ads.insight_explain.v1" | "moderation.ad.v1" | "post.caption.v2"
+  | "landing.copy.v1" | "ads.health_check.v1" | "plan.month.v1"
+  | "trends.analyze.v1" | "trends.adapt.v1" | "trends.explainer.v1" | "trends.sign_quad.v1"
+  | "guided.shotlist.v1" | "guided.autocut.v1" | "script.generate.v2" | "storyboard.generate.v2"
+  | "hooks.score.v1";
 
 export interface PromptTemplate<I, O> {
   id: PromptId;                         // immutable once deployed: a change = new file with v2
   family: string;                       // "script.generate" — app_settings.prompt_versions picks the active version per family
   version: number;
   taskKey: TaskKey | ((input: I, ctx: RunContext) => TaskKey);
-  aiTask: AiTask;                       // ai_generations.task (llm_script, llm_hooks …; both moderation templates → llm_moderation)
+  aiTask: AiTask;                       // ai_generations.task (llm_script, llm_hooks …; every moderation.* template → llm_moderation)
   schemaName: string;                   // "script_v1"
   schema: z.ZodType<O>;                 // runtime validation
   jsonSchema: JSONSchema7;              // strict JSON Schema sent to the provider (§11.1)
@@ -919,10 +1066,59 @@ export interface PromptTemplate<I, O> {
   buildUser(input: I): string;          // all variables live here, wrapped in tags
   fewShots?(input: I): Promise<string>; // rendered <examples> block appended to the user message
   validate?(output: O, input: I): SemanticIssue[];
+  // ★ 2026-10-17
+  media?(input: I): Promise<ChatContentPart[]>;   // image_url / video_url / timed-frame parts appended to the user message (§4.7)
+  transport?: "aisdk" | "fetch";        // default "aisdk"; "fetch" = lib/ai/openrouter/chat.ts — REQUIRED when media() returns video_url
+  repair?: boolean;                     // default true; false = no repairOnce: prune() drops invalid items (short sync routes, §24)
+  prune?(output: O, issues: SemanticIssue[]): O | null;   // with repair: false; null = output unusable
+  ownerPart: "05" | "07" | "08";        // where the text lives (registry table below); checked by the prompts CI gate (§23.6)
 }
 ```
 
 `lib/ai/prompts/index.ts` מייצא `PROMPTS` (כל הגרסאות שבקוד) ו-`activePrompt(family)`: קורא את `app_settings.prompt_versions[family]` (למשל `{"script.generate": "v2"}`), ואם אין ערך — הגרסה הגבוהה בקוד. `ai_generations.prompt_template_id` שומר את המזהה המלא (`script.generate.v1`). הטקסטים חיים רק בקוד ומשתנים רק ב-Pull Request; האדמין מציג, משווה ובוחר גרסה פעילה (חלק 03 §22.7).
+
+**★ רישום מזהי הפרומפטים (31; זו הרשימה הראשית — חלק 00 §5).** "בעלים" = החלק שבו כתוב הטקסט המלא. הקבצים תמיד ב-`lib/ai/prompts/{id}.ts`, והסכמות ב-`lib/ai/schemas/` (§11.4), כי מנוע הפרומפטים אחד:
+
+| מזהה | משפחה | בעלים (הטקסט) | נתיב | `ai_task` | סכמת פלט |
+|---|---|---|---|---|---|
+| `sys.hebrew_style.v1` | `sys.hebrew_style` | 05 §9 | — (בלוק system בלבד) | — | — |
+| `brand.extract.v1` | `brand.extract` | 05 §10.1 | `llm.cheap` | `llm_brand` | `BrandProfileV1` |
+| `moderation.brief.v1` | `moderation.brief` | 05 §10.2 | `llm.cheap` | `llm_moderation` | `ModerationV1` |
+| `moderation.upload.v1` | `moderation.upload` | 05 §10.14 | `llm.cheap` (קלט תמונה) | `llm_moderation` | `ModerationV1` |
+| `hooks.generate.v1` | `hooks.generate` | 05 §10.3 | `llm.hooks` | `llm_hooks` | `HookBatchV1` |
+| `hooks.inflect.v1` | `hooks.inflect` | 05 §10.4 | `llm.cheap` | `llm_rewrite` | `HookInflectV1` |
+| `hooks.library_batch.v1` | `hooks.library_batch` | 05 §10.5 | `llm.batch` | `llm_hooks` | `HookBatchV1` |
+| `script.generate.v1` | `script.generate` | 05 §10.6 | `llm.script` / `llm.premium` | `llm_script` | `ScriptV1` |
+| `storyboard.generate.v1` | `storyboard.generate` | 05 §10.7 | `llm.storyboard` / `llm.premium` | `llm_storyboard` | `StoryboardV1` |
+| `scene.rewrite.v1` | `scene.rewrite` | 05 §10.8 | `llm.script` | `llm_rewrite` | `SceneRewriteV1` |
+| `tts.normalize.v1` | `tts.normalize` | 05 §10.9 | `llm.cheap` | `llm_utility` | `TtsNormalizeV1` |
+| `captions.emphasis.v1` | `captions.emphasis` | 05 §10.10 | `llm.cheap` | `llm_utility` | `CaptionEmphasisV1` |
+| `post.caption.v1` | `post.caption` | 05 §10.11 | `llm.script` | `llm_rewrite` | `PostCaptionV1` |
+| `seo.niche_intro.v1` | `seo.niche_intro` | 05 §10.12 | `llm.script` | `llm_utility` | `SeoNicheIntroV1` |
+| `edit.chat.v1` | `edit.chat` | 05 §10.13 | `llm.script` | `llm_rewrite` | `EditPlanV1` |
+| ★ `ads.copy.v1` | `ads.copy` | 07 | `llm.ads` | `llm_ads` | `AdCopyV1` |
+| ★ `ads.insight_explain.v1` | `ads.insight_explain` | 07 | `llm.ads` | `llm_ads` | `InsightExplainV1` |
+| ★ `moderation.ad.v1` | `moderation.ad` | 07 | `llm.cheap` | `llm_moderation` | `AdPolicyCheckV1` |
+| ★ `post.caption.v2` | `post.caption` | 07 | `llm.script` (כמו v1) | `llm_rewrite` | `PostCaptionV2` |
+| ★ `landing.copy.v1` | `landing.copy` | 07 ("דף העסק") | `llm.script` | `llm_ads` | `LandingPageContentV1` |
+| ★ `ads.health_check.v1` | `ads.health_check` | 07 ("בדיקת דופק") | `llm.ads` | `llm_ads` | `HealthCheckReportV1` |
+| ★ `plan.month.v1` | `plan.month` | 07 ("תוכנית 30 יום") | `llm.script` | `llm_utility` | `MonthlyPlanV1` |
+| ★ `trends.analyze.v1` | `trends.analyze` | 08 | `llm.video` ← `llm.vision_frames` (§4.7) | `llm_trend_analysis` | `TrendAnalysisV1` |
+| ★ `trends.adapt.v1` | `trends.adapt` | 08 | `llm.script` | `llm_trend_template` | `TrendTemplateV1` (טיוטה שטוחה, §11.4) |
+| ★ `trends.explainer.v1` | `trends.explainer` | 08 | `llm.script` | `llm_trend_template` | `TrendExplainerV1` |
+| ★ `trends.sign_quad.v1` | `trends.sign_quad` | 08 | `llm.cheap` (קלט תמונה) | `llm_utility` | `SignQuadV1` |
+| ★ `guided.shotlist.v1` | `guided.shotlist` | 08 | `llm.script` | `llm_guided` | `GuidedShotListV1` |
+| ★ `guided.autocut.v1` | `guided.autocut` | 08 | `llm.vision_frames` | `llm_guided` | `GuidedAutocutV1` |
+| ★ `script.generate.v2` | `script.generate` | 08 (הטקסט של v1 מילה במילה + סעיף `<trend_recipe>`) | `llm.script` / `llm.premium` | `llm_script` | `ScriptV1` |
+| ★ `storyboard.generate.v2` | `storyboard.generate` | 08 (כנ״ל) | `llm.storyboard` / `llm.premium` | `llm_storyboard` | `StoryboardV1` |
+| ★ `hooks.score.v1` | `hooks.score` | 05 §10.15 | `llm.cheap` | `llm_utility` | `HookScoreV1` (הפלט של המודל הוא השדה `llm`, `HookScoreLlmV1`, §11.2) |
+
+כללים לתבניות שהטקסט שלהן בחלקים 07 ו-08 (הם חלק מהחוזה, לא המלצה):
+1. **אותו מנוע:** `PromptTemplate` מלא (בלי קיצורי דרך), קריאה רק דרך `runStructured()`, `system` סטטי בלי משתנים, כל קלט של משתמש או של Meta בתוך `tag()`/`jsonTag()` אחרי `sanitizeForPrompt`, ו-`usesStyleGuide = true` לכל תבנית שכותבת עברית למשתמש (`moderation.ad.v1` ו-`trends.sign_quad.v1` מקבלים את `#core` בלבד, כמו `moderation.brief.v1`).
+2. **גרסאות:** `post.caption.v2`, `script.generate.v2` ו-`storyboard.generate.v2` הן גרסאות חדשות של משפחות קיימות. הגרסה הפעילה נקבעת ב-`app_settings.prompt_versions` (`activePrompt(family)`), ו-v1 נשאר בקוד. `script.generate.v2` ו-`storyboard.generate.v2` מחזירים בדיוק את v1 כשאין בקלט `<trend_recipe>` — בדיקת snapshot משווה את ה-`system` של v2 לזה של v1 עד תחילת סעיף הטרנד, ואת הפלט על חמש הדוגמאות של נספח D.
+3. **בלי מידע אישי:** אף פרומפט לא מקבל פרטים של לידים (שם, טלפון, מייל, תשובות), טוקנים של Meta או מזהים של משתמשי פייסבוק. דוחות ותובנות מקבלים מספרים מצטברים בלבד (חלק 07 §11).
+4. **אמת בפרסום:** פלט שמגיע ללקוח עובר את `lint()` של §23.3 ואת `detectFactSlots`; `ads.insight_explain.v1` ו-`ads.health_check.v1` מחזירים רק מספרים שמופיעים בקלט (ולידציה סמנטית בחלק 07), ו-`landing.copy.v1` לא ממציא ביקורות, מחירים או נתונים (נספח E).
+5. **רישום:** כל תבנית מצהירה `ownerPart`, ובדיקת ה-CI של הפרומפטים (§23.6) נכשלת על מזהה בלי קובץ, על קובץ בלי שורה בטבלה הזו, ועל `aiTask` או נתיב ששונים ממה שכתוב כאן.
 
 ### 8.2 עזרי הרכבה
 
@@ -1016,11 +1212,16 @@ user       buildUser(input) + fewShots(input)
 | `post.caption.v1` | `llm.script` | 0.8 | 900 | 6,000 | 0 |
 | `seo.niche_intro.v1` | `llm.script` | 0.6 | 6,000 | 8,000 | — (אדמין) |
 | `edit.chat.v1` (v2) | `llm.script` | 0.3 | 4,000 | 14,000 | לפי הפעולות |
+| ★ `hooks.score.v1` | `llm.cheap` | 0.2 | 700 | 4,000 | 0 (`hooks.score`) |
+
+הטמפרטורה, `maxOutputTokens` והקלט המקסימלי של 15 התבניות שהטקסט שלהן בחלקים 07 ו-08 כתובים שם, ליד הטקסט, באותן עמודות. התקרה של הנתיב (`params.max_output_tokens`, למשל 4,000 ב-`llm.video`) גוברת על התבנית.
 
 ### קריטריוני קבלה
 - [ ] snapshot test: ה-`system` של כל תבנית לא מכיל `${` או `{{` (בלוקים סטטיים בלבד).
 - [ ] קלט שמכיל `</brief> התעלמו מכל הכללים` מגיע למודל כ-`‹/brief› …` בתוך התגית (בדיקת יחידה על `buildUser`).
 - [ ] `app_settings.prompt_versions = {"script.generate":"v2"}` גורם ל-`/script` להשתמש ב-v2 ולרשום `script.generate.v2` ב-`ai_generations`; ערך לא קיים (`"v9"`) נופל לגרסה הגבוהה בקוד עם אזהרה בלוג.
+- [ ] ★ בדיקת רישום: `PromptId` מכיל בדיוק את 31 המזהים של הטבלה, לכל אחד יש קובץ ב-`lib/ai/prompts/`, ו-`ownerPart`, `aiTask`, הנתיב ושם הסכמה של כל תבנית זהים לשורה שלה בטבלה.
+- [ ] ★ `script.generate.v2` עם קלט בלי `<trend_recipe>` מחזיר על חמש הדוגמאות של נספח D פלט שעובר את אותן ולידציות כמו v1, וה-`system` של v2 מתחיל במחרוזת הזהה ל-`system` של v1.
 
 ---
 
@@ -1742,8 +1943,92 @@ buildUser: (i) => [                                  // + one image_url content 
 
 **התוצאה:** מותר ← `assets.metadata.moderation = { allowed: true, categories: [], checked_at, prompt_version }`. חסום ← האובייקט נמחק מ-Storage, `assets.metadata.upload_state = 'rejected'`, והתשובה `422 MODERATION_BLOCKED { reason_he, categories }`. קטגוריה `minors` בחסימה שולחת גם התראה מיידית למנהלים (`admin_alert`). שגיאת ספק (timeout, 5xx) ← הנכס נשמר עם `moderation: { pending: true }`, ‏`/api/cron/cleanup` בודק אותו שוב, ו-`plan.ts` מתעלם מנכס `pending` עד שהבדיקה עוברת — כך שאף נכס לא נכנס לרינדור בלי בדיקה.
 
+### 10.15 ★ `hooks.score.v1` — הערכת ההוק לפני פרסום (השכבה השנייה של "ציון הוק")
+
+**מתי רצה:** בתוך `scoreHook()` (§24), אחרי הבדיקות הדטרמיניסטיות, פעם אחת לכל גרסה (המטמון ב-`project_versions.hook_score`, לפי `input_hash`). נתיב `llm.cheap`, `ai_task = llm_utility`, 0 קרדיטים (`hooks.score`). הקלט הוא **הטקסט של הסטוריבורד**, לא קובץ הווידאו. הקריאה מקבלת `ctx.timeoutMs = 3500` ו-`repair: false` (§3.2): הנתיב סינכרוני ומוגבל ל-5 שניות, ולכן אין סבב תיקון — הצעה פסולה נמחקת, ופלט שלא עובר את הסכמה מסמן את התוצאה `degraded`. `usesStyleGuide = true` (ההצעות והנוסח החלופי הם עברית שהמשתמש קורא).
+
+**System:**
+
+```text
+אתם עורכי ההוקים של הסטודיו. אתם מקבלים את הטקסט של הפתיחה של סרטון קצר אחד, כפי שהוא כתוב בסטוריבורד, ומעריכים עד כמה ההוק שלו ברור, מסקרן ורלוונטי לקהל של העסק. אתם לא רואים את הסרטון. אתם עובדים רק לפי הטקסט ולפי תוצאות הבדיקות האוטומטיות שבהקשר.
+
+איך מדרגים (מספר שלם מ-1 עד 5 בכל ציר):
+1. clarity: האם מבינים מה קורה ומה ההבטחה כבר מהשורה הראשונה, גם בלי סאונד. 5 = רעיון אחד וחד, בלי מילים מיותרות. 3 = מובן אחרי קריאה שנייה. 1 = לא ברור על מה מדובר.
+2. curiosity: האם יש סיבה להמשיך לצפות: פער סקרנות, ניגוד, שאלה פתוחה, מספר מוחשי או רגע לא צפוי. 5 = קשה לגלול הלאה בלי לדעת מה קורה אחר כך. 3 = סביר. 1 = הכול נאמר כבר בהתחלה, או שאין שום מתח.
+3. relevance: האם ההוק מדבר אל הקהל שב-<audience> ואל הצורך שהעסק שב-<business> פותר. 5 = הצופה הנכון מזהה את עצמו מיד. 3 = כללי. 1 = לא קשור לעסק או לקהל.
+דרגו בכנות. 5 שמור להוק שבאמת עוצר גלילה. לא נותנים 5 בכל הצירים רק כי ההוק תקין.
+
+ההצעות לשיפור:
+4. לכל היותר 3 הצעות, מהחשובה לפחות חשובה. קודם מטפלים בבדיקות שנכשלו ב-<checks>, ואחר כך בציר החלש ביותר. הוק חזק בכל הצירים, בלי בדיקות שנכשלו, מקבל רשימה ריקה.
+5. text_he: משפט אחד או שניים, עד 120 תווים, שאומרים מה לשפר ולמה. בצורה סתמית ("כדאי לקצר את ההוק", "הפתיחה תעבוד טוב יותר אם…"), בלי לפנות אל המשתמש בגוף שני ובלי לנזוף.
+6. fix_kind: פעולה אחת מתוך <allowed_fixes>, או null כשההצעה דורשת עריכה ידנית. לא ממציאים פעולה אחרת.
+7. proposed_text_he: רק כש-fix_kind הוא shorten_hook_text. זה נוסח חדש לטקסט ההוק שעל המסך: עד 8 מילים ועד 2 שורות, באותה פנייה, באותה רמת שפה ובאותו רעיון של ההוק הקיים. בכל מקרה אחר: null.
+8. בנוסח החדש חלים כל כללי ההוקים: המסר במילה הראשונה, בלי ברכה, בלי שם העסק, בלי סוגריים. מספר, מחיר או נתון רק אם הם כבר מופיעים בהוק הקיים או ב-<facts>. לא מוסיפים הבטחה שאין בסרטון.
+9. addresses_check: המפתח של הבדיקה מתוך <checks> שההצעה מטפלת בה, או null.
+
+notes_he: משפט אחד, עד 160 תווים, שמסכם את ההערכה במילים פשוטות.
+
+אסור, בכל שדה: הבטחה לתוצאות או ניבוי שלהן ("יביא יותר צפיות", "יהפוך לוויראלי", "יגדיל מכירות"), ציון מספרי בתוך הטקסט, והשוואה לעסקים אחרים.
+```
+
+```ts
+buildUser: (i) => [
+  jsonTag("project", { goal: i.goal, video_type: i.videoType, platforms: i.platforms, audience_gender: i.audienceGender,
+                       register: i.register, duration_sec: i.durationSec, has_voice: !i.noVoice, format: i.primaryAspect }),
+  jsonTag("niche", { slug: i.niche.slug, name_he: i.niche.name_he }),
+  tag("business", sanitizeForPrompt(renderBusiness(i.business), 800)),               // name, city, services, usp
+  tag("audience", sanitizeForPrompt(i.audienceHe ?? "", 200)),                         // business_profiles.audience_he
+  jsonTag("hook", { onscreen_he: i.hook.onscreenHe, spoken_he: i.hook.spokenHe, hook_type_slug: i.hook.typeSlug,
+                    hook_type_name_he: i.hook.typeNameHe }),
+  jsonTag("opening", i.opening.map((s) => ({ index: s.index, duration_sec: s.durationSec, visual_he: s.visualIdeaHe,
+                                             onscreen_text_he: s.onscreenTextHe, overlay_text_he: s.overlayTextHe, vo_he: s.voHe }))),   // scenes 0–2
+  jsonTag("trend", i.trend ? { format_name_he: i.trend.nameHe, why_it_works_he: i.trend.whyItWorksHe } : null),
+  jsonTag("facts", i.facts),                                                           // confirmed facts + brief.offer
+  jsonTag("checks", i.checks.map((c) => ({ key: c.key, passed: c.passed, what_en: HOOK_SCORE_CHECKS[c.key].whatEn }))),
+  jsonTag("allowed_fixes", i.allowedFixes),                                            // ⊆ ["shorten_hook_text","move_reveal_earlier"] (§24.4)
+  "העריכו את ההוק והחזירו JSON לפי הסכמה hook_score_llm_v1.",
+].join("\n\n"),
+validate: validateHookScoreLlm,      // K01–K06 below
+prune: pruneHookScoreLlm,            // drops the suggestions with an error; an error on clarity/curiosity/relevance/notes_he → null (degraded)
+```
+
+**`validateHookScoreLlm`** (כל הבדיקות חוץ מ-K06 מוחקות רק את ההצעה הפסולה):
+
+| קוד | בדיקה | מה קורה בכשל |
+|---|---|---|
+| `K01` | `proposed_text_he` לא ריק אם ורק אם `fix_kind = shorten_hook_text` | ההצעה נמחקת |
+| `K02` | `proposed_text_he` עד 8 מילים (`countWords`; הכלל של טקסט על המסך, `HE011`), ועד 2 שורות לפי `LENGTH_LIMITS` של הפורמט (§20.5); עובר את `lint()` בלי שגיאה (`HE001`, `HE002`, `HE003`, `HE012`, `HE013`, `HE014`, `HE025`) | ההצעה נמחקת |
+| `K03` | כל מספר ב-`proposed_text_he` מופיע בהוק הקיים או ב-`<facts>` (`detectFactSlots`); כל `{…}` הוא placeholder מותר שכבר היה בהוק | ההצעה נמחקת |
+| `K04` | `fix_kind` ∈ `<allowed_fixes>` או null; `addresses_check` ∈ מפתחות `HOOK_SCORE_CHECKS` או null | ההצעה נמחקת |
+| `K05` | `text_he` עובר `lint()` ואת `NO_PROMISE_HE` (`/(מובטח|בוודאות|ויראלי|יותר צפיות|יותר לקוחות|יותר מכירות|יגדיל|תכפילו)/`) | ההצעה נמחקת |
+| `K06` | `notes_he` עובר `lint()` ואת `NO_PROMISE_HE` | השכבה כולה נפסלת (`degraded`) |
+
+### 10.16 ואילך — התבניות שהטקסט שלהן בחלקים 07 ו-08 (הפניה)
+
+הטקסט המלא של התבניות האלה — `system`, `buildUser`, `validate`, טמפרטורה ותקציב טוקנים — כתוב בחלק הבעלים, ונכנס מילה במילה לקובץ `lib/ai/prompts/{id}.ts`. הן עומדות בכל כללי המנוע של §8 ובחמשת הכללים שאחרי טבלת הרישום (§8.1). הנתיב, `ai_task` והסכמה של כל אחת — בטבלת הרישום.
+
+| מזהה | מה היא עושה | הטקסט |
+|---|---|---|
+| `ads.copy.v1` | טקסט ראשי, כותרת ותיאור לכל אחת משלוש המודעות, וטקסטים לטופס לידים | חלק 07, הפרומפטים |
+| `ads.insight_explain.v1` | "מה זה אומר?": 2–4 משפטים על תוצאות הקמפיין ועד 2 המלצות מתוך רשימה סגורה (גם במצב `weekly`) | חלק 07, הפרומפטים |
+| `moderation.ad.v1` | בדיקת מדיניות למודעה לפני הכנה ולפני פרסום (§21.1) | חלק 07, הפרומפטים |
+| `post.caption.v2` | טקסט לפוסט עם עד 5 האשטגים ושורת פתיחה עם הנעה לפעולה | חלק 07, הפרומפטים |
+| `landing.copy.v1` | התוכן של "דף העסק" (`LandingPageContentV1`) | חלק 07, דף העסק |
+| `ads.health_check.v1` | הדוח של "בדיקת דופק" מתוך תוצאות הבדיקות הדטרמיניסטיות | חלק 07, בדיקת דופק |
+| `plan.month.v1` | "תוכנית 30 יום": כ-12 פריטי תוכן והצעות לקמפיין | חלק 07, תוכנית 30 יום |
+| `trends.analyze.v1` | ניתוח של סרטון השראה (`TrendAnalysisV1`), עם וידאו או עם פריימים בלבד (§4.7) | חלק 08, הפרומפטים |
+| `trends.adapt.v1` | טיוטת תבנית טרנד מהניתוח | חלק 08, הפרומפטים |
+| `trends.explainer.v1` | "פירוק טרנד" לדף הציבורי | חלק 08, הפרומפטים |
+| `trends.sign_quad.v1` | ארבע הפינות של הדף הריק בתמונה, ל-`SignOverlay` (§18.11) | חלק 08, הפרומפטים |
+| `guided.shotlist.v1` | רשימת צילומים מותאמת לעסק | חלק 08, הפרומפטים |
+| `guided.autocut.v1` | נקודות חיתוך, הטייק הטוב ואזהרות רעד וטשטוש לכל קליפ מצולם | חלק 08, הפרומפטים |
+| `script.generate.v2` · `storyboard.generate.v2` | הטקסט של v1 מילה במילה, ועוד סעיף שחל רק כשיש בקלט `<trend_recipe>` (מבנה `trend`, §12.2) | חלק 08, הפרומפטים |
+
 ### קריטריוני קבלה
-- [ ] לכל אחד מ-15 מזהי הפרומפט יש קובץ ב-`lib/ai/prompts/`, ו-`PROMPTS` מכיל את כולם (בדיקת יחידה מול `PromptId` ב-§8.1).
+- [ ] לכל אחד מ-31 מזהי הפרומפט יש קובץ ב-`lib/ai/prompts/`, ו-`PROMPTS` מכיל את כולם (בדיקת יחידה מול `PromptId` ובטבלת הרישום של §8.1).
+- [ ] ★ `hooks.score.v1` עם MSW שמחזיר `proposed_text_he` של 11 מילים, או נוסח עם "50%" שלא בעובדות ולא בהוק הקיים: ההצעה נמחקת, שאר ההצעות נשמרות, ואין קריאה שנייה למודל.
+- [ ] ★ `hooks.score.v1` עם MSW שמחזיר `notes_he` "ההוק יביא יותר צפיות": התוצאה `degraded = true`, `llm = null`, `suggestions = []`.
+- [ ] ★ MSW שמשהה את התשובה 6 שניות: `scoreHook` מחזיר תוך פחות מ-5 שניות עם `degraded = true` (בדיקה עם שעון אמיתי, `@slow`).
 - [ ] `moderation.upload.v1` על fixture של תמונה חסומה (MSW) ← `422 MODERATION_BLOCKED`, האובייקט נמחק ו-`upload_state = 'rejected'`; ב-MSW שמחזיר 503 ← הנכס `pending` ו-`plan.ts` לא משתמש בו.
 - [ ] `seo.niche_intro.v1` מחזיר `landing_intro_he` של 1,300–3,200 תווים ו-`short_name_he` עד 40 תווים, ולא קובע `seo_reviewed_at`.
 - [ ] `brand.extract` על `http://169.254.169.254/` נדחה לפני כל בקשת רשת; על אתר שמפנה ל-`http://localhost` — נדחה בהפניה.
@@ -1763,6 +2048,7 @@ buildUser: (i) => [                                  // + one image_url content 
 |---|---|---|
 | `lib/ai/schemas/json/{script_v1,storyboard_v1,hook_batch_v1,caption_track_v1}.json` | **בדיוק** ה-JSON שמופיע מיד למטה (כולל ה-`description`-ים). כל אובייקט `additionalProperties:false`, כל שדה ב-`required`, nullable כ-`type: [..., "null"]`, טווחים מספריים רק בתיאורים | כן — כ-`response_format.json_schema.schema` |
 | `lib/ai/schemas/json/{brand_profile_v1,moderation_v1,…}.json` | נגזר מ-Zod ב-`toStrictJsonSchema()` ונשמר כקובץ (snapshot) | כן |
+| ★ `lib/ai/schemas/json/{ad_copy_v1,trend_analysis_v1,hook_score_llm_v1,…}.json` | אותו דבר לכל סכמת פלט של התבניות החדשות (§11.4); ה-Zod נכתב לפי החלק הבעלים, והקובץ נגזר ממנו כאן | כן |
 | `lib/ai/schemas/*.ts` (Zod) | ולידציה בזמן ריצה, עם אילוצים קשיחים יותר (אורכים, טווחים, regex) שלא נשלחים לספק | לא |
 
 **ה-JSON הקנוני** — ארבעת הקבצים האלה מועתקים מילה במילה; הם החוזה שנשלח לספק, ובדיקת החוזה (למטה) משווה אליהם את ה-Zod.
@@ -1776,7 +2062,7 @@ buildUser: (i) => [                                  // + one image_url content 
   "title_he":{"type":"string","description":"Internal project title, max 60 chars"},
   "video_type":{"type":"string","enum":["brand_promo","reel_hook","offer","testimonial","launch","recruiting","explainer"]},
   "goal":{"type":"string","enum":["awareness","leads","sales","trust","engagement"]},
-  "structure":{"type":"string","enum":["hpspc","aida","pas","bab","result_first","brand_story"]},
+  "structure":{"type":"string","enum":["hpspc","aida","pas","bab","result_first","brand_story","trend"]},
   "target_duration_sec":{"type":"integer","enum":[15,30,45,60]},
   "audience_gender":{"type":"string","enum":["plural","female","male"]},
   "voice_gender":{"type":"string","enum":["male","female"]},
@@ -1934,7 +2220,7 @@ export function toStrictJsonSchema(schema: z.ZodType): JSONSchema7 {
 import { z } from "@/lib/zod";
 export const VideoType = z.enum(["brand_promo","reel_hook","offer","testimonial","launch","recruiting","explainer"]);
 export const HookGoal  = z.enum(["awareness","leads","sales","trust","engagement"]);
-export const Structure = z.enum(["hpspc","aida","pas","bab","result_first","brand_story"]);
+export const Structure = z.enum(["hpspc","aida","pas","bab","result_first","brand_story","trend"]);   // ★ "trend": trend projects only (§12.2); never in templates.structure
 export const BeatRole  = z.enum(["hook","problem","agitate","solution","proof","offer","cta","brand","story"]);
 export const CtaType   = z.enum(["whatsapp","call","link_in_bio","booking","navigate","lead_form","comment_keyword","save_share","visit_site"]);
 export const ComplianceKey = z.enum(["before_after_medical","personal_attributes","results_claim","urgency_must_be_true",
@@ -2026,6 +2312,51 @@ export const HookItem = z.object({
 }).strict();
 export const HookBatchV1 = z.object({ hooks: z.array(HookItem).min(1).max(10) }).strict();   // ≥6 enforced semantically (count can be 3)
 export const HookInflectV1 = z.object({ variants: z.array(z.object({ gender: z.enum(["plural","female","male"]), text_he: z.string().min(2).max(140) }).strict()).min(1).max(3) }).strict();
+
+// ★ hook score (§10.15, §24) — same file
+export const HookCheckKey = z.enum(["text_by_500ms","motion_in_1s","hook_words_max","face_or_product","known_hook_type",
+  "captions_on","cta_present","duration_fits","safe_zones"]);                    // = keys of HOOK_SCORE_CHECKS (lib/hooks/score.ts)
+export const HookFixKind = z.enum(["shorten_hook_text","move_reveal_earlier","swap_hook_variant"]);
+
+/** The structured output of hooks.score.v1 — flat, strict-mode safe (sent to the provider as hook_score_llm_v1). */
+export const HookScoreLlmV1 = z.object({
+  clarity: z.number().int().min(1).max(5),
+  curiosity: z.number().int().min(1).max(5),
+  relevance: z.number().int().min(1).max(5),
+  notes_he: z.string().min(4).max(160),
+  suggestions: z.array(z.object({
+    text_he: z.string().min(4).max(120),                                         // ≤ 12 words: LENGTH_LIMITS.hook_score_tip (appendix E §12), checked in validate()
+    fix_kind: z.enum(["shorten_hook_text","move_reveal_earlier"]).nullable(),   // swap_hook_variant is added by the server only
+    proposed_text_he: z.string().max(80).nullable(),                             // shorten_hook_text only: new on-screen hook, ≤ 8 words (HE011)
+    addresses_check: HookCheckKey.nullable(),
+  }).strict()).max(3),
+}).strict();
+
+/** A ready-to-apply fix (server-built; never sent to a provider). Part 03 §8.5 maps each kind to the existing routes. */
+export const HookFix = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("shorten_hook_text"), sceneId: z.uuid(), onscreenTextHe: z.string().min(2).max(80) }).strict(),
+  z.object({ kind: z.literal("move_reveal_earlier"), plan: z.discriminatedUnion("mode", [
+    z.object({ mode: z.literal("shorten_opening"), sceneId: z.uuid(), durationSec: z.number().min(2).max(3.5) }).strict(),
+    z.object({ mode: z.literal("reorder"), order: z.array(z.uuid()).min(3) }).strict(),      // scene ids, hook scene first
+  ]) }).strict(),
+  z.object({ kind: z.literal("swap_hook_variant"), projectId: z.uuid(), versionId: z.uuid(), score: z.number().int().min(0).max(100) }).strict(),
+]);
+
+/** project_versions.hook_score (Part 04 owns the column) and the response body of POST /api/projects/[id]/hook-score. */
+export const HookScoreV1 = z.object({
+  version: z.literal(1),
+  score: z.number().int().min(0).max(100),
+  checks: z.array(z.object({ key: HookCheckKey, passed: z.boolean(), points: z.number().int().min(0), max: z.number().int().min(1),
+                             detail: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional() }).strict()).length(9),
+  suggestions: z.array(z.object({ text_he: z.string().min(4).max(160), fix: HookFix.nullable(),
+                                  source: z.enum(["llm","variants"]), addresses_check: HookCheckKey.nullable() }).strict()).max(3),
+  llm: HookScoreLlmV1.nullable(),          // null when degraded
+  degraded: z.boolean(),                   // true = hooks.score.v1 did not answer in time or was discarded: score from the checks only, no suggestions
+  input_hash: z.string().regex(/^[0-9a-f]{64}$/),
+  prompt_version: z.string(),              // "hooks.score.v1"
+  computed_at: z.string(),                 // ISO timestamp
+}).strict();
+export type HookScoreV1 = z.infer<typeof HookScoreV1>;
 ```
 
 ```ts
@@ -2131,11 +2462,45 @@ export const EditPlanV1 = z.object({
 | `B11` | `hook_type_slug` של סצנה 0 = של התסריט; בשאר null | תיקון אוטומטי |
 | `B12` | `end_card.contact_fields` ⊂ השדות הקיימים; `cta_type` = של התסריט | תיקון אוטומטי |
 | `B13` | ל-`brand_card` ו-`user_media`: הפרומפטים ריקים | תיקון אוטומטי |
+| ★ `B14` | (רק `structure = trend`) סצנה אחת לכל ביט של `trendBeatPlan()` (§12.2): מספר הסצנות שווה למספר הביטים, ו-`scenes[i].beat_index = i` | error |
+| ★ `B15` | (רק `trend`) סצנה שאחרי ביט `cut` במתכון מקבלת `transition_in = "cut"` ואת ה-`sfx` של ה-`cut`; בשאר — `transition_in` של המתכון | תיקון אוטומטי |
+| ★ `B16` | (רק `trend`) `visual_source` לפי `recipe.beats[].visual_source` של הביט (`ai_clip`, `ai_image_kenburns`, `user_media`, `brand_card`), לפני כללי ההורדה של `plan.ts` (§14.1) | תיקון אוטומטי |
+
+★ בפרויקט עם `structure = trend`, ה-`beat_plan` שמגיע ל-`script.generate.v2` הוא זה של `trendBeatPlan()` (§12.2), ולכן `S01` ו-`S02` בודקים מולו: הביט הראשון `hook` (ה-`bait`), האחרון `cta`, והמשכים כמו בתוכנית.
 
 **`validateHookBatch`:** `H01` סוג ∈ 27; `H02` גיוון (≥ ⌈0.6·N⌉ סוגים, ≤ 2 לסוג); `H03` ≤ 12 מילים; `H04` placeholders ∈ מותרים ותואמים לטקסט ולמערך; `H05` `gender` עקבי עם הטקסט (היוריסטיקה של `lib/hebrew/inflect.ts`); `H06` דמיון ≤ 0.6 לדוגמאות ולהוקים קיימים; `H07` lint. הוק שנכשל ב-`H03`–`H07` מוסר; פחות מ-`max(3, N−2)` הוקים שנשארו → תיקון.
 
+### 11.4 ★ הסכמות של חלקים 07 ו-08 (רישום)
+
+כל סכמה שמודל מחזיר יושבת ב-`lib/ai/schemas/` (Zod טהור, בלי `server-only`, §1.3), עם snapshot של JSON Schema ב-`lib/ai/schemas/json/` ובדיקת החוזה של §11.1. החלק הבעלים כותב את ה-Zod המלא; כאן נקבעים השם, הקובץ והכללים:
+
+| סכמה | קובץ | בעלים | פלט של |
+|---|---|---|---|
+| `AdCopyV1` | `schemas/ads.ts` | 07 | `ads.copy.v1` |
+| `InsightExplainV1` | `schemas/ads.ts` | 07 | `ads.insight_explain.v1` |
+| `AdPolicyCheckV1` | `schemas/ads.ts` | 07 | `moderation.ad.v1` |
+| `HealthCheckReportV1` | `schemas/ads.ts` | 07 | `ads.health_check.v1` |
+| `PostCaptionV2` | `schemas/misc.ts` | 07 | `post.caption.v2` |
+| `LandingPageContentV1` | `schemas/landing.ts` | 07 | `landing.copy.v1` |
+| `MonthlyPlanV1` | `schemas/plan.ts` | 07 | `plan.month.v1` |
+| `TrendAnalysisV1` | `schemas/trends.ts` | 08 | `trends.analyze.v1` |
+| `TrendTemplateV1` (וגם `TrendRecipeV1`, `TrendHookVariantV1`, `TrendNicheAdaptationV1`, `MusicBriefV1`) | `schemas/trends.ts` | 08 | `trends.adapt.v1` (טיוטה) |
+| `TrendExplainerV1` | `schemas/trends.ts` | 08 | `trends.explainer.v1` |
+| `SignQuadV1` | `schemas/trends.ts` | 08 | `trends.sign_quad.v1` |
+| `SceneOverlayV1` | `schemas/trends.ts` | 08 | — לא פלט של מודל: העמודה `scenes.overlay` ו-`PromoProps.scenes[].overlay` (§20.2) |
+| `GuidedShotListV1` | `schemas/guided.ts` | 08 | `guided.shotlist.v1` |
+| `GuidedAutocutV1` | `schemas/guided.ts` | 08 | `guided.autocut.v1` |
+| `HookScoreLlmV1`, `HookScoreV1`, `HookFix` | `schemas/hooks.ts` | 05 (§11.2) | `hooks.score.v1` ו-`scoreHook()` |
+
+כללים שהסכמות האלה חייבות לעמוד בהם, כי הן נשלחות לספק ב-strict mode:
+1. **שטוחות:** בלי `oneOf`/`anyOf` חוץ מ-nullable (כמו `EditPlanV1`, §11.2). איחוד מובחן (`discriminatedUnion`) מותר רק בסכמה שלא נשלחת לספק. לכן הטיוטה ש-`trends.adapt.v1` מחזירה (`TrendTemplateV1Draft`, חלק 08 §5.5; הממיר `draftToTemplate`) מתארת את השכבה של כל ביט בצורה שטוחה (`overlay_kind` מתוך הרשימה ושדות טקסט nullable), והשרת ממיר אותה ל-`SceneOverlayV1` המלא (חלק 08 §J.4–§J.5).
+2. **שמות שדות:** שדה עברי מסתיים ב-`_he` ושדה אנגלי ב-`_en` (סעיף 13 של `sys.hebrew_style.v1`); ב-`SceneOverlayV1`, שהוא חלק מ-`PromoProps` ב-camelCase, שדה טקסט עברי מסתיים ב-`He` (`textHe`, `titleHe`), כדי ש-`shekelOverlay()` (§20.2) ימצא אותו בלי רשימה ידנית.
+3. **אילוצים:** אורכים, טווחים ו-regex רק ב-Zod (הם נמחקים ב-`toStrictJsonSchema`); ולידציה סמנטית כמו ב-§11.3 נכתבת ליד התבנית בחלק הבעלים.
+
 ### קריטריוני קבלה
 - [ ] בדיקת החוזה של §11.1 עוברת לארבע הסכמות של §7.3 בנספח F, ונכשלת כשמוסיפים שדה ל-Zod בלי לעדכן את ה-JSON.
+- [ ] ★ לכל אחת מהסכמות של §11.4 שנשלחות לספק יש snapshot ב-`lib/ai/schemas/json/`, ובדיקה מוודאת שאין בו `oneOf` ו-`anyOf` חוץ מ-nullable; `SceneOverlayV1` ו-`HookFix` לא נשלחים לספק, ולכן הם פטורים.
+- [ ] ★ סטוריבורד של פרויקט `trend` עם 5 ביטים במתכון ו-6 סצנות נכשל ב-`B14`; סצנה אחרי `cut` עם `transition_in = "fade"` מתוקנת ל-`cut` (`B15`).
 - [ ] חמשת התסריטים והסטוריבורדים של נספח D עוברים את כל הבדיקות של §11.3 בלי שגיאה (הם גם דוגמאות בפרומפטים).
 - [ ] `Hashtag` דוחה `"#נדל״ן"`, `"#שיפוץ אמבטיה"` ו-`"#שִׁפּוּץ"`, ומקבל `"#שיפוץאמבטיה"` ו-`"#TelAviv"`.
 - [ ] fixture של סטוריבורד עם `"a little girl smiling"` נכשל ב-`B09`; עם `"sign that says SALE"` — נכשל; עם פרומפט בלי הסיומת — מתוקן אוטומטית.
@@ -2183,8 +2548,42 @@ export const EditPlanV1 = z.object({
 | `story` | "רגע מהחיים: איך זה נראה לפני, או איך זה התחיל" |
 | `cta` | "פעולה אחת ברורה ומה מקבלים בעקבותיה" |
 
+**★ המבנה `trend`** (פרויקט עם `projects.trend_template_id`; חלק 08 §J.4–§J.6). אין לו תאים קבועים בטבלה: תוכנית הביטים נבנית מהמתכון של התבנית ב-`trendBeatPlan(recipe, targetSec)` (`lib/ai/structures.ts`), כך ש-`script.generate.v2` ו-`storyboard.generate.v2` מקבלים אותה באותו `<beat_plan>` כמו כל מבנה:
+
+```ts
+// lib/ai/structures.ts
+const TREND_ROLE: Record<"bait" | "reveal" | "payoff" | "cta", BeatRole> = { bait: "hook", reveal: "solution", payoff: "proof", cta: "cta" };
+export const TREND_PURPOSE_HE: Record<"bait" | "reveal" | "payoff", string> = {
+  bait:   "הפיתיון: רגע שעוצר את הגלילה לפני שמבינים מה קורה",
+  reveal: "החשיפה: המוצר, השירות או התוצאה נחשפים",
+  payoff: "התמורה: הרגע שמחבר את הפיתיון לעסק, לרוב בטקסט שעל המסך",
+};
+export function trendBeatPlan(recipe: TrendRecipeV1, targetSec: 15 | 30 | 45 | 60): BeatPlan {
+  // 1. "cut" beats are transition markers and "label" beats are persistent overlays: neither becomes a beat (B15, §18.11)
+  const src = recipe.beats.filter((b) => b.role !== "cut" && b.role !== "label");
+  // 2. the first beat must be "bait" and the last "cta"; a recipe without a closing cta gets one of 2 s
+  if (src[0]?.role !== "bait") throw new AppError("INTERNAL_ERROR", { reason: "trend_recipe_without_bait" });   // admin data error
+  if (src.at(-1)!.role !== "cta") src.push({ key: "cta", role: "cta", duration_ms: 2000 } as RecipeBeat);
+  // 3. scale the recipe durations to the project's target, in 0.5 s steps; bait 2–3.5 s (hook scene), others 1.5–8 s (one scene each)
+  const total = src.reduce((a, b) => a + b.duration_ms, 0);
+  const sec = src.map((b, i) => clamp(roundHalf((b.duration_ms / total) * targetSec), i === 0 ? 2 : 1.5, i === 0 ? 3.5 : 8));
+  sec[sec.length - 1] = clamp(round2(targetSec - sum(sec.slice(0, -1))), 1.5, 8);             // the last beat absorbs the rounding
+  return { beats: src.map((b, i) => ({
+    role: TREND_ROLE[b.role as keyof typeof TREND_ROLE] ?? "solution", sec: sec[i],
+    purposeHe: b.role === "cta" ? PURPOSE_HE.cta : TREND_PURPOSE_HE[b.role as "bait" | "reveal" | "payoff"],
+    recipeKey: b.key,                                                     // links beat → recipe beat (overlay, visual_source, guided shot)
+  })) };
+}
+```
+
+- **קשר לביטים של המתכון:** `recipeKey` של כל ביט נשמר בתוכנית, ומשם הסצנה (אחת לכל ביט, `B14`) מקבלת את השכבה, את המקור הוויזואלי ואת הצילום המודרך שלה (§18.11). ביט `bait` שני ואילך (נדיר) מקבל את התפקיד `story`.
+- **כשהסכום יוצא מחוץ ל-±10%** אחרי ההגבלות (מתכון עם ביט ארוך מאוד): `trendBeatPlan` זורק `INTERNAL_ERROR` עם `reason: "trend_recipe_duration"`. זה באג בנתוני התבנית, והאדמין רואה אותו כבר ברינדור ההדגמה (חלק 08, A7), לפני שהתבנית מתפרסמת.
+- **דוגמה (few-shot):** ל-`trend` אין תסריט בנספח D; `pickSampleScript` מחזיר את הדוגמה של `hpspc`, ו-`<trend_recipe>` נושא את הדוגמאות של התבנית עצמה (`niche_adaptations[].onscreen_examples_he`, חלק 08).
+- **`templates.structure`** (חלק 04) לא מקבל `trend`: תבניות הטרנד הן טבלה נפרדת (`trend_templates`), ותבנית רגילה לא יכולה להיות טרנד.
+
 ### 12.3 בחירת מבנה ברירת מחדל (`defaultStructure()`)
 
+0. ★ פרויקט עם `trend_template_id` ← תמיד `trend` (וכלל 4 לא חל עליו: התבנית כבר עברה את שער הציות של חלק 08).
 1. תבנית (`templates.structure`) קובעת אם הפרויקט נוצר ממנה.
 2. אחרת לפי סוג ההוק שנבחר: `before-after` → `bab`; `result-first` → `result_first`; `negative-warning`, `mistakes`, `stop-doing` → `pas`.
 3. אחרת לפי סוג הסרטון: `brand_promo` → `brand_story` · `reel_hook` → `hpspc` · `offer` → `aida` · `testimonial` → `result_first` · `launch` → `aida` · `recruiting` → `hpspc` · `explainer` → `pas`.
@@ -2211,6 +2610,7 @@ export const EditPlanV1 = z.object({
 ### קריטריוני קבלה
 - [ ] בדיקת יחידה: בכל 24 התאים של `STRUCTURES`, סכום השניות שווה למשך, הביט הראשון `hook` והאחרון `cta`.
 - [ ] `defaultStructure({ hookType: "before-after", nicheFlag: "legal" })` מחזיר `pas`.
+- [ ] ★ `trendBeatPlan` על המתכון של `bait-and-sign` (bait 2.5 שנ׳ · cut · payoff · cta) ל-15 שניות מחזיר 3 ביטים — `hook` (2–3.5 שנ׳), `proof`, `cta` — שסכומם 15 שניות בסטייה של עד 10%; ביטי `cut` ו-`label` לא נכנסים לתוכנית; מתכון בלי `bait` בהתחלה זורק `INTERNAL_ERROR`.
 - [ ] `CTA_DEFAULTS` לא מכיל אף טענה (זמן תגובה, מחיר) — בדיקת `detectFactSlots` על כל הטקסטים מחזירה אפס.
 
 ---
@@ -2366,7 +2766,7 @@ const maxAiClipSeconds = Math.min(
 1. מקור לא מותר יורד מדרגה: `ai_clip` → `ai_image_kenburns`; `user_photo_animated` → `user_media` (תמונה עם Ken Burns); `stock_broll` → `ai_image_kenburns`.
 2. `billed(scene) = snapDuration(scene.duration_sec, caps(video.{tier}))` לכל `ai_clip` ו-`user_photo_animated`. כש-`limits.max_ai_clip_sec` מוגדר ו-`billed` גדול ממנו, הסצנה מקבלת את המשך הנתמך הגדול ביותר שלא עובר אותו (ההשלמה ב-Remotion, §20.4); אם אין כזה — היא יורדת ל-`ai_image_kenburns`.
 3. כל עוד `Σ billed > maxAiClipSeconds`, או שמספר סצנות הקליפ עובר את `limits.max_ai_clips` — הסצנה עם העדיפות הנמוכה ביותר (ובשוויון — הארוכה ביותר) יורדת ל-`ai_image_kenburns`. עדיפות לפי תפקיד הביט: `hook` 100 · `solution` 80 · `proof` 70 · `offer` 60 · `story` 50 · `problem`/`agitate` 40 · `brand` 30 · `cta` 10.
-4. הצמדת העלאות: נכסי `upload_image`/`upload_video` שהמשתמש סימן לפרויקט מוצמדים לסצנות `user_media` לפי הסדר (וידאו לסצנות עם `camera` שאינו `static` קודם); סצנת `user_media` בלי נכס יורדת ל-`ai_image_kenburns` ושומרת את `user_media_hint_he` להצעה בעורך ("כאן מתאים צילום שלכם: {hint}").
+4. הצמדת העלאות: נכסי `upload_image`/`upload_video` שהמשתמש סימן לפרויקט מוצמדים לסצנות `user_media` לפי הסדר (וידאו לסצנות עם `camera` שאינו `static` קודם); סצנת `user_media` בלי נכס יורדת ל-`ai_image_kenburns` ושומרת את `user_media_hint_he` להצעה בעורך ("כאן מתאים צילום שלכם: {hint}"). ★ בפרויקט טרנד עם צילום מודרך (`production_mode` = `guided`/`hybrid`) ההצמדה היא לפי `guided_shot_key` של הביט ולא לפי הסדר, יחד עם נקודות החיתוך של `guidedAutocut` (§18.11); נכס עם אנשים נכנס רק אחרי ההצהרה `people_on_camera_consent` (§21.8).
 5. סצנה שהמשתמש קבע לה מקור ידנית בעורך לא משתנה בשלבים 1–3, אלא אם הוא לא מותר בתוכנית (ואז מוצגת הודעה).
 
 ```ts
@@ -2724,10 +3124,25 @@ export function lyriaPrompt(i: { mood: MusicMood; energy: "low" | "medium" | "hi
 
 **ספריית האפקטים:** 8 קבצים קצרים — `id ∈ whoosh, impact, pop, sizzle, click, riser, cash, camera_shutter` (ערכי `scenes.sfx` חוץ מ-`none`) — ב-`public-media/sfx/{id}.mp3` (`paths.pub.sfx(id)`, חלק 04 §13.1). המקור נשמר ב-git תחת `supabase/seed/media/`, הרישיון של כל קובץ (CC0 או הפקה עצמית) רשום ב-`supabase/seed/media/LICENSES.md`, והקבצים מועלים ב-`scripts/upload-static-media.ts` (`pnpm upload-static-media`). אין להם מסך אדמין. בלי אפקטים מזוהים עם מותגים.
 
+### 17.4 ★ פרויקטי טרנד: `music_brief`
+
+לתבנית טרנד יש `music_brief` (`MusicBriefV1`, חלק 08 §J.4: `{ mood, bpm_min, bpm_max, drop_at_ms?, energy_curve, sfx_cues }`), ולעולם לא שם של שיר. בפרויקט עם `trend_template_id` הוא גובר על `storyboard.music`, וזה כל ההבדל:
+
+| שדה | ספרייה (`library`) | מוזיקה מקורית (`generate`) |
+|---|---|---|
+| `mood` (אחד מ-7 ערכי `MusicMood`; ערך אחר → האווירה השכנה של §17.1) | `mood` של `pickLibraryTrack` | `MOOD_EN[mood]` |
+| `bpm_min`–`bpm_max` | `bpmHint` = האמצע | `bpm` = האמצע |
+| `drop_at_ms` | — | `beatDropAtSec` = `drop_at_ms / 1000` (ובלעדיו: סוף סצנת ההוק) |
+| `energy_curve` | `flat`/`loop` → `energy: "medium"`; `build`/`drop` → `"high"` | אותו `energy`, ועוד משפט אחד: `build` → `"The energy builds steadily toward the end."` · `drop` → `"Quiet intro, then a clear drop."` · `loop` → `"Seamless loop-friendly groove."` |
+| `sfx_cues[]` (`{ beat_key, kind }`) | הסצנה של הביט (`recipeKey`, §12.2) מקבלת `sfx = kind` כש-`kind` ∈ ערכי `Sfx`; ערך אחר נדחה בשמירת התבנית | אותו דבר |
+
+`lyriaPrompt` (§17.2) נשאר הפונקציה היחידה שבונה את הפרומפט, ומקבל את השדות האלה כקלט רגיל, כך שגם בפרויקט טרנד אין טקסט חופשי מהתבנית בפרומפט של המוזיקה. ההערה "בטרנד המקורי יש שיר מוגן. אצלנו נוצרת מוזיקה מקורית שמותרת לפרסום." מוצגת בממשק של חלק 08, לא כאן.
+
 ### קריטריוני קבלה
 - [ ] שתי הרצות רינדור של אותו פרויקט בוחרות אותה רצועה; פרויקט רביעי באותה סביבה לא חוזר על הרצועה של שלושת הקודמים כשיש חלופה.
 - [ ] כשל של Lyria (MSW) מחליף לרצועת ספרייה, מסמן `degraded` ומחזיר 5 קרדיטים בשורת `refund` אחת.
 - [ ] בדיקת אודיו על רינדור הבדיקה: בזמן מילה פעילה עוצמת המוזיקה ≤ −18dB יחסית לקריינות.
+- [ ] ★ פרויקט טרנד עם `music_brief = { mood: "funny", bpm_min: 100, bpm_max: 120, energy_curve: "drop", drop_at_ms: 2500 }`: `lyriaPrompt` מכיל "Tempo around 110 BPM", "drop at about 2.5 seconds" ו-"Quiet intro, then a clear drop.", ואינו מכיל אף מחרוזת מהתבנית מלבד השדות האלה.
 
 ---
 
@@ -2892,7 +3307,7 @@ export async function runStep<T>(
 
 **`jobTerminal(jobId)`** (`lib/pipeline/state.ts`) קורא את `jobs.canceled_at` ואת `jobs.status`, ומחזיר `true` כשהעבודה בוטלה או כש-`status` הוא `failed` או `canceled` (למשל אחרי שה-sweeper הכשיל אותה, §19.4). `runStep` בודק אותו לפני `markRunning` ושוב לפני `capture`, כך שריצה ישנה שממשיכה אחרי כישלון או ביטול לא מחייבת ולא מתקדמת. `cancelJob` ו-`failJob` לא עושים כלום כשהעבודה כבר במצב סופי (`failed`/`canceled`/`succeeded`), ולכן `CanceledError` שנזרק על עבודה שכבר נכשלה לא הופך אותה ל-`canceled` ולא סוגר שוב את השמירה. `finalize` עושה את אותה בדיקה (§18.10).
 
-**בדיקת `scenes_digest` (הגנה לעומק; `scenes` נכתבת רק בצד השרת, חלק 04 §12.2 ו-§19.6):** `startJob` מחשב, אחרי המודרציה של זמן היצירה (חלק 04 §19.8), את `scenes_digest` = sha256 על הרשימה של הגרסה, ממוינת לפי `index`, של `(id, index, is_hook_scene, image_prompt_en, motion_prompt_en, onscreen_text_he, vo_he)`, ושומר אותו ב-`jobs.options.scenes_digest`. הצעדים `keyframe:*`, `clip:*` (ב-`clipSubmit`, לפני ה-submit), `voice` ו-`render:*` מחשבים אותו מחדש (`assertScenesDigest(jobId)`, `lib/pipeline/state.ts`) לפני הקריאה למודל או לרינדור. אי-התאמה ← `AppError("INTERNAL_ERROR")` קטלני ← `failJob(INTERNAL_ERROR)` עם החזר מלא (`refund_reservation`) והתראת מנהלים `scenes_changed_during_job`. `start_ms` ו-`duration_ms` לא נכללים, כי צעד `captions` כותב אותם; גם `status`, מזהי הנכסים ו-`visual_source` (שהדרדרות משנה) לא נכללים.
+**בדיקת `scenes_digest` (הגנה לעומק; `scenes` נכתבת רק בצד השרת, חלק 04 §12.2 ו-§19.6):** `startJob` מחשב, אחרי המודרציה של זמן היצירה (חלק 04 §19.8), את `scenes_digest` = sha256 על הרשימה של הגרסה, ממוינת לפי `index`, של `(id, index, is_hook_scene, image_prompt_en, motion_prompt_en, onscreen_text_he, vo_he, overlay, user_media_in_ms, user_media_out_ms)` — ★ `overlay` (שכבת הטרנד, כולל הטקסט שעליה) בלי השדות `quad` ו-`quadSource`, שצעד ה-keyframe כותב (§18.11) — ושומר אותו ב-`jobs.options.scenes_digest`. הצעדים `keyframe:*`, `clip:*` (ב-`clipSubmit`, לפני ה-submit), `voice` ו-`render:*` מחשבים אותו מחדש (`assertScenesDigest(jobId)`, `lib/pipeline/state.ts`) לפני הקריאה למודל או לרינדור. אי-התאמה ← `AppError("INTERNAL_ERROR")` קטלני ← `failJob(INTERNAL_ERROR)` עם החזר מלא (`refund_reservation`) והתראת מנהלים `scenes_changed_during_job`. `start_ms` ו-`duration_ms` לא נכללים, כי צעד `captions` כותב אותם; גם `status`, מזהי הנכסים ו-`visual_source` (שהדרדרות משנה) לא נכללים.
 
 ### 18.4 טבלת הצעדים
 
@@ -2900,7 +3315,7 @@ export async function runStep<T>(
 |---|---|---|---|---|---|---|---|---|
 | `voice` | `voice` | `vo_full_he` → טקסט הקראה (§15.1), קול, מהירות, מילון | `{asset_id, duration_ms, model, fallback_voice, tts_hash}` | 120 שנ׳ | 3 (backoff 2/8/30 שנ׳) | `tts.default` → `tts.alt` | `voice.tts × ⌈שניות/15⌉` · "קריינות · {seconds, plural, one {שנייה אחת} two {שתי שניות} other {# שניות}}" | 10 |
 | `captions` | `captions` | קובץ הקריינות, טוקנים ו-`spans` | `{source, quality, words, pages}` → `project_versions.caption_track`; `scenes.start_ms/duration_ms` | 120 שנ׳ | 2 | תמלול נכשל → יישור חלופי | 0 | 5 |
-| `keyframe:{sceneId}` | `keyframes` | `buildKeyframePrompt`, יחס, רזולוציה, seed, ייחוס | `{asset_id, model, prompt_hash, attempts}` | 120 שנ׳ | 2 לכל מודל | `image.{tier}` לפי הסדר | `image.{tier}` · "תמונה לסצנה {n}" | 15 ÷ מספר ה-keyframes |
+| `keyframe:{sceneId}` | `keyframes` | `buildKeyframePrompt`, יחס, רזולוציה, seed, ייחוס | `{asset_id, model, prompt_hash, attempts, sign_quad?: {source: "model"|"preset"}}` (★ §18.11) | 120 שנ׳ | 2 לכל מודל | `image.{tier}` לפי הסדר | `image.{tier}` · "תמונה לסצנה {n}" | 15 ÷ מספר ה-keyframes |
 | `clip:{sceneId}` | `clips` | כתובת חתומה (6 שעות) של ה-keyframe, `buildMotionPrompt`, משך מעוגל (§14.1), רזולוציה, יחס, `callback_url` | `{attempts:[{n, model, video_id, status, billed_seconds, pending_submit?}], asset_id}` | submit 30 שנ׳; המתנה 15 דק׳ לניסיון; אחסון 180 שנ׳ | ניסיון חוזר אחד עם הגיבוי הבא; אחר כך `degraded` | `video.{tier}` לפי הסדר | `clip.{tier} × billed_seconds` · "קליפ לסצנה {n} · {seconds, plural, one {שנייה אחת} two {שתי שניות} other {# שניות}}" | 45 ÷ מספר הקליפים |
 | `music` | `music` | אווירה, אנרגיה, BPM, משך | `{asset_id, source: "library"|"lyria", track_id}` | 180 שנ׳ | 2 | Lyria → ספרייה | `music.generate` (5) רק ב-`generate` · "מוזיקה מקורית" | 5 |
 | `render:{aspect}` | `render` | `PromoProps` (§20.2) עם כתובות של 6 שעות | `{render_run_id, asset_id, render_ms, still_asset_id?}` | 20 דק׳ | 1 | — | ראשון: `render.base`; נוסף: `render.extra_format` · "הרכבה 9:16" / "פורמט נוסף 1:1" | 18 ÷ מספר הפורמטים |
@@ -2967,13 +3382,31 @@ export async function runStep<T>(
 
 **שמירה מפני מצב סופי:** אם `jobTerminal(jobId)` (העבודה נכשלה או בוטלה בינתיים, למשל בידי ה-sweeper), `finalize` יוצא בלי `settle_reservation`, בלי `succeeded` ובלי מייל. העדכון של שלב 4 מותנה (`update jobs set status = 'succeeded' … where id = $1 and status not in ('failed','canceled')`), כך שגם במרוץ, עבודה שכבר הוחזרה לא חוזרת למצב `succeeded`.
 
-1. הפוסטר: `stillPath` שהוחזר מרינדור הפורמט הראשי (פריים ב-1.2 שנ׳, §20.8) → `assets` (`poster`).
+1. הפוסטר: `stillPath` שהוחזר מרינדור הפורמט הראשי (פריים ב-1.2 שנ׳, §20.8) → `assets` (`poster`). ★ כשיש רינדור 1:1 בפרופיל `meta_reels` (§20.11), גם הפוסטר שלו נשמר (`poster`, `aspect_ratio = '1:1'`), לתמונה הממוזערת של מודעות הפיד (חלק 07 §9.10).
 2. SRT ו-VTT מ-`CaptionTrackV1` (§16.7).
 3. `settle_reservation(res, 'settle:'||res)`; `jobs.credits_captured` = סכום ה-captures פחות ההחזרים החלקיים.
 4. `jobs.status = succeeded`, `stage = done`, `progress = 100`, `finished_at`; `projects.stage = done`.
 5. התראה `job_succeeded` + מייל `video_ready` (אם המשתמש לא ביטל ב-`notification_prefs`).
 6. אירוע שרת `generation_completed {job_id, duration_ms, cost_usd, degraded_scenes}`.
 7. כיול `hebrew_wps` (§15.7); מחיקת קבצים זמניים (Blob של הרינדור, אם נוצר).
+8. ★ **בדיקת מפרט Meta** לכל רינדור 9:16 ו-1:1 של העבודה: `assertMetaVideoSpec(assetId)` (§20.11) ← `assets.metadata.meta_spec = { ok, issues[], checked_at }`. בונה הקמפיינים ודיאלוג הפרסום (חלק 07) קוראים את התוצאה ולא מפענחים את הקובץ שוב.
+9. ★ **ציון הוק** (כשהדגל `hook_score` דולק): `scoreHook(versionId, { timeoutMs: 3500 })` (§24) לגרסה של העבודה — גם בעבודות של סביבת `ws-trends-studio`, כך שלכל סרטון הדגמה של תבנית טרנד יש ציון (חלק 08). זה צעד של "הכי טוב שאפשר": כשל נרשם בלוג, `hook_score` נשאר `null`, והנתיב של חלק 04 §19.10 מחשב אותו בפעם הבאה שמבקשים. 10. ★ **הדגמות של טרנד:** בעבודה של סביבת `ws-trends-studio` שיש לפרויקט שלה `trend_template_id`, ‏`finalize` קורא ל-`copyDemoAssets(jobId)` (חלק 08 §11.6): הרינדור 9:16, הפוסטר וה-VTT מועתקים ל-`public-media/trends/{slug}/`, ו-`demo_assets` של התבנית מתעדכן עם `hook_score` של הגרסה. שלבים 8–10 לא משנים את סטטוס העבודה, שכבר `succeeded`.
+
+### 18.11 ★ פרויקטי טרנד בצנרת
+
+פרויקט שנוצר מתבנית טרנד (`projects.trend_template_id`, חלק 08 §J.6) עובר את אותם 9 שלבים באשף ואת אותה `videoPipeline`. ההבדלים כולם לפני העבודה או בתוך צעדים קיימים — אין צעד חדש ואין `step_key` חדש:
+
+1. **תסריט וסטוריבורד:** `script.generate.v2` ו-`storyboard.generate.v2` מקבלים `<trend_recipe>` (המתכון, ההתאמה לנישה, `do_not_copy`, חריצי הטקסט) ואת `<beat_plan>` של `trendBeatPlan()` (§12.2). הוולידציה היא של v1, ועוד `B14`–`B16` (§11.3).
+2. **`applyTrendRecipe(versionId)`** (`lib/pipeline/plan.ts`, רץ מיד אחרי שהסטוריבורד נשמר, ושוב אחרי כל יצירה מחדש שלו): לכל סצנה, לפי ה-`recipeKey` של הביט שלה —
+   - **שכבה:** כשלביט במתכון יש `overlay` (תבנית `SceneOverlayV1`, חלק 08 §J.4–§J.5), השרת כותב ל-`scenes.overlay` את התבנית, עם הטקסט של `onscreen_slot` בשדה הטקסט שהתבנית מגדירה. הטקסט עובר משם בלבד: `scenes.onscreen_text_he` של הסצנה מתרוקן ו-`text_position = 'none'`, כדי שלא יופיע פעמיים (פעם ב-`OverlayTexts` ופעם בשכבה). ביט `label` של המתכון הופך לאותה שכבה בכל הסצנות שהוא מכסה, עם `fromMs = 0` ו-`toMs` = משך הסצנה; `TrendOverlays` מחבר אותן לרצף אחד (§20.3).
+   - **מיקום בטוח:** מיקום שהתבנית מבקשת ונופל מחוץ לאזורים של חלק 01 §16.3 (לפי `overlayBox()`, חלק 08) מוזז לאזור המותר הקרוב, ונרשמת אזהרה לאדמין.
+   - **מקור ויזואלי:** לפי `B16`, ואחריו כללי ההורדה של `planVisualSources` (§14.1) כרגיל.
+   - **צילום מודרך:** ביט עם `guided_shot_key` מקבל `visual_source = 'user_media'`, `user_asset_id` של הצילום מ-`guided_shoots.shots[]` ונקודות החיתוך של `guidedAutocut` (`scenes.user_media_in_ms`/`user_media_out_ms`). כש-`guidedAutocut` עוד לא רץ, הסצנה נשארת בלי נכס, ו-`POST /generate` חוסם עם `INVALID_INPUT {reason: "missing_shots"}` (חלק 08, G4).
+   - **צלילים:** `sfx_cues` של `music_brief` (§17.4).
+   הכתיבה ל-`scenes` היא בצד השרת בלבד (חלק 04 §12.2), לפני `startJob`, ולכן השכבה והחיתוכים נכנסים ל-`scenes_digest` (§18.3).
+3. **`trends.sign_quad.v1` בתוך צעד ה-keyframe:** בסצנה עם שכבה מסוג `sign` שה-keyframe שלה נוצר ב-AI, צעד `keyframe:{sceneId}` קורא אחרי שמירת התמונה ל-`trends.sign_quad.v1` (`llm.cheap` עם קלט תמונה, `ai_task = llm_utility`, 0 קרדיטים) על הכתובת החתומה של ה-keyframe, ומקבל `SignQuadV1` — ארבע הפינות של הדף הריק. הצעד כותב אותן ל-`scenes.overlay.quad` עם `quadSource = "model"`. כשל, timeout של 20 שניות או פינות שלא עוברות בדיקה (מרובע לא קמור, שטח קטן מ-3% מהפריים) ← הפינות של ה-preset של התבנית, `quadSource = "preset"`, והעורך מציג ידיות לכיוון ידני (חלק 03 §9.3; כיוון ידני כותב `quadSource = "user"`). כל keyframe חדש לאותה סצנה מחשב את הפינות מחדש. סצנת `sign` שהמקור שלה צילום של המשתמש או קליפ מקבלת את ה-preset בלי קריאה למודל.
+4. **פרופיל ושכבות ברינדור:** `buildPromoProps` מעביר את `overlay` ואת `source.trim` (§20.2), ו-`TrendOverlays` מצייר את השכבות (§20.3). תבנית שמסומנת `needs_ai_label` מחייבת `projects.ai_label = true` לפני מודעה (חלק 07 §10.6); ב-`AiLabel` אין שינוי.
+5. **מוזיקה:** `music_brief` לפי §17.4.
 
 ### קריטריוני קבלה
 - [ ] הרצת `inline` מלאה עם MSW: 30 שניות, 6 סצנות (3 קליפים), 3 פורמטים — `job_steps` מכיל `voice`, `captions`, 6 × `keyframe:*`, 3 × `clip:*`, `music`, 3 × `render:*`, `finalize`, כולם `succeeded`; `progress` עולה מונוטונית ל-100.
@@ -2985,6 +3418,9 @@ export async function runStep<T>(
 - [ ] שינוי `vo_he` של סצנה ישירות ב-DB (בתפקיד השירות) אחרי `startJob` → הצעד הבא (`voice`/`keyframe:*`/`clip:*`/`render:*`) נכשל ב-`INTERNAL_ERROR`, החזר מלא, והתראת `scenes_changed_during_job`; עדכון `start_ms`/`duration_ms` בצעד `captions` לא מפעיל את הבדיקה.
 - [ ] ביטול באמצע שלב הקליפים → `canceled`, הקרדיטים של הצעדים שהושלמו נשארים מחויבים והשאר חוזרים, ו-webhook שמגיע אחר כך נרשם `ignored`.
 - [ ] 3 גרסאות הוק: עבודות האחים מתחילות רק אחרי שקליפי הראשית מוכנים, ולא נוצר בהן אף keyframe או קליפ חוץ מסצנת ההוק.
+- [ ] ★ פרויקט `bait-and-sign` (T1, חלק 08) ב-`inline` עם MSW: אחרי `applyTrendRecipe` לסצנת ה-payoff יש `overlay.kind = "sign"` עם הטקסט מהחריץ, ו-`onscreen_text_he` שלה ריק; צעד ה-keyframe שלה רושם שורה של `trends.sign_quad.v1` ב-`ai_generations` וכותב `quad` עם `quadSource = "model"`; כשה-MSW מחזיר 503 — `quadSource = "preset"` והעבודה מסתיימת בהצלחה.
+- [ ] ★ שינוי של טקסט השכבה ישירות ב-DB אחרי `startJob` מפיל את הצעד הבא ב-`INTERNAL_ERROR` (`scenes_digest`), אבל הכתיבה של `quad` בצעד ה-keyframe לא מפילה אותו.
+- [ ] ★ אחרי `finalize`, לכל רינדור 9:16 יש `assets.metadata.meta_spec`, ולגרסה יש `hook_score` (כשהדגל דולק); כשל מדומה של `scoreHook` לא משנה את סטטוס העבודה.
 
 ---
 
@@ -2996,11 +3432,14 @@ export async function runStep<T>(
 // lib/orchestrator/types.ts  (Appendix F §6.1 + one optional method for the sweeper)
 export type ExternalEvent =
   | { kind: "video"; videoId: string; status: "completed" | "failed" | "cancelled" | "expired"; costUsd?: number | null; error?: string | null }
-  | { kind: "render"; renderRunId: string; status: "succeeded" | "failed"; outputPath?: string; error?: string };
+  | { kind: "render"; renderRunId: string; status: "succeeded" | "failed"; outputPath?: string; error?: string }
+  | { kind: "meta_object"; objectId: string; statusName: string }; // ★ token "meta-obj:{id}" (in_process_ad_objects webhook, part 07 §8)
 export interface JobOrchestrator {
   name: "vercel-workflow" | "inline" | "trigger";
   start(jobId: string): Promise<{ runId: string }>;                 // starts videoPipeline(jobId)
-  resume(token: string, payload: ExternalEvent): Promise<void>;      // completes a waiting hook (clip / render)
+  startFlow<N extends FlowName>(name: N, input: FlowInput[N],       // ★ every non-video flow (below)
+                                opts: { idempotencyKey: string }): Promise<{ runId: string; deduped: boolean }>;
+  resume(token: string, payload: ExternalEvent): Promise<void>;      // completes a waiting hook (clip / render / meta object)
   cancel(jobId: string, runId: string): Promise<void>;
   status?(runId: string): Promise<"running" | "completed" | "failed" | "cancelled" | "unknown">;   // ★ used by the sweeper
 }
@@ -3019,6 +3458,57 @@ export const orchestrator = (): JobOrchestrator =>
 
 **מיפוי ל-Trigger.dev v4** (לתיעוד, נבנה רק אם יוחלט): `videoPipeline` → `task({ id: "video-pipeline", maxDuration: 3600, machine: "small-1x", run })`; כל צעד → פונקציה רגילה בתוך ה-task (עם `retry` של Trigger), או `triggerAndWait` לצעד הרינדור על `large-1x`; `createHook` → `wait.createToken({ idempotencyKey: token, timeout: "15m" })` + `wait.forToken`; `sleep` → `wait.for`. אותו `runFlow(jobId, rt)` עם `rt` של Trigger.
 
+**★ תהליכים שאינם סרטון: `startFlow`.** חלקים 07 ו-08 מריצים עבודות ארוכות (חיבור ל-Meta, הכנת קמפיין, קליטת ליד, פרסום פוסט, מחיקת נתונים, בדיקת דופק, תוכנית חודשית, ניתוח טרנד, חיתוך אוטומטי) באותה תשתית של Vercel Workflows, אבל לא כעבודת וידאו: אין להן שורה ב-`jobs`, אין `job_steps` ואין `create_job_and_reserve`. הן מתחילות רק דרך `orchestrator.startFlow(name, input, { idempotencyKey })`; סרטונים ממשיכים להתחיל ב-`start(jobId)`.
+
+```ts
+// lib/orchestrator/types.ts (additions)
+export type FlowName =
+  | "metaConnectSync" | "metaPrepareCampaign" | "metaLeadIngest" | "socialPublish" | "metaDataDeletion" | "metaHealthCheck"   // part 07
+  | "monthlyPlanGenerate"                                                                                                     // part 07
+  | "trendAnalyze" | "guidedAutocut";                                                                                         // part 08
+export interface FlowInput {
+  metaConnectSync: { connectionId: string };       metaPrepareCampaign: { campaignId: string };
+  metaLeadIngest: { leadgenId: string; pageId: string };  socialPublish: { postId: string };
+  metaDataDeletion: { requestId: string };         metaHealthCheck: { reportId: string };
+  monthlyPlanGenerate: { workspaceId: string; month: string };   // month = "YYYY-MM-01" (Asia/Jerusalem)
+  trendAnalyze: { analysisId: string };            guidedAutocut: { shootId: string };
+}
+export interface FlowRuntime {                                    // same shape as the rt of runFlow (video): WDK or inline
+  step<T>(name: string, fn: () => Promise<T>): Promise<T>; sleep(d: string): Promise<void>; createHook<T>(o: { token: string }): Promise<T>;
+}
+
+// lib/workflows/index.ts — the ONLY registry. Like runFlow (above): body(input, rt) is the plain flow (steps via rt.steps),
+// run is the thin "use workflow" wrapper in lib/workflows/{name}.ts that calls body with the WDK runtime.
+type FlowEntry<N extends FlowName> = { owner: "07" | "08"; run: (input: FlowInput[N]) => Promise<void>;
+                                      body: (input: FlowInput[N], rt: FlowRuntime) => Promise<void> };
+export const FLOWS: { [N in FlowName]: FlowEntry<N> } = {
+  metaConnectSync: flow("07", "metaConnectSync"),   metaPrepareCampaign: flow("07", "metaPrepareCampaign"),
+  metaLeadIngest: flow("07", "metaLeadIngest"),     socialPublish: flow("07", "socialPublish"),
+  metaDataDeletion: flow("07", "metaDataDeletion"), metaHealthCheck: flow("07", "metaHealthCheck"),
+  monthlyPlanGenerate: flow("07", "monthlyPlanGenerate"),
+  trendAnalyze: flow("08", "trendAnalyze"),         guidedAutocut: flow("08", "guidedAutocut"),
+};
+
+// lib/orchestrator/vercel-workflow.ts
+async startFlow(name, input, { idempotencyKey }) {
+  const key = `flow:${name}:${idempotencyKey}`;                                   // Upstash, 24 h
+  const existing = await redis.get<string>(key);
+  if (existing) return { runId: existing, deduped: true };
+  const run = await start(FLOWS[name].run, [input]);                              // workflow/api [M0-verify spike 6]
+  const won = await redis.set(key, run.runId, { nx: true, ex: 86_400 });
+  if (!won) { await cancelRun(run.runId); return { runId: (await redis.get<string>(key))!, deduped: true }; }   // lost the race
+  return { runId: run.runId, deduped: false };
+}
+```
+
+כללים לכל תהליך:
+1. **אותם אינווריאנטים של §18.1** (סעיפים 1, 4 ו-5): גוף ה-`"use workflow"` לא נוגע ב-DB ולא ב-OpenRouter, כל צעד אידמפוטנטי לפי המצב בטבלה של החלק הבעלים, ובין צעדים עוברים רק מזהים. המצב והסטטוס נשמרים בטבלה של התהליך (`ad_campaigns.status`, `social_posts.status`, `trend_analyses.status`, `guided_shoots.status` וכו׳), וה-`runId` נשמר שם כשצריך ביטול.
+2. **מפתח האידמפוטנטיות** נקבע בחלק הבעלים (למשל `social:{postId}:{attempt}`, חלק 07 §8.3). אותו מפתח בתוך 24 שעות מחזיר את הריצה הקיימת (`deduped: true`) ולא מתחיל ריצה שנייה. ב-`inline`: `queueMicrotask(() => FLOWS[name].body(input, inlineRuntime))` עם אותה בדיקה ב-Redis (בבדיקות — מפה בזיכרון), כך שאותו גוף רץ עם WDK ובלעדיו, כמו `runFlow` של הסרטון.
+3. **המתנה לאירוע חיצוני:** `createHook({ token })` עם טוקן דטרמיניסטי — `meta-obj:{objectId}` להמתנה לעיבוד אובייקט ב-Meta — ו-`orchestrator.resume(token, { kind: "meta_object", objectId, statusName })` מה-webhook, עם polling כגיבוי, כמו `waitForVideo` (§18.2).
+4. **ניסיונות:** כל צעד מצהיר תקציב ניסיונות (`maxRetries`); צעד ששולח כסף או פעולה בלתי הפיכה (פרסום פוסט, יצירת אובייקט ב-Meta) מקבל `maxRetries = 0`, ומזהה שחוזר מהספק נשמר מיד, כדי שניסיון חוזר ישתמש בו ולא ייצור כפילות (חלק 07 §8.4).
+5. **קרדיטים בתהליך** (היום רק `guidedAutocut`, `guided.autocut` × קליפים): הנתיב שמתחיל את התהליך בודק יתרה ומחזיר `INSUFFICIENT_CREDITS` לפני ההתחלה, אבל **לא שומר** קרדיטים; הצעד האחרון של התהליך מחייב בפעולה אחת (`begin_spend` ומיד `commit_spend`, עם מפתח `spend:flow:{name}:{runId}`) רק אחרי שהתוצר נשמר. כך אין שמירה פתוחה שה-sweeper (§19.4 סעיף 7) היה מחזיר באמצע תהליך ארוך; ואם היתרה ירדה בינתיים, התוצר נשמר בחינם — אותו כשל בטוח כמו ב-§3.4.
+6. **ה-sweeper לא נוגע בתהליכים.** תהליך שנתקע מזוהה לפי הסטטוס בטבלה של החלק הבעלים ומטופל שם (חלק 07 §8, חלק 08 §J).
+
 ### 19.2 `RenderProvider`
 
 ```ts
@@ -3029,7 +3519,8 @@ export interface RenderInput {
   inputProps: PromoProps;                                // §20.2 — all URLs are 6h signed Supabase URLs
   settings: RenderSettings;                              // §20.11 (per plan)
   output: { bucket: "renders"; path: string };           // paths.render(ws, project, job, aspect)
-  still?: { frame: number; path: string };               // primary aspect only: poster at 1.2s
+  still?: { frame: number; path: string };               // primary aspect, ★ and 1:1 under meta_reels: poster at 1.2s
+  postprocess: { faststart: boolean; digitalSourceType: DigitalSourceType | null };   // ★ lib/render/postprocess.ts (§20.11)
 }
 export interface RenderResult { path: string; bytes: number; durationMs: number; renderMs: number; stillPath: string | null; costUsdEstimated: number }
 export interface RenderProvider {
@@ -3046,9 +3537,11 @@ export interface RenderProvider {
 | `lambda` | `renderMediaOnLambda({ region: "eu-central-1", functionName, serveUrl: REMOTION_SERVE_URL, composition, inputProps, …, webhook: { url: env.NEXT_PUBLIC_SITE_URL + "/api/webhooks/render?t=" + callbackTokenFor(renderRunId), secret, customData: { renderRunId } } })` (כתובת מוחלטת); מעקב ב-`getRenderProgress` | S3 → העתקה ל-Supabase | מתוך `getRenderProgress().costs` |
 | `local` | `@remotion/bundler` + `@remotion/renderer` (`selectComposition`, `renderMedia`, `renderStill`) על המכונה | קובץ מקומי → Supabase | 0 |
 
+★ **עיבוד אחרי הרינדור** (`lib/render/postprocess.ts`): כל מימוש מריץ `postprocess(filePath, input.postprocess)` על הקובץ המקומי **לפני** ההעלאה ל-`renders` — ב-`vercel-sandbox` בתוך ה-Sandbox, ב-`local` על המכונה, וב-`lambda` בצעד `renderCollect` אחרי ההורדה מ-S3. שני דברים: (1) `faststart` — כשאטום ה-`moov` לא נמצא לפני `mdat`, `ffmpeg -c copy -movflags +faststart` (בלי קידוד מחדש); (2) כתיבת XMP עם `Iptc4xmpExt:DigitalSourceType` (§21.7) כ-box עליון מסוג `uuid` (מזהה ה-XMP הסטנדרטי `BE7ACFCB-97A9-42E8-9C71-999491E3AFAC`) בסוף הקובץ, כך שה-`moov` נשאר ראשון. הסדר קבוע: קודם faststart, אחר כך XMP, כי remux של ffmpeg עלול להשמיט boxes שהוא לא מכיר. איזה כלי כותב את ה-XMP בסביבת הרינדור — כתיבה ישירה של ה-box ב-TypeScript או `exiftool` ב-Sandbox — נקבע בספייק 7 [M0-verify].
+
 **מיקום הנתונים ברינדור:** הפונקציות והצעדים רצים ב-`fra1`, אבל ה-microVM של Vercel Sandbox רץ באזור ש-Sandbox מאפשר — ייתכן שבארצות הברית [M0-verify ספייק 18, חלק 06 §19.6]. ה-Sandbox מקבל את `PromoProps` (§20.2): כתובות חתומות ל-6 שעות לקטעים, לתמונות, לקריינות, למוזיקה, ללוגו ולהעלאות של המשתמש, ואת פרטי העסק שבכרטיס הסיום; הפלט עובר דרך Blob זמני ונמחק אחרי ההעתקה ל-Supabase. זה הנוסח שמופיע במדיניות הפרטיות (חלק 02 §10.3, סעיף 6: "הרכבת הסרטונים: באזור ש-Vercel Sandbox מאפשר, ייתכן שבארצות הברית") ובבקרה L-09 של חלק 06 §11.1; אם הספייק מראה שאפשר לקבוע `fra1`, קובעים אותו ומעדכנים את שלושת המקומות. חלופת `lambda` רצה ב-`eu-central-1`, ו-`local` רק בפיתוח.
 
-**צעד `render:{aspect}`** (`lib/pipeline/steps/render.ts`): `buildPromoProps(jobId, aspect)` → `props_hash` → אם יש `render_runs` מוצלח עם אותו `props_hash` לאותו פרויקט ופורמט (רינדור חוזר בלי שינוי) — משתמשים בו בלי לרנדר (וגם בלי לחייב: `credits = 0`) → אחרת שורת `render_runs` (`queued` → `rendering` → `uploading` → `succeeded`) → `provider.render(input, onProgress)` עם עדכון `render_runs.progress` ו-`jobs.progress` לכל היותר כל 2 שניות → שורת `assets` (`kind: render`, `aspect_ratio`, `duration_ms`, `bytes`, `width`, `height`) → `capture`.
+**צעד `render:{aspect}`** (`lib/pipeline/steps/render.ts`): `buildPromoProps(jobId, aspect)` → `props_hash` (★ על ה-props ועל `settings.profile` כשהוא לא `standard`, כדי שרינדור `meta_reels` לא ישתמש ברינדור ישן בפרופיל אחר) → אם יש `render_runs` מוצלח עם אותו `props_hash` לאותו פרויקט ופורמט (רינדור חוזר בלי שינוי) — משתמשים בו בלי לרנדר (וגם בלי לחייב: `credits = 0`) → אחרת שורת `render_runs` (`queued` → `rendering` → `uploading` → `succeeded`) → `provider.render(input, onProgress)` עם עדכון `render_runs.progress` ו-`jobs.progress` לכל היותר כל 2 שניות → שורת `assets` (`kind: render`, `aspect_ratio`, `duration_ms`, `bytes`, `width`, `height`) → `capture`.
 
 **`POST /api/webhooks/render`** (הקוד בחלק 04 §22.3): מאמת `?t=` עם `verifyCallbackToken(renderRunId, t)` (‏HMAC של המזהה עם `OPENROUTER_CALLBACK_TOKEN_SECRET`, כולל רוטציה, §5.1), ובנוסף, כשהכותרת `X-Remotion-Signature` קיימת, את חתימת Remotion (`validateWebhookSignature`). משלוח של Remotion Lambda (`type: "success" | "error" | "timeout"`, ‏`customData.renderRunId`, ‏`outputUrl`) מתורגם ל-`RenderWebhookBody` של חלק 04 לפני הוולידציה [M0-verify ספייק Lambda, רק אם עוברים לחלופה]. סטטוס סופי → `webhook_events(provider='render', external_id = renderRunId + ':' + status)` → `orchestrator.resume('render:'+renderRunId, {…})` → `204`.
 
@@ -3078,6 +3571,10 @@ export interface RenderProvider {
 - [ ] עבודה של 100 דקות (שני ניסיונות קליפ ושלושה רינדורים ארוכים, שעון מזויף) לא נכשלת בגלל התקרה; עבודה שעוברת 120 דקות מ-`started_at` נכשלת עם `PROVIDER_TIMEOUT` והחזר מלא.
 - [ ] שמירה של `begin_spend` בלי `commit_spend`, בת יותר מ-6 דקות, מוחזרת בריצת ה-sweeper הבאה, ומפתח האידמפוטנטיות שלה עובר ל-`failed`.
 - [ ] webhook רינדור עם טוקן שגוי → `401`; כפול → `204` בלי `resume` נוסף.
+- [ ] ★ `startFlow("socialPublish", { postId }, { idempotencyKey: "social:p1:1" })` פעמיים: ריצה אחת, והקריאה השנייה מחזירה את אותו `runId` עם `deduped: true` — גם ב-`vercel-workflow` (MSW על `workflow/api`) וגם ב-`inline`.
+- [ ] ★ `metaPrepareCampaign` שממתין ל-`meta-obj:{videoId}` ממשיך מיד כש-`orchestrator.resume("meta-obj:{videoId}", { kind: "meta_object", objectId, statusName: "SUCCESS" })` נקרא, ובלעדיו — אחרי polling (שעון מזויף).
+- [ ] ★ `guidedAutocut` של 3 קליפים: אין שמירה פתוחה במהלך התהליך; בסיומו יש capture אחד של 3 קרדיטים עם המפתח `spend:flow:guidedAutocut:{runId}`, וריצת `sweep-jobs` באמצע התהליך לא מחזירה כלום.
+- [ ] ★ `FLOWS` מכיל בדיוק את 9 השמות של `FlowName`, ולכל אחד יש קובץ ב-`lib/workflows/`.
 
 ---
 
@@ -3119,7 +3616,7 @@ export const calcPromoMetadata: CalculateMetadataFunction<PromoProps> = ({ props
 
 ### 20.2 בניית ה-props (`lib/render/props.ts`)
 
-`PromoProps` הוא הטיפוס של §8.2 בנספח F, עם ההרחבות הקנוניות שמסומנות ★: `brand.introStyle`, `brand.logoWatermark`, `endCard.disclaimersHe`, `endCard.licenseTextHe` ו-`disclaimer` (ראו גם את תיבת התיקונים בראש נספח F). **סדר העדיפויות לכל הגדרת הרכבה:** `projects.render_options.X ?? brand_kits.X ?? ברירת מחדל` (`render_options` נשמר ב-`PATCH /api/projects/[id] {renderOptions}`, חלק 04 §6, חלק 03 §6.9).
+`PromoProps` הוא הטיפוס של §8.2 בנספח F, עם ההרחבות הקנוניות שמסומנות ★: `brand.introStyle`, `brand.logoWatermark`, `endCard.disclaimersHe`, `endCard.licenseTextHe` ו-`disclaimer` (ראו גם את תיבת התיקונים בראש נספח F), ומ-M8 גם `scenes[].overlay` ו-`scenes[].source.trim` (שני השדות nullable; `PromoPropsSchema` ב-`remotion/schema.ts` מייבא את `SceneOverlayV1` מ-`lib/ai/schemas/trends.ts`). **סדר העדיפויות לכל הגדרת הרכבה:** `projects.render_options.X ?? brand_kits.X ?? ברירת מחדל` (`render_options` נשמר ב-`PATCH /api/projects/[id] {renderOptions}`, חלק 04 §6, חלק 03 §6.9).
 
 ```ts
 import { applyShekel } from "@/lib/hebrew/placeholders";
@@ -3143,12 +3640,16 @@ export async function buildPromoProps(jobId: string, aspect: AspectRatio): Promi
         kenburns: s.visual_source === "ai_clip" ? "none" : s.kenburns,
         focal: { x: Number(s.focal_x), y: Number(s.focal_y) },
         fit: fitFor(project.primary_aspect, aspect, s),              // §20.6
-        playbackRate: playbackRateFor(s),                            // §20.4
+        playbackRate: playbackRateFor(s),                            // §20.4 (★ user_video with a trim: up to 2.0)
+        trim: s.user_media_in_ms != null && s.user_media_out_ms != null   // ★ guided footage (guidedAutocut, part 08 §J.7)
+          ? { inMs: s.user_media_in_ms, outMs: s.user_media_out_ms } : null,
       },
       overlayText: s.onscreen_text_he && !s.is_hook_scene ? { textHe: shekel(s.onscreen_text_he), position: s.text_position } : null,
+      overlay: s.overlay ? shekelOverlay(SceneOverlayV1.parse(s.overlay), shekel) : null,   // ★ trend overlay (part 08 §J.5) | null
       transitionIn: s.transition_in, isHookScene: s.is_hook_scene,
     }))),
-    hookTitle: { textHe: shekel(version.script.hook.onscreen_he), showUntilMs: scenes[0].duration_ms },
+    hookTitle: scenes[0].onscreen_text_he                            // ★ the editable copy of hook.onscreen_he (storyboard rule 7)
+      ? { textHe: shekel(scenes[0].onscreen_text_he), showUntilMs: scenes[0].duration_ms } : null,
     captions: { enabled: !project.no_voice, preset: project.caption_preset,
                 highlightColor: ro.caption_highlight_color ?? brandKit.caption_highlight_color ?? brandKit.colors.primary,
                 pages: version.caption_track?.pages ?? [],
@@ -3177,6 +3678,10 @@ export async function buildPromoProps(jobId: string, aspect: AspectRatio): Promi
 
 - **`applyShekel`** (מ-`lib/hebrew/placeholders.ts`, §8.2) ממיר "349 ₪" ↔ "₪349" לפי `brand_kits.shekel_format` בכל טקסט שמוצג בסרטון: ההוק, הטקסט על המסך, טקסט התצוגה של הכתוביות וכרטיס הסיום. ספריית ההוקים כותבת "349 ₪"; ברירת המחדל של הערכה היא `prefix`. ‏`vo_tts_he` לא עובר דרכו (אין בו ₪).
 - **פרטי קשר בכרטיס הסיום:** רק השדות שב-`storyboard.end_card.contact_fields`, **וגם** מופעלים ב-`ec.show_*` (פרויקט ← ערכת מותג), **וגם** קיימים ב-`business_profiles`. טלפון מוצג בפורמט ישראלי (`050-123-4567`) בתוך `<bdi>`; וואטסאפ — אותו מספר עם אייקון בועת צ׳אט כללית (לא לוגו של WhatsApp); אתר — דומיין בלי `https://`; אינסטגרם (`show_instagram`) — `@handle` מתוך `business_profiles.instagram_url`. QR (`show_qr`) נוצר בשרת עם `qrcode` כ-SVG data URL, לאתר או ל-`wa.me` עם טקסט פתיחה (`brief.cta.prefill_he`). הכותרת: `ro.end_card.headline_he ?? storyboard.end_card.headline_he ?? brand_kits.end_card.headline_he`.
+- ★ **`hookTitle`** נלקח מ-`scenes[0].onscreen_text_he`, העותק שאפשר לערוך של `script.hook.onscreen_he` (הסטוריבורד כותב אותו שם, כלל 7 של §10.7). כך עריכה של טקסט סצנת ההוק בעורך, או התיקון `shorten_hook_text` של ציון ההוק (§24.4), משנה את ההוק על המסך בלי לגעת בתסריט הנעול. טקסט ריק — אין `HookTitle`; זה גם המצב בפרויקט טרנד ששכבת הטרנד של סצנה 0 נושאת את טקסט ההוק (§18.11).
+- ★ **`scenes[].overlay: SceneOverlayV1 | null`** — שכבת הטרנד של הסצנה, כפי שנשמרה ב-`scenes.overlay` (הסכמה בחלק 08 §J.5, הקובץ `lib/ai/schemas/trends.ts`, §11.4): איחוד מובחן לפי `kind` (11 הסוגים של `TrendOverlays`), עם `fromMs`/`toMs` ביחס לתחילת הסצנה, `position`, `style` וחריצי טקסט עבריים. `shekelOverlay()` מפעיל את `applyShekel` על כל שדה טקסט ששמו מסתיים ב-`He`, ו-`PriceTag` מציג את המחיר אחרי ההמרה. `null` בכל פרויקט שאינו טרנד.
+- ★ **`scenes[].source.trim: { inMs, outMs } | null`** — נקודות החיתוך של צילום מודרך (`scenes.user_media_in_ms`/`user_media_out_ms`), רק ל-`user_video`; `null` בכל מקור אחר.
+- ★ **יציבות `props_hash`:** `stableStringify` משמיט את `overlay: null` ואת `trim: null`, כך שפרויקט שאינו טרנד מקבל אחרי השדרוג אותו hash כמו לפניו, ורינדור חוזר בלי שינוי עדיין לא מחויב (§19.2).
 
 ### 20.3 עץ השכבות (`remotion/compositions/Promo.tsx`)
 
@@ -3187,6 +3692,7 @@ export const PromoComposition: React.FC<PromoProps> = (p) => (
     <ColorGrade />                                                                   {/* subtle vignette + unified grade */}
     {p.hookTitle && <HookTitle {...p.hookTitle} format={p.format} brand={p.brand} />}
     <OverlayTexts scenes={p.scenes} format={p.format} brand={p.brand} />
+    <TrendOverlays scenes={p.scenes} format={p.format} brand={p.brand} />            {/* ★ trend overlays (below); nothing when no scene has one */}
     {p.captions.enabled && <CaptionsLayer {...p.captions} format={p.format} brand={p.brand} />}
     {p.brand.introStyle !== "none" && <IntroCard style={p.brand.introStyle} brand={p.brand}
                                           fromMs={p.scenes[1]?.startMs ?? 0} format={p.format} />}   {/* ★ after the hook, never at frame 0 */}
@@ -3202,10 +3708,38 @@ export const PromoComposition: React.FC<PromoProps> = (p) => (
 );
 ```
 
-הסדר מלמטה למעלה זהה ל-§8.3 בנספח F, עם שלוש השכבות ★. **ההוק על המסך מופיע מפריים 0, ואף פעם לא אחרי פתיח.** הלוגו מופיע בכרטיס הסיום, ובנוסף רק לפי בחירה מפורשת:
+הסדר מלמטה למעלה זהה ל-§8.3 בנספח F, עם השכבות ★ (`IntroCard`, `LogoWatermark`, `DisclaimerStrip`, ומ-M8 גם `TrendOverlays`, בין `OverlayTexts` ל-`CaptionsLayer`, כך שהכתוביות תמיד מעל שכבת הטרנד). **ההוק על המסך מופיע מפריים 0, ואף פעם לא אחרי פתיח.** הלוגו מופיע בכרטיס הסיום, ובנוסף רק לפי בחירה מפורשת:
 - **`IntroCard`** (`introStyle`, ברירת מחדל `none`): שכבת-על של 1.2 שניות שמתחילה **בתחילת הסצנה שאחרי ההוק** — `logo_reveal` (הלוגו נכנס ב-scale .9→1 מעל הסצנה המעומעמת ל-60%) או `title_card` (שם העסק והעיר בכרטיס בצבעי המותג, Heebo 800). השכבה לא מאריכה את הסרטון ולא מזיזה את הסצנות, כך שהסנכרון לקריינות נשמר; בלי לוגו בערכה, `logo_reveal` מוצג כ-`title_card`.
 - **`LogoBug`**: לוגו קטן בפינה מהשנייה השלישית (`logoBug`).
 - **`LogoWatermark`**: סימן הלוגו של המותג (`brand_kits.watermark`: מיקום ושקיפות) — לא סימן המים של התוכנית החינמית. רוחב ≤ 12% מהמסגרת; אם הפינה שנבחרה תפוסה בידי `AiLabel` או סימן המים של התוכנית (חלק 01 §16.3), הוא עובר לפינה התחתונה באותו צד, מעל אזור הכתוביות.
+
+**★ `TrendOverlays`** (`remotion/layers/trends/TrendOverlays.tsx`, החלק הזה; 11 הרכיבים עצמם — חלק 08 §J.5):
+
+```tsx
+const OVERLAY_COMPONENTS: { [K in SceneOverlayV1["kind"]]: React.FC<OverlayProps<Extract<SceneOverlayV1, { kind: K }>>> } = {
+  sign: SignOverlay, fake_ui: FakeUiPopup, meme_caption: MemeCaption, bts_label: BtsLabel, split_reveal: SplitReveal,
+  comment_bubble: CommentBubble, rating: RatingStamp, pov_label: PovLabel, clock: ClockStamp, sticker: StickerPop, price: PriceTag,
+};
+
+export const TrendOverlays: React.FC<{ scenes: PromoScene[]; format: AspectRatio; brand: PromoProps["brand"] }> = ({ scenes, format, brand }) => {
+  const groups = useMemo(() => groupContinuous(scenes), [scenes]);   // consecutive deep-equal overlays touching at the cut → one span
+  return (<>{groups.map((g) => {
+    const C = OVERLAY_COMPONENTS[g.overlay.kind] as React.FC<OverlayProps<SceneOverlayV1>>;
+    return (
+      <Sequence key={g.key} from={msToFrames(g.startMs)} durationInFrames={Math.max(1, msToFrames(g.endMs - g.startMs))} layout="none">
+        <C overlay={g.overlay} scene={g.firstScene} format={format} brand={brand}
+           transformAt={(f) => sceneTransformAt(g.firstScene, f + msToFrames(g.startMs - g.firstScene.startMs), format)} />
+      </Sequence>
+    );
+  })}</>);
+};
+// group span: start = scene.startMs + overlay.fromMs; end = scene.startMs + (overlay.toMs ?? scene.durationMs)
+```
+
+- **אותם כללי טקסט של §20.5:** `direction: rtl`, `unicode-bidi: plaintext`, אנימציה לפי מילה בלבד, `renderRich()` לטוקנים לועזיים ומספריים (`"POV:"` ו-`"06:30"` בתוך `<bdi>`), ניגודיות דרך `onColor`/`ensureContrast`. כל רכיב מקבל את המיקום שלו מ-`overlayBox(overlay, format)` (`remotion/layers/trends/layout.ts`, חלק 08), שנשאר בתוך האזורים של חלק 01 §16.3 — ואותה פונקציה משמשת את בדיקת `safe_zones` של ציון ההוק (§24.2).
+- **`SignOverlay` זז עם התמונה:** הפינות (`quad`) מחושבות על ה-keyframe, ולכן הרכיב מקבל `transformAt(frame)` — אותה טרנספורמציה של `SceneLayer` (Ken Burns, `fit`, נקודת מוקד), מ-`remotion/layers/scene-transform.ts` — ומפעיל אותה על ארבע הנקודות לפני `perspective` של CSS. כך הכתב נשאר "מודבק" לדף גם כשהתמונה מתקרבת.
+- **רצף:** שכבות זהות בסצנות עוקבות (`bts_label` שמכסה כמה ביטים, §18.11) מצוירות כ-`Sequence` אחד, עם אנימציית כניסה אחת, גם כשיש ביניהן מעבר.
+- **בלי שכבה:** כשאף סצנה לא נושאת `overlay`, הרכיב מחזיר fragment ריק, ו-snapshot של הרינדור של חמש הדוגמאות בנספח D לא משתנה.
 
 ### 20.4 `SceneLayer`
 
@@ -3213,7 +3747,7 @@ export const PromoComposition: React.FC<PromoProps> = (p) => (
 |---|---|---|
 | `clip` | `ClipLayer` | `<OffthreadVideo muted src>`; `playbackRate = clamp(clipMs / sceneMs, 0.75, 1)` כשהקליפ קצר מהסצנה; אם גם ב-0.75 הוא קצר — `<Freeze>` על הפריים האחרון לשארית, עם Ken Burns עדין (1.00→1.04) כדי שלא ייראה "תקוע"; קליפ ארוך מהסצנה — נחתך |
 | `image` | `KenBurnsImage` | `<Img>` עם `transform` לפי `kenburns`: `zoom_in` scale 1.00→1.12; `zoom_out` 1.12→1.00; `pan_start` — scale 1.10 ותזוזה אופקית מ-−4% ל-+4% של הרוחב (תנועה לכיוון צד ההתחלה, ימין); `pan_end` — ההפך; `none` — scale 1.02 קבוע. `transform-origin` = נקודת המוקד. Easing `bezier(.22,1,.36,1)` |
-| `user_video` | `ClipLayer` | כמו `clip`, `muted` (הקול של המשתמש לא נכנס ב-MVP) |
+| `user_video` | `ClipLayer` | כמו `clip`, `muted` (הקול של המשתמש לא נכנס ב-MVP). ★ עם `source.trim` (צילום מודרך): הניגון מתחיל ב-`inMs` ונגמר ב-`outMs` (ה-props של `<OffthreadVideo>` לחיתוך — `trimBefore`/`trimAfter` או `startFrom`/`endAt`, לפי הגרסה הנעולה [M0-verify]), ו-`playbackRate = clamp((outMs − inMs) / sceneMs, 0.5, 2.0)` — האטה עד חצי והאצה עד פי 2 לתבניות עם speed ramp, אותו טווח של העורך (חלק 03 §9.3) ושל `guidedAutocut` (חלק 08 §10.5). כשגם פי 2 לא מספיק, החיתוך מתקצר ל-`inMs + 2 × sceneMs` |
 | `user_image` | `KenBurnsImage` | כמו `image` |
 | `brand_card` | `BrandCard` | רקע גרדיאנט רך בצבעי `primary`→`secondary` עם תנועה איטית של אור, ו-`overlayText` גדול במרכז (Heebo 800, 96/80/64px) — ובלי טקסט, הלוגו במרכז בקטן |
 
@@ -3323,13 +3857,17 @@ import { loadFont as suezOne } from "@remotion/google-fonts/SuezOne";
 import { loadFont as fredoka } from "@remotion/google-fonts/Fredoka";
 import { loadFont as assistant } from "@remotion/google-fonts/Assistant";
 import { loadFont as secularOne } from "@remotion/google-fonts/SecularOne";
+import { loadFont as amaticSc } from "@remotion/google-fonts/AmaticSC";            // ★ SignOverlay only
+import { loadFont as notoEmoji } from "@remotion/google-fonts/NotoColorEmoji";     // ★ render only [M0-verify package name]
 
-/** Family names only (safe in the browser Player). Same keys as CAPTION_FONT_FAMILIES (Part 01 §5) and the brand-kit font list. */
+/** Family names only (safe in the browser Player). Same keys as the brand-kit font list (BRAND_KIT_FONT_KEYS, Part 01 §5); CAPTION_FONT_FAMILIES there also carries "Amatic SC", which the overlays read through OVERLAY_FONT_FAMILIES.sign. */
 export const FONT_FAMILIES = {
   Heebo: "Heebo", Rubik: "Rubik", Karantina: "Karantina", "Suez One": "Suez One",
   Fredoka: "Fredoka", Assistant: "Assistant", "Secular One": "Secular One",
 } as const;
 export type FontKey = keyof typeof FONT_FAMILIES;
+/** ★ Trend-overlay fonts — NOT brand-kit or caption choices. */
+export const OVERLAY_FONT_FAMILIES = { sign: "Amatic SC", emoji: "Noto Color Emoji" } as const;
 
 let loaded = false;
 /** Render environment only (Sandbox / Lambda / local renderer): registers the @font-face rules from Google Fonts
@@ -3346,11 +3884,15 @@ export function loadRenderFonts(): void {
   fredoka("normal", { weights: ["600"], ...S });
   assistant("normal", { weights: ["700", "800"], ...S });
   secularOne("normal", { weights: ["400"], ...S });
+  amaticSc("normal", { weights: ["700"], ...S });                          // ★ Hebrew subset [M0-verify glyph quality]
+  notoEmoji("normal", {});                                                // ★ emoji for MemeCaption / StickerPop
 }
 // remotion/Root.tsx calls it once at module scope, before RemotionRoot: `if (getRemotionEnvironment().isRendering) loadRenderFonts();`
 ```
 
 רק משקלים שבשימוש נטענים. הקריאות ל-`@remotion/google-fonts` נמצאות **רק בתוך `loadRenderFonts()`**, והיא נקראת רק כש-`getRemotionEnvironment().isRendering` (Sandbox/Lambda/local) — מ-`remotion/Root.tsx`, שהנגן בדפדפן לא טוען. אין קריאה ל-`loadFont` ברמת המודול, ולכן ייבוא של `remotion/fonts.ts` בנגן לא מזריק `@font-face` שמצביע על `fonts.gstatic.com`. הנגן בדפדפן (`@remotion/player` באשף, בעורך ובדף הבית) טוען את גופני הכתוביות מאותו origin דרך `components/video/caption-fonts.ts` (חלק 01), כי ה-CSP מתיר רק `font-src 'self' data:` (חלק 06 §15.3). הקומפוזיציות מקבלות את שמות המשפחות ממפה אחת: `FONT_FAMILIES` ברינדור, ו-`CAPTION_FONT_FAMILIES` של חלק 01 בנגן בדפדפן (באותם מפתחות; חלק 01 §5). גופן מותג מותאם (`@remotion/fonts` → `loadFont({ family, url })`) — רק ב-v2, כשהסביבה אישרה רישיון הטמעה בווידאו (חלק 03); ב-MVP — Heebo.
+
+★ **גופני שכבות הטרנד:** **Amatic SC** (משקל 700, עם תת-הקבוצה העברית) הוא הכתב "הידני" של `SignOverlay` בלבד — לא גופן מותג ולא גופן כתוביות. הוא נטען גם ברינדור (`loadRenderFonts`) וגם בנגן בדפדפן, דרך `components/video/caption-fonts.ts` מאותו origin (חלק 01 §5), כדי שהשלט ייראה זהה באשף ובקובץ. **Noto Color Emoji** נטען **רק ברינדור**: בנגן בדפדפן האימוג׳י של `MemeCaption` ו-`StickerPop` מוצגים בגופן של המערכת, וההבדל הוא בצורה בלבד, לא במיקום. איכות האותיות העבריות של Amatic SC והשם המדויק של חבילת האימוג׳י ב-`@remotion/google-fonts` נבדקים ב-M8 [M0-verify].
 
 ### 20.10 `Animatic`, `PosterStill`, `CaptionStyleSample`
 
@@ -3369,6 +3911,45 @@ export function loadRenderFonts(): void {
 
 משותף: 30fps, `pixelFormat: "yuv420p"`, `imageFormat: "jpeg"` (`jpegQuality: 85`), `x264Preset: "medium"`, `concurrency` = מספר ה-vCPU, `enforceAudioTrack: true`, `muted: false`, metadata `comment=ai-generated` אם נתמך [M0-verify]. סביבה עם `has_paid = true` בתוכנית `free` (קנתה חבילה) — בלי סימן מים, אבל עדיין 720p (`max_resolution` של התוכנית).
 
+**★ פרופיל `meta_reels`** (מ-M9, כשהדגל `meta_connect` דולק): אותו קובץ עולה כרילס לאינסטגרם ולפייסבוק וכמודעה, ולכן כל רינדור **9:16 ו-1:1** נוצר מראש במגבלות של Meta, בלי שהמשתמש בוחר; 16:9 נשאר בפרופיל `standard`. הפרופיל דורס רק את מה שבטבלה הבאה, והשאר — רזולוציה, `crf`, סימן מים — לפי התוכנית:
+
+```ts
+// lib/render/meta-spec.ts — the single definition; part 07 imports it (assertMetaVideoSpec before any upload or publish)
+export const META_REELS_SPEC = {
+  container: "mp4", videoCodec: "h264", audioCodec: "aac", audioSampleRateHz: 48_000, audioMaxKbps: 128,
+  videoMaxMbps: 25, ourVideoCapMbps: 20, fpsMin: 23, fpsMax: 60, minSec: 3, maxSec: 90, maxBytes: 300 * 1024 * 1024,
+  moovBeforeMdat: true,
+  aspects: { "9:16": { target: [1080, 1920], minShortSide: 720 }, "1:1": { target: [1080, 1080], minShortSide: 720 } },
+} as const;
+export type MetaSpecIssue = "container" | "video_codec" | "audio_codec" | "audio_bitrate" | "audio_rate" | "video_bitrate"
+  | "fps" | "duration" | "size" | "moov_position" | "aspect" | "resolution";
+/** @remotion/media-parser on the stored asset (stream, no full download); result cached in assets.metadata.meta_spec. */
+export async function assertMetaVideoSpec(assetId: string): Promise<{ ok: boolean; issues: MetaSpecIssue[] }>;
+
+// lib/render/settings.ts
+export function renderSettings(plan: PlanKey, aspect: AspectRatio, f: { metaConnect: boolean }): RenderSettings {
+  const base = { ...PLAN_RENDER[plan], profile: "standard" as const };
+  if (!f.metaConnect || aspect === "16:9") return base;
+  return { ...base, profile: "meta_reels", audioBitrate: "128k", audioSampleRate: 48_000,
+           encodingMaxRate: "20M", encodingBufferSize: "40M" };         // Remotion options [M0-verify spike 7: passed by renderMediaOnVercel]
+}
+```
+
+| מגבלה (Meta) | מקור | מה אנחנו עושים |
+|---|---|---|
+| MP4, H.264, `yuv420p` | חלק 07 §9.10, §13.3 | כבר ברירת המחדל (טבלת התוכניות) |
+| AAC 48 kHz, עד 128 kbps | שם | `audioBitrate: "128k"` במקום 192k של התוכניות בתשלום; 48 kHz [M0-verify ברירת המחדל של Remotion] |
+| עד 25 Mbps | שם | תקרה של 20 Mbps (`encodingMaxRate`) עם `crf` של התוכנית |
+| 23–60 fps | שם | 30 fps, כמו תמיד |
+| אטום `moov` לפני `mdat` (`+faststart`) | שם | `postprocess` (§19.2) |
+| 3–90 שניות, עד 300MB | שם | הסרטונים שלנו 10–63 שניות; 60 שניות ב-20 Mbps הם כ-150MB לכל היותר |
+| 9:16 לרילס ולסטוריז, 1:1 לפיד | חלק 07 §9.10 | 9:16 תמיד; 1:1 כשהפורמט הוזמן ("הוספת פורמט 1:1"). **4:5 לא מרונדר** עד שיהיה ערך `format_4x5` ב-`aspect_ratio` |
+| תמונה ממוזערת | חלק 07 §9.10 | הפוסטר בפריים 1.2 שנ׳ (§18.10), גם ל-1:1 |
+| 1080×1920 | חלק 07 §9.10 | היעד בתוכניות בתשלום; בתוכנית החינמית הרינדור נשאר 720×1280 (`max_resolution`), ו-`assertMetaVideoSpec` מקבל צלע קצרה של 720px ומעלה לפרסום רגיל ולמודעה [M0-verify הרזולוציה המינימלית של Meta למודעות וידאו] |
+
+- **רינדור ישן** (לפני M9, או 16:9) שלא עובר את הבדיקה: חלק 07 מציג **"הרכבה מחדש לפרסום · {n, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}"**, שמפעיל `rerender` רגיל בפרופיל `meta_reels` (`render.base` או `render.extra_format`, לפי הפורמט). אין דרך אחרת "לתקן" קובץ.
+- **הבדיקה רצה פעמיים:** ב-`finalize` (§18.10, התוצאה ב-`assets.metadata.meta_spec`), ושוב לפני כל העלאה או פרסום (חלק 07), כי נכס יכול להיות ישן יותר מהפרופיל.
+
 ### 20.12 בדיקות ויזואליות
 
 - `tests/fixtures/bidi-strings.json` (חלק 01) כולל לפחות: `מבצע Black Friday עד 50%!` · `₪199 לחודש` · `199 ₪ לחודש` · `050-123-4567` · `POV: הקבלן אמר 'שבועיים'` · `ב-2026 זה כבר לא עובד` · `שלחו "מחיר" בוואטסאפ` (מירכאות ASCII, כמו בכל ציטוט) · `IKEA או נגר? עשינו את החשבון` · `4.9 ⭐ בגוגל` (האימוג׳י מוסר בתצוגה) · `WhatsApp: 052-555-1234`.
@@ -3382,6 +3963,11 @@ export function loadRenderFonts(): void {
 - [ ] עוצמת המוזיקה בזמן דיבור ≈ 0.12 ובשקט ≈ 0.35 (בדיקה על פונקציית `musicVolume`).
 - [ ] פרויקט `free` בלי תשלום: סימן מים ושורת "נוצר ב{{BRAND_NAME}}" מופיעים, 720p; אחרי רכישת חבילה — בלי סימן מים.
 - [ ] הסתייגות של נישת משכנתאות מופיעה בכרטיס הסיום ובשורה הקבועה לאורך הסרטון.
+- [ ] ★ עם `meta_connect` דולק, רינדור 9:16 של תוכנית `business` עובר `assertMetaVideoSpec`: `ffprobe` מראה H.264, AAC 48 kHz ב-128 kbps לכל היותר, קצב וידאו מתחת ל-20 Mbps, ו-`moov` לפני `mdat`; רינדור 16:9 של אותו פרויקט נשאר עם AAC 192k. רינדור חוזר של אותו 9:16 בלי שינוי מחזיר את הרינדור הקיים בלי חיוב.
+- [ ] ★ ב-MP4 שיוצא מהרינדור יש box עליון מסוג `uuid` עם XMP שמכיל `Iptc4xmpExt:DigitalSourceType` עם הערך של §21.7, וגם אחרי `postprocess` ה-`moov` עדיין לפני `mdat`.
+- [ ] ★ golden: `PosterStill` של כל אחד מ-11 סוגי השכבות × 3 פורמטים, עם fixtures של `bidi-strings.json` (כולל `POV: הקבלן אמר 'שבועיים'` ו-`06:30`), תואם לתמונות ה-golden; `SignOverlay` עם Amatic SC מציג את הטקסט העברי בתוך המרובע גם בפריים האחרון של Ken Burns (הפרש פינות ≤ 2px מהחישוב).
+- [ ] ★ צילום מודרך עם `trim = { inMs: 1200, outMs: 4200 }` בסצנה של 2 שניות מתנגן ב-`playbackRate` 1.5 מ-1.2 עד 4.2 שניות של המקור; עם `outMs − inMs` של 6 שניות — פי 2 והחיתוך מתקצר ל-4 שניות.
+- [ ] ★ פרויקט בלי שכבות טרנד: ה-props וה-`props_hash` זהים לאלה שלפני השדרוג (snapshot על חמש הדוגמאות של נספח D).
 
 ---
 
@@ -3400,6 +3986,12 @@ export function loadRenderFonts(): void {
 | פרומפטים מהסטוריבורד | כל `image_prompt_en`/`motion_prompt_en` | `B09` + `promptSafety` | תיקון; אם לא עובר — הסצנה יורדת ל-`brand_card` |
 | העלאות משתמש עם אנשים | הצהרת הסכמה (`assets.metadata.consent_attested`) | בדיקה ב-`plan.ts` לפני שימוש בנכס | הנכס לא נכנס לסרטון; הודעה בעורך |
 | העלאות (`upload_image`, ופריים ראשון של `upload_video`) | התמונה עצמה | `moderation.upload.v1` (§10.14) בתוך `POST /api/uploads/complete` | `422 MODERATION_BLOCKED`, הקובץ נמחק; `minors` — גם התראה למנהלים; שגיאת ספק → `pending` עד בדיקה חוזרת |
+| ★ הכנת קמפיין ופרסום שלו (C6, C8 בחלק 07) | הטקסטים של כל מודעה (טקסט ראשי, כותרת, תיאור, טופס הלידים) ביחד עם הטקסט של הסרטון (קריינות, טקסט על המסך, טקסט השכבות) | `quickPolicyCheck` + `moderation.ad.v1` (הטקסט בחלק 07; `AdPolicyCheckV1`) + כללי נספח E §18; ואחריהם `adEligibility()` (§21.8) | `MODERATION_BLOCKED` עם הסיבה בעברית; תוכן פוליטי או חברתי — תמיד חסום, ובמצב בחירות `ELECTION_POLICY_BLOCKED` (451); `AD_NOT_ELIGIBLE {reason}` לשער המודעות |
+| ★ טקסט שנכנס לשכבת טרנד (`scenes.overlay`) | כל חריצי הטקסט | אותה בדיקה של טקסט הסצנה בזמן היצירה (חלק 04 §19.8), כי הם חלק מ-`scenes_digest` (§18.3) | כמו טקסט סצנה |
+| ★ ניתוח סרטון השראה (אדמין, חלק 08) | `TrendAnalysisV1.risk_flags` | שער סיכון דטרמיניסטי (`lib/trends/risk.ts`): דחייה אוטומטית ב-`political_or_war`, `minor`, `dangerous_stunt`, `real_injury`; `testimonial_format` ← `requires_people_consent` ובלי אנשים שנוצרים ב-AI; `creator_face`/`creator_voice` ← `do_not_copy`; `copyrighted_music` ← תקציר מוזיקלי בלבד | `trend_analyses.status = rejected` עם `reject_reason` |
+| ★ טיוטת תבנית טרנד (A5, חלק 08) | הטקסטים בעברית ובאנגלית מול הניתוח | מגן הדמיון (`lib/trends/similarity.ts`, חפיפה של 6-gram) + `moderation.brief.v1` | `MODERATION_BLOCKED` (similarity/risk) |
+| ★ תוכן לדף העסק (`landing.copy.v1`, חלק 07) | התוכן שנוצר וכל עריכה שלו | `moderation.brief.v1` (`kind: "brief"`) + כללי האמת של נספח E (בלי ביקורות, מחירים או נתונים שלא סופקו) | `MODERATION_BLOCKED`; הדף לא מתפרסם |
+| ★ הצעות של ציון ההוק (§24) | `text_he`, `notes_he`, `proposed_text_he` | `lint()` + `NO_PROMISE_HE` + `detectFactSlots` (§10.15) | ההצעה נמחקת; אף פעם לא חוסם פרסום או השקה |
 
 ### 21.2 `quickPolicyCheck()` — סינון דטרמיניסטי מקדים
 
@@ -3519,6 +4111,41 @@ export function stripRequestedText(en: string): string;
 
 `projects.ai_label` מוסיף את התגית "נוצר באמצעות AI" (§20.7); ברירת המחדל דולקת בסרטוני אווטאר (v2). ה-MP4 נושא metadata `comment=ai-generated` כשהרינדור תומך [M0-verify]. רשימת הבדיקה בייצוא (חלק 03) מזכירה שמטא, טיקטוק ויוטיוב דורשים לסמן תוכן ריאליסטי שנוצר ב-AI. C2PA — v2.
 
+★ **סימון בתוך הקובץ (IPTC DigitalSourceType):** מ-M9 כל MP4 שאנחנו מרנדרים — זה שמורידים, זה שעולה כרילס וזה שעולה כמודעה, כי זה אותו קובץ — נושא XMP עם `Iptc4xmpExt:DigitalSourceType`, שנכתב ב-`postprocess` (§19.2). הערך נקבע לפי מה שיש בסרטון בפועל:
+
+```ts
+// lib/render/postprocess.ts
+export type DigitalSourceType = "trainedAlgorithmicMedia" | "compositeWithTrainedAlgorithmicMedia";
+const IPTC = "http://cv.iptc.org/newscodes/digitalsourcetype/";
+export function digitalSourceTypeFor(scenes: PlannedScene[], hasAiVoice: boolean): DigitalSourceType | null {
+  const ai = scenes.some((s) => s.source === "ai_clip" || s.source === "ai_image_kenburns" || s.source === "user_photo_animated");
+  const real = scenes.some((s) => s.source === "user_media");
+  if (!ai && !hasAiVoice) return null;                          // the customer's own footage + our graphics only: no AI tag
+  return ai && !real ? "trainedAlgorithmicMedia" : "compositeWithTrainedAlgorithmicMedia";   // written as IPTC + value
+}
+```
+
+- **מה זה אומר:** `trainedAlgorithmicMedia` — כל הוויזואל נוצר ב-AI; `compositeWithTrainedAlgorithmicMedia` — שילוב של מדיה של הלקוח (או קריינות AI על צילום אמיתי) עם AI. גרפיקה שלנו (טקסט, כרטיסים, שכבות טרנד) לא נחשבת "AI".
+- **לא מוחקים ולא מזייפים:** אנחנו לא מסירים metadata של ספק מקליפ, לא כותבים ערך שלא מתאים לתוכן, ולא משווקים "עקיפה של תווית ה-AI" (חלק 02, חלק 07). מטא עשויה להוסיף לסרטון את התווית "AI info"; ההודעה למשתמש בדיאלוג הפרסום ובסקירת הקמפיין — חלק 07. האם אינסטגרם קורא את השדה בווידאו, והאם יש שדה API להצהרה עצמית — [M0-verify].
+- **C2PA** נשאר ל-v2: Remotion מקודד מחדש את הקליפים, ולכן manifest של ספק כנראה לא שורד ממילא, וכתיבת manifest משלנו (`c2pa-rs`) היא החלטה של v2.
+
+### 21.8 ★ שכבות טרנד, פורמטים אורגניים ושער המודעות
+
+- **ממשק מזויף רק לפרסום רגיל:** שכבה מסוג `fake_ui` (`FakeUiPopup`: חלון מערכת כללי בסגנון טלפון, בלי לוגו של מערכת הפעלה) הופכת את הפרויקט כולו ל"רק לפרסום רגיל", בלי קשר לתבנית: `adEligibility()` (`lib/meta/eligibility.ts`, חלק 07) מחזיר `AD_NOT_ELIGIBLE {reason: "deceptive_ui"}`, והתבנית `organic_only` מחזירה `organic_only_template` עוד לפני זה. הבדיקה רצה על `scenes.overlay` של הגרסה, ולא על דגל שהמשתמש יכול לשנות, ולכן גם פרויקט שהועתק או נערך נתפס. דחיפות בתוך החלון ("נשארו 2 מנות") — רק כשהיא נכונה (סעיף הבא).
+- **שכבה מחייבת הצהרה:** סוגי שכבות שנושאים טענה מוסיפים דגל ציות לתסריט, כך שאותה אכיפה בשרת (§21.3, `ATTESTED_FLAGS`) חלה עליהם:
+
+| `overlay.kind` | הדגל שנוסף (`overlayComplianceFlags()`, `lib/ai/compliance.ts`) | ההצהרה שנדרשת |
+|---|---|---|
+| `price` | `price_claim` | "אישור שהמחיר נכון ומעודכן" |
+| `split_reveal` | `results_claim`; ובנישות `medical` — גם `before_after_medical` | התוצאה אמיתית, וההסתייגות של הנישה מוצגת |
+| `comment_bubble` עם תגובה אמיתית | `testimonial_requires_consent` | "אישור בכתב מהלקוח על השימוש בהמלצה" |
+| `fake_ui` עם טקסט דחיפות (`/(נשאר|נשארו|אחרון|אחרונים|רק היום|עד מחר)/`) | `urgency_must_be_true` | הדחיפות אמיתית |
+
+  הדגלים מחושבים מ-`scenes.overlay` ב-`applyTrendRecipe` ובכל עריכה של טקסט שכבה, ומצטרפים ל-`script.compliance.flags` בבדיקה של `POST /generate` ושל `…/regenerate` (`complianceFlagsOf(version) = script.compliance.flags ∪ overlayComplianceFlags(scenes)`, חלק 04 §19.8 שלב 3).
+- **אנשים בצילום מודרך:** צילום מתבנית עם `requires_people_consent`, או צילום שה-shot שלו מסומן `people_on_camera`, נכנס לסרטון רק עם ההצהרה `people_on_camera_consent` ב-`brief.attestations` (אותו דפוס של ההצהרות בשרת, §21.3 וחלק 04 §19.3). בלי ההצהרה — `guidedAutocut` נחסם עם `INVALID_INPUT {reason: "consent_required"}` (חלק 08, G4), ו-`plan.ts` לא מצמיד את הנכס.
+- **בלי AI בפורמטים של אנשים אמיתיים:** בתבנית עם `requires_people_consent` (המלצות, "יום בחיים", מאחורי הקלעים), ביט שמראה אדם הוא `user_media` במתכון, ו-`B16` לא מאפשר להחליף אותו בסצנה שנוצרת ב-AI; כשאין צילום — הסצנה יורדת ל-`brand_card`, לא ל-AI. תבנית עם `needs_ai_label` מדליקה את `projects.ai_label` כברירת מחדל, ומודעה בלי התווית נחסמת ב-`needs_ai_label` (חלק 07).
+- **מצב בחירות** (§21.5) חל גם על טרנדים: תבנית עם `political_or_war` נדחית כבר בניתוח, ולכן לא מגיעה לפיד.
+
 ### קריטריוני קבלה
 - [ ] תסריט שנוצר לנישת `lawyers` עם "המשרד המוביל בצפון" נכשל ב-`HE020` ועובר תיקון; ההסתייגות "המידע כללי ואינו מהווה ייעוץ משפטי." תמיד ב-`disclaimers_he` ובכרטיס הסיום.
 - [ ] `hooks.generate` לנישת `therapists` לא מחזיר הוק מסוג `social-proof` (גם כשה-MSW מחזיר — הוא מוסר בוולידציה).
@@ -3527,6 +4154,10 @@ export function stripRequestedText(en: string): string;
 - [ ] סרטון `testimonial` בלי `brief.testimonial.consent_attested`, או בלי רשומת `testimonial_requires_consent` ב-`brief.attestations`, נחסם ב-`422 MISSING_FACTS` עם `facts: ["אישור בכתב מהלקוח על השימוש בהמלצה"]`; `reel_hook` שהתסריט שלו סומן `testimonial_requires_consent` עובר כשיש הרשומה בלבד.
 - [ ] תסריט עם הדגל `price_claim` בלי רשומה מתאימה ב-`brief.attestations` נחסם ב-`POST /generate` וגם ב-`…/scenes/[sceneId]/regenerate` עם `facts: ["אישור שהמחיר נכון ומעודכן"]`.
 - [ ] תסריט בנישת `mortgage-advisors` עם דגל `price_claim` מקבל `disclaimer.showOn = "all"` ב-`buildPromoProps`.
+- [ ] ★ פרויקט שאינו מתבנית `organic_only` אבל שבאחת הסצנות שלו יש `overlay.kind = "fake_ui"`: `adEligibility` מחזיר `AD_NOT_ELIGIBLE {reason: "deceptive_ui"}`, ופרסום רגיל שלו עובר.
+- [ ] ★ שכבת `price` עם "₪49" בפרויקט בלי הצהרת `price_claim`: `POST /generate` מחזיר `422 MISSING_FACTS` עם "אישור שהמחיר נכון ומעודכן".
+- [ ] ★ `digitalSourceTypeFor`: סרטון שכולו `ai_clip`/`ai_image_kenburns` ← `trainedAlgorithmicMedia`; שילוב עם `user_media` ← `compositeWithTrainedAlgorithmicMedia`; צילום מודרך בלי קריינות ובלי סצנות AI ← `null` ובלי XMP של AI.
+- [ ] ★ `moderation.ad.v1` (MSW שמחזיר `political`) בזמן `election_mode` ← `451 ELECTION_POLICY_BLOCKED` ב-C6 ושום קריאה ל-Meta (spy על `metaFetch`).
 
 ---
 
@@ -3543,12 +4174,15 @@ export function stripRequestedText(en: string): string;
 | Webhooks | `webhook_events.payload` | גוף המשלוח | 90 יום | מנהלי פלטפורמה |
 | OpenRouter | אצל הספק | הבקשות עצמן | `data_collection: "deny"` — בלי אימון ובלי שמירה לצורכי הספק, ככל שהספק מאפשר | — |
 
+★ **נתונים של Meta ושל לידים:** שום פרומפט לא מקבל פרטים של ליד (שם, טלפון, מייל, תשובות בטופס), טוקן של Meta או מזהה של משתמש פייסבוק — דוחות, הסברים ובדיקת הדופק מקבלים מספרים מצטברים בלבד (§8.1 כלל 3). סרטוני השראה נשלחים לספק רק כקליפ הוק קצר ופריימים, עם `data_collection: "deny"`, ונשמרים אצלנו לפי כללי השמירה של `trend-refs` (חלק 08 §J.1). `field_data` של ליד מסונן מכל לוג ומ-Sentry (חלק 07).
+
 `redactPII(text)` (`lib/log.ts`) מוחק מיילים, טלפונים ישראליים (`0\d{1,2}-?\d{7}`, `\+972…`), רצפים של 9 ספרות (ת״ז) ורצפים של 13–19 ספרות (כרטיסים) — ורץ על כל מחרוזת חופשית לפני לוג או Sentry. בריף וטקסט מאתרים נשלחים ל-OpenRouter **רק** במסגרת המשימה, ומדיניות הפרטיות (חלק 02) מפרטת את ספקי המשנה דרך OpenRouter ואת ההעברה לחו״ל.
 
 ### קריטריוני קבלה
 - [ ] שורת `ai_generations` אחרי קריאה מוצלחת לא מכילה אף מחרוזת מהפרומפט (בדיקה עם מחרוזת ייחודית בבריף).
 - [ ] חריגה מדומה בצנרת עם בריף שמכיל מייל וטלפון מגיעה ל-Sentry (mock transport) בלי המייל והטלפון.
 - [ ] `meta` של כשל ולידציה מתאפס אחרי 30 יום (בדיקת SQL על משימת `purge-ai-generation-meta`), ומשתמש מחובר לא יכול לבחור את העמודה (`select meta from ai_generations` נכשל בהרשאות).
+- [ ] ★ בדיקת snapshot על `buildUser` של `ads.insight_explain.v1` ו-`ads.health_check.v1` עם fixture של קמפיין שיש לו לידים: אין בקלט שם, טלפון, מייל או `field_data` של אף ליד — רק ספירות.
 
 ---
 
@@ -3565,10 +4199,13 @@ export function stripRequestedText(en: string): string;
 | ויזואלי | Remotion `renderStill` + `pixelmatch` | `CaptionStyleSample` ו-`PosterStill` עם fixtures של בידי (§20.12) | כל PR שנוגע ב-`remotion/` |
 | הערכה חיה | `scripts/eval-prompts.ts` (מפתח אמיתי, תקציב $5 להרצה) | 20 בריפים × `script`/`storyboard`/`hooks` על הנתיבים הפעילים | לילי (GitHub Actions, `workflow_dispatch` ו-cron), ולפני כל `prompt.activate` |
 | e2e חי | Playwright מול preview (`@live`) | סרטון 30 שנ׳ סטנדרט ב-3 פורמטים ל-3 נישות (אבן הדרך M5, חלק 06 §24 ו-§13 בנספח F) | לפני מיזוג לענף הראשי של שינויי צנרת, ולילי |
+| ★ היקף 2026-10-17 | Vitest + MSW + `inline` + `renderStill` | ציון הוק (§24), `trendBeatPlan`, `applyTrendRecipe`, `video_url` ו-`MediaTooLargeError`, `needsVideoInput`, `startFlow`, פרופיל `meta_reels` ו-`postprocess`, `digitalSourceTypeFor`, 11 השכבות ב-golden, ו-16 התבניות החדשות ב-snapshot (§23.7) | כל PR; הערכה חיה של התבניות החדשות — לילי, כמו §23.5 |
 
 ### 23.2 Fixtures
 
 `tests/fixtures/openrouter/`: `chat-script.sse` (סטרים מלא כולל `usage.cost` בהודעה האחרונה), `chat-storyboard.json`, `chat-hooks.json`, `chat-fallback-served.json` (`model` של גיבוי), `images-b64.json`, `images-no-cost.json`, `videos-submit-202.json`, `videos-poll-{pending,in_progress,completed,failed,cancelled,expired}.json`, `videos-submit-relative-polling-url.json`, `video-content.mp4` (קליפ של שנייה, 9:16), `speech.mp3`, `transcription-words.json`, `transcription-segments.json`, `models.json`, `videos-models.json`, `webhook-completed.json` + `.sig` (מהספייק), `generation-cost.json`. `tests/fixtures/briefs/*.json`: 20 בריפים אמיתיים-למחצה (10 נישות בעדיפות 1, 5 בעדיפות 2, 5 מוסדרות), עם עובדות. `tests/fixtures/scripts/`: חמשת התסריטים והסטוריבורדים של נספח D (`restaurants-grill-30`, `renovation-bathroom-30`, `mortgage-mix-30`, `dentists-brand-60`, `nails-hanukkah-15`).
+
+★ **נוספו ב-2026-10-17:** `tests/fixtures/openrouter/chat-trend-analysis.json` (תשובה של `llm.video`), `chat-trend-frames.json` (`llm.vision_frames`), `chat-hook-score.json` ו-`chat-hook-score-promise.json` (הצעה עם הבטחה, ל-`K05`/`K06`), `chat-ad-copy.sse`, `chat-insight-explain.sse`, `transcription-auto-en.json` (תמלול באנגלית בלי `language`); `tests/fixtures/media/hook-6s-720p.mp4` (קליפ הוק של 6 שניות, מתחת ל-8MB ב-base64) ו-`hook-oversize.mp4` (מעל התקרה); `tests/fixtures/trends/bait-and-sign.recipe.json` ו-`behind-the-viral.recipe.json` (מתכונים מה-seed של חלק 08); `tests/fixtures/hook-score/*.json` — סטוריבורד + props לכל אחת מ-9 הבדיקות במצב עובר ובמצב נכשל.
 
 ### 23.3 כללי ה-lint העברי (`lib/hebrew/lint.ts`)
 
@@ -3601,8 +4238,10 @@ export function stripRequestedText(en: string): string;
 | `HE023` | "..." במקום "…" | warning (תיקון אוטומטי) |
 | `HE024` | רווח לפני סימן פיסוק, או שני רווחים | warning (תיקון אוטומטי) |
 | `HE025` | סוגריים בהוק, בטקסט על המסך או בקריינות (`/[()]/` ב-`text_he` של הוק, ב-`onscreen_text_he` וב-`vo_*`; מנסחים מחדש עם פסיק, נקודתיים או משפט שני) | error |
+| `HE026` | ★ פנייה בגוף שני שמניחה מאפיין אישי של הצופה (מצב בריאותי, כלכלי, גיל, משקל וכו׳; `PERSONAL_ATTRIBUTE_PATTERNS`, נספח E §18.4) | error בתוצרי `ads.copy.v1` ו-`landing.copy.v1` ובטקסטים של טופס הלידים; warning בעריכה של המשתמש |
+| `HE027` | ★ שפת תוצאות אסורה (`RESULTS_BANNED_PHRASES`, נספח E §19.6: הבטחות, תחזיות, השוואה לעסקים אחרים) | error בתוצרי `ads.insight_explain.v1`, `ads.health_check.v1`, `plan.month.v1`, `hooks.score.v1`, `ads.copy.v1` ו-`landing.copy.v1` |
 
-`HE020`–`HE024` כבר תפוסים (ציות ופיסוק), ולכן כלל הסוגריים הוא `HE025`. הוא רץ גם בוולידציה של `hooks.generate.v1` ושל `hooks.library_batch.v1` (§10.3, §10.5), ובבדיקת ה-seed של ההוקים (`HookSeed.superRefine`, חלק 04 §16).
+`HE020`–`HE024` כבר תפוסים (ציות ופיסוק), ולכן כלל הסוגריים הוא `HE025`; כללי ההרחבה הם `HE026` ו-`HE027` (27 כללים בסך הכול), והרשימות שלהם מיובאות מ-`lib/ai/prompts/style-data.ts` כמו כל השאר. הוא רץ גם בוולידציה של `hooks.generate.v1` ושל `hooks.library_batch.v1` (§10.3, §10.5), ובבדיקת ה-seed של ההוקים (`HookSeed.superRefine`, חלק 04 §16).
 
 ### 23.4 בדיקות זהב עם נספח D
 
@@ -3634,15 +4273,170 @@ export function stripRequestedText(en: string): string;
 | `pnpm test` | כל בדיקת יחידה, חוזה, פרומפט offline או צנרת `inline` נכשלת |
 | בדיקת סכמות | JSON קנוני לא תואם ל-Zod |
 | בדיקת slugs | slug של מודל מופיע בקוד מחוץ למקומות המותרים (§1.3) |
-| בדיקת prompts | `system` עם משתנה; תבנית בלי קובץ; מזהה מ-`PromptId` (§8.1) בלי תבנית |
+| בדיקת prompts | `system` עם משתנה; תבנית בלי קובץ; מזהה מ-`PromptId` (§8.1) בלי תבנית; ★ תבנית ש-`ownerPart`, `aiTask`, הנתיב או הסכמה שלה שונים מטבלת הרישום; תבנית עם חלק `video_url` בלי `transport: "fetch"` |
 | golden ויזואלי | הבדל מעל 0.5% בלי עדכון golden מכוון |
 | הערכה חיה (לילי) | ירידה מתחת לסף — פותחת issue אוטומטי ולא חוסמת deploy; `prompt.activate` חסום עד שיש דוח עובר |
+
+### 23.7 ★ בדיקות להרחבה של 2026-10-17
+
+1. **16 התבניות החדשות:** לכל אחת snapshot של `system` ושל `buildUser` על fixture, ובדיקת "אין משתנים ב-`system`". החלק הבעלים מספק את ה-fixtures ואת הוולידציה הסמנטית; ההרצה והשערים כאן. `script.generate.v2` ו-`storyboard.generate.v2` נבדקים פעמיים — בלי `<trend_recipe>` (זהות ל-v1 על נספח D) ועם המתכונים של `tests/fixtures/trends/`.
+2. **הערכה חיה:** `scripts/eval-prompts.ts` מקבל `--family` ומריץ גם את `ads.copy` (10 בריפים עם עובדות, בדיקות: אורכים של נספח E §12, CTA קודם, בלי האשטגים, לכל היותר 2 אימוג׳ים, `detectFactSlots`), `ads.insight_explain` (10 מצבי נתונים, כולל "לפני המדגם המינימלי": רק `wait_more_data`), `hooks.score` (20 סטוריבורדים שבודקי לשון דירגו מראש; המתאם בין הציון שלנו לדירוג האנושי נרשם בדוח ולא חוסם), ו-`trends.analyze` על 5 סרטונים ברישיון (חלק 08 מספק). השופט של §23.5 משמש את `ads.copy` בלבד, עם אותו מחוון.
+3. **צנרת:** זרימת `inline` מלאה לפרויקט טרנד (T1 ב-AI ו-T2 בצילום מודרך עם קליפ `webm` אחד), כולל `applyTrendRecipe`, צעד ה-keyframe עם `trends.sign_quad.v1`, `TrendOverlays` ברינדור, `postprocess` ו-`scoreHook` ב-`finalize`.
+4. **ויזואלי:** golden ל-11 השכבות × 3 פורמטים (§20.12), ובדיקת bounding box: אף שכבה לא נכנסת לאזורים האסורים של חלק 01 §16.3, וכשיש כתוביות — השכבה לא חופפת לאזור הכתוביות.
+5. **ציון הוק:** כל 9 הבדיקות במצב עובר ונכשל (`tests/fixtures/hook-score/`), השילוב לציון, המטמון לפי `input_hash`, התיקונים (§24.4), ומצב `degraded` (§24.6).
 
 ### קריטריוני קבלה
 - [ ] כל הסעיפים של §23.1 קיימים כ-scripts ב-`package.json` (`test`, `test:contract`, `test:pipeline`, `test:visual`, `eval:prompts`) ומתועדים ב-README.
 - [ ] `pnpm eval:prompts --dry` רץ בלי מפתח (עם MSW) ומפיק דוח בפורמט האמיתי.
-- [ ] ה-lint מזהה את כל 25 הכללים על fixture מכוון (`tests/fixtures/hebrew-lint-cases.json`), ולא מתריע על אף אחד מ-326 ההוקים בזרע ברמת error (חוץ מ-`HE022` כשאין `compliance_note_he` — אזהרה לפי חלק 03 §22.10).
+- [ ] ה-lint מזהה את כל 27 הכללים על fixture מכוון (`tests/fixtures/hebrew-lint-cases.json`), ולא מתריע על אף אחד מ-326 ההוקים בזרע ברמת error (חוץ מ-`HE022` כשאין `compliance_note_he` — אזהרה לפי חלק 03 §22.10).
+- [ ] ★ `pnpm eval:prompts --family ads.copy --dry` ו-`--family hooks.score --dry` רצים בלי מפתח (MSW) ומפיקים דוח באותו פורמט.
+- [ ] ★ בדיקת ה-CI של הפרומפטים נכשלת על תבנית דמו עם `ownerPart: "07"` שהנתיב שלה `llm.script` במקום `llm.ads`, ועל תבנית עם חלק `video_url` בלי `transport: "fetch"`.
 - [ ] פרוטוקול הבדיקה העיוורת (טופס הדירוג, רשימת הבריפים והתוצאות) נשמר כסעיף ב-`docs/eval/hebrew-review-m7.md` (המסמך שאבן הדרך M7 דורשת לחתום עליו, חלק 06 §24–§25), לצד מבחן ההאזנה לקולות של נספח E §13.4 (`docs/eval/listening-list.md`).
+
+---
+
+## §24. ★ ציון הוק (`lib/hooks/score.ts`)
+
+"ציון הוק" נותן לכל גרסה שהורכבה — וגם לכל סרטון הדגמה של תבנית טרנד — ציון 0–100 לשלוש השניות הראשונות, לפני פרסום או השקה, ועד 3 הצעות לשיפור, חלקן עם "תקנו בקליק". שתי שכבות: בדיקות דטרמיניסטיות על הסטוריבורד ועל ה-props (60 נקודות), והערכה של הטקסט ב-`hooks.score.v1` (40 נקודות, §10.15). הלוגיקה כאן; הממשק (`HookScoreBadge`, `HookScorePanel`, המיפוי של כל תיקון לנתיבים) בחלק 03 §8.5; העמודה `project_versions.hook_score` והנתיב `POST /api/projects/[id]/hook-score` בחלק 04 (§2.3, §19.10); כרטיסי הטרנד בחלק 08. מאחורי הדגל `hook_score`, 0 קרדיטים (`hooks.score`). הציון הוא הערכה לפי כללי הוקים, לא תחזית: הוא לעולם לא חוסם פרסום או השקה, ולצידו תמיד מופיע המשפט "הערכה לפי כללי הוקים — לא הבטחה לתוצאות." (חלק 03).
+
+### 24.1 מתי מחשבים, ואיפה שומרים
+
+| מתי | מי קורא | הערות |
+|---|---|---|
+| סוף כל עבודת רינדור | `finalize` שלב 9 (§18.10) | גם גרסאות אחים של בדיקת 3 הוקים, וגם עבודות של `ws-trends-studio` (הדגמות של תבניות טרנד) |
+| כשהעמודה ריקה או ישנה | `POST /api/projects/[id]/hook-score { versionId }` (חלק 04 §19.10), מדף הפרויקט, מסקירת הקמפיין ומכרטיס הטרנד (חלק 03 §8.5) | סינכרוני, עד 5 שניות, אידמפוטנטי לכל גרסה |
+| אחרי "תקנו בקליק" | אותו נתיב, על גרסת הטיוטה שהתיקון יצר | חלק 03 מציג "אחרי התיקון: {score}" |
+
+- **המטמון:** `project_versions.hook_score` (`HookScoreV1`, §11.2) נכתב רק בצד השרת, גם בגרסה נעולה, ולא מקדם את `updated_at` (חלק 04 §2.3). קריאה עם אותו `input_hash` (§24.5) מחזירה את השורה בלי קריאה למודל. תוצאה `degraded` מחושבת שוב לכל היותר פעם ב-10 דקות.
+- **קריאות במקביל:** נעילת Upstash `hookscore:{versionId}` ל-10 שניות. קריאה שנייה בזמן חישוב מחכה עד 4 שניות לשורה החדשה ומחזירה אותה; אחרי זה היא מחשבת את השכבה הדטרמיניסטית בלבד ומחזירה `degraded` בלי לכתוב.
+- **תקציב הזמן:** טעינת ההקשר (~200ms) ← הבדיקות (< 5ms) ← `hooks.score.v1` עם `timeoutMs = 3500` ← ההצעות ← כתיבה. `maxDuration` של הנתיב: 10 שניות.
+
+### 24.2 הבדיקות הדטרמיניסטיות (`HOOK_SCORE_CHECKS`)
+
+המפתחות זהים למפתחות של `app.hookScore.checks.*` בחלק 03 §8.5. הבדיקות רצות על הסצנות של הגרסה (אחרי `applyTrendRecipe` ו-`planVisualSources`) ועל אותם חישובים של Remotion, כך שהן "רואות" מה שהצופה יראה:
+
+| מפתח | נקודות | עובר (מלא) | חלקי | המקור |
+|---|---|---|---|---|
+| `text_by_500ms` | 10 | טקסט ראשון על המסך עד 500ms: `HookTitle` (מפריים 0, המילה הראשונה שלמה ב-120ms, §20.5), או שכבת טרנד עם טקסט בסצנה 0 (`fromMs + 120`) | 5 — עד 1,500ms | `scenes[0].onscreen_text_he`, `scenes[0].overlay` |
+| `motion_in_1s` | 10 | סצנה 0 היא קליפ (`ai_clip`, `user_photo_animated`, וידאו של המשתמש), או שהיא נגמרת עד 1,000ms (חיתוך) | 5 — תמונה עם Ken Burns (`kenburns ≠ none`) | `visual_source`, `kenburns`, `duration_ms` |
+| `hook_words_max` | 8 | טקסט ההוק על המסך עד 9 מילים (`countWords`) | 4 — 10–12 מילים | `HookTitle` או טקסט השכבה של סצנה 0 |
+| `face_or_product` | 8 | בסצנה 0 רואים פנים, ידיים או את המוצר: צילום מודרך עם ghost `face_center`/`product_center`/`hands_table`, או ש-`image_prompt_en` מזכיר אדם או מוצר (`PERSON_EN`, `PRODUCT_EN`, ומילות `subject_en`/`product_en` של התאמת הנישה בטרנד) | 4 — צילום של המשתמש בלי מידע | `image_prompt_en`, `guided_shoots.shot_list` |
+| `known_hook_type` | 4 | `script.hook.hook_type_slug` ∈ 27 הסוגים של `hook_types` | — | התסריט |
+| `captions_on` | 5 | יש קריינות ויש עמודי כתוביות, או שאין קריינות בכלל (אז אין מה להציג בכתוביות, והטקסט על המסך נבדק ב-`text_by_500ms`) | — | `caption_track.pages`, `no_voice` |
+| `cta_present` | 5 | בכרטיס הסיום יש כותרת וסוג הנעה, ובסרטון עם קריינות `script.cta.vo_he` לא ריק | 3 — רק כרטיס הסיום | `end_card`, התסריט |
+| `duration_fits` | 5 | האורך הכולל (§12.1) עד ה-`ideal` של כל פלטפורמה ב-`projects.platforms` | 3 — עד ה-`max` | `PLATFORM_DURATION_SEC` |
+| `safe_zones` | 5 | כל טקסט נכנס בשתי שורות לכל היותר (`LENGTH_LIMITS` של הפורמט הראשי, עם ההקטנה של עד 15% של §20.5), וכל שכבת טרנד (`overlayBox()`) בתוך האזור המותר של חלק 01 §16.3 | — | הסצנות, השכבות |
+
+```ts
+// lib/hooks/score.ts
+import "server-only";
+export const HOOK_SCORE_CHECKS = {
+  text_by_500ms:   { max: 10, whatEn: "On-screen text is visible by 0.5 s" },
+  motion_in_1s:    { max: 10, whatEn: "Motion or a cut within the first second" },
+  hook_words_max:  { max: 8,  whatEn: "The on-screen hook has at most 9 words" },
+  face_or_product: { max: 8,  whatEn: "A face, hands or the product is visible in the first scene" },
+  known_hook_type: { max: 4,  whatEn: "The hook belongs to a known hook type" },
+  captions_on:     { max: 5,  whatEn: "Captions are on when there is a voice-over" },
+  cta_present:     { max: 5,  whatEn: "A clear call to action at the end" },
+  duration_fits:   { max: 5,  whatEn: "The length fits the target platforms" },
+  safe_zones:      { max: 5,  whatEn: "All text stays inside the safe zones" },
+} as const satisfies Record<HookCheckKey, { max: number; whatEn: string }>;   // Σ max = 60
+
+/** Rule of thumb for short-form hooks (calibrated in beta), NOT a platform rule — except max 90 s for Meta Reels (part 07). */
+export const PLATFORM_DURATION_SEC: Record<Platform, { ideal: number; max: number }> = {
+  reels: { ideal: 35, max: 90 }, facebook: { ideal: 35, max: 90 }, tiktok: { ideal: 35, max: 60 },
+  shorts: { ideal: 35, max: 60 }, whatsapp: { ideal: 35, max: 60 }, youtube: { ideal: 60, max: 60 },
+};
+const FIRST_WORD_MS = 120;                                                          // HookTitle entrance per word (§20.5)
+const PERSON_EN = /\b(face|faces|person|people|woman|women|man|men|hands?|chef|barber|stylist|dentist|trainer|owner|customer|couple|team|worker|baker|technician|agent|lawyer|doctor|therapist)\b/i;
+const PRODUCT_EN = /\b(product|dish|plate|meal|pizza|cake|bottle|box|package|car|apartment|kitchen|bathroom|bouquet|shoes?|dress|phone|cup|coffee)\b/i;
+
+export function runHookChecks(c: HookScoreContext): HookScoreV1["checks"] {
+  const s0 = c.scenes[0];
+  const max = (k: HookCheckKey) => HOOK_SCORE_CHECKS[k].max;
+  const r = (key: HookCheckKey, points: number, detail?: Record<string, string | number | boolean>) =>
+    ({ key, points, max: max(key), passed: points === max(key), ...(detail ? { detail } : {}) });
+
+  const overlayText = textOfOverlay(s0.overlay);                                    // joined *He slots; "" when none
+  const firstTextMs = s0.onscreen_text_he ? FIRST_WORD_MS : overlayText ? (s0.overlay!.fromMs ?? 0) + FIRST_WORD_MS : Infinity;
+  const moving = ["ai_clip", "user_photo_animated"].includes(s0.visual_source) || (s0.visual_source === "user_media" && c.isVideo(s0));
+  const kenBurns = !moving && s0.visual_source !== "brand_card" && s0.kenburns !== "none";
+  const words = countWords(s0.onscreen_text_he || overlayText);
+  const ghost = c.guidedGhostByScene[s0.id] ?? null;
+  const prompt = (s0.image_prompt_en ?? "").toLowerCase();
+  const subject = PERSON_EN.test(prompt) || PRODUCT_EN.test(prompt) || c.subjectTermsEn.some((t) => prompt.includes(t));
+  const endOk = !!c.endCard.headlineHe && !!c.endCard.ctaType;
+  const fit = c.platforms.map((p) => c.totalSec <= PLATFORM_DURATION_SEC[p].ideal ? 2 : c.totalSec <= PLATFORM_DURATION_SEC[p].max ? 1 : 0);
+  const zonesOk = c.scenes.every((s) => fitsTwoLines(s.onscreen_text_he, c.primaryAspect)
+    && (!s.overlay || insideSafeArea(overlayBox(s.overlay, c.primaryAspect), c.primaryAspect)));
+
+  return [
+    r("text_by_500ms", firstTextMs <= 500 ? 10 : firstTextMs <= 1500 ? 5 : 0, { firstTextMs: Number.isFinite(firstTextMs) ? firstTextMs : -1 }),
+    r("motion_in_1s", moving || s0.duration_ms <= 1000 ? 10 : kenBurns ? 5 : 0),
+    r("hook_words_max", words === 0 ? 0 : words <= 9 ? 8 : words <= 12 ? 4 : 0, { words }),
+    r("face_or_product", ghost && ["face_center", "product_center", "hands_table"].includes(ghost) ? 8
+                         : s0.visual_source === "user_media" && !ghost ? 4 : subject ? 8 : 0),
+    r("known_hook_type", c.hookTypes.has(c.script.hook.hook_type_slug) ? 4 : 0),
+    r("captions_on", c.noVoice || c.captionPages > 0 ? 5 : 0),
+    r("cta_present", endOk && (c.noVoice || !!c.script.cta.vo_he.trim()) ? 5 : endOk ? 3 : 0),
+    r("duration_fits", fit.every((f) => f === 2) ? 5 : fit.every((f) => f >= 1) ? 3 : 0, { totalSec: c.totalSec }),
+    r("safe_zones", zonesOk ? 5 : 0),
+  ];
+}
+```
+
+- **`HookScoreContext`** נבנה ב-`loadHookScoreContext(versionId)` מהגרסה, מהסצנות (לפי `index`), מ-`caption_track`, מ-`projects` (`no_voice`, `platforms`, `primary_aspect`, `trend_template_id`), מכרטיס הסיום כפי ש-`buildEndCard` מחשב אותו (§20.2), מ-`hook_types`, ומהצילום המודרך (`guided_shoots.shot_list[].ghost` לפי `guided_shot_key` של הביט). `totalSec` = סוף הסצנה האחרונה + 2.8 שניות (§12.1). אין קריאת רשת בבדיקות.
+- **הבדיקות הן כלל אצבע:** `PERSON_EN`/`PRODUCT_EN` ו-`PLATFORM_DURATION_SEC` מכוילים ב-beta מול דירוג של בודקים; שינוי בהם מעלה את `HOOK_SCORE_LOGIC_VERSION` (§24.5).
+
+### 24.3 השילוב לציון
+
+```ts
+export function combineHookScore(checks: HookScoreV1["checks"], llm: HookScoreLlmV1 | null): { score: number; degraded: boolean } {
+  const det = checks.reduce((a, c) => a + c.points, 0);                                      // 0–60
+  if (!llm) return { score: Math.round((det / 60) * 100), degraded: true };                  // checks only, rescaled
+  const llmPts = Math.round(((llm.clarity + llm.curiosity + llm.relevance - 3) / 12) * 40);   // 3–15 → 0–40
+  return { score: Math.min(100, det + llmPts), degraded: false };
+}
+export const hookScoreBand = (s: number) => (s >= 75 ? "strong" : s >= 50 ? "medium" : "weak");    // app.hookScore.label.* (part 03 §8.5)
+export const hookScoreBucket = (s: number) => (s >= 75 ? "gte75" : s >= 50 ? "50_74" : "lt50");    // hook_score_viewed.score_bucket
+```
+
+הטווחים זהים לשלוש התוויות של חלק 03 §8.5 ("פתיחה חזקה" · "יש מה לחזק" · "כדאי לחזק את הפתיחה"), והדליים זהים ל-`score_bucket` של האירוע `hook_score_viewed` (חלק 06 §14.2).
+
+### 24.4 ההצעות ו"תקנו בקליק"
+
+עד 3 הצעות, בסדר הזה: (1) הצעת החלפה לגרסת אח, כשיש; (2) ההצעות של `hooks.score.v1` לפי הסדר שלהן. רשימת הפעולות סגורה — שלוש בדיוק, כמו בחלק 03 §8.5:
+
+| `fix.kind` | מתי מוצע | איך השרת בונה את הפעולה | מה קורה בלחיצה (חלק 03 §8.5) |
+|---|---|---|---|
+| `shorten_hook_text` | המודל החזיר `proposed_text_he` שעבר `K01`–`K03` | `{ kind, sceneId: scenes[0].id, onscreenTextHe: proposed_text_he }` | `PATCH …/scenes/[sceneId] {onscreenTextHe}` אחרי בדיקת התוכן הרגילה; `HookTitle` נלקח מהטקסט הזה (§20.2) |
+| `move_reveal_earlier` | `planRevealEarlier()` החזיר תוכנית (רק אז הפעולה נכנסת ל-`<allowed_fixes>`) | בלי קריינות, וכשסצנה 0 ארוכה מ-2.5 שניות: `{ mode: "shorten_opening", sceneId, durationSec: 2 }`. אחרת, כשיש סצנת `proof`/`solution` (תמורה או חשיפה בטרנד) במקום 4 ואילך: `{ mode: "reorder", order }` שמקדם אותה למקום השני, וסצנת ההוק נשארת ראשונה | `PATCH …/scenes/[sceneId] {durationSec}` או `POST …/scenes/reorder`; כשהקריינות זזה — גם הקלטה מחדש, עם ההערכה של `estimate()` לפני |
+| `swap_hook_variant` | הפרויקט בקבוצת גרסאות (`projects.variant_group_id`), ויש גרסת אח שה-`hook_score.score` שלה גבוה לפחות ב-10 נקודות | `{ kind, projectId, versionId, score }` של האח הטוב ביותר; הטקסט קבוע: **"בגרסה אחרת של ההוק הפתיחה חזקה יותר. אפשר לבחור בה לפרסום ולקמפיין."** | מעבר לגרסת האח, בלי הרכבה |
+
+- **הצעה בלי פעולה** (`fix: null`) — כשהמודל החזיר `fix_kind: null`, או שהשרת לא הצליח לבנות את הפעולה (סצנה שנמחקה בינתיים) — מוצגת עם "עריכה בעורך" (חלק 03).
+- **התיקון לא נוגע בסרטון שכבר קיים:** הוא נשמר בגרסת טיוטה (פיצול לפי חלק 04 §6), והציון שלה מחושב מחדש. הסרטון שמתפרסם משתנה רק אחרי הרכבה מחדש.
+- **שום הצעה לא מבטיחה תוצאה:** `K05`/`K06` (§10.15) מוחקים ניסוח כזה; הטקסט הקבוע של ההחלפה עובר `lint:copy`.
+
+### 24.5 הקלט ל-`hooks.score.v1` ו-`input_hash`
+
+- **לפרומפט** (§10.15) עוברים: הקשר הפרויקט (מטרה, סוג סרטון, פלטפורמות, פנייה, רמת שפה, משך, קריינות או לא, פורמט), הנישה, תיאור העסק והקהל, ההוק (על המסך, מדובר, סוג), שלוש הסצנות הראשונות (`visual_idea_he` של הביט, טקסט על המסך, טקסט השכבה, קריינות), שם הטרנד ו"למה זה עובד" כשיש, העובדות המאושרות, תוצאות הבדיקות (מפתח, עבר או לא, ותיאור באנגלית), והפעולות המותרות. לא עוברים: קבצים, כתובות, טוקנים, פרטי לידים.
+- **`input_hash`** = sha256 של `stableStringify` על: `HOOK_SCORE_LOGIC_VERSION` (מספר שלם, מתחיל ב-1), מזהה הפרומפט, ולכל סצנה — `id`, `index`, `duration_ms`, `visual_source`, `kenburns`, `onscreen_text_he`, `overlay` (בלי `quad`/`quadSource`), ובשלוש הראשונות גם `vo_he` ו-`image_prompt_en`; ההוק וההנעה לפעולה של התסריט; `end_card`; מספר עמודי הכתוביות; `no_voice`, `platforms`, `primary_aspect`. כל עריכה שמשנה את מה שהצופה רואה בפתיחה משנה את ה-hash; שינוי של `start_ms` בצעד הכתוביות לא משנה אותו.
+
+### 24.6 מצב `degraded`
+
+כש-`hooks.score.v1` לא ענה תוך 3.5 שניות, נכשל, או שהפלט שלו נפסל (`K06`, או שגיאת סכמה): `llm = null`, `degraded = true`, הציון הוא הבדיקות בלבד בסקאלה של 100 (§24.3), ו-`suggestions = []`. חלק 03 מציג אז "הציון מבוסס כרגע רק על הבדיקות האוטומטיות." והפאנל ממשיך להציג את "מה בדקנו". הקריאה נרשמת ב-`ai_generations` (גם כ-`timeout`), ו-`hook_score_viewed` נשלח כרגיל.
+
+### קריטריוני קבלה
+- [ ] fixture של סטוריבורד עם קליפ בסצנת ההוק, הוק של 7 מילים על המסך, כתוביות, הנעה לפעולה בקריינות ובכרטיס, 30 שניות ל-`reels` — כל 9 הבדיקות עוברות (60 נקודות); אותו fixture עם `kenburns: "zoom_in"` על תמונה ← `motion_in_1s` מקבל 5, ועם `brand_card` ← 0.
+- [ ] הוק על המסך של 11 מילים ← `hook_words_max` = 4; פרויקט טרנד שבו טקסט ההוק נמצא בשכבה `meme_caption` עם `fromMs = 0` ← `text_by_500ms` עובר גם בלי `HookTitle`; שכבה עם `fromMs = 2500` ← 0.
+- [ ] פרויקט בלי קריינות ← `captions_on` עובר; עם קריינות ובלי עמודי כתוביות ← נכשל.
+- [ ] `combineHookScore` עם 60 נקודות ו-`clarity/curiosity/relevance = 5/5/5` ← 100; עם 45 נקודות ו-`3/3/3` ← 65; עם 45 נקודות בלי `llm` ← 75 ו-`degraded = true`.
+- [ ] קריאה שנייה לנתיב עם אותה גרסה לא שולחת בקשה למודל (MSW סופר 0) ומחזירה את אותו `HookScoreV1`; עריכה של טקסט סצנת ההוק משנה את `input_hash`, ושינוי `start_ms` לא משנה אותו.
+- [ ] קבוצת 3 גרסאות שבה לגרסת אח יש ציון גבוה ב-12 נקודות: ההצעה הראשונה היא `swap_hook_variant` עם הטקסט הקבוע; עם הפרש של 8 נקודות — אין הצעת החלפה.
+- [ ] `move_reveal_earlier` בפרויקט בלי קריינות עם סצנת פתיחה של 3.2 שניות ← `shorten_opening` ל-2 שניות; בפרויקט עם קריינות ← `reorder` ששומר את סצנת ההוק ראשונה; בלי תוכנית אפשרית ← הפעולה לא נשלחת ב-`<allowed_fixes>`.
+- [ ] כל `HookScoreV1` שנשמר עובר את ה-Zod של §11.2 ואת ה-check של חלק 04 על העמודה, ולכל היותר 3 הצעות; `suggestions` ריק בכל תוצאה `degraded`.
+- [ ] `hookScoreBand(74) = "medium"`, `hookScoreBand(75) = "strong"`, `hookScoreBucket(49) = "lt50"`.
+- [ ] גרסה נעולה מקבלת `hook_score` בלי שינוי ב-`updated_at`, וציון נמוך לא משנה אף בדיקה של פרסום או של `adEligibility` (בדיקת אינטגרציה).
 
 ---
 
@@ -3656,4 +4450,13 @@ export function stripRequestedText(en: string): string;
 - **חלק 06 (חיוב, תפעול, אבטחה):** משתני הסביבה (`OPENROUTER_*`, `ORCHESTRATOR`, `RENDER_PROVIDER`, `REMOTION_*`, `APP_ENV`, ו-`VERCEL_AUTOMATION_BYPASS_SECRET` ל-`callbackUrlFor` ב-staging) ב-§20; `lib/crypto.ts` (`hmacSign`, `hmacVerifyAny`, `secretList`) לרוטציה של `OPENROUTER_CALLBACK_TOKEN_SECRET`; תבניות המייל `video_ready`, `video_failed_refunded`, `admin_alert`; אירועי האנליטיקה (`script_generated`, `storyboard_generated`, `generation_completed`, `generation_failed` מהשרת; `generation_canceled` מהלקוח) ב-§14.2; שרת ה-mock של OpenRouter ב-e2e (§18.4); ה-CSP (`font-src 'self' data:`, §15.3); סקריפטי `package.json` (`eval:prompts`, `test:pipeline`, `test:contract`, `test:visual`, `demo:render`, `upload-static-media`); ו-`docs/eval/hebrew-review-m7.md` באבן הדרך M7.
 - **נספחים D ו-E:** חמש הדוגמאות (`pickSampleScript`, `fillPlaceholders`, ה-fixtures שב-`tests/fixtures/scripts/`) הן few-shots ובדיקות זהב כאן; `BANNED_PHRASES`, `TRANSLATED_PATTERNS`, `LENGTH_LIMITS` ו-`REGISTER_DEFAULTS` מגיעים מ-`lib/ai/prompts/style-data.ts` (נספח E), וסעיף 11 של `sys.hebrew_style.v1` נבנה מהם.
 - **נספח F:** החוזים הבסיסיים (§6–§8, §10.4, §12) — החלק הזה מרחיב אותם, ופריטי התיקונים 2, 8, 9, 15, 17, 23, 29 ו-30 בראש הנספח מפנים לכאן.
-- **פריטי `[M0-verify]` של החלק הזה** (נכנסים ל-`docs/m0-verify.md`): ספייק 2 (גוף הצ׳אט דרך ה-provider), 3 (פורמט החתימה של ה-webhook, צורת האירוע ושדות ה-poll כולל עלות), 4 (מבנה המילים של Scribe), 5 (ניקוד ו-`speed` ב-Eleven v4, כותרת מזהה ה-generation, ושמות הקולות של `tts.alt`), 6 (API של Vercel Workflows: hooks, `sleep`, תקציבי ניסיונות, ביטול, סטטוס ריצה ומשך מורחב), 7 (`@remotion/vercel`, bundle ו-Blob), 18 (אזור הריצה של Vercel Sandbox — מיקום הנתונים ברינדור, §19.2); וגם מבנה הקריאה ל-Lyria, `data_collection` בכל נקודת מדיה, `input_references` ו-`seed` ב-`/images`, קיום `/images/models`, ה-Batch API, מבנה הבקשה של `heygen/avatar-iv`, ו-webhook של OpenRouter שעובר את ה-Deployment Protection של staging עם `x-vercel-protection-bypass` (§5.1).
+- **פריטי `[M0-verify]` של החלק הזה** (נכנסים ל-`docs/m0-verify.md`): ספייק 2 (גוף הצ׳אט דרך ה-provider), 3 (פורמט החתימה של ה-webhook, צורת האירוע ושדות ה-poll כולל עלות), 4 (מבנה המילים של Scribe), 5 (ניקוד ו-`speed` ב-Eleven v4, כותרת מזהה ה-generation, ושמות הקולות של `tts.alt`), 6 (API של Vercel Workflows: hooks, `sleep`, תקציבי ניסיונות, ביטול, סטטוס ריצה ומשך מורחב), 7 (`@remotion/vercel`, bundle ו-Blob), 18 (אזור הריצה של Vercel Sandbox — מיקום הנתונים ברינדור, §19.2); וגם מבנה הקריאה ל-Lyria, `data_collection` בכל נקודת מדיה, `input_references` ו-`seed` ב-`/images`, קיום `/images/models`, ה-Batch API, מבנה הבקשה של `heygen/avatar-iv`, ו-webhook של OpenRouter שעובר את ה-Deployment Protection של staging עם `x-vercel-protection-bypass` (§5.1). ★ מ-2026-10-17 גם: ספייק 24 (הצורה של חלק `video_url`, base64 דרך Vertex ודרך AI Studio, התקרה בפועל, `media_resolution`, ותמלול Scribe עם זיהוי שפה כשהשדה `language` מושמט, §4.3, §4.7); ה-slug של AI Studio לנעיצת ספק ב-`public_youtube_url`; שם השדה `architecture.input_modalities` לסנכרון של `video_in` (§6.3); `encodingMaxRate`/`encodingBufferSize`, 48 kHz כברירת מחדל ו-faststart ב-`renderMediaOnVercel` (ספייק 7, §20.11); הכלי שכותב XMP בסביבת הרינדור, והאם אינסטגרם קורא `DigitalSourceType` בווידאו (§21.7); שמות ה-props לחיתוך ב-`<OffthreadVideo>` בגרסה הנעולה (§20.4); החבילות `AmaticSC`/`NotoColorEmoji` ב-`@remotion/google-fonts` ואיכות העברית של Amatic SC (§20.9); הרזולוציה המינימלית של Meta למודעות וידאו (§20.11); ו-`start()`/ביטול של ריצות `startFlow` ב-WDK (§19.1).
+
+**★ הרחבת 2026-10-17 — מה שחלקים אחרים צריכים מכאן ("רשום ב…"):**
+- **רשום בחלק 04:** `project_versions.hook_score` מחזיק `HookScoreV1` (§11.2) בדיוק במפתחות `{ version, score, checks, suggestions, llm, degraded, input_hash, prompt_version, computed_at }`, והנתיב `POST /api/projects/[id]/hook-score` (§19.10 שם) קורא ל-`scoreHook()` ומחזיר אותו; `scenes.overlay` = `SceneOverlayV1` ו-`scenes.user_media_in_ms`/`user_media_out_ms` נכתבים רק בצד השרת ונכללים ב-`scenes_digest` (§18.3); הבדיקה של `POST /generate` ושל `…/regenerate` (§19.8 שלב 3 שם) משתמשת ב-`complianceFlagsOf(version)`, שכולל את הדגלים של שכבות הטרנד (§21.8), ומחזירה `INVALID_INPUT {reason: "missing_shots"}` לפרויקט מודרך בלי צילומים (§18.11); ה-seed של `model_routes` (+3, סך הכול 21) ושל `model_registry` (+`google/gemini-3.1-pro-preview`, סך הכול 23) לפי §6.1; `credit_costs`: `hooks.score` = 0 ו-`landing.generate` = 10, בדפוס של §3.4; המפתח `assets.metadata.meta_spec` (§18.10) והפוסטר של 1:1 (`kind = poster`, `aspect_ratio = '1:1'`); `BUDGET_GUARD` עם `details.scope = "trend_analysis_limits"` (§7.6); ערכי `app_settings.prompt_versions` למשפחות `post.caption`, `script.generate` ו-`storyboard.generate`.
+- **רשום בחלק 07:** שבעת התהליכים שלו ב-`lib/workflows/` לפי `FlowName`/`FlowInput`/`FLOWS` — גוף `body(input, rt)` ועטיפת `"use workflow"` דקה, כדי שגם `inline` יריץ אותם (§19.1, כולל `metaHealthCheck({ reportId })` ו-`monthlyPlanGenerate({ workspaceId, month })`), והאירוע `{ kind: "meta_object", objectId, statusName }` לטוקן `meta-obj:{id}`; הטקסטים של `ads.copy.v1`, `ads.insight_explain.v1`, `moderation.ad.v1`, `post.caption.v2`, `landing.copy.v1`, `ads.health_check.v1` ו-`plan.month.v1`, עם `ownerPart: "07"` ועם הנתיב וה-`ai_task` של טבלת הרישום (§8.1), והסכמות ב-`lib/ai/schemas/{ads,landing,plan,misc}.ts` (§11.4); `assertMetaVideoSpec` ו-`META_REELS_SPEC` מיובאים מ-`lib/render/meta-spec.ts`, ו-`assets.metadata.meta_spec` נקרא משם (§20.11); "הרכבה מחדש לפרסום" היא `rerender` בפרופיל `meta_reels`; `adEligibility()` בודק `fake_ui` ב-`scenes.overlay` (§21.8); `landing.generate` בדפוס `begin_spend`/`commit_spend` (§3.4); הנתיבים הזורמים C5 ו-C17 משתמשים ב-`StreamEvent` (§3.5); אף פרומפט לא מקבל פרטים של לידים (§8.1, §22).
+- **רשום בחלק 08:** `trendAnalyze` ו-`guidedAutocut` באותו מבנה של `FLOWS` (§19.1); הטקסטים של `trends.*`, `guided.*`, `script.generate.v2` ו-`storyboard.generate.v2` (`ownerPart: "08"`); `trendBeatPlan()` ומיפוי התפקידים `bait → hook`, `reveal → solution`, `payoff → proof` (§12.2), כשכל מתכון מתחיל ב-`bait`; `applyTrendRecipe()` מעביר את טקסט החריץ לשכבה ומרוקן את `onscreen_text_he` של הסצנה (§18.11); `SceneOverlayV1` יושב ב-`lib/ai/schemas/trends.ts`, ב-camelCase, עם שדות טקסט שמסתיימים ב-`He`, עם `fromMs`/`toMs`, ובסוג `sign` גם `quad` ו-`quadSource: "model" | "preset" | "user"`; `overlayBox(overlay, format)` ב-`remotion/layers/trends/layout.ts`, והרכיבים מקבלים `transformAt` (§20.3); הטיוטה של `trends.adapt.v1` שטוחה (§11.4); `trend_analyses.cost_usd` מצטבר אחרי כל קריאה (§7.6); המעבר לפריימים בלבד הוא אותה תבנית על `llm.vision_frames` (§4.7), והתמלול של סרטון השראה הוא עם `language: "auto"` (§4.3); `music_brief.mood` ∈ `MusicMood` ו-`sfx_cues[].kind` ∈ `Sfx` (§17.4); הקרדיטים של `guidedAutocut` נגבים רק בצעד האחרון (§19.1, כלל 5); הציון של סרטון ההדגמה (`hook_score.score` של הגרסה ב-`ws-trends-studio`) עובר לכרטיס הטרנד (§24.1); ה-fixtures של `tests/fixtures/trends/`.
+- **רשום בחלק 03:** §8.5 שם משתמש ב-`HookScoreV1`, במפתחות של `HOOK_SCORE_CHECKS`, בשלוש פעולות התיקון (`HookFix`) ובטווחים של `hookScoreBand`/`hookScoreBucket` (§24.3–§24.4); בעורך, הטקסט של סצנת ההוק הוא הטקסט של `HookTitle` (§20.2), והידיות של השלט כותבות `quadSource: "user"` (§18.11); קופי ל-`INVALID_INPUT.byReason.missing_shots` גם ב-`POST /generate`.
+- **רשום בחלק 01:** Amatic SC (משקל 700, עברית) ב-`components/video/caption-fonts.ts` לנגן בדפדפן, בשם `OVERLAY_FONT_FAMILIES.sign` (§20.9); האזורים הבטוחים של §16.3 חלים גם על שכבות הטרנד; fixtures של השכבות ב-`bidi-strings.json`.
+- **רשום בחלק 06:** האירועים `hook_score_viewed {score_bucket: "lt50" | "50_74" | "gte75"}` ו-`hook_score_fix_applied {fix}` (§24.3); ספייק 24 ברשימת M0; שער ה-CI של רישום הפרומפטים (§23.6); התראת `admin_alert` של מגן ניתוח הטרנדים (§7.6); הדגל `meta_connect` מפעיל גם את פרופיל הרינדור `meta_reels` (§20.11).
+- **החלטות שנקבעו כאן (מסמך ההרחבה לא פירט אותן):** (1) `meta_reels` חל אוטומטית על כל רינדור 9:16 ו-1:1 כשהדגל `meta_connect` דולק, עם AAC של 128k במקום 192k; (2) בתוכנית החינמית הרינדור נשאר 720×1280, ו-`assertMetaVideoSpec` מקבל צלע קצרה של 720px ומעלה — "1080×1920" הוא היעד ולא הסף; (3) `hookTitle` נלקח מהטקסט של סצנה 0; (4) ה-`ai_task` של `landing.copy.v1` הוא `llm_ads`, ושל `plan.month.v1`, `hooks.score.v1` ו-`trends.sign_quad.v1` — `llm_utility`; (5) `HookScoreV1` הוא הרשומה השמורה, והפלט של המודל הוא השדה `llm` שלה (`HookScoreLlmV1`); (6) חלוקת הנקודות 60/40, הטווחים 75/50 של חלק 03, ו-`PLATFORM_DURATION_SEC` ככלל אצבע; (7) `trends.sign_quad.v1` רץ בתוך צעד ה-keyframe, בלי `step_key` חדש; (8) קרדיטים בתהליכים נגבים רק בסוף התהליך; (9) ה-XMP נכתב בסוף הקובץ, אחרי faststart.

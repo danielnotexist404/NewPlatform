@@ -1,8 +1,9 @@
 # חלק 06 — חיוב, תשלומים, משפט, אבטחה, בדיקות ופריסה
 
 החלק הזה מגדיר את כל מה שהופך את המוצר מאב־טיפוס לעסק שאפשר להפעיל בישראל: מנוע חיוב משלנו (תוכניות, תקופות, הענקות חודשיות, חבילות, יחסיות, כשלי חיוב), ספק סליקה (Grow) וספק חשבוניות (Morning) מאחורי ממשקים עם מימושי mock מלאים, ביטולים והחזרים לפי חוק הגנת הצרכן, ורשימת תאימות משפטית מלאה (נגישות, פרטיות ותיקון 13, ספאם, מס, AI, בחירות).
-אחריהם: כל מיילי המערכת בעברית סופית, התראות וואטסאפ, תוכנית אנליטיקה, בקרות אבטחה, ניטור והתראות עלות, תקציבי ביצועים, אסטרטגיית בדיקות, CI/CD וסביבות, משתני סביבה ודגלים, runbooks, מוסכמות הריפו, אבני הדרך M0–M7 ורשימת "הגדרת גמור" שמסיימת את הפרויקט.
+אחריהם: כל מיילי המערכת בעברית סופית, התראות וואטסאפ, תוכנית אנליטיקה, בקרות אבטחה, ניטור והתראות עלות, תקציבי ביצועים, אסטרטגיית בדיקות, CI/CD וסביבות, משתני סביבה ודגלים, runbooks, מוסכמות הריפו, אבני הדרך M0–M11 ורשימת "הגדרת גמור" שמסיימת את הפרויקט.
 הסכמה, הפונקציות והחוזים של נתיבי ה-API נמצאים בחלק 04; כאן הלוגיקה העסקית שיושבת מעליהם, והכללים שכל שאר החלקים נבדקים מולם.
+**הרחבת 2026-10-17 (קמפיינים, פרסום וטרנדים — חלקים 07 ו-08):** ניהול הפרסום ב-Meta כלול בכל תוכנית ב-0% מהתקציב, ואנחנו לא גובים, לא מחזיקים ולא מחזירים כסף של פרסום (§1.8); מגבלות התוכנית החדשות, תקרת ההוצאה המנוהלת ועלות הפעולות בקרדיטים (§2.1, §2.7, §2.8); הבקרות המשפטיות של Meta, הלידים, דף העסק והטרנדים (§11.13–§11.16); 10 מיילים, 6 תבניות וואטסאפ ו-45 אירועי אנליטיקה חדשים; CSP, סודות ו-webhooks של Meta; התראות, בדיקות ו-CI; runbooks R14–R19; אבני הדרך M8–M11 ומפת הדרכים שאחריהן (§24).
 **שום דבר בחלק הזה אינו ייעוץ משפטי או חשבונאי.** כל סעיף שמסומן ⚖️ עובר אישור של עורך דין ישראלי (צרכנות, פרטיות, IP) ושל רואה חשבון לפני ההשקה, והתוצאה נרשמת ב-`DECISIONS.md`.
 
 ---
@@ -56,6 +57,7 @@ lib/invoicing/
 | 7 | **כל חישוב זמן חיוב לפי `Asia/Jerusalem`**, עם `@date-fns/tz` (`TZDate`). תאריכים במיילים ובממשק בפורמט `he-IL`. | בדיקות סביב מעבר שעון (סוף מרץ / סוף אוקטובר) ו-31 בחודש |
 | 8 | **החיוב תמיד על סביבת החיוב** (`billing_workspace_id(ws)`): סביבת לקוח של סוכנות לא מחזיקה מנוי, אסימון או חשבוניות. | חלק 04 §21.2 (403 `billing_on_parent`) |
 | 9 | **שום סכום לא מוצג בלי "כולל מע״מ"** לצרכן; לפרופיל עסקי מוצגת גם שורת "לפני מע״מ". | רכיב `Price` (חלק 01 §10.2) |
+| 10 | **כסף של פרסום לא עובר דרכנו.** תקציב הקמפיינים ב-Meta נגבה על ידי Meta ישירות מאמצעי התשלום שבחשבון המודעות של הלקוח; אין ב-`payments`, ב-`credit_ledger` או בחשבוניות שלנו שורה של תקציב פרסום, ואין עמלה באחוזים (§1.8) | אין `payments.kind`, שורת `credit_costs` או שורת חשבונית לתקציב פרסום; ESLint `no-restricted-imports` מונע ייבוא של `lib/billing/**` מתוך `lib/meta/**` (הקשר היחיד בין התוכנית לפרסום הוא `lib/workspace/limits.ts`, §2.7); הטיפוס `MetaMinor` מותר רק ב-`lib/meta/**` (חלק 07 §6) |
 
 ### 1.4 `money.ts` ו-`vat.ts`
 
@@ -148,11 +150,22 @@ export function splitGross(gross: Agorot, rate: number): { netAg: Agorot; vatAg:
 
 הפונקציות שהמנוע קורא להן (כולן `security definer`, ‏`execute` ל-`service_role` בלבד): `billing_apply_payment`, ‏`billing_apply_renewal`, ‏`billing_apply_plan_change` (חלק 04 §10.8 — חתימות; הלוגיקה המחייבת: §4.1, §4.2, §5.3 כאן), ‏`revoke_grant_remaining` (חלק 04 §10.3), ‏`enforce_plan_limits` (חלק 04 §9.5b), ‏`grant_credits` ו-`credit_invariant_violations` (חלק 04 §10).
 
+### 1.8 כסף של פרסום: 0% מהתקציב, מחוץ למנוע החיוב
+
+- ניהול הקמפיינים בפייסבוק ובאינסטגרם (חיבור, השקה, ניהול, דוחות, לידים, פרסום רגיל ותזמון) **כלול בכל תוכנית**, בלי עמלה על התקציב: **0% מהתקציב**. המחירים, הקרדיטים והחבילות של §2–§3 לא משתנים בגלל זה (חלק 07 §17).
+- **התקציב משולם ישירות למטא**, מאמצעי התשלום שהלקוח הגדיר בחשבון המודעות שלו. אנחנו לא גובים אותו, לא מחזיקים אותו, לא מעבירים אותו ולא מחזירים אותו, ואת הקבלות על החיוב הזה מנפיקה Meta. לכן אין בחלק הזה סליקה, חשבונית, החזר או dunning של כסף פרסום, ו-`RefundQuote` (§10.4) לעולם לא כולל אותו.
+- **אנחנו לא נוגעים בהגדרות החיוב של חשבון המודעות:** לא משנים את מגבלת ההוצאה של החשבון (account spending limit), לא מוסיפים אמצעי תשלום ולא מסירים אותו. כשחסר אמצעי תשלום, הממשק מפנה לדף החיוב של Meta (חלק 07 §10.1–§10.2).
+- **מה עולה קרדיטים:** יצירת סרטונים, כמו היום (חלק 05 §14). השקה, ניהול, דוחות והסברים בעברית עולים 0 קרדיטים (§2.8). בהרחבה יש רק שתי פעולות חדשות בתשלום: `guided.autocut` (קרדיט אחד לכל קליפ, חלק 08 §J.7) ו-`landing.generate` (10 קרדיטים ליצירה או ליצירה מחדש של דף העסק, חלק 07 §14).
+- **מה מגביל את ההוצאה:** תקרת ההוצאה המנוהלת של התוכנית (`meta_monthly_spend_cap_ils`, §2.7) היא מגבלת שימוש בכלי שלנו, לא כסף שעובר דרכנו, וכשהיא מתמלאת **אנחנו אף פעם לא משהים מודעות של לקוח**. השהיה אוטומטית קורית רק כשהלקוח עצמו הפעיל אותה (הכלל `monthly_cap_stop` מול התקרה החודשית שהוא קבע, חלק 07 §10.4).
+- **יחידות כסף:** כל סכום של Meta נשמר, עובר ב-API ומוצג בשקלים עשרוניים (`spend_ils`, `daily_budget_ils`, `cap_ils`). ההמרה ליחידות המינימליות של Meta (offset של 100 בשקלים) קורית רק ב-`lib/meta/money.ts` (`ilsToMetaMinor` / `metaMinorToIls`, חלק 07 §6), והטיפוס `MetaMinor` לא נכנס ל-`lib/billing/**`. קמפיינים דורשים חשבון מודעות בשקלים (הבדיקה `currency_not_ils` חוסמת).
+
 ### קריטריוני קבלה
 - [ ] `grep -rE "0\.18|1\.18" lib app --include=*.ts --include=*.tsx` לא מחזיר כלום מחוץ ל-seed ולבדיקות (`pnpm lint:billing`).
 - [ ] כל טבלת הדוגמאות ב-1.4 עוברת, ו-`net + vat === gross` בבדיקת property-based על 10,000 סכומים אקראיים.
 - [ ] אין ב-`lib/billing` שימוש ב-`Number.prototype.toFixed` לחישוב (רק לעיצוב בגבול ה-DB).
 - [ ] מעבר `canceled`/`expired` מעדכן את `workspaces.plan_id` באותה טרנזקציה (בדיקת SQL).
+- [ ] ESLint נכשל על ייבוא של `lib/billing/**` מתוך `lib/meta/**`, ועל שימוש בטיפוס `MetaMinor` מחוץ ל-`lib/meta/**`.
+- [ ] אין `payments.kind`, שורת `credit_costs` או שורת חשבונית שמייצגים תקציב פרסום (בדיקת seed + snapshot של שורות החשבונית, §9.3).
 
 ---
 
@@ -168,6 +181,26 @@ export function splitGross(gross: Agorot, rate: number): { netAg: Agorot; vatAg:
 | `agency` | סוכנות | ₪990 | ₪792 | ₪9,504 | 3,300 | 10 |
 
 סכום החיוב השנתי = `price_annual_monthly_ils × 12`, מחושב ב-`plans.ts` (לא נשמר בנפרד). מושב = חבר בתפקיד `owner`, `admin` או `editor` (בסביבת החיוב ובסביבות הלקוח שלה) או הזמנה ממתינה לתפקיד `admin`/`editor`; צופים לא נספרים ואינם מוגבלים (`seats_used`, חלק 04 §9.2). שינוי מחיר באדמין חל רק על מנויים חדשים: `subscriptions.price_ils` ו-`vat_rate` ננעלים ברגע הרכישה (חריג יחיד — שינוי שיעור מע״מ, §9.7).
+
+**מגבלות הפרסום, דף העסק ובדיקת הדופק** (מפתחות חדשים ב-`plans.limits`; מקור האמת: `plans.json`, חלק 04 §16.4; `PLAN_LIMIT.details.limit` משתמש בשמות האלה; `null` = ללא הגבלה):
+
+| מפתח | חינם | בסיס ₪119 | עסק ₪289 | סוכנות ₪990 | מה נספר |
+|---|---|---|---|---|---|
+| `meta_ad_accounts` | 1 | 1 | 2 | 15 | חשבונות מודעות מחוברים בכל סביבת החיוב (בסוכנות: חיבור אחד לכל סביבת לקוח) |
+| `meta_active_campaigns` | 1 | 2 | ללא הגבלה | ללא הגבלה | קמפיינים בסטטוס `in_review`, `active` או `with_issues` (חלק 07 §17); טיוטות, `preparing`, `ready` ו-`paused` לא נספרים, ולכן הבדיקה רצה בפרסום ובחידוש ("המשך"), וסיום משחרר מקום |
+| `meta_monthly_spend_cap_ils` | 0 | ₪3,000 | ₪15,000 | ₪100,000 | ההוצאה המנוהלת בחודש קלנדרי בשעון ישראל, בכל הקמפיינים שהושקו דרכנו בסביבת החיוב (§2.7) |
+| `meta_test_spend_ils` | ₪300 | 0 | 0 | 0 | קמפיין ניסיון אחד לכל החיים, שנעצר ב-`spend_cap` של Meta |
+| `meta_split_test` | לא | כן | כן | כן | בדיקת 3 הוקים בקמפיין אחד |
+| `meta_auto_rules` | 0 | 2 | 5 | 5 | כללים אוטומטיים שאפשר להפעיל בו־זמנית |
+| `meta_lead_inbox` | לא | כן | כן | כן | המיני-CRM: סטטוסים, הערות, אחראי וייצוא CSV. צפייה בלידים, כפתורי חיוג ווואטסאפ וההתראות פועלים בכל תוכנית, כי הלידים הם המידע של הלקוח |
+| `social_scheduled_max` | 3 | 30 | ללא הגבלה | ללא הגבלה | פוסטים מתוזמנים לעתיד באותו רגע |
+| `landing_pages` | 0 (תצוגה מקדימה בלבד) ¹ | 1 | 3 | 1 לכל סביבה ² | דפי עסק בסטטוס `published` |
+| `health_checks_per_month` | 1 | 2 | 4 | 4 לכל סביבה ² | דוחות "בדיקת דופק" בחודש קלנדרי בשעון ישראל |
+
+¹ **דף העסק הוא פיצ׳ר בתשלום** (החלטת המייסד, חלק 07 §14.1, שגוברת על הטיוטה שבה דף אחד היה חינם): בתוכנית החינמית אפשר ליצור **תצוגה מקדימה** עם סימן מים, שאי אפשר לפרסם, עם ההודעה **"דף העסק זמין בתוכניות בתשלום"**. החריג היחיד הוא רכישת חבילה: סביבה בתוכנית החינמית שכבר שילמה (`workspaces.has_paid = true`, §3.1) יכולה לפרסם דף אחד — אותה עמודה שקובעת את סימן המים של הסרטונים (`limits.watermark`, חלק 04 §7). `show_branding` (השורה "נבנה עם {{BRAND_NAME}}") נגזר בזמן הצגה: `true` בתוכנית החינמית ו-`false` בכל התוכניות בתשלום. הפונקציה האחת לחישוב: `landingPageLimit(ws)` ב-`lib/workspace/limits.ts`.
+² בסוכנות `landing_pages` ו-`health_checks_per_month` נספרים **לכל סביבה** (הסביבה של הסוכנות וכל סביבת לקוח בנפרד). כל מפתחות `meta_*` ו-`social_scheduled_max` נספרים על סביבת החיוב כולה, והתקרות של סביבות הלקוח מצטברות לתקרה אחת של הסוכנות.
+
+התוכנית החינמית בפרסום: חיבור, פרסום רגיל ותזמון (עד 3 בתור), טיוטות ותצוגות מקדימות של מודעות, וקמפיין ניסיון אחד עד ₪300 בסך הכול (חלק 07 §17). `PlanMetaFeatures` בעמוד המחירים (חלק 02 §7) מציג את הטבלה הזו כשהדגל `meta_ads` פעיל.
 
 ### 2.2 חשבון תקופות (`lib/billing/periods.ts`)
 
@@ -240,12 +273,73 @@ export function creditMath(i: { creditCosts: CreditCostMap; typicalVideoCredits:
 
 `videosLeft(balance, planId)` ו-`lowThreshold(summary, planId)` שבשאר החלקים הן הפונקציות שמוחזרות מ-`creditMath(...)` (בשרת: `(await getCreditMath()).videosLeft(…)`). עם ה-seed: בתוכנית החינמית `perVideoCredits = 30`, ולכן 70 קרדיטי הניסיון = 2 סרטונים, והסף הוא 30; בבסיס (מכסה 400) הסף הוא `max(50, 60) = 60`; בעסק (1,000) — 150; בסוכנות (3,300) — 495.
 
+### 2.7 תקרת ההוצאה המנוהלת וקמפיין הניסיון
+
+- **מה נמדד:** "הוצאה מנוהלת" היא סכום `ad_insights_daily.spend_ils` של כל הקמפיינים שהושקו דרכנו בסביבת החיוב (סביבות לקוח מצטברות לסוכנות דרך `_billing_workspace_id`), בחודש קלנדרי של שעון ישראל. קמפיינים אחרים באותו חשבון מודעות, שלא נוצרו דרכנו, לא נספרים. גם קמפיין הניסיון (`is_free_test`) לא נספר, כי Meta עצמה עוצרת אותו ב-`spend_cap`.
+- **החישוב:** ה-cron `meta-insights-hourly` (חלק 07 §7–§8) קורא בסוף כל ריצה ל-`refresh_managed_spend(current month)`, שמעדכן את `managed_spend_monthly` (`spend_ils`, `cap_ils` מתוך `_managed_spend_cap_ils(ws)`, `warned_80_at`, `reached_at`). המצב נקרא רק דרך `meta_spend_summary(ws)` (פונקציית `security definer` שבודקת קודם שלקורא יש גישה לסביבה), שמחזירה את `state`:
+
+| `state` | תנאי | מה קורה |
+|---|---|---|
+| `ok` | פחות מ-80% מהתקרה | המונה `SpendCapMeter` (חלק 01) מוצג בבונה ובדשבורד, בלי אזהרה |
+| `warn` | 80% עד פחות מ-100% | באנר בדשבורד ובבונה, התראה `spend_cap_warning`, מייל `spend_cap_warning` ווואטסאפ `spend_cap_warning_he` (כשהם מופעלים) — **פעם אחת בחודש** (`spend_cap_warning:{bws}:{month}:80`) |
+| `reached` | 100% ומעלה, בתוך תקופת החסד (`app_settings.meta_spend_cap_grace_days`, 7 ימים מ-`reached_at`) | אותם ערוצים פעם אחת (`…:100`), עם תאריך סוף החסד. **הכול ממשיך לעבוד**, כולל השקות |
+| `grace_over` | 100% ומעלה, אחרי תקופת החסד | **אף מודעה לא מושהית.** חסומות רק פעולות שמגדילות הוצאה: הכנה ופרסום של קמפיין (C6, C8), המשך של קמפיין מושהה (C10), הגדלת תקציב (C11 כלפי מעלה, C14 עם `raiseBudgetPct > 0` והכלל `boost_winner`) ← 403 `PLAN_LIMIT {limit: "meta_monthly_spend_cap_ils", cap, used}` עם הצעת שדרוג. השהיה, סיום, הקטנת תקציב, דוחות ולידים עובדים כרגיל |
+
+- **החודש הבא:** ב-1 לחודש (שעון ישראל) נפתחת שורה חדשה ב-`managed_spend_monthly`, והמצב חוזר ל-`ok`. שדרוג באמצע החודש מעלה את התקרה מיד (`_managed_spend_cap_ils` קורא את התוכנית האפקטיבית); הורדת תוכנית חלה מהרגע שהיא נכנסת לתוקף (§5.4).
+- **תקרה 0** (התוכנית החינמית): אין קמפיינים רגילים באוויר. טיוטות (C2) ותצוגות מקדימות (C6, C7) מותרות, כי הן לא מוציאות כסף; פרסום (C8) של קמפיין שאינו קמפיין הניסיון מחזיר מיד `PLAN_LIMIT {limit: "meta_monthly_spend_cap_ils", cap: 0, used: 0}`, בלי תקופת חסד ועם הצעת שדרוג.
+- **קמפיין הניסיון** (`meta_test_spend_ils > 0`): קמפיין אחד **לכל החיים** של סביבת החיוב (נספרים כל ה-`ad_campaigns` עם `is_free_test = true`, גם אם הסתיימו או הועברו לארכיון), עם `spend_cap` של Meta בגובה הערך (₪300, כלומר `ilsToMetaMinor(300) = 30000`), נוסף על `daily_budget_ils` הרגיל. ניסיון שני נחסם כבר ביצירה (C2, `assertFreeTestAvailable`) ← `PLAN_LIMIT {limit: "meta_test_spend_ils"}`.
+- **התקרה החודשית של הלקוח** (`ad_campaigns.user_monthly_cap_ils`, אופציונלית): זו ההגבלה היחידה שמותר לה להשהות מודעות, ורק דרך הכלל `monthly_cap_stop` שהלקוח הפעיל במפורש (חלק 07 §10.4).
+- **הקוד** (`lib/workspace/limits.ts`, שהחלק הזה מממש; נקרא מהנתיבים C2, C6, C8, C10, C11 ו-C14 ומהערכת הכללים, חלק 07 §7–§10):
+
+```ts
+// lib/workspace/limits.ts — the only gate between plan limits and Meta spend (rule 10 of §1.3)
+export type MetaSpendAction = "prepare" | "publish" | "resume" | "budget_increase";
+export async function assertMetaSpendAllowed(ws: string, action: MetaSpendAction, o: { isFreeTest?: boolean } = {}): Promise<void> {
+  if (o.isFreeTest) return;                                              // Meta spend_cap bounds it; one per lifetime (C2)
+  const s = await metaSpendSummary(ws);                                  // rpc("meta_spend_summary") with the user's client (access-checked)
+  const used = Number(s.spend_ils), cap = Number(s.cap_ils);             // decimal shekels, never MetaMinor
+  const blocked = cap === 0 ? action !== "prepare"                       // free plan: drafts and previews only
+                            : s.state === "grace_over";                  // 100% + grace: no growth, nothing is paused
+  if (blocked) throw new ApiError("PLAN_LIMIT", { limit: "meta_monthly_spend_cap_ils", cap, used });
+}
+export function assertFreeTestAvailable(ws: string): Promise<void>;        // C2 with isFreeTest: PLAN_LIMIT {limit: "meta_test_spend_ils"}
+export async function landingPageLimit(ws: string): Promise<number> {   // per workspace (agency: each client workspace)
+  const { planId, limits, hasPaid } = await workspacePlanInfo(ws);       // plan + has_paid of the billing workspace
+  const n = limits.landing_pages as number;
+  return planId === "free" && hasPaid ? Math.max(n, 1) : n;              // §2.1 note 1
+}
+```
+
+### 2.8 הפעולות של ההרחבה ועלותן בקרדיטים
+
+מקור האמת: `credit_costs.json` (חלק 04 §16.4); חלק 02 §7.5 מציג ללקוח את מה שרלוונטי לו. התוויות זהות ל-seed של חלק 04 §16.4, וכשיש הבדל — ה-seed גובר.
+
+| `action_key` | קרדיטים | `unit` | `label_he` | ההגנה |
+|---|---|---|---|---|
+| `ads.copy` | 0 | `call` | טקסטים למודעה (3 גרסאות) | bucket `llm` |
+| `ads.insight` | 0 | `call` | הסבר בעברית לתוצאות הקמפיין | `llm`; מטמון של 6 שעות |
+| `trends.analyze` | 0 | `call` | ניתוח סרטון השראה (צוות בלבד) | `trend_analysis_limits` |
+| `guided.shotlist` | 0 | `call` | רשימת צילומים מותאמת | `llm` |
+| `guided.autocut` | 1 | `clip` | עריכה אוטומטית של צילום, לכל קליפ | היתרה |
+| `landing.generate` | **10** | `page` | בניית דף העסק (יצירה או יצירה מחדש) | היתרה + `llm` |
+| `meta.health_check` | 0 | `call` | בדיקת דופק לחשבון המודעות | `health_check` (פעם ביום לסביבה) + `health_checks_per_month` |
+| `plan.generate` | 0 | `call` | בניית תוכנית 30 יום | `plan_generate` (3 ביום לסביבה) |
+| `hooks.score` | 0 | `call` | ציון הוק לפני פרסום | `llm`; תוצאה אחת לגרסה |
+
+- `landing.generate` נגבה כמו כל פעולה בודדת (`begin_spend` / `commit_spend`, חלק 04 §10), גם כשנוצרת תצוגה מקדימה בתוכנית החינמית; כשל ביצירה מחזיר את הקרדיטים. עריכת טקסט בעורך הדף, פרסום והסרה מהאוויר — חינם. הפעולה מחליפה את `landing.copy` (0) של הטיוטה הראשונה של דף העסק, ואין שורת `credit_costs` בשם `landing.copy`; מזהה הפרומפט נשאר `landing.copy.v1` (חלק 07 §14.1).
+- כל השאר עולות 0 קרדיטים ומוגנות במגבלות קצב (חלק 04 §18.6), לא בקרדיטים. פרויקט מטרנד עולה כמו כל פרויקט, וצילום מודרך משתמש בפעולות הקיימות (`voice.tts`, `music.generate`, `render.base`, `render.extra_format`).
+- העלות בדולרים של הפעולות ב-0 קרדיטים מוצגת בנפרד בלוח העלויות, ולא נכנסת להתראת "שחיקת רווח" (§16.4).
+
 ### קריטריוני קבלה
 - [ ] מנוי שהתחיל ב-2027-01-31 10:00 שעון ישראל מתחדש ב-2027-02-28 10:00 וב-2027-03-31 10:00 (בדיקת יחידה).
 - [ ] מנוי שנתי מקבל 12 הענקות בדיוק בשנה, כל אחת עם תוקף "סוף החלון + חודש", ומפתח כפול לא יוצר הענקה שנייה.
 - [ ] אחרי חידוש, יתרה = שארית החודש הקודם + המכסה החדשה; ההזמנה הבאה צורכת קודם מהשארית (בדיקת SQL מול `reserve_credits`).
 - [ ] תקרת הגלגול לא פוגעת בשנמוך: מעבר מסוכנות לבסיס עם 2,000 קרדיטים שנותרו לא מפיג אף קרדיט.
 - [ ] `lib/billing/credits.ts` מחזיר את ערכי 2.6 עם ה-seed, ו-`CreditsMeter`, הבאנר, `/api/cron/reminders` והמייל `low_credits` משתמשים בו בלבד (בדיקת יחידה + סקירה).
+- [ ] `plans.json` אחרי `db:seed` מכיל את 10 המפתחות החדשים של 2.1 בערכים שבטבלה, ו-`PLAN_LIMIT` מחזיר את שמם ב-`details.limit`.
+- [ ] בתוכנית החינמית יצירת דף עסק מורידה 10 קרדיטים ומחזירה תצוגה מקדימה עם סימן מים, ו-`POST /api/landing-pages/[id]/publish` מחזיר `PLAN_LIMIT {limit: "landing_pages", max: 0}`; אחרי רכישת חבילה אותו פרסום מצליח פעם אחת, עם `show_branding = true`.
+- [ ] סימולציה של `managed_spend_monthly` ב-79%, ב-80%, ב-100% וב-100% אחרי 8 ימים: מייל אחד ב-80% ואחד ב-100% בחודש; ב-`grace_over` הכנה, המשך והגדלת תקציב מחזירים `PLAN_LIMIT` עם `cap` ו-`used`, והשהיה, סיום והקטנת תקציב מצליחים; אף קריאה ל-Meta שמשהה מודעה לא נשלחת (MSW).
+- [ ] קמפיין ניסיון שני באותה סביבת חיוב נחסם גם אחרי שהראשון הסתיים, והראשון נוצר עם `spend_cap: 30000` (MSW).
 
 ---
 
@@ -259,7 +353,7 @@ export function creditMath(i: { creditCosts: CreditCostMap; typicalVideoCredits:
 | `pack-500` | 500 | ₪179 | ₪151.69 | ₪0.36 | לא פג |
 | `pack-1500` | 1,500 | ₪449 | ₪380.51 | ₪0.30 | לא פג |
 
-- זמינות בכל תוכנית, כולל חינם. רכישה ראשונה מסמנת `workspaces.has_paid = true` (מסיר סימן מים מהיצירות הבאות).
+- זמינות בכל תוכנית, כולל חינם. רכישה ראשונה מסמנת `workspaces.has_paid = true` (מסיר סימן מים מהיצירות הבאות, ובתוכנית החינמית מתיר לפרסם דף עסק אחד, §2.1).
 - תשלום: כרטיס אשראי, ו-Bit רק בחבילות ורק כש-`GROW_PAGE_CODE_BIT` מוגדר (וספייק M0 של Grow אישר אותו [M0-verify]). השרת מעביר `bitEnabled: boolean` ל-`/pricing`, ל-`TopUpDialog` ולקופי של הקופה; כשהוא `false`, המחרוזות שמזכירות Bit מוצגות בגרסת "כרטיס בלבד" שלהן (מפתחות `…ByCardOnly`, חלק 02 §7.3, §7.6). בחבילות **לא שומרים אסימון** (אין `saveToken`), כדי שרכישה חד־פעמית לא תיצור אמצעי תשלום שמור בלי שהתבקש.
 - ההענקה: `grant_credits(ws, credits, 'topup', null, 'payment', paymentId, 'grant:pack:{paymentId}', 'רכישת חבילת קרדיטים ({credits})')` (המספר בסוגריים, בלי צורת רבים שתלויה בו; הסכום מופיע גם בעמודת השינוי ביומן).
 
@@ -386,7 +480,8 @@ export async function runBillingCron(now = clock.now()) {
 // lib/billing/proration.ts
 export type PlanChangeQuote = {
   immediate: boolean; effectiveAt: Date; chargeNowAg: Agorot; creditsGrantedNow: number; newPriceAg: Agorot;
-  newCycle: BillingCycle; downgradeImpacts: Array<{ limit: "seats" | "brand_kits" | "client_workspaces"; current: number; allowed: number }>;
+  newCycle: BillingCycle; downgradeImpacts: Array<{ limit: "seats" | "brand_kits" | "client_workspaces" | "meta_ad_accounts" | "meta_active_campaigns"
+    | "meta_auto_rules" | "social_scheduled_max" | "landing_pages"; current: number; allowed: number }>;
   blockedReason: null | "past_due" | "same_plan" | "annual_disabled";
 };
 export async function quotePlanChange(sub: SubscriptionRow, to: { planId: PlanId; cycle: BillingCycle; when?: "now" | "period_end" }, now: Date): Promise<PlanChangeQuote>;
@@ -439,6 +534,13 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 | `client_workspaces` | סביבות לקוח עוברות לקריאה בלבד (אין יצירה, יש צפייה והורדה); `generate` ו-`render` מחזירים ‏403 `PLAN_LIMIT {limit:"client_workspaces", reason:"client_workspace_read_only"}` | `canGenerate(ws)` ב-`lib/workspace/limits.ts`, נבדק ב-`generate` וב-`render` (חלק 04 §19.8) |
 | `max_formats`, `quality_tiers`, `max_duration_sec` | חלים על יצירות חדשות; פרויקטים קיימים נשמרים | `estimate` ו-`generate` (חלק 05) |
 | `white_label` | הסתרת המיתוג לא נשמרת בקישור: היא נקבעת בכל הצגה ובכל שליחה לפי `effective_white_label(ws)` (חלק 04 §9). שנמוך לתוכנית בלי White label (או כיבוי המתג) מחזיר מיד את המיתוג לקישורי שיתוף ואישור קיימים ולמיילי אישור שנשלחים מעכשיו, וחזרה לתוכנית עם White label מסתירה אותו שוב — כך המשפט של חלק 03, "חל על קישורים חדשים ועל קישורים קיימים", נכון | `resolveShareBranding(link)` ב-`lib/share/branding.ts`, שנקרא ב-`/v/[token]`, ב-`/approve/[token]` ובמיילי האישור (§12.1) |
+| `meta_ad_accounts`, `meta_active_campaigns` | חיבורים קיימים וקמפיינים שרצים לא משתנים — **אנחנו לא משהים מודעות של לקוח**. חיבור חדש או השקה חדשה נחסמים (`PLAN_LIMIT`) עד שהמספר יורד מתחת למגבלה (ניתוק או סיום קמפיין) | `lib/workspace/limits.ts`; הנתיבים M1, C2, C6 (חלק 07 §7–§8) |
+| `meta_monthly_spend_cap_ils` | התקרה החדשה חלה מרגע ההורדה על ההוצאה של החודש הנוכחי, באותם כללים של §2.7 | `meta_spend_summary` |
+| `meta_auto_rules` | הכללים העודפים (אלה שהופעלו אחרונים) נכבים, ולכל אחד נרשם `audit_logs` `meta.rule_toggle` עם `metadata.reason = 'plan_downgrade'`. הכלל `monthly_cap_stop` לא נכבה כך לעולם, כי הוא מגן על הכסף של הלקוח | `enforceMetaLimits(ws)` ב-`lib/workspace/limits.ts`, מיד אחרי `enforce_plan_limits` |
+| `meta_lead_inbox` | הלידים נשארים גלויים, עם חיוג, וואטסאפ והתראות; הסטטוסים, ההערות, האחראי והייצוא עוברים לקריאה בלבד | הנתיבים L2 ו-L4 (`PLAN_LIMIT`) |
+| `social_scheduled_max` | פוסטים שכבר תוזמנו מתפרסמים כמתוכנן (לא מבטלים בשקט את מה שהלקוח קבע); תזמון חדש נחסם עד שהתור קטן מהמגבלה | הנתיב S1 |
+| `landing_pages` | דפים שכבר מפורסמים נשארים באוויר, כי ייתכן שקמפיין פעיל מפנה אליהם. את הדפים שפורסמו ראשונים, עד המגבלה, אפשר להמשיך לערוך; השאר לקריאה בלבד, ופרסום של דף נוסף נחסם עד שהמספר יורד למגבלה. בתוכנית החינמית שורת המיתוג חוזרת מיד (`show_branding` נגזר בזמן הצגה) | `landingPageLimit(ws)` (§2.7) |
+| `health_checks_per_month` | חל מהחודש הקלנדרי הבא; דוחות קיימים נשמרים | — |
 
 ### 5.5 קופי (משלים את `PlanChangeDialog` של חלק 03 §15.3)
 
@@ -456,6 +558,7 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 - [ ] `dryRun: true` מחזיר בדיוק את מה שהביצוע יעשה (אותו `chargeNowAg`, ובתשובה אותו `chargeNowIls`, אותם קרדיטים) — בדיקה שמשווה בין השניים.
 - [ ] שנמוך מתוזמן מוחל לפני החידוש, והחידוש מחויב במחיר של התוכנית החדשה.
 - [ ] אחרי שנמוך מעסק לבסיס עם 3 חברים: הבעלים נשאר, שני האחרונים שהצטרפו הופכים לצופים, ויש שורת `audit_logs` לכל אחד.
+- [ ] שנמוך מעסק לבסיס עם 3 דפי עסק מפורסמים ו-3 כללים פעילים (אחד מהם `monthly_cap_stop`): שלושת הדפים נשארים באוויר ושניים מהם לקריאה בלבד; כלל אחד נכבה (לא `monthly_cap_stop`) עם שורת `audit_logs`; אף קמפיין לא מושהה.
 
 ---
 
@@ -530,6 +633,13 @@ export async function changePlan(i: { workspaceId: string; actorId: string; plan
 ### 7.3 שימוש לרעה ביצירה
 
 ניהול תוכן (§15.9), תקרות יומיות, מגבלת מקביליות, מגן התקציב הגלובלי (חלק 05 §7.3), ודיווחים ציבוריים מעמודי השיתוף (`abuse_reports`, חלק 03 §22.19).
+
+**בהרחבה (חלקים 07–08):**
+- **טופס הלידים הציבורי של דף העסק** (`POST /api/b/[slug]/lead`): שדה honeypot, כמו בטופס יצירת הקשר ובלי CAPTCHA של צד שלישי (ערך בשדה ← 204 בלי שמירה), ומגבלת `landing_lead` של 10 בשעה לכל IP.
+- **דף עסק ככלי הונאה** (התחזות לעסק אחר, איסוף פרטים במרמה): כל דף מציג את זהות העסק, הוא ב-`noindex` כברירת מחדל, הטקסט עובר `moderation.ad.v1` לפני פרסום, ודיווח לתמיכה נפתח כ-`abuse_reports` (`source = 'support'`). אדמין מוריד דף מהאוויר תוך 2 ימי עסקים, ומיד בחשד להתחזות או לפישינג.
+- **השקות מחשבון שנפרץ:** הכנה, פרסום, המשך והגדלת תקציב — רק לבעלים ולמנהלים, עם אישור מפורש (`confirmSpend: true`), תקרות (§2.7), מגבלה של 3 שינויי תקציב בשעה, יומן שינויים ומייל `meta_campaign_live` על כל קמפיין שעולה, כך שהשקה שהלקוח לא ביצע מתגלה מהר.
+- **בדיקת דופק ותוכנית חודשית:** ה-buckets `health_check` (פעם ביום לסביבה) ו-`plan_generate` (3 ביום לסביבה), נוסף על `health_checks_per_month`.
+- **כתיבות ל-Meta:** ה-buckets `meta_write` (30 בדקה לסביבה), `meta_read`, `meta_refresh` ו-`social_publish` (חלק 04 §18.6), נוסף על השער לכל חשבון מודעות (חלק 07 §5).
 
 ### קריטריוני קבלה
 - [ ] הרשמה שנייה עם `Name.Surname+x@gmail.com` אחרי `namesurname@gmail.com` לא מקבלת קרדיטים.
@@ -821,6 +931,8 @@ async function issueWithLookup(ctx: InvoiceContext) {
 
 "14 יום" נספרים מהמאוחר מבין התשלום (`payments.created_at`) לבין `payments.confirmation_sent_at` (`DISTANCE_DAYS`), ו"4 חודשים" — באותו אופן (`EXTENDED_DAYS = 122`). ⚖️ = החלטת מדיניות שממתינה לאישור (§25).
 
+**תקציב פרסום אינו חלק מהעסקה איתנו:** הוא משולם ל-Meta ישירות (§1.8), ולכן לא נכנס לשום חישוב החזר כאן. קרדיטים שנצרכו ביצירת דף העסק (`landing.generate`) או בעריכה אוטומטית (`guided.autocut`) נספרים ב-`creditsConsumed` כמו כל צריכה.
+
 ### 10.4 החישוב (`lib/billing/refunds.ts`)
 
 ```ts
@@ -888,6 +1000,8 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 
 מחיקת חשבון או סביבה מבטלת מנוי פעיל בסוף התקופה (`cancel_at_period_end = true`) **בלי החזר אוטומטי** (חלק 04 §21.3); בתוך 14 יום מהתשלום הראשון, דיאלוג המחיקה מציג גם: **"שילמתם ב-14 הימים האחרונים. אפשר לבקש החזר לפני המחיקה בעמוד החיוב."** + קישור ל-`/app/billing/cancel` (חלק 03 §16.4). אסימון הכרטיס נמחק (`payment_methods.deleted_at`, `provider.deleteToken` אם קיים). רשומות תשלום וחשבוניות נשמרות 7 שנים (§11.5).
 
+כשיש לסביבה חיבור ל-Meta, המחיקה גם שוללת את ההרשאות ומוחקת את כל נתוני Meta שלה (`DELETE /me/permissions`, `purge_meta_data(ws, 'all')`, חלק 04 §9.6), והדיאלוג מציג לפני האישור: **"קמפיינים שכבר פעילים במטא ימשיכו לרוץ שם ולחייב את אמצעי התשלום שבחשבון המודעות. כדאי להשהות אותם לפני המחיקה."**
+
 ### קריטריוני קבלה
 - [ ] כל שורות 10.5 עוברות ב-`tests/unit/billing/refunds.test.ts`, וההצעה ב-`GET /api/billing/cancel/quote` זהה לביצוע.
 - [ ] החזר של ₪98.17 (השורה הראשונה ב-10.5): `provider.refund` מקבל `amountAg: 9817`, בקשת Grow נשלחת עם `refundSum: "98.17"`, ו-`toApiRefundQuote(q).refundIls === 98.17` (בדיקת יחידה).
@@ -901,7 +1015,7 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 
 ## §11. רשימת התאימות המשפטית ⚖️
 
-כל שורה כאן היא דרישה שנבדקת לפני ההשקה (M7). המסמכים עצמם (תנאי שימוש, פרטיות, ביטול, נגישות, AI, דמות וקול, עוגיות) כתובים בחלק 02 §10; כאן — מה המערכת חייבת לעשות כדי שהמסמכים יהיו נכונים.
+כל שורה כאן היא דרישה שנבדקת לפני ההשקה (M7); השורות L-26 ואילך נבדקות לפני ההשקה הציבורית של הקמפיינים, הפרסום הרגיל והטרנדים (M11). המסמכים עצמם (תנאי שימוש, פרטיות, ביטול, נגישות, AI, דמות וקול, עוגיות, ומ-M11 גם הסכם עיבוד המידע `/legal/dpa`) כתובים בחלק 02 §10; כאן — מה המערכת חייבת לעשות כדי שהמסמכים יהיו נכונים.
 
 ### 11.1 טבלת הבקרה
 
@@ -932,6 +1046,18 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 | L-23 | תעשיות מפוקחות | דגלי ציות לפי נישה, הסתייגויות חובה, ניסוחים חסומים | חלק 05 §9, נספח A | בדיקות פרומפט | ✓ |
 | L-24 | קטינים | השירות מגיל 18 | תנאי השימוש | — | ✓ |
 | L-25 | תוכן משפטי | אף דף משפטי בסטטוס `draft` ואף משתנה משפטי לא מוחלף בפרודקשן | `scripts/check-content.ts --launch` (חלק 02) | שער ב-CI של פריסת פרודקשן | ✓ |
+| L-26 | Meta | Platform Terms, Developer Policies, Commercial Terms ו-Advertising Standards: מידע מינימלי, בלי מכירה, מחיקה לפי בקשה; אישור שנתי ב-Data Use Checkup | §11.13; חלק 07 §4.2 (שורות 9–11) | יומן DUC ב-`docs/meta/data-use-checkup-{yyyy}.md` עם בעלים ותאריך | ✓ (M11) |
+| L-27 | Meta | callback של מחיקת נתונים, callback של deauthorize ודף סטטוס ציבורי | `POST /api/webhooks/meta/data-deletion`, `POST /api/webhooks/meta/deauthorize`, `/meta/data-deletion?code=` (חלק 07 §3, חלק 02) | e2e עם `signed_request` חתום: `{url, confirmation_code}`, דף הסטטוס, והטוקנים נמחקו | ✓ (M11) |
+| L-28 | Meta | טוקנים מוצפנים, בלי הרשאות ל-`anon`/`authenticated`, לא בדפדפן, בלוגים, ב-Sentry, באנליטיקה או בפרומפטים; נמחקים בניתוק | §15.5, §16.1; חלק 07 §3 | pgTAP (אין grant על `meta_tokens`) + בדיקת לוגים ו-Sentry ב-M9 | ✓ (M11) |
+| L-29 | Meta / בחירות | מודעות בנושאי חברה, בחירות או פוליטיקה (SIEP) חסומות תמיד; מצב בחירות חל גם על קמפיינים ועל פוסטים | §11.11; `moderation.ad.v1` (חלק 07 §10.6) | בדיקת מודרציה + `ELECTION_POLICY_BLOCKED` בקמפיין ובפוסט | ✓ (M11) |
+| L-30 | AI | סימון AI: הודעה בדיאלוג הפרסום ובסקירת הקמפיין, מטא־דאטה `DigitalSourceType`, ותבנית `needs_ai_label` מכריחה `ai_label` | §11.9; חלק 07 §13.6 | e2e של דיאלוג הפרסום + בדיקת XMP בקובץ | ✓ (M11) |
+| L-31 | פרטיות | לידים: הלקוח בעל המידע ואנחנו המעבדים; DPA מפורסם; שמירה 24 חודשים; אף פעם לא ל-LLM, לשיווק שלנו או לצבירה בין לקוחות | §11.14; `/legal/dpa` (חלק 02) | pgTAP ל-`purge-leads` + בדיקת פרומפטים בלי PII + בדיקת עורך דין ⚖️ | ✓ (M11) |
+| L-32 | פרטיות / Meta | נתונים בין לקוחות כבויים (`cross_customer_benchmarks.enabled = false`) עד אישור עורך דין | §11.16 | בדיקת seed + `trend_template_benchmark()` מחזירה 0 שורות | ✓ (M11) |
+| L-33 | צרכנות | בלי הבטחת תוצאות; הערכות מסומנות כהערכות; השוואות מחיר רק עם מקור (`comparisons.json`) ועם "לא כולל תקציב פרסום, שמשולם למטא בנפרד" | חלק 02 (`ComparisonBlock`, `comparisons.json`); חלק 07 §1.3, §11.3 | `check-content --launch` נכשל על טענה בלי מקור או שנבדקה לפני יותר מ-180 יום | ✓ (M11) |
+| L-34 | צרכנות / תנאים | אנחנו כלי, והלקוח הוא המפרסם; התקציב נגבה על ידי Meta, ואנחנו לא מחזיקים או מחזירים אותו; הסכמת `meta_ads_terms` בחיבור הראשון | §1.8, §11.4, §11.12; חלק 02 §10.2 | e2e: שורת `consents` אחת עם `source = 'meta_connect'` | ✓ (M11) |
+| L-35 | IP | טרנדים: מעתיקים פורמט ולא ביטוי, בסיס זכויות לכל סרטון ייחוס, בלי סקרייפינג, שמירה מוגבלת, והסרה תוך 2 ימי עסקים | §11.15; חלק 08 §J.1, §J.10 | `lint:deps` ב-CI + בדיקת שומר הדמיון + תרגול R19 | ✓ (M11) |
+| L-36 | פרטיות / צרכנות | דף העסק: זהות העסק בכל דף, הודעת פרטיות לכל עסק (`/b/[slug]/privacy`), נוסח הסכמה בטופס, `noindex` כברירת מחדל | §11.14; חלק 07 §14 | e2e ל-`/b/[slug]` + בדיקת עורך דין לתבנית ⚖️ | ✓ (M11) |
+| L-37 | המותג של Meta | לא "שותף רשמי" ולא "מאושר על ידי מטא", בלי לוגו של Meta, Facebook או Instagram; השמות רק כטקסט רגיל [M0-verify מול הנחיות המותג של Meta] | חלק 02 (שער הטענות), חלק 01 | `check-content --launch` + סקירה ידנית של האתר והאפליקציה | ✓ (M11) |
 
 ### 11.2 נגישות — מה עוד חשוב לדעת
 
@@ -948,6 +1074,7 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 | רמת אבטחה לפי תקנות 2017? | מתייחסים כרמת אבטחה **בינונית** (הזהיר מבין האפשרויות הסבירות): נוהל אבטחה, בקרת גישה מבוססת תפקיד, תיעוד גישה, סקר סיכונים שנתי, בדיקת חדירות לפני השקה ⚖️ | כל שנה |
 | מידע בעל רגישות מיוחדת? | לא נאסף ביודעין. קול ופנים לשיבוט הם כנראה מידע ביומטרי ← הסכמה נפרדת, הערכת השפעה, ואולי DPO | לפני v2 ביומטרי |
 | הנחיות הרשות על AI (טיוטה, 28.4.2025) | שקיפות על השימוש ב-AI, בסיס חוקי, אי־אימון על תוכן לקוחות | כשתפורסם גרסה סופית |
+| מה משתנה עם Meta, הלידים, הצילום המודרך והטרנדים (M8–M11)? | קטגוריות חדשות ב"מסמך הגדרות המאגר": מזהי Meta (משתמש, עסק, נכסים), טוקנים מוצפנים, ביצועי מודעות, הלידים של הלקוחות (אנחנו המעבדים, §11.14), צילומים של אנשים מהערכה המודרכת, וסרטוני ייחוס פנימיים (§11.15) — כל אחת עם מטרה, בסיס ותקופת שמירה (§11.5). סקר הסיכונים מתעדכן לפני M11 ⚖️. **Meta אינה ספק משנה שלנו:** הנתונים עוברים אליה לבקשת הלקוח ולחשבונות שלו, ומדיניות הפרטיות מתארת את זה (חלק 02 §10.3) | לפני M11, ושוב בכל ערוץ פרסום חדש |
 
 תיעוד חובה ב-`docs/legal/` (נוצר ב-M7, באחריות המייסד עם עורך הדין): `database-definition.md` (מטרות, סוגי מידע, מקורות, העברות, מיקום, בעלי הרשאה), `security-procedure.md`, `risk-assessment-{yyyy}.md`, `incident-response.md` (= runbook R7), `subprocessors.md`.
 
@@ -963,8 +1090,11 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 | `analytics_cookies` | בחירה בבאנר העוגיות, או שינוי בהגדרות הפרטיות | `cookie_banner` / `settings` | גרסת `/legal/cookies` | אנונימי מותר (חלק 04 §21.4) |
 | `marketing_sms`, `marketing_whatsapp` | לא בשימוש בהשקה | — | — | שמורים ל-v2 |
 | `biometric_voice`, `biometric_likeness` | זרימת הדמות והקול (v2) | `likeness_flow` | גרסת `/legal/likeness-consent` | `evidence_path` = הקלטת ההצהרה |
+| `meta_ads_terms` | חיבור ראשון ל-Meta (callback מוצלח של M2) | `meta_connect` | גרסת `/legal/terms` (הפרק על פרסום ב-Meta הוא חלק מהתנאים) | נרשם **בשרת** בלבד, בתוך ה-callback; `ConsentBody` הציבורי לא מקבל אותו. הנוסח שמוצג לפני החיבור — חלק 07 |
 
-**מי כותב:** כל שורת `consents` נכתבת בשרת דרך `recordConsent()` (`lib/consents/record.ts`, בלקוח הסודי); אין INSERT ישיר מהדפדפן (הטבלה ברשימת "כתיבה רק מהשרת" ואין לה policy של insert, חלק 04 §12.2, §12.4). השרת קובע `ip` (`ipAddress(req)`), `user_agent`, `created_at = now()` ו-`version = LEGAL_VERSIONS[kind]`; גרסה שהלקוח שלח ושונה מהנוכחית ← 400 `INVALID_INPUT {reason:"version_mismatch"}`. `POST /api/consents` (חלק 04 §21.4) מקבל רק את הצירופים האלה של (`kind`, `source`): `marketing_email` / `marketing_sms` / `marketing_whatsapp` עם `signup` / `settings` / `newsletter`, ו-`analytics_cookies` עם `cookie_banner` / `settings`; כל צירוף אחר ← 400 `INVALID_INPUT`. שאר הסוגים נכתבים רק בשרת: `terms`/`privacy` בהרשמה — `ensureFirstLogin`; `terms` עם `source = 'checkout'` — נתיב הקופה; `ai_content_policy` — `generate`; ביטול `marketing_*` מקישור הסרה (`source = 'unsubscribe'`) — `POST /api/unsubscribe`; `biometric_*` — נתיב הדמות והקול (v2).
+**מי כותב:** כל שורת `consents` נכתבת בשרת דרך `recordConsent()` (`lib/consents/record.ts`, בלקוח הסודי); אין INSERT ישיר מהדפדפן (הטבלה ברשימת "כתיבה רק מהשרת" ואין לה policy של insert, חלק 04 §12.2, §12.4). השרת קובע `ip` (`ipAddress(req)`), `user_agent`, `created_at = now()` ו-`version = LEGAL_VERSIONS[kind]`; גרסה שהלקוח שלח ושונה מהנוכחית ← 400 `INVALID_INPUT {reason:"version_mismatch"}`. `POST /api/consents` (חלק 04 §21.4) מקבל רק את הצירופים האלה של (`kind`, `source`): `marketing_email` / `marketing_sms` / `marketing_whatsapp` עם `signup` / `settings` / `newsletter`, ו-`analytics_cookies` עם `cookie_banner` / `settings`; כל צירוף אחר ← 400 `INVALID_INPUT`. שאר הסוגים נכתבים רק בשרת: `terms`/`privacy` בהרשמה — `ensureFirstLogin`; `terms` עם `source = 'checkout'` — נתיב הקופה; `ai_content_policy` — `generate`; ביטול `marketing_*` מקישור הסרה (`source = 'unsubscribe'`) — `POST /api/unsubscribe`; `meta_ads_terms` — ה-callback של חיבור Meta (`source = 'meta_connect'`, חלק 07 §3); `biometric_*` — נתיב הדמות והקול (v2).
+
+הסכמות של מי שמשאיר ליד (בטופס הלידים של Meta או בטופס של `/b/[slug]`) הן מידע של העסק, ונשמרות עם הליד (חלק 07 §12, §14.6), לא ב-`consents`, שמתעד רק הסכמות של המשתמשים שלנו.
 
 כל שורה כוללת `ip` ו-`user_agent`. שורות לא מתעדכנות (חוץ מ-`revoked_at` ומ-`subject_closed_at`, שנחתם בסגירת החשבון); ביטול = שורה חדשה. שורות של משתמש קיים לא נמחקות לעולם. בסגירת חשבון `prepare_user_deletion` חותמת `consents.subject_closed_at`, ואחר כך `user_id` מתאפס (`on delete set null`); השורה נשמרת בלי פרופיל ובלי תוכן עד שעברו **7 שנים מסגירת החשבון** (תקופת ההתיישנות), ואז `purge_support_data()` מוחקת אותה (חלק 04 §11.4, §15). הסכמה בלי חשבון (מייל בלבד, למשל ניוזלטר) נשמרת 7 שנים **מביטול ההסכמה** (או מהשורה המאוחרת שהחליפה אותה); שורות אנונימיות של באנר העוגיות, שאי אפשר לקשר לבחירה מאוחרת — 7 שנים מהרישום.
 
@@ -985,6 +1115,17 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 | תשלומים, חשבוניות (כולל ה-PDF), יומן הקרדיטים, בקשות החזר | 7 שנים לפחות (דיני מס) | לא נמחקים; בסביבה שנמחקה השורות נשמרות בלי פרטים מזהים מעבר לנדרש (חלק 04 §9.6) |
 | `consents` | כל עוד החשבון קיים, ועוד 7 שנים אחרי סגירת החשבון (`subject_closed_at`) או ביטול ההסכמה; הסכמה בלי חשבון (מייל בלבד) — 7 שנים מביטולה; שורות אנונימיות של באנר העוגיות — 7 שנים מהרישום | `purge-support-data` (11.4; חלק 04 §11.4) |
 | `trial_claims` (גיבוב בלבד) | 5 שנים | אותה משימה |
+| טוקנים של Meta (`meta_tokens`) | עד ניתוק, deauthorize, בקשת מחיקה מ-Meta או טוקן שנפסל — ואז נמחקים מיד (לא רק מסומנים) | `POST /api/meta/disconnect`, `/api/webhooks/meta/deauthorize`, `metaDataDeletion`, `purge_meta_data(ws, 'tokens')` (חלק 07 §3, §D) |
+| חיבורים, נכסים, מראות של קמפיינים, תובנות יומיות (בלי `raw`), יומן שינויים, כללים וטפסי לידים | כל עוד הסביבה קיימת, או עד "מחיקת כל נתוני מטא" | `purge_meta_data(ws, 'all')`; מחיקת סביבה (חלק 04 §9.6) |
+| `ad_insights_daily.raw`, `social_post_metrics.raw` | 90 יום (השורות המסוכמות נשארות) | pg_cron `purge-meta-raw` (יומי) |
+| לידים (`leads`) | 24 חודשים מ-`received_at`, או עד שהלקוח מוחק. העותק ש-Meta שומרת (כ-90 יום) נשאר אצלה, ודיאלוג המחיקה אומר זאת | pg_cron `purge-leads` (חודשי) |
+| מדדים אורגניים (`social_posts`, `social_post_metrics` בלי `raw`) | כל עוד הסביבה קיימת | — |
+| דוחות "בדיקת דופק" (`ad_health_reports`) | 12 חודשים | pg_cron `purge-meta-raw` (מוחק גם דוחות ישנים) |
+| בקשות מחיקה מ-Meta (`meta_data_deletion_requests`) | 3 שנים מהשלמת הבקשה (ראיה לטיפול) | pg_cron `purge-meta-raw` |
+| דפי העסק ותוכניות 30 יום | כל עוד הסביבה קיימת; דף שהוסר מהאוויר נשמר כטיוטה | מחיקת סביבה |
+| הקבצים הציבוריים של דף העסק (`public-media/landing/{id}/`: סרטון הפתיחה, פוסטר, VTT, לוגו) | כל עוד הדף מפורסם | LP7 (הסרה) ו-LP5 (מחיקה) מוחקים את התיקייה (חלק 04 §13.1, חלק 07 §14.5) |
+| קובצי ייחוס של טרנדים (`trend-refs`: המקור, `hook.mp4` והפריימים) | 30 יום (`trend_ref_retention_days`), אלא אם בסיס הזכויות מתיר שמירה ארוכה (תוכן שלנו, רישיון, אישור בכתב או תוכן של הלקוח) — ואז עד שהאדמין מוחק (A11); הניתוח המופשט נשמר בלי הקובץ | `/api/cron/cleanup` צעד 9 (`file_deleted_at`) |
+| צילומים מהערכה המודרכת | כמו כל העלאה (`uploads`, חלק 04 §11.4) | — |
 | PostHog | 12 חודשים | הגדרת הפרויקט ב-PostHog |
 | Sentry | 90 יום | הגדרת הארגון |
 | גיבויים | מסד הנתונים: גיבוי יומי + PITR של 7 ימים (Supabase); גיבוי לוגי שבועי — 30 יום, והגיבוי האחרון של כל חודש — 12 חודשים. קבצים (`brand-assets`, `uploads`, `renders`): סנכרון שבועי ל-S3 עם גרסאות; גרסה שנמחקה או הוחלפה נשמרת 30 יום, כך שקובץ שנמחק בשירות נעלם מהגיבוי לכל המאוחר 37 ימים אחרי המחיקה. עותק של bucket החשבוניות — 7 שנים | §15.11 |
@@ -994,6 +1135,8 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 - **בשירות עצמי:** ייצוא (`POST /api/account/export` ← קובץ ZIP, בדרך כלל תוך שעה; הקובץ זמין 7 ימים) ומחיקה (`POST /api/account/delete`) — חלק 04 §21.3.
 - **במייל ל-privacy@{{DOMAIN}}:** עיון, תיקון, התנגדות לדיוור, שאלות. האדמין פותח `data_requests` ידני; **SLA: 30 יום** (יעד: 7). זיהוי: הבקשה חייבת להגיע מכתובת המייל של החשבון, או שהמבקש מאשר קישור שנשלח אליה.
 - **מחיקה אצל ספקים:** Resend — מחיקת איש קשר; PostHog — מחיקת ה-person (`DELETE https://eu.posthog.com/api/projects/{posthogProjectId}/persons/{personId}` או `posthog-node` [M0-verify]); Sentry — אין PII (§16.1); Grow — מחיקת אסימון אם קיים API [M0-verify]; Morning — רשומת הלקוח נשמרת לפי דיני מס; OpenRouter — `data_collection: "deny"`: ניתוב רק לספקים שלא אוספים ולא מאמנים על הנתונים, ככל שהספק מאפשר (זו לא התחייבות לאפס שמירה).
+- **בקשות על לידים:** ליד שייך לעסק שקיבל אותו (בעל המידע, §11.14). בקשה של אדם שהשאיר ליד מועברת לעסק תוך 2 ימי עסקים, ואנחנו מסייעים בביצוע (מחיקה או ייצוא של השורה) לפי הוראת העסק.
+- **בקשות מ-Meta:** ה-callback של מחיקת הנתונים (L-27) מוחק טוקנים ומזהים אישיים של משתמש הפייסבוק; סטטיסטיקות הקמפיינים והלידים של העסק נשארים, כי הם המידע של העסק — אלא אם הבעלים של הסביבה מוחקים אותם ⚖️ (§25).
 - כל בקשה נרשמת ב-`audit_logs` (`privacy.request`) עם סוג, תאריך ותוצאה.
 
 ### 11.7 עוגיות
@@ -1004,13 +1147,17 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 |---|---|---|
 | הכרחיות (בלי הסכמה) | `sb-*` (התחברות של Supabase) · `ws` (סביבת העבודה הנוכחית, `HttpOnly`, ‏`Lax`, שנה) · `theme` (`dark\|light\|system`, שנה, לא `HttpOnly`) · `motion` (`system\|reduce`, שנה) · `sidebar_state` (shadcn) · `consent_v1` (`{v:1, analytics, ts}`, שנה) | נשמרות גם לפני בחירה בבאנר |
 | רק אחרי הסכמה לאנליטיקה | `ph_*` (PostHog) · `exp_hero` (קבוצת הניסוי בדף הבית, חלק 02) | ביטול ההסכמה מוחק אותן |
+| הכרחיות, רק בזמן חיבור ל-Meta | `meta_oauth_state` (`HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/api/meta/connect`, 10 דקות; חתומה ב-`deriveKey("meta-oauth")`) | מגינה על זרימת החיבור מזיוף (`state`) ונמחקת בסופה |
 
 `content/legal/cookies.mdx` מפרט בדיוק את הרשימה הזו, ובדיקת Playwright משווה את שמות העוגיות שהדפדפן רואה בפועל (לפני הסכמה ואחריה) לרשימה בדף.
+
+**אחסון מקומי באפליקציה** (לא עוגיות, לא נשלח לשרת ולא דורש הסכמה; כל קריאה וכתיבה עטופות ב-try/catch): `trends.feed.niche`, `publish.calendar.view`, `campaigns.report.range`, `announcement.dismissed.meta-ai-notice`, `guided.camera.tips`. דף העוגיות (חלק 02 §10.4) מפרט גם אותם.
 
 ### 11.8 חוק הספאם (חוק התקשורת, ס׳ 30א)
 
 - **חל על:** מייל, SMS, פקס, חיוג אוטומטי — וככל הנראה גם וואטסאפ והודעות מיידיות (לא אומת במחקר; מתייחסים אליהן כאילו החוק חל ⚖️). **פיצוי בלי הוכחת נזק: עד ₪1,000 להודעה**, ותביעות ייצוגיות נפוצות.
 - **מה נחשב דיוור שיווקי אצלנו:** הניוזלטר "5 הוקים לשבוע", הודעות על פיצ׳רים, מבצעים והטבות. **מה לא:** קבלות, סרטון מוכן, כשלי חיוב, אישורי ביטול, הזמנות לצוות, אישור לקוח, `low_credits` — הודעת שירות עובדתית: יתרה, מועד חידוש וקישור לעמוד החיוב, בלי מחירים, בלי חבילה או תוכנית מוצעת ובלי כפתור רכישה ⚖️ (ואפשר לכבות אותה בהגדרות ההתראות; §25).
+- **בהרחבה:** `trends_weekly` הוא **דיוור** (הסכמת `marketing_email`, "פרסומת:" בנושא, הסרה בלחיצה, ובלי שליחה בחג או ביום שקט). `weekly_results`, `monthly_plan_ready` ו-`health_check_ready` הן הודעות שירות על הנתונים של הלקוח עצמו — בלי מחירים, בלי הצעת תוכנית או חבילה ובלי כפתור רכישה ⚖️ (§25) — ואפשר לכבות את `weekly_results` ואת `monthly_plan_ready` בהגדרות ההתראות. מיילי הלידים, הקמפיינים והחיבור הם הודעות שירות.
 - **כללים שהקוד אוכף** (`lib/email/send.ts`):
   1. תבנית מסוג `marketing` נשלחת רק לכתובת עם הסכמה `marketing_email` בתוקף (השורה האחרונה `granted = true`) ושאינה ב-`email_suppressions`.
   2. הנושא חייב להתחיל ב-**"פרסומת:"** — אחרת `sendEmail` זורק שגיאה (בדיקת יחידה).
@@ -1019,6 +1166,7 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
   5. לא משתמשים בחריג "לקוח קיים" ולא בבקשת הסכמה חד־פעמית לעסקים — רק הסכמה מפורשת.
   6. וואטסאפ ו-SMS שיווקיים — לא בהשקה (§13).
 - **הלקוחות שלנו כמפרסמים:** כשמשתמש משתף סרטון בוואטסאפ או מפרסם מודעה, הוא המפרסם. תנאי השימוש מחייבים אותו לעמוד בחוק (חלק 02 §10.2).
+- **הלקוחות שלנו מול הלידים שלהם:** הודעות שהעסק שולח לליד (בוואטסאפ, ב-SMS או במייל) הן באחריותו, וחוק הספאם חל עליהן. הכפתור "וואטסאפ" בתיבת הלידים רק פותח צ׳אט עם טקסט מוצע, ולא שולח בשם העסק. בוט וואטסאפ ללידים הוא פריט במפת הדרכים (§24, "אחרי M11") ויעבור בדיקה משפטית לפני שייבנה ⚖️.
 
 ### 11.9 תוכן שנוצר ב-AI
 
@@ -1026,6 +1174,9 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 - צ׳קליסט הייצוא (חלק 03 §8) מזכיר שמטא, טיקטוק ויוטיוב מחייבים סימון של תוכן ריאליסטי שנוצר ב-AI.
 - מטא־דאטה: `comment=ai-generated` בקובץ ה-MP4 [M0-verify]; C2PA — v2. אם נשרת משתמשים באיחוד האירופי, סעיף 50 של ה-AI Act (מ-2026-08-02) מחייב סימון — מחוץ לתחום בהשקה (קהל ישראלי), נרשם ב-`DECISIONS.md`.
 - אין תבניות של "המלצות" מפוברקות: סצנת המלצה דורשת ציטוט אמיתי והצהרת הסכמה (חלק 03 §6.12).
+- **פרסום ב-Meta (חלק 07 §13.6):** קובץ ה-MP4 נושא `comment=ai-generated` ו-XMP `Iptc4xmpExt:DigitalSourceType` — `compositeWithTrainedAlgorithmicMedia` כשהסרטון משלב מדיה של הלקוח עם AI, ו-`trainedAlgorithmicMedia` כשהוא AI מלא [M0-verify הכלי בסביבת הסיום]. בדיאלוג הפרסום ובסקירת הקמפיין מוצגת ההודעה **"הסרטון כולל תוכן שנוצר ב-AI. מטא עשויה להוסיף לו תווית 'AI info'. בסרטון שנראה מציאותי, המדיניות של מטא מבקשת לסמן את זה."** (אפשר לסגור אותה, פעם אחת לכל סביבה). לא נמצא שדה API לסימון עצמי [M0-verify].
+- **אסור:** להסיר או לזייף מטא־דאטה, ולשווק "עקיפה של תווית ה-AI". תבנית טרנד עם `needs_ai_label` מכריחה `projects.ai_label = true` לפני השקה (שער הבטיחות, חלק 07 §10.6), ובתבניות שמיועדות למודעות אין אנשים מציאותיים שנוצרו ב-AI ומדברים למצלמה.
+- **צילום מודרך:** אנשים מול המצלמה דורשים את ההצהרה `people_on_camera_consent` (חלק 08 §J.7), כמו בהעלאת צילומים של אנשים (L-19).
 
 ### 11.10 דמות, קול והסכמה (v2, מאחורי `avatar` / `voice_clone`)
 
@@ -1037,21 +1188,58 @@ export const toApiRefundQuote = (q: RefundQuote) => ({ paymentId: q.paymentId, r
 - **מצב בחירות** (`app_settings.election_mode = { enabled: true, until: "2026-10-28T23:59:00+02:00" }`): כל קטגוריה פוליטית מחזירה `ELECTION_POLICY_BLOCKED` (451) עם ההסבר של חלק 03. אחרי התאריך המצב כבה מעצמו (ההשוואה בקוד, לא פעולה ידנית); המדיניות הקבועה נשארת.
 - `/legal/ai-policy` מפנה ל**כללי הבחירות (דרכי תעמולה) (קיום חובת הגילוי לגבי תעמולת בחירות שהיא זיוף עמוק), התשפ״ו-2026**, שמחייבים הודעה בכתב או סמל על תעמולת בחירות שנוצרה ב-AI (זיוף עמוק); הסמל לא תקף לתוכן קולי. מועד התחולה של הכללים לא אומת במחקר ⚖️.
 - ימי שקט (יום השואה, יום הזיכרון): באנר, בלי הצעות עונתיות, בלי דיוור שיווקי (תזמון הניוזלטר מדלג עליהם).
+- **קמפיינים ופוסטים (חלק 07):** מודעות בנושאי חברה, בחירות או פוליטיקה (SIEP בשפה של Meta) **לא נתמכות לעולם**: `moderation.ad.v1` חוסם אותן לפני כל קריאה ל-Meta (`AD_NOT_ELIGIBLE {reason: "political"}`), ובמצב בחירות מוחזר גם 451 `ELECTION_POLICY_BLOCKED` בקמפיינים ובפוסטים רגילים. ישראל מופיעה בכללי השקיפות של Meta לבחירות, ומודעה כזו דורשת אישור של המפרסם עצמו מול Meta ושורת "Paid for by"; ההסבר בעברית אומר את זה. ביום שקט קמפיינים פעילים מקבלים את הבאנר **"היום יום שקט. כדאי לשקול להשהות את הקמפיין"** — בלי השהיה אוטומטית — ותזמון פוסט חדש ליום שקט חסום (חלק 07 §9.8, §13.7).
 
 ### 11.12 קבלת תנאים וגרסאות
 
 - לכל דף משפטי `version` (תאריך, למשל `2026-10-13`) ב-frontmatter; גרסאות קודמות נשמרות ב-`content/legal/archive/` ומקושרות מתחתית הדף.
 - **שינוי מהותי** (מסומן `material: true` בגרסה החדשה): מייל `terms_update` 14 יום לפני התחולה, ובכניסה הראשונה אחרי התחולה — דיאלוג קבלה מחדש: **"עדכנו את {תנאי השימוש}. השינויים העיקריים: {summary}. השימוש בשירות מהיום כפוף לגרסה החדשה."** + **"הבנתי, ממשיכים"** ← שורת `consents` חדשה. עד לחיצה — אפשר לצפות ולהוריד, אבל לא ליצור.
 - **זכויות בתוצרים:** הלקוח הבעלים של התוצרים במידה שהדין מאפשר; לנו רישיון לתבניות ולהוקים; אין התחייבות לזכויות יוצרים בתוצר AI; מוזיקה — רק מספרייה שנוצרה בזכויות מסחריות או ברישיון (`music_tracks.license_note`); גופנים בסרטונים — רק OFL או רישיון הטמעה מתועד. הודעות על הפרת זכויות מטופלות דרך `abuse_reports` (`reason='copyright'`; מהטופס בעמוד השיתוף `source='share_page'`, ממייל לתמיכה `source='support'`) תוך 2 ימי עסקים.
+- **תוספות לתנאים בהרחבה (חלק 02 §10.2, ⚖️):** אנחנו כלי; הלקוח הוא המפרסם ובעל חשבון המודעות, והוא מקבל את התנאים של Meta; התקציב נגבה על ידי Meta, ואנחנו לא מחזיקים או מחזירים אותו (§1.8); אין הבטחת תוצאות; הלקוח אחראי לאמת בתוכן, לזכויות, להסכמות, לדפי הנחיתה ולהודעות שהוא שולח ללידים (חוק הספאם חל עליהן); אוטומציות רצות רק כפי שהלקוח הפעיל; מותר לנו לחסום תוכן לפי המדיניות שלנו ושל Meta; אפשר לנתק בכל רגע; תבניות הטרנדים הן השראה לפורמט, שאנחנו מרנדרים; העלאות חייבות להיות של הלקוח. ההסכמה נרשמת כ-`meta_ads_terms` (§11.4), ושינוי מהותי בפרק הזה עובר את זרימת `material: true` שלמעלה.
+
+### 11.13 פלטפורמת Meta
+
+- **המסגרת:** Meta Platform Terms, Developer Policies, Commercial Terms ו-Advertising Standards (L-26). במוצר זה אומר: מידע מינימלי (רק ההרשאות של חלק 07 §4.1), בלי מכירה או העברה של נתוני Meta, מחיקה לפי בקשה (L-27), טוקנים מוגנים (L-28), ובלי שימוש בנתוני Meta לשום מטרה מלבד השירות ללקוח שחיבר אותם (§11.16).
+- **המסלול של הבעלים** (לא קוד; הרשימה המלאה וזמני ההמתנה — חלק 07 §4.2; מתחיל ב-M0, משימה 7 ב-§24): business portfolio עם 2 מנהלים ו-2FA; **Business Verification**; אפליקציה מסוג Business עם "Require App Secret"; תצורה אחת של Facebook Login for Business; כתובות הפרטיות, התנאים והוראות המחיקה ב-App Dashboard; נכסי בדיקה משלנו; מנוי ל-webhooks; **Full Access tier** של ה-Marketing API (לפחות 500 קריאות ב-15 יום, עם פחות מ-15% שגיאות); **App Review** עם סרטון הדגמה אחד לכל use case (כתוביות באנגלית מעל הממשק העברי); **Tech Provider access verification**; ו-**Data Use Checkup** ו-Data Protection Assessment ביומן התפעול, פעם בשנה, עם בעלים בשם. ההשקה הציבורית (M11) לא קורית לפני Business Verification, App Review ו-Tech Provider.
+- **אפליקציות נפרדות:** התראות הוואטסאפ שלנו למשתמשים (§13) יוצאות מאפליקציה ומ-WABA נפרדים (`WHATSAPP_*`), כדי שהיקף ה-App Review של אפליקציית השיווק יישאר נקי.
+- **המותג:** אנחנו לא Meta Business Partner. אין "שותף רשמי", אין "מאושר על ידי מטא" ואין לוגו של Meta, Facebook או Instagram; השמות מופיעים כטקסט רגיל בלבד (L-37).
+- **מודעות:** הלקוח הוא המפרסם, ו-Meta מסמנת את המודעה כ"ממומן". אנחנו לא מבטיחים אישור ולא מבטיחים זמן בדיקה: "מסרטון לקמפיין בכמה דקות" מופיע תמיד עם "אחרי בדיקה של מטא" (חלק 07 §1.3) [M0-verify זמן הבדיקה הרגיל], ומודעה שנדחתה לא נשלחת לבדיקה מחדש בלי פעולה של הלקוח. פורמטים שמחקים ממשק מערכת (`fake_ui`) מותרים רק בפרסום רגיל (חלק 07 §10.6).
+- **ניתוק ומחיקה:** "ניתוק" שולל את ההרשאות (`DELETE /me/permissions` [M0-verify ל-BISU]), מוחק את כל הטוקנים ומציע "מחיקת כל נתוני מטא מהחשבון". קמפיינים שרצים ממשיכים לרוץ אצל Meta, והדיאלוג אומר את זה (חלק 07 §3).
+
+### 11.14 לידים ודף העסק: העסק בעל המידע, ואנחנו המעבדים
+
+- **התפקידים:** הלקוח הוא **בעל המאגר** (controller) של הלידים שלו — מטופס הלידים של Meta ומהטופס של דף העסק — ואנחנו **המעבדים** (processor) מטעמו. התנאים מופיעים ב-`/legal/dpa` (חלק 02), שעובר אישור עורך דין ⚖️.
+- **מה מותר לנו:** לשמור, להציג, לייצא ולהתריע, לחברי הסביבה בלבד. **אסור:** להשתמש בלידים לשיווק שלנו, לצבור אותם בין לקוחות, לשלוח אותם ל-LLM (לפרומפטים נכנסות רק ספירות, חלק 07 §11.3), או לרשום אותם בלוגים, ב-Sentry או באנליטיקה (`field_data` מנוקה, §16.1).
+- **שמירה ומחיקה:** 24 חודשים מ-`received_at` (§11.5), או מוקדם יותר כשהלקוח מוחק. מחיקה אצלנו לא מוחקת את העותק ש-Meta שומרת (כ-90 יום), ודיאלוג המחיקה אומר זאת. כל ייצוא נרשם (`leads.export`), וכל מחיקה (`leads.delete`).
+- **וואטסאפ:** ההתראה `lead_new_he` כוללת את הטלפון של הליד רק כש-`app_settings.lead_notify.include_phone_in_whatsapp` פעיל ⚖️ (§25); אחרת היא מפנה לאפליקציה (§13.3).
+- **דף העסק (`/b/[slug]`, חלק 07 §14):** כל דף מציג את זהות העסק (שם, מספר עוסק או ח״פ כשיש, כתובת וטלפון) ומקשר להודעת פרטיות שנוצרת לכל עסק (`/b/[slug]/privacy`; התבנית בחלק 07, ⚖️). טופס הליד מציג את נוסח ההסכמה של העסק, והליד נשמר עם `source = 'landing_page'`. הדף ב-`noindex` כברירת מחדל, ושום טקסט בו לא ממציא ביקורות, מחירים או הבטחות (כללי האמת של נספח E). בגלל הדפים האלה, ההודעה הפרטית לכל עסק עלתה מעדיפות P2 ל-v1 (חלק 07 §14–§16).
+
+### 11.15 תבניות טרנדים: מעתיקים פורמט, לא ביטוי
+
+- **סרטון ייחוס נכנס רק עם בסיס זכויות** (`rights_basis`: תוכן שלנו, רישיון, אישור בכתב של שותף, תוכן של הלקוח; קישור ציבורי ליוטיוב שמנותח בלי הורדה; או הערות בלבד) ועם הצהרה של האדמין (חלק 08 §J.1). הקלטת מסך של פוסט של אחרים אינה בסיס זכויות, עד אישור עורך דין ⚖️.
+- **בלי סקרייפינג:** אין yt-dlp, ytdl, Apify או מורידים אוטומטיים אחרים; `lint:deps` מכשיל את ה-CI. כלים כמו Creative Center, Ad Library ו-Google Trends הם כלי דפדפן של האדמין בלבד.
+- **פורמט ולא ביטוי** (חוק זכות יוצרים, ס׳ 5 ⚖️): ניתוח מופשט ואז יצירה מחדש; `do_not_copy` ושומר דמיון (חפיפה של 6 מילים ברצף ומעלה נדחית) לפני פרסום; אף פעם לא הפנים, הקול, השם או הכינוי של היוצר המקורי, וגם לא דמות דומה (חוק הגנת הפרטיות, ס׳ 2(6)); בלי מוזיקה מסחרית מוגנת בקבצים שלנו (בריף מוזיקה + Lyria או ספרייה ברישיון; התנאים של Lyria לשימוש במודעות [M0-verify]).
+- **אסור תמיד:** המלצות או ראיונות רחוב שנוצרו ב-AI, קטינים שנוצרו ב-AI, טרנדים של מלחמה, חטופים, צה״ל, זיכרון, טרור או פוליטיקה, לוגו של צד שלישי ופעלולים מסוכנים. דחיפות מוצגת רק כשהיא נכונה; ממשק מטעה — רק בפרסום רגיל; סכנה מציאותית שנוצרה ב-AI מקבלת תווית AI (חלק 08 §J.10).
+- **שמירה והסרה:** קובצי הייחוס פרטיים, לא מוצגים ללקוחות ולא משמשים כהדגמה; השמירה לפי §11.5; פנייה על הפרת זכויות (`abuse_reports`, `reason = 'copyright'`) מטופלת תוך 2 ימי עסקים (runbook R19).
+
+### 11.16 נתונים בין לקוחות — כבוי
+
+- `app_settings.cross_customer_benchmarks = {"enabled": false, "k_min": 5}` בכל הסביבות, עד אישור עורך דין על התנאים של Meta ועל הפרטיות ⚖️. כל עוד הוא כבוי: אין "ממוצע בתחום שלכם", `trend_template_stats_daily` לא מתמלאת (`refresh_trend_template_stats` לא עושה כלום), ו-`trend_template_benchmark()` מחזירה 0 שורות.
+- אם יאושר: רק נתונים מצרפיים, לפחות 5 עסקים (`k_min`) בכל תא, גילוי במדיניות הפרטיות, ואפשרות יציאה לכל סביבה (`workspaces.benchmarks_opt_out`, בעלים או מנהלים). לידים, טקסטים של מודעות ונתונים מזהים לא נכנסים לצבירה לעולם.
+- "בדיקת דופק" (חלק 07 §15) משווה את החשבון רק לעצמו (למשל CTR מול החציון של אותו חשבון), ולא ללקוחות אחרים.
 
 ### קריטריוני קבלה
-- [ ] כל 25 שורות 11.1 מסומנות בקובץ `docs/legal/launch-checklist.md` עם קישור לראיה (בדיקה, צילום, מסמך חתום).
+- [ ] כל שורות 11.1 (25 בהשקה, 37 אחרי M11) מסומנות בקובץ `docs/legal/launch-checklist.md` עם קישור לראיה (בדיקה, צילום, מסמך חתום).
 - [ ] `sendEmail` עם תבנית `marketing` ונושא שלא מתחיל ב"פרסומת:" נכשל; לכתובת בלי הסכמה — לא נשלח ונרשם `skipped_no_consent`.
 - [ ] INSERT ישיר של `authenticated` ל-`consents` נדחה (pgTAP); `POST /api/consents` עם `kind: "terms"`, עם `source: "checkout"` או עם `source: "unsubscribe"` מחזיר 400.
 - [ ] הסרה בלחיצה אחת (`POST /api/unsubscribe?token=`, בלי עוגיות ובלי `Origin`) מחזירה 200 וכותבת שורת `email_suppressions` אחת ו-3 שורות `consents` עם `granted=false` ו-`source='unsubscribe'` (pgTAP: ה-insert הזה מצליח כ-`service_role`; בדיקת API: חלק 04 §25.5); כשרישום ההסכמה נכשל — עדיין 200, וההסרה נשמרה.
 - [ ] משימות הניקוי של pg_cron (`purge-ai-generation-meta`, ‏`purge-ai-generations`, ‏`purge-support-data`, ‏`purge-audit-logs`; חלק 04 §15) קיימות ונבדקות עם נתונים מתוארכים: שורת `audit_logs` מסוג `invoice.attach` בת 4 שנים שורדת, ושורת `consents` של משתמש קיים בת 8 שנים לא נמחקת.
 - [ ] אחרי 2026-10-28 23:59 שעון ישראל `ELECTION_POLICY_BLOCKED` לא מוחזר, אבל בריף של קמפיין עדיין נחסם ב-`MODERATION_BLOCKED`.
 - [ ] שינוי `material: true` בגרסת התנאים מציג את דיאלוג הקבלה מחדש פעם אחת ונרשם ב-`consents`.
+- [ ] `POST /api/consents` עם `kind: "meta_ads_terms"` מחזיר 400, וה-callback של החיבור הראשון כותב שורה אחת עם `source = 'meta_connect'`.
+- [ ] `signed_request` של מחיקת נתונים שנחתם בסוד השני ברשימת `META_APP_SECRET` מתקבל; חתימה שגויה ← 401 ושורת `webhook_events` בלי payload.
+- [ ] pg_cron `purge-leads` מוחק ליד בן 24 חודשים ויום ולא נוגע בליד בן 23 חודשים; `purge-meta-raw` מאפס `raw` בן 91 יום ומוחק דוח בדיקת דופק בן 13 חודשים.
+- [ ] עם `cross_customer_benchmarks.enabled = false`, `trend_template_benchmark()` מחזירה 0 שורות גם כשיש נתונים בטבלה.
 
 ---
 
@@ -1071,6 +1259,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 ```
 
 - **רישום התבניות** (`lib/email/templates/index.ts`): לכל `key` — רכיב React Email, `category` (`auth` · `transactional` · `notification` · `marketing` · `internal`), `notificationKind` (אם יש — מכבד את `profiles.notification_prefs.kinds.{kind}.email`; מפתח חסר = פעיל; `payment_failed` ו-`invite` נשלחים תמיד, חלק 04 §4), `subject(data)`, `preheader(data)`, `from`.
+- **מפתח העדפה בלי סוג התראה:** ל-`monthly_plan_ready` אין `notification_kind` (אין לו התראה באפליקציה), ולכן הרישום שלו מקבל `prefKey: "monthly_plan"`, ו-`sendEmail` בודק את `profiles.notification_prefs.kinds.monthly_plan.email` באותו כלל (מפתח חסר = פעיל). זה המפתח היחיד ב-`kinds` שאינו ערך של `notification_kind`.
 - **שולחים:** מערכת — `EMAIL_FROM` (`{{BRAND_NAME}} <hello@{{DOMAIN}}>`), עם `Reply-To` = `EMAIL_REPLY_TO` (חיוב: `billing@{{DOMAIN}}`); אישור לקוח — `"{agencyName} דרך {{BRAND_NAME}}" <approvals@{{DOMAIN}}>` (כש-`resolveShareBranding(link).whiteLabel`: `"{agencyName}"`), עם `Reply-To` = מי שיצר את קישור האישור. `{agencyName}` = `resolveShareBranding(link).senderName`: שם סביבת החיוב (הסוכנות) כשהקישור שייך לסביבת לקוח, ואחרת שם העסק של הסביבה; השם והמיתוג נקבעים בזמן השליחה, לא בזמן יצירת הקישור (חלק 04 §20.5); דיוור — `{{BRAND_NAME}} <news@mail.{{DOMAIN}}>` מתת־דומיין נפרד, כדי שמוניטין הדיוור לא יפגע במיילי המערכת. כל הכתובות מ-`BRAND.emails.*` (`lib/constants.ts`).
 - **DNS:** SPF ו-DKIM (Resend) לשני הדומיינים; DMARC `p=none` בשבועיים הראשונים עם דוחות, ואז `p=quarantine`.
 - **יומן שליחות** `email_messages` (חלק 04 §8): `id`, ‏`template_key` (= `EmailKey`), ‏`to_email citext`, ‏`user_id NULL`, ‏`workspace_id NULL`, ‏`idempotency_key text unique`, ‏`resend_id NULL`, ‏`status` — `queued|sent|delivered|bounced|complained|failed|skipped_suppressed|skipped_no_consent|skipped_pref|skipped_allowlist`, ‏`error NULL`, ‏`created_at`, ‏`updated_at`. ‏`skipped_duplicate` הוא רק ערך החזרה של `sendEmail`: המפתח הייחודי מונע שורה שנייה. היומן משמש כהוכחה (למשל שאישור הביטול נשלח), למניעת כפילויות ולתצוגה באדמין (קריאה למנהלי פלטפורמה בלבד, כתיבה רק מהשרת). ה-webhook של Resend (חלק 04 §22.6) מעדכן `status`. נשמר 24 חודשים (§11.5).
@@ -1133,8 +1322,18 @@ export async function sendEmail<K extends EmailKey>(i: {
 | `admin_alert` ★ | internal | התראה תפעולית | `ADMIN_EMAILS` | — | `alert:{kind}:{bucket}` | — |
 | `support_contact` ★ | internal | טופס יצירת הקשר, וגם דיווח על תוכן מעמוד שיתוף (נושא "דיווח על תוכן", נשלח ל-`BRAND.emails.abuse`) | תיבת התמיכה | — | `contact:{messageId}` · `abuse:{abuseReportId}` | — |
 | `security_notice` ★ | transactional | אירוע אבטחה, שליחה ידנית אחרי אישור משפטי (R7) | המשתמשים שנפגעו | לא | `security_notice:{incidentId}:{userId}` | — |
+| `meta_campaign_live` ★ | notification | המודעה הראשונה בקמפיין עברה ל-`ACTIVE` | מי שפרסם, ובעלים ומנהלים | כן (`meta_campaign_live`) | `meta_campaign_live:{campaignId}` | — |
+| `meta_ad_rejected` ★ | notification | מודעה נדחתה (`DISAPPROVED`) | מי שפרסם, ובעלים ומנהלים | כן (`meta_ad_rejected`) | `meta_ad_rejected:{variantId}:{reviewHash}` | — |
+| `meta_connection_lost` ★ | transactional | החיבור עבר ל-`needs_reconnect` (בדיקה יומית או שגיאה בקריאה) | בעלים ומנהלים | לא (הניהול והדוחות נעצרים, והקמפיינים ממשיכים להוציא כסף) | `meta_connection_lost:{connectionId}:{day}` | — |
+| `lead_new` ★ | notification | ליד חדש. וריאנטים: ליד יחיד; תקציר כשמגיעים יותר מ-5 ב-10 דקות; תזכורת אחרי 15 דקות כשהליד עדיין `new` | בעלים ומנהלים, והאחראי כשנקבע | כן (`lead_received`) | `lead_new:{leadId}` · תקציר `lead_digest:{ws}:{10min}` · תזכורת `lead_new:{leadId}:reminder` | — |
+| `weekly_results` ★ | notification | ראשון 06:00 UTC, רק לסביבה שהייתה לה הוצאה או פוסטים שפורסמו באותו שבוע | בעלים ומנהלים | כן (`weekly_results`) | `weekly_results:{ws}:{isoWeek}` | — |
+| `spend_cap_warning` ★ | notification | 80% ו-100% מתקרת ההוצאה המנוהלת (§2.7) | בעלים ומנהלים של סביבת החיוב | כן (`spend_cap_warning`) | `spend_cap_warning:{bws}:{month}:{pct}` · וריאנט התקרה האישית של קמפיין `spend_cap_warning:{campaignId}:{month}:user` (חלק 07 §20.1) | — |
+| `social_post_failed` ★ | notification | פרסום רגיל נכשל אחרי כל הניסיונות, או פג (`expired`) | מי שתזמן | כן (`social_post_failed`) | `social_post_failed:{postId}:{attempt}` | — |
+| `trends_weekly` ★ | **marketing** | ראשון אחרי 08:00 שעון ישראל, פעם בשבוע ISO (cron `trends-lifecycle`); בחג או ביום שקט — נדחה ליום העסקים הבא באותו שבוע | בעלי הסכמת `marketing_email` בתוקף | הסרה בלחיצה | `trends_weekly:{isoWeek}:{emailHash}` | — |
+| `health_check_ready` ★ | transactional | דוח "בדיקת דופק" הושלם | מי שהפעיל את הבדיקה | לא | `health_check_ready:{reportId}` | — |
+| `monthly_plan_ready` ★ | notification (הודעת שירות; בחלק 07 §16: "transactional עם אפשרות יציאה") | נבנתה "תוכנית 30 יום" — ב-1 לחודש, ואחרי האונבורדינג | בעלים ומנהלים | כן (`prefKey: "monthly_plan"`, §12.1) | `monthly_plan_ready:{planId}` | — |
 
-**26 מפתחות; `EmailKey` (`lib/email/templates/index.ts`) הוא האיחוד שלהם**, ו-`email_messages.template_key` מקבל רק אותם. `magic_link` הוא תבנית Supabase (חלק 04 §1.3) ולא נשלח דרך `sendEmail`. `admin_alert` נכתב באנגלית (פנימי, כמו הלוגים); כל השאר — בעברית, במרחב `emails.*` של `messages/he.json`. תבניות WhatsApp (v2) — §13.3.
+**36 מפתחות** (26 של ההשקה ו-10 של ההרחבה, בעשר השורות האחרונות)**; `EmailKey` (`lib/email/templates/index.ts`) הוא האיחוד שלהם**, ו-`email_messages.template_key` מקבל רק אותם. `magic_link` הוא תבנית Supabase (חלק 04 §1.3) ולא נשלח דרך `sendEmail`. `admin_alert` נכתב באנגלית (פנימי, כמו הלוגים); כל השאר — בעברית, במרחב `emails.*` של `messages/he.json`. תבניות WhatsApp (v2) — §13.3.
 
 ### 12.5 הנוסח המלא
 
@@ -1269,6 +1468,7 @@ export async function sendEmail<K extends EmailKey>(i: {
   - **בלוק החזר (14 יום):** ביקשתם החזר על התשלום מ-{paidAt}. כך הוא מחושב: שולם ₪{paid} · {creditsUsed, plural, =0 {שווי הקרדיטים שנוצלו} one {שווי הקרדיט שנוצל} other {שווי # הקרדיטים שנוצלו}} ₪{consumed} · דמי ביטול ₪{fee} · **סכום ההחזר ₪{refund}**. כיוון שביקשתם החזר, המנוי נסגר כבר עכשיו, והקרדיטים שנותרו מהתשלום הזה הוסרו. ההחזר יבוצע לכרטיס שבו שילמתם, בדרך כלל תוך כמה ימי עסקים ולא יאוחר מ-14 יום, ותישלח חשבונית זיכוי.
   - **בלוק החזר יחסי (שנתי):** ביקשתם החזר יחסי על המנוי השנתי. {monthsStarted, plural, one {חודש אחד כבר התחיל} two {חודשיים כבר התחילו} other {# חודשים כבר התחילו}} (₪{keep}), ולכן ההחזר הוא ₪{refund}. הגישה לתוכנית {planName} תסתיים ב-{accessEnds}, ואחרי התאריך הזה לא יתווספו קרדיטים חודשיים.
   - **בלוק זכאות מורחבת:** קיבלנו גם את הבקשה לתקופת ביטול מורחבת. נציג יחזור אליכם תוך 2 ימי עסקים, עד {slaDate}, כדי להשלים את ההחזר.
+  - **בלוק קמפיינים** (רק כשיש לסביבה קמפיינים פעילים במטא): הקמפיינים שפעילים במטא ממשיכים לרוץ ולחייב את אמצעי התשלום שבחשבון המודעות גם אחרי סוף המנוי, כי התקציב משולם ישירות למטא. אפשר להשהות אותם בעמוד הקמפיינים, או במנהל המודעות של מטא. **כפתור משני:** לקמפיינים ← `/app/campaigns`
   - **בלוק חידוש** (בלי החזר ולפני סוף התקופה): התחרטתם? עד {periodEnd} אפשר לחדש את המנוי בעמוד החיוב, באותו מחיר. **כפתור:** חידוש המנוי ← `/app/billing`
 - **הערה:** כדאי לשמור את המייל הזה כאישור על הביטול.
 - `channelHe`: `app` "בעמוד החיוב באפליקציה" · `email` "במייל" · `phone` "בטלפון". `reference`: `C-{yyMMdd}-{4 תווים ראשונים של מזהה המנוי באותיות גדולות}`.
@@ -1408,6 +1608,7 @@ export async function sendEmail<K extends EmailKey>(i: {
   - מה נמחק: הפרופיל, סביבות העבודה שבבעלותכם, הפרויקטים, הסרטונים והקבצים. עותקים בגיבויים המוצפנים נמחקים כשתקופת השמירה של הגיבוי מסתיימת, לכל המאוחר אחרי 12 חודשים, ולא משמשים לשחזור החשבון.
   - מה נשמר: רשומות תשלום וחשבוניות, כפי שדיני המס מחייבים (7 שנים), ורישומי ההסכמות — בלי פרופיל ובלי תוכן.
   - מנויים פעילים בוטלו, ולא יהיו חיובים נוספים.
+  - (כשהיה חיבור ל-Meta) החיבור לפייסבוק ולאינסטגרם נותק, והנתונים של מטא נמחקו אצלנו. קמפיינים שכבר פעילים במטא ממשיכים לרוץ שם; אפשר לעצור אותם במנהל המודעות של מטא.
   - לא ביקשתם למחוק את החשבון? כתבו לנו מיד ל-privacy@{{DOMAIN}}.
   - תודה שהייתם איתנו.
 
@@ -1451,6 +1652,11 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **Subject:** `[{appEnv}] {severity} {kind}: {summary}` (למשל `[production] P1 renewals_failed: 6/20 renewals failed`).
 - **גוף:** מה נמדד, הסף, החלון, הערכים האחרונים, קישור ללוח `/admin` הרלוונטי ולקובץ ה-runbook (`docs/runbooks/R{n}-{slug}.md`). בלי מידע אישי ובלי סודות; מזהים בלבד.
 
+#### מיילי ההרחבה (הנוסח המלא בחלקים 07 ו-08)
+- `meta_campaign_live`, `meta_ad_rejected`, `meta_connection_lost`, `lead_new` (שלושת הווריאנטים), `weekly_results`, `spend_cap_warning`, `social_post_failed`, `health_check_ready` ו-`monthly_plan_ready` — חלק 07 (פרק המיילים); `trends_weekly` — חלק 08.
+- כל הכללים של §12.1–§12.3 ו-§12.6 חלים עליהם: RTL, `<Ltr>` לטלפונים, למספרים ולשמות קמפיינים בלטינית, ₪ רק מ-`formatAgorot` או `formatIls`, פנייה לפי `ui_gender_form`, ותחתית מערכת עם "ניהול ההתראות".
+- `lead_new` הוא המייל היחיד שמכיל מידע אישי של צד שלישי (שם פרטי וטלפון של הליד, ושם הקמפיין או "דף העסק" כמקור), ולכן הוא נשלח רק לבעלים, למנהלים ולאחראי על הליד, ובלי שאר התשובות של הטופס (הן באפליקציה).
+- `weekly_results`, `monthly_plan_ready` ו-`health_check_ready` הן הודעות שירות: בלי מחירים, בלי הצעת תוכנית או חבילה ובלי כפתור רכישה (§11.8). `trends_weekly` הוא דיוור: "פרסומת:" בתחילת הנושא ותחתית הדיוור המלאה (§12.3).
 ### 12.6 טבלת המרת פנייה (ICU `select` של `ui_gender_form`)
 
 | רבים (`other`) | נקבה (`female`) | זכר (`male`) |
@@ -1476,13 +1682,16 @@ export async function sendEmail<K extends EmailKey>(i: {
 כל השאר בנוסח כתוב בצורות ניטרליות ("אפשר", "כדאי", "לבדוק") ולא משתנה.
 
 ### קריטריוני קבלה
-- [ ] כל 26 התבניות קיימות (25 ב-React Email, ו-`magic_link` כתבנית Supabase), עם fixture לכל וריאנט, ו-`pnpm emails:dev` מציג את ה-25.
+- [ ] כל 36 התבניות קיימות (35 ב-React Email, ו-`magic_link` כתבנית Supabase; ה-10 של ההרחבה מ-M8–M10), עם fixture לכל וריאנט, ו-`pnpm emails:dev` מציג את ה-35.
 - [ ] snapshot של ה-HTML מכיל `dir="rtl"` על `html` ועל כל `table`, ואין בו `left`/`right` ב-CSS מלבד `text-align:right`.
 - [ ] `payment_receipt` כולל את כל שדות "פרטי העסקה" ואת תיבת הביטול; ב-sandbox ה-PDF מצורף.
 - [ ] שליחה כפולה עם אותו `idempotencyKey` מחזירה `skipped_duplicate` ולא יוצרת שורה שנייה ב-`email_messages`.
 - [ ] אין ב-`messages/he.json` (`emails.*`, ‏`billing.*`) סימן ₪ צמוד למשתנה או למספר (בדיקת `lint:copy`), וה-snapshot של `payment_receipt` מכיל "₪119" ולא "₪₪".
 - [ ] כתובת עם `complaint` מקבלת `subscription_canceled` אבל לא `low_credits` ולא דיוור.
 - [ ] משתמש עם `ui_gender_form = 'female'` מקבל "ביקשת" במקום "ביקשתם"; נמען חיצוני תמיד מקבל רבים.
+- [ ] `trends_weekly` לא נשלח בלי הסכמת `marketing_email` (`skipped_no_consent`), והנושא שלו מתחיל ב"פרסומת:"; `monthly_plan_ready` לא נשלח כש-`notification_prefs.kinds.monthly_plan.email = false`.
+- [ ] 6 לידים ב-10 דקות יוצרים מייל `lead_new` לכל אחד מחמשת הראשונים ותקציר אחד, ותזכורת אחת אחרי 15 דקות רק לליד שעדיין `new`.
+- [ ] `subscription_canceled` של סביבה עם קמפיין פעיל כולל את בלוק הקמפיינים, ובלי קמפיינים — לא.
 - [ ] בדיקה ידנית ב-Gmail, Apple Mail ו-Outlook מתועדת בצילומים, בלי שבירת כיוון במספרים, במיילים וביחסי מסך.
 
 ---
@@ -1494,11 +1703,13 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **בהשקה: אין הודעות וואטסאפ או SMS יזומות**, חוץ מקוד הכניסה בטלפון כשהדגל `phone_otp` פעיל (v2). התראות וואטסאפ — מאחורי הדגל `whatsapp_notify` (כבוי), להפעלה אחרי ההשקה.
 - **רק הודעות שירות**, רק אחרי הסכמה מפורשת ואימות המספר, ורק בתבניות מאושרות מראש (WhatsApp Business Platform, קטגוריית Utility). **שיווק בוואטסאפ או ב-SMS — לא**, וגם כשיוחלט על כך בעתיד: הסכמה נפרדת (`marketing_whatsapp` / `marketing_sms`), "פרסומת" בתחילת ההודעה, ודרך הסרה בכל הודעה (פיצוי של עד ₪1,000 להודעה).
 - **ספק:** WhatsApp Cloud API של Meta ישירות, או ספק BSP ישראלי — החלטה ב-`DECISIONS.md` בזמן ההפעלה. משתני סביבה ★: `WHATSAPP_PROVIDER` (`meta_cloud` | `mock`), `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET` (אימות `X-Hub-Signature-256` ב-`POST /api/webhooks/whatsapp`, ואתגר האימות של Meta ב-`GET` של אותו נתיב — חלק 04 §22.6; דגל כבוי ← 404).
+- **בהרחבה (חלקים 07–08):** שש תבניות חדשות לקמפיינים, ללידים, לחיבור ולתקרה (13.3), באותם כללים: הדגל `whatsapp_notify`, אימות, הסכמה וקטגוריית Utility. הן יוצאות מאפליקציית ה-WhatsApp הנפרדת (`WHATSAPP_*`), לא מאפליקציית השיווק של Meta (חלק 07 §2.1; כאן §11.13).
 
 ### 13.2 הסכמה ואימות (בהגדרות ההתראות, כשהדגל פעיל)
 
-- עמודת "וואטסאפ" בטבלת ההתראות (חלק 03 §16.2), ומעליה: שדה **"מספר וואטסאפ"** (`LtrInput kind="phone"`) ותיבה **לא מסומנת**: **"אני רוצה לקבל לוואטסאפ במספר {phone} הודעות שירות על החשבון: סרטון מוכן, יצירה שנכשלה, תשובה של לקוח וחיוב שלא עבר. בלי פרסומות. אפשר להפסיק בכל רגע כאן, או בשליחת המילה "הסרה"."**
+- עמודת "וואטסאפ" בטבלת ההתראות (חלק 03 §16.2), ומעליה: שדה **"מספר וואטסאפ"** (`LtrInput kind="phone"`) ותיבה **לא מסומנת**: **"אני רוצה לקבל לוואטסאפ במספר {phone} הודעות שירות על החשבון: סרטון מוכן, יצירה שנכשלה, תשובה של לקוח, חיוב שלא עבר, ואם החשבון מחובר לפייסבוק ולאינסטגרם — גם לידים חדשים, עדכונים על קמפיינים וסיכום שבועי. בלי פרסומות. אפשר להפסיק בכל רגע כאן, או בשליחת המילה "הסרה"."**
 - אימות: `POST /api/account/whatsapp/start { phone }` שולח קוד בן 6 ספרות בתבנית `verify_code_he` (ה-hash שלו ב-Upstash `wa:verify:{userId}`, ‏10 דקות; עד 5 בשעה, bucket ‏`whatsapp_verify`), ושדה **"קוד האימות"** + **"אימות"** קוראים ל-`POST /api/account/whatsapp/confirm { code }` (חלק 04 §21.3). שגיאה (`INVALID_INPUT {reason:"code_invalid"}`): **"הקוד לא נכון או שפג תוקפו."** הפסקה: `POST /api/account/whatsapp/opt-out`.
+- **שינוי הנוסח בהרחבה:** הנוסח שלמעלה מחליף את הקודם לפני הפעלת `whatsapp_notify`. מי שאישר נוסח קודם מקבל רק את סוגי ההודעות שבנוסח שאישר, עד שיאשר את הנוסח החדש (הגרסה נשמרת ב-`audit_logs` של `notifications.whatsapp_opt_in`).
 - שמירה: `profiles.notification_prefs.whatsapp = { phone_e164, verified_at, opted_in_at, opted_out_at }` (רק נתיבי האימות וה-webhook כותבים את תת-האובייקט הזה) + `audit_logs` ‏`notifications.whatsapp_opt_in` / `notifications.whatsapp_opt_out` (עם IP ו-user agent) כראיה. העדפות הערוצים לכל סוג התראה נשמרות ב-`notification_prefs.kinds` (`{ [kind]: { email, whatsapp } }`; חלק 04 §4).
 
 ### 13.3 התבניות (לאישור מראש אצל Meta, שפה `he`)
@@ -1512,9 +1723,17 @@ export async function sendEmail<K extends EmailKey>(i: {
 | `job_failed_he` | היצירה של "{{1}}" לא הושלמה, וכל הקרדיטים חזרו ליתרה. לניסיון חוזר: {{2}} | שם, קישור |
 | `approval_received_he` | התקבלה תשובה מהלקוח על הסרטון "{{1}}": {{2}}. לפרטים: {{3}} | שם, "אושר" / "התבקשו שינויים", קישור |
 | `payment_failed_he` | החיוב על המנוי ב{{BRAND_NAME}} לא עבר. החשבון ממשיך לעבוד, וננסה שוב ב-{{1}}. לעדכון אמצעי תשלום: {{2}} | תאריך, קישור |
+| `campaign_live_he` | מטא אישרה את הקמפיין "{{1}}", והוא פעיל עכשיו. לדוח: {{2}} | שם הקמפיין, קישור |
+| `ad_rejected_he` | מטא לא אישרה מודעה בקמפיין "{{1}}". הסיבה: {{2}}. איך מתקנים: {{3}} | שם הקמפיין, `titleHe` מ-`REVIEW_FEEDBACK_HE` (חלק 07 §10.1–§10.2), קישור |
+| `lead_new_he` | ליד חדש. מקור: {{1}} · שם: {{2}} · טלפון: {{3}}. לפרטים ולסימון שיצרתם קשר: {{4}} | "קמפיין {name}" או "דף העסק", שם פרטי, טלפון (או "מופיע באפליקציה" כש-`include_phone_in_whatsapp` כבוי ⚖️), קישור |
+| `weekly_results_he` | הסיכום השבועי של הקמפיינים: כמה הוצאתם: {{1}} · כמה אנשים ראו: {{2}} · כמה פניות: {{3}} · כמה עלתה כל פנייה: {{4}}. לדוח המלא: {{5}} | סכום מעוצב, מספר, מספר, סכום מעוצב (או "עוד אין פניות"), קישור |
+| `meta_connection_lost_he` | החיבור של {{BRAND_NAME}} לפייסבוק ולאינסטגרם נותק. הקמפיינים שכבר פעילים ממשיכים לרוץ במטא, אבל אי אפשר לנהל אותם ולראות דוחות עד שמחברים מחדש: {{1}} | קישור |
+| `spend_cap_warning_he` | ההוצאה המנוהלת החודש הגיעה ל-{{1}} מתקרת התוכנית: {{2}} מתוך {{3}}. הקמפיינים הפעילים ממשיכים לרוץ. מה זה אומר ומה אפשר לעשות: {{4}} | אחוז (80% או 100%), סכום מעוצב, סכום מעוצב, קישור |
 
 - תשובה אוטומטית ל"הסרה" או "STOP" (בתוך חלון 24 השעות): **"הוסרתם מהתראות הוואטסאפ של {{BRAND_NAME}}. אפשר להפעיל אותן שוב בהגדרות."**
 - **שעות שקטות:** לא שולחים בין 21:00 ל-08:00, בשבת, בחגים ובימי שקט — ההודעה נדחית לחלון המותר הבא (התראות שירות אינן דחופות; המייל יוצא כרגיל).
+- **בתבניות ההרחבה:** `lead_new_he` נדחית כמו כל השאר, וב-08:00 נשלחת רק אם הליד עדיין `new` (המייל וההתראה באפליקציה יוצאים מיד); `meta_connection_lost_he` נשלחת פעם ביום לכל היותר לחיבור; `campaign_live_he` ו-`ad_rejected_he` נדחות רגיל.
+- **ערכים שנכנסים למשתנים:** סכומים מגיעים מעוצבים מ-`formatIls` (עם ₪ בתחילתם), טלפונים נעטפים בתווי בידוד U+2066…U+2069 בזמן השליחה (בקוד, אף פעם לא בנוסח), ושמות שהמשתמש כתב נחתכים ל-60 תווים. משתנה טקסט עברי לא מקבל אות שימוש לפניו (חלק 01 §2.1, סעיף 13), ולכן המקור של הליד מגיע כביטוי שלם ("קמפיין {name}" או "דף העסק").
 - הקישורים בהודעות הם לדפים באפליקציה שדורשים התחברות; לעולם לא כתובות חתומות לקבצים.
 
 ### 13.4 SMS
@@ -1525,6 +1744,8 @@ export async function sendEmail<K extends EmailKey>(i: {
 - [ ] עם הדגל כבוי — אין עמודת וואטסאפ, ואף קוד לא שולח הודעה.
 - [ ] עם הדגל פעיל ו-mock: אין שליחה לפני אימות; "הסרה" מכבה מיד ונרשמת; הודעה שנוצרה ב-22:30 נשלחת ב-08:00.
 - [ ] webhook של וואטסאפ עם חתימה שגויה ← 401.
+- [ ] עם `include_phone_in_whatsapp = false`, `lead_new_he` נשלחת עם "מופיע באפליקציה" במקום הטלפון; ליד שסומן "יצרנו קשר" לפני 08:00 לא מקבל את ההודעה הנדחית.
+- [ ] 11 התבניות קיימות ב-`messages/he.json` תחת `ops.whatsapp.*`, ואף אחת מהן לא מכילה ₪ צמוד למשתנה או אות שימוש לפני משתנה טקסט.
 
 ---
 
@@ -1535,15 +1756,16 @@ export async function sendEmail<K extends EmailKey>(i: {
 - **PostHog EU** (`NEXT_PUBLIC_POSTHOG_HOST = https://eu.i.posthog.com`), **רק בהסכמה** (חלק 02 §11): לפני בחירה בבאנר — אין סקריפט, אין עוגיות, אין אירועים. ביטול הסכמה — `opt_out_capturing()`, מחיקת `ph_*`.
 - הגדרות הלקוח: `autocapture: false`, `capture_pageview: false` (שולחים `$pageview` ידנית בכל מעבר נתיב), `disable_session_recording: true`, `person_profiles: "identified_only"`, `persistence: "cookie"`. בפרויקט ב-PostHog: "Discard client IP data" פעיל, שמירת נתונים 12 חודשים.
 - **אין מידע מזהה במאפיינים:** לא מייל, לא שם, לא טלפון, לא טקסט חופשי (חיפוש, הוקים, הערות), לא ערכי התאמה אישית. `before_send` מנקה מ-`$current_url` ומ-`$referrer` את הפרמטרים `token`, `t`, `k`, `s`, `invite`, `q`, `email`, `session`. כל אירוע עובר סכמת Zod (14.3); אירוע או מאפיין לא מוגדר — שגיאת טיפוסים.
+- **ההרחבה (חלקים 07–08):** אף פעם לא מידע של לידים (שם, טלפון, מייל, תשובות), לא טקסט של מודעה, של פוסט או של דף עסק, ולא מזהים של Meta (חשבון מודעות, עמוד, מודעה, טופס). אירועי שרת שאין להם משתמש מפעיל (webhook, cron, תצוגה של דף עסק) נשלחים בשם הבעלים של הסביבה, רק בהסכמתם, עם קבוצת `workspace`, ובלי שום פרט על המבקר או על הליד.
 - **זהות:** `distinct_id` = מזהה המשתמש ב-Supabase (UUID פסאודונימי), `identify` רק אחרי התחברות ורק בהסכמה; `reset()` ביציאה. **קבוצות:** `posthog.group("workspace", workspaceId, { plan_id, type, niche_slug, created_month })` — מאפשר את מדד הכוכב הצפוני לכל סביבת עבודה.
 - **מאפייני-על:** כל אירוע לקוח נושא `app_env`, `release` (‏SHA קצר מ-`VERCEL_GIT_COMMIT_SHA`), `theme`, `reduced_motion`, `is_mobile`; בתוך `/app` ו-`/admin` גם `plan_id`, `workspace_type`, `role`, `ui_gender_form`. אירועי שרת נושאים `app_env` ו-`release`.
 - **אירועי שרת** (`posthog-node`, ‏`lib/analytics/server.ts`): נשלחים רק אם ההסכמה האחרונה של המשתמש ל-`analytics_cookies` חיובית (מטמון ב-Upstash, מפתח `consent:{userId}`, ל-10 דקות). בפונקציות serverless: `after(() => posthog.flush())` מ-`next/server` (או `captureImmediate`), כדי לא לאבד אירועים.
 - **מדדים עסקיים** (הכנסות, החזרים, עלויות, רווח, אחוז הצלחה של יצירות) **לא נמדדים ב-PostHog** — הם מחושבים מבסיס הנתונים בלוחות האדמין (חלק 03 §22.1, §22.5), כי PostHog רואה רק משתמשים שהסכימו.
-- **ניסויים:** דגלי PostHog רק לניסויי שיווק: `hero_copy_v1` (חלק 02) עם העוגייה `exp_hero`, שנקבעת רק אחרי הסכמה, ו-rewrite מ-`/` ל-`/exp/hero/[variant]` (‏`noindex`) ב-`proxy.ts` (חלק 04 §17.2). לעולם לא לגישה לפיצ׳רים בתשלום — לזה יש `feature_flags` (§21). דגלי PostHog אינם `feature_flags`.
+- **ניסויים:** דגלי PostHog רק לניסויי שיווק: `hero_copy_v1`, ומהרגע שהתנאי `campaigns` של שער הטענות מתקיים `hero_copy_v2` (חלק 02 §3.3), עם העוגייה `exp_hero`, שנקבעת רק אחרי הסכמה, ו-rewrite מ-`/` ל-`/exp/hero/[variant]` (‏`noindex`) ב-`proxy.ts` (חלק 04 §17.2). לעולם לא לגישה לפיצ׳רים בתשלום — לזה יש `feature_flags` (§21). דגלי PostHog אינם `feature_flags`.
 
 ### 14.2 קטלוג האירועים (רשימה מלאה וקנונית)
 
-63 אירועים, snake_case. "צד": `c` = לקוח (`track`), `s` = שרת (`trackServer`). המאפיינים מדויקים; `?` = אופציונלי. מאפיינים מסוג enum משתמשים ברשימות של 14.3. **אף פעם** לא טקסט חופשי, מייל, שם, טלפון, מחרוזת חיפוש או ערך של placeholder. "מקור" = איפה האירוע הוגדר לראשונה (נספח F §12.9, חלק 02, חלק 03 או החלק הזה).
+108 אירועים (63 של ההשקה, 33 של חלקים 07–08 — מספרים 64–96 — ו-12 של התוספות שאושרו, 97–108), snake_case. "צד": `c` = לקוח (`track`), `s` = שרת (`trackServer`). המאפיינים מדויקים; `?` = אופציונלי. מאפיינים מסוג enum משתמשים ברשימות של 14.3. **אף פעם** לא טקסט חופשי, מייל, שם, טלפון, מחרוזת חיפוש או ערך של placeholder. "מקור" = איפה האירוע הוגדר לראשונה (נספח F §12.9, חלק 02, חלק 03 או החלק הזה).
 
 | # | אירוע | מאפיינים | צד | מקור |
 |---|---|---|---|---|
@@ -1560,7 +1782,7 @@ export async function sendEmail<K extends EmailKey>(i: {
 | 11 | `hooks_searched` | `q_length: int`, `results?: int`, `location: "hub"\|"landing_teaser"\|"niche_page"\|"hook_niche_page"\|"app_hooks"` | c | 02 |
 | 12 | `hooks_filtered` | `facet: "niche"\|"type"\|"platform"\|"goal"\|"gender"\|"season"\|"featured"\|"has_video"\|"sort"`, `value: string` (ערך enum או slug בלבד) | c | 02 |
 | 13 | `savings_calculated` | `videos: int`, `price_bucket: "lt300"\|"300_700"\|"700_1500"\|"gt1500"`, `quality: "draft"\|"standard"` | c | 02 |
-| 14 | `faq_expanded` | `question_id`, `location: "landing"\|"faq_page"\|"pricing_page"\|"niche_page"\|"hook_niche_page"` | c | 02 |
+| 14 | `faq_expanded` | `question_id`, `location: "landing"\|"faq_page"\|"pricing_page"\|"niche_page"\|"hook_niche_page"\|"campaigns_page"\|"trend_page"` | c | 02 |
 | 15 | `example_played` | `example_id`, `location: "landing_gallery"\|"examples"\|"niche_page"\|"template_page"` | c | 02 |
 | 16 | `contact_submitted` | `topic` (ה-enum של `ContactBody.topic`) | c | 02 |
 | 17 | `pricing_viewed` | `location: "landing"\|"pricing_page"\|"app"` | c | נספח F / 02 |
@@ -1610,10 +1832,56 @@ export async function sendEmail<K extends EmailKey>(i: {
 | 61 | `data_export_requested` | — | c | 03 |
 | 62 | `account_delete_requested` | — | c | 03 |
 | 63 | `shortcuts_opened` | — | c | 03 |
+| 64 | `meta_connect_started` | `location: MetaConnectLocation` | c | 07 |
+| 65 | `meta_connect_completed` | `has_ad_account: boolean`, `has_page: boolean`, `has_instagram: boolean`, `preflight_ok: boolean` | s | 07 |
+| 66 | `meta_connect_failed` | `reason: "denied"\|"no_assets"\|"state_mismatch"\|"exchange_failed"\|"tech_provider"` | s | 07 |
+| 67 | `meta_disconnected` | `by: "user"\|"meta_deauthorize"\|"token_invalid"\|"data_deletion"` | s | 07 |
+| 68 | `campaign_builder_opened` | `source: CampaignSource` | c | 07 |
+| 69 | `campaign_draft_created` | `goal: AdGoal`, `split_test: boolean`, `source: CampaignSource` | s | 07 |
+| 70 | `campaign_copy_generated` | `variants: int` | s | 07 |
+| 71 | `campaign_published` | `goal: AdGoal`, `budget_bucket: "lt30"\|"30_49"\|"50_99"\|"100_299"\|"gte300"`, `variants: int`, `area_mode: "radius"\|"cities"\|"country"`, `season: slug\|null` | s | 07 |
+| 72 | `campaign_review_result` | `result: "active"\|"rejected"\|"with_issues"`, `reason_code: string\|null` (מפתח של `REVIEW_FEEDBACK_HE`, לא טקסט) | s | 07 |
+| 73 | `campaign_paused` | `by: "user"\|"rule"\|"user_cap"` | s | 07 |
+| 74 | `campaign_resumed` | — | s | 07 |
+| 75 | `campaign_budget_changed` | `direction: "up"\|"down"`, `by: "user"\|"rule"` | s | 07 |
+| 76 | `campaign_ended` | — | s | 07 |
+| 77 | `campaign_winner_boosted` | `by: "user"\|"rule"` | s | 07 |
+| 78 | `campaign_report_viewed` | `range: "7d"\|"14d"\|"30d"\|"lifetime"` | c | 07 |
+| 79 | `campaign_explained` | — | s | 07 |
+| 80 | `auto_rule_toggled` | `kind: AdRuleKind`, `on: boolean` | c | 07 |
+| 81 | `auto_rule_fired` | `kind: AdRuleKind` | s | 07 |
+| 82 | `lead_received` | `source: LeadSource` (`meta_form`\|`whatsapp`\|`landing_page`\|`manual`, חלק 07 §14) | s | 07 |
+| 83 | `lead_status_changed` | `to: LeadStatus` | c | 07 |
+| 84 | `leads_exported` | `count_bucket: "lt10"\|"10_99"\|"gte100"` | c | 07 |
+| 85 | `social_post_scheduled` | `platforms: SocialPlatform[]`, `kind: SocialPostKind`, `immediate: boolean` | c | 07 |
+| 86 | `social_post_published` | `platform: SocialPlatform`, `kind: SocialPostKind` | s | 07 |
+| 87 | `social_post_failed` | `platform: SocialPlatform`, `error_code: string` (קוד של Meta, לא טקסט) | s | 07 |
+| 88 | `boost_eligibility_checked` | `eligible: boolean` | c | 07 |
+| 89 | `weekly_summary_sent` | `channel: "email"\|"whatsapp"` | s | 07 |
+| 90 | `spend_cap_banner_shown` | `pct: 80\|100` | c | 07 |
+| 91 | `trend_feed_viewed` | `niche: slug\|null`, `location: "app"\|"public"` | c | 08 |
+| 92 | `trend_opened` | `trend_slug`, `location: "feed"\|"public_page"\|"dashboard"\|"email"` | c | 08 |
+| 93 | `trend_use_clicked` | `trend_slug`, `production_mode: "ai"\|"guided"` | c | 08 |
+| 94 | `guided_shoot_started` | `trend_slug: slug\|null` | c | 08 |
+| 95 | `guided_shot_uploaded` | `shot_key`, `source: "camera"\|"file"` | c | 08 |
+| 96 | `guided_autocut_completed` | `clips: int` | s | 08 |
+| 97 | `landing_page_created` | `source: "landing_pages"\|"campaign_builder"` | s | 07 (§14) |
+| 98 | `landing_page_published` | `first: boolean` | s | 07 (§14) |
+| 99 | `landing_page_viewed` | `source: VisitSource`, `sample_rate: 0.1` (נדגם: אחת מכל 10 תצוגות) | s | 07 (§14) |
+| 100 | `landing_page_lead_submitted` | `source: VisitSource` | s | 07 (§14) |
+| 101 | `health_check_started` | `location: "health_page"\|"onboarding"\|"dashboard"` | c | 07 (§15) |
+| 102 | `health_check_completed` | `score_bucket: ScoreBucket`, `issues_count: int` | s | 07 (§15) |
+| 103 | `health_check_fix_clicked` | `check: HealthCheckKey` | c | 07 (§15) |
+| 104 | `monthly_plan_generated` | `trigger: "onboarding"\|"monthly"\|"manual"`, `items: int` | s | 07 (§16) |
+| 105 | `plan_item_started` | `kind: "video"\|"trend"\|"campaign"\|"post"` | c | 07 (§16) |
+| 106 | `plan_item_completed` | `kind: "video"\|"trend"\|"campaign"\|"post"` | s | 07 (§16) |
+| 107 | `hook_score_viewed` | `score_bucket: HookScoreBucket`, `location: "project"\|"campaign_builder"\|"trend_card"` | c | 03 / 05 (§24) |
+| 108 | `hook_score_fix_applied` | `fix: HookScoreFix` | c | 03 / 05 (§24) |
 
 - **מותר בנוסף** (מובנים של PostHog, לא ב-`EVENTS`): `$pageview` (נשלח ידנית בכל מעבר נתיב) ו-`$feature_flag_called` (ניסויי PostHog). שום אירוע אחר לא נשלח.
 - **אירועי שרת לא נשלחים מהלקוח** — גם לא `subscription_canceled`, `refund_requested` ו-`storyboard_generated`, שהממשק עלול "לרצות" לשלוח.
 - **איפה נשלחים אירועי השרת של החיוב:** `checkout_completed` ו-`topup_purchased` — 4.1 צעד 6; `subscription_renewed` — 4.2 צעד 4; `subscription_payment_failed` — 6.1; `plan_changed` — 5.3; `subscription_canceled` — 10.2; `refund_requested` ו-`refund_completed` — 10.6. אירועי הצנרת (`script_generated`, `storyboard_generated`, `generation_completed`, `generation_failed`) — חלק 05; `signup_completed` — `ensureFirstLogin()` (‏`lib/auth/first-login.ts`, חלק 03 §3.4); `client_approval_submitted` — `POST /api/approvals/[token]`.
+- **איפה נשלחים אירועי השרת של ההרחבה:** בנתיבים, ב-webhooks, ב-crons וב-flows של חלק 07 (64–90, 97–106) ושל חלק 08 (91–96). `landing_page_viewed` נדגם (`sample_rate: 0.1`), והמונה המדויק הוא `landing_pages.views_count`; `landing_page_*` ו-`lead_received` נשלחים בשם הבעלים של הסביבה (14.1).
 
 ### 14.3 הקוד
 
@@ -1627,10 +1895,20 @@ export const CtaLocation = z.enum(["header", "mobile_menu", "hero", "how_it_work
   "final_cta", "mobile_sticky", "niche_page_hero", "niche_page_final", "hooks_page_cta", "examples_dialog", "template_card",
   "template_page", "pricing_card_free", "pricing_card_starter", "pricing_card_business", "pricing_card_agency",
   "pricing_pack_150", "pricing_pack_500", "pricing_pack_1500",              // credit count, never "pricing_pack_pack-150"
-  "blog_cta", "about", "not_found", "share_page", "dashboard_quickstart", "dashboard_fast_path", "dashboard_season", "app_templates"]);
+  "blog_cta", "about", "not_found", "share_page", "dashboard_quickstart", "dashboard_fast_path", "dashboard_season", "app_templates",
+  "campaigns_page", "trends_hub", "trend_page", "compare",                  // 2026-10-17 extension (part 02 §14)
+  "campaign_flow", "trends_teaser", "health_check"]);                      // part 02 decision 6 (CampaignFlow, TrendsTeaser, HealthCheckCta)
 export const CheckoutKind = z.enum(["subscription", "topup", "update_card", "plan_change"]);
 // Imported, never re-declared here (part 04): WizardStep, AspectRatio — lib/api/contracts/common.ts; CancelReason —
 // lib/api/contracts/billing.ts; JobStage, BillingCycle, NotificationKind — ENUMS in lib/supabase/enums.ts; ErrorCode — lib/errors.ts.
+// 2026-10-17 extension (parts 07–08)
+export const MetaConnectLocation = z.enum(["onboarding", "settings", "project", "campaign_builder", "publish"]);
+export const CampaignSource = z.enum(["project", "campaigns", "boost", "trend", "season", "duplicate"]);
+export const ScoreBucket = z.enum(["lt40", "40_69", "70_89", "gte90"]);          // health_check_completed (part 07 §15)
+export const HookScoreBucket = z.enum(["lt50", "50_74", "gte75"]);              // hook_score_viewed = hookScoreBucket() of part 05 §24
+export const VisitSource = z.enum(["meta_ad", "other"]);                 // landing_page_*: utm_source=meta → "meta_ad"
+// Imported, never re-declared: AdGoal, AdRuleKind, LeadStatus, LeadSource, SocialPlatform, SocialPostKind — ENUMS in
+// lib/supabase/enums.ts; HealthCheckKey — lib/meta/health/checks.ts (part 07 §15); HookScoreFix — lib/hooks/score.ts (part 05).
 
 export const EVENTS = {
   signup_started: z.strictObject({ method: z.enum(["google", "magic_link", "phone"]).optional(), source: SignupSource.optional() }),
@@ -1639,12 +1917,18 @@ export const EVENTS = {
     formats: z.array(z.enum(ENUMS.aspect_ratio)) }),
   checkout_completed: z.strictObject({ kind: CheckoutKind, plan_id: z.string().nullable(),
     pack_id: z.string().nullable(), cycle: z.enum(ENUMS.billing_cycle).nullable(), amount_ils: z.number() }),
-  // … all 63 events of 14.2, one strictObject each
+  // … all 108 events of 14.2, one strictObject each
 } as const satisfies Record<string, z.ZodType>;
 export type EventName = keyof typeof EVENTS;
 export const SERVER_ONLY_EVENTS = ["signup_completed", "script_generated", "storyboard_generated", "generation_completed",
   "generation_failed", "client_approval_submitted", "checkout_completed", "topup_purchased", "subscription_canceled",
-  "refund_requested", "subscription_renewed", "subscription_payment_failed", "plan_changed", "refund_completed"] as const;
+  "refund_requested", "subscription_renewed", "subscription_payment_failed", "plan_changed", "refund_completed",
+  // 2026-10-17 extension
+  "meta_connect_completed", "meta_connect_failed", "meta_disconnected", "campaign_draft_created", "campaign_copy_generated",
+  "campaign_published", "campaign_review_result", "campaign_paused", "campaign_resumed", "campaign_budget_changed", "campaign_ended",
+  "campaign_winner_boosted", "campaign_explained", "auto_rule_fired", "lead_received", "social_post_published", "social_post_failed",
+  "weekly_summary_sent", "guided_autocut_completed", "landing_page_created", "landing_page_published", "landing_page_viewed",
+  "landing_page_lead_submitted", "health_check_completed", "monthly_plan_generated", "plan_item_completed"] as const;
 
 // lib/analytics/client.ts — no-op until consent; server-only events are a type error here
 export function track<E extends Exclude<EventName, (typeof SERVER_ONLY_EVENTS)[number]>>(event: E, props: z.input<(typeof EVENTS)[E]>) {
@@ -1675,6 +1959,11 @@ export async function trackServer<E extends EventName>(userId: string, event: E,
 | לוח | **איכות היצירה (UX)** | `generation_failed` לפי `error_code` ו-`stage`, `degraded_scenes` ממוצע, `script_generated.ms` p50 | השוואה ללוח האדמין |
 | לוח | **ספריית ההוקים ו-SEO** | צפיות `/hooks*`, `hook_copied`, `hook_create_video_clicked`, המרה להרשמה ≥ 2.5% | |
 | לוח | **שימור** | שימור שבועי לפי קוהורטת הרשמה, ברמת `workspace` | |
+| 9 | **חיבור Meta** | `meta_connect_started` ← `meta_connect_completed{preflight_ok:true}`, פילוח לפי `location` ו-`meta_connect_failed.reason` | מעקב |
+| 10 | **מסרטון לקמפיין** | `campaign_builder_opened` ← `campaign_draft_created` ← `campaign_published` ← `campaign_review_result{result:"active"}` | מעקב, לפי `source` ו-`goal` |
+| 11 | **מטרנד לסרטון** | `trend_opened` ← `trend_use_clicked` ← `generation_confirmed` ← `generation_completed` | מעקב לפי `trend_slug` |
+| 12 | **בדיקת דופק ← קמפיין** | `health_check_started` ← `health_check_completed` ← `health_check_fix_clicked` ← `campaign_published` | מעקב |
+| לוח | **קמפיינים ולידים (מוצר)** | `campaign_published`, `campaign_review_result` לפי `result`, `lead_received` לכל סביבה פעילה בשבוע, `social_post_failed` לפי `error_code` | הכסף והתוצאות עצמם — מבסיס הנתונים, בלוח האדמין |
 
 ההגדרות נשמרות כקוד ב-`docs/analytics.md` (שם, אירועים, מסננים), כדי שאפשר יהיה לבנות אותן מחדש בפרויקט PostHog חדש.
 
@@ -1683,8 +1972,9 @@ export async function trackServer<E extends EventName>(userId: string, event: E,
 - [ ] בדיקת יחידה: כל אירוע ב-`EVENTS` נדחה כשמוסיפים לו `email` או מחרוזת עם `@`.
 - [ ] `trackServer` לא שולח למשתמש שההסכמה האחרונה שלו שלילית.
 - [ ] `before_send` מסיר `?token=` ו-`?invite=` מכתובות.
-- [ ] `docs/analytics.md` מכיל את 8 המשפכים (1–4 בחלק 02 §14, 5–8 כאן) ואת 4 הלוחות.
-- [ ] `Object.keys(EVENTS).length === 63`, ושמותיהם זהים לטבלה ב-14.2 (בדיקת יחידה מול רשימה קבועה); קריאה ל-`track()` עם אירוע מ-`SERVER_ONLY_EVENTS` היא שגיאת טיפוסים (`tsd`/`expectTypeOf`).
+- [ ] `docs/analytics.md` מכיל את 12 המשפכים (1–4 בחלק 02 §14, 5–12 כאן) ואת 5 הלוחות.
+- [ ] `Object.keys(EVENTS).length === 108`, ושמותיהם זהים לטבלה ב-14.2 (בדיקת יחידה מול רשימה קבועה); קריאה ל-`track()` עם אירוע מ-`SERVER_ONLY_EVENTS` היא שגיאת טיפוסים (`tsd`/`expectTypeOf`).
+- [ ] בדיקת יחידה: אף אירוע של ההרחבה לא מקבל מאפיין עם טלפון, מייל, `act_…` או מזהה מספרי ארוך של Meta, ו-`landing_page_viewed` נשלח רק בשם בעלים שהסכימו.
 
 ---
 
@@ -1702,6 +1992,12 @@ export async function trackServer<E extends EventName>(userId: string, event: E,
 | webhooks | זיוף אירועי תשלום/וידאו | חתימה + טוקן + שאילתה חוזרת + אידמפוטנטיות (15.7) |
 | שרתי פנים | SSRF דרך חילוץ מותג | `safeFetch` (15.8) |
 | מוניטין | שימוש לרעה בתוכן (פוליטיקה, דמויות, מין) | מודרציה, דיווחים, בחירות (15.9) |
+| טוקנים של Meta | שליטה בחשבון המודעות של לקוח (השקה, הוצאה, קריאת לידים) | הצפנה ב-`meta_tokens.token_enc` בלי שום grant ללקוח, `appsecret_proof` בכל קריאה, ניקוי בלוגים וב-Sentry, מחיקה בניתוק (15.5; חלק 07 §3) |
+| הכסף של הלקוח ב-Meta | השקה או הגדלת תקציב בלי כוונה (חשבון שנפרץ, באג, כלל אוטומטי) | הכול נוצר מושהה; פרסום רק לבעלים ולמנהלים עם `confirmSpend`; תקרות (§2.7); עד 3 שינויי תקציב בשעה; יומן שינויים; מייל על כל קמפיין שעולה (§7.3) |
+| לידים | חשיפה של מידע אישי של צד שלישי | RLS לחברי הסביבה, ייצוא רק לבעלים ולמנהלים עם יומן ביקורת, ניקוי `field_data`, בלי LLM ובלי אנליטיקה (§11.14) |
+| webhooks של Meta | ליד או סטטוס מזויפים | `X-Hub-Signature-256` מול כל ערכי `META_APP_SECRET`, ותוכן הליד או הסטטוס נקרא תמיד מחדש מה-Graph API לפי המזהה, לא מגוף הבקשה (15.7) |
+| דפי עסק ציבוריים | פישינג, התחזות, לידים מזויפים | זהות העסק בכל דף, מודרציה לפני פרסום, honeypot ומגבלת קצב, `noindex` כברירת מחדל, הסרה מהירה (§7.3, 15.9) |
+| סרטוני ייחוס של טרנדים | הפרת זכויות, דליפה | bucket פרטי בלי policies ל-`authenticated`, כתובות חתומות ל-10 דקות לאדמין בלבד, שמירה מוגבלת (§11.15) |
 
 ### 15.2 מיפוי OWASP Top 10 (2021)
 
@@ -1731,7 +2027,7 @@ export async function trackServer<E extends EventName>(userId: string, event: E,
 // Supabase origin = the host of NEXT_PUBLIC_SUPABASE_URL (the project host, or the custom domain auth.{{DOMAIN}}, part 04 §1.2),
 // never a *.supabase.co wildcard; next.config.ts images.remotePatterns uses the same host.
 const supabaseHost = () => new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).host;
-export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; relaxInline?: boolean }) {
+export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; relaxInline?: boolean; extras?: CspExtras }) {
   const sb = supabaseHost();
   const script = o.nonce
     ? `'self' 'nonce-${o.nonce}' '${o.themeHash}' 'strict-dynamic'`          // theme script has no nonce (shared root layout) → hash
@@ -1741,11 +2037,12 @@ export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; re
     `default-src 'self'`,
     `script-src ${script} https://eu-assets.i.posthog.com`,
     `style-src 'self' 'unsafe-inline'`,                                           // Radix/Motion inline styles
-    `img-src 'self' data: blob: https://${sb}`,
+    `img-src 'self' data: blob: https://${sb}${extra(o.extras?.imgSrc)}`,          // + Meta CDNs on Meta routes only (below)
     `media-src 'self' blob: https://${sb}`,
     `font-src 'self' data:`,                                                      // all fonts self-hosted, incl. caption fonts in the Player
     `connect-src 'self' https://${sb} wss://${sb} https://eu.i.posthog.com https://eu-assets.i.posthog.com`,
-    `frame-src 'none'`, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`,
+    `frame-src ${o.extras?.frameSrc?.length ? o.extras.frameSrc.join(" ") : "'none'"}`,   // ad previews: builder routes only
+    `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `object-src 'none'`,
     `worker-src 'self' blob:`,
     o.env === "production" ? `upgrade-insecure-requests` : ``,
     `report-to csp`, `report-uri ${sentryCspReportUrl()}`,                    // report-uri: fallback for browsers without report-to
@@ -1753,6 +2050,18 @@ export function buildCsp(o: { nonce?: string; themeHash: string; env: AppEnv; re
 }
 // every response that carries a CSP also gets: Reporting-Endpoints: csp="<sentryCspReportUrl()>"
 // sentryCspReportUrl() is derived from NEXT_PUBLIC_SENTRY_DSN: https://{host}/api/{projectId}/security/?sentry_key={publicKey}
+
+// Route-scoped additions (2026-10-17 extension). proxy.ts passes cspExtrasFor(pathname) in the nonce branch only;
+// static (ISR) pages never get them, and every route not listed keeps frame-src 'none'.
+export type CspExtras = { frameSrc?: string[]; imgSrc?: string[] };
+const META_PREVIEW_ORIGINS = ["https://www.facebook.com"];                           // [M0-verify] ad preview iframes (part 07 §9.5)
+const META_IMAGE_ORIGINS = ["https://*.fbcdn.net", "https://*.cdninstagram.com"];   // [M0-verify hosts] Page / IG pictures
+export function cspExtrasFor(pathname: string): CspExtras {
+  const builder = /^\/app\/campaigns\/(new|[0-9a-f-]{36})$/.test(pathname);
+  const metaImages = /^\/(app|admin)\/(campaigns|publish|leads|settings\/integrations|onboarding|meta)(\/|$)/.test(pathname);
+  return { frameSrc: builder ? META_PREVIEW_ORIGINS : [], imgSrc: metaImages ? META_IMAGE_ORIGINS : [] };
+}
+const extra = (v?: string[]) => (v?.length ? ` ${v.join(" ")}` : "");
 
 // [M0-verify, spike 16] static (ISR) marketing routes — used by next.config.ts headers(); mode = the decision in DECISIONS.md
 export function staticCspHeaders(themeHash: string, env: AppEnv, mode: "sri_hash" | "unsafe_inline" = "sri_hash") {
@@ -1765,14 +2074,18 @@ export function staticCspHeaders(themeHash: string, env: AppEnv, mode: "sri_hash
 
 - **מקור Supabase:** `buildCsp` גוזר את `https://<host>` ואת `wss://<host>` מ-`NEXT_PUBLIC_SUPABASE_URL` (ל-`img-src`, `media-src` ו-`connect-src`), ו-`images.remotePatterns` ב-`next.config.ts` משתמש באותו host. כך דומיין מותאם (`auth.{{DOMAIN}}`, חלק 04 §1.2) עובד בלי שינוי, ואין wildcard של `*.supabase.co`.
 - Sentry נשלח דרך `tunnelRoute: "/monitoring"` (מאותו origin), ולכן לא נדרש ב-`connect-src`. עמוד התשלום של Grow נפתח בהפניה מלאה, ולא ב-iframe — `frame-src 'none'` נשמר.
+- **תצוגות מקדימות של מודעות (חלק 07 §9.5):** `frame-src https://www.facebook.com` רק בנתיבי הבונה (`/app/campaigns/new`, `/app/campaigns/[campaignId]`). השרת (C7) לא מעביר לדפדפן את ה-HTML של Meta כמו שהוא: הוא מחלץ ממנו רק את ה-`src` של ה-iframe, בודק שה-origin ברשימה, ובונה את `html` מחדש כ-`<iframe>` עם `sandbox="allow-scripts allow-same-origin allow-popups"`, `referrerpolicy="no-referrer"` ו-`loading="lazy"` (הרכיב `MetaPreviewFrame`, חלק 01) [M0-verify אילו הרשאות `sandbox` התצוגה צריכה]. כך סקריפט שמגיע בתשובה לעולם לא רץ בדף שלנו.
+- **החיבור ל-Meta** הוא ניווט מלא ל-`www.facebook.com` וחזרה ל-callback (לא popup ולא iframe), ולכן לא צריך בשבילו היתר ב-CSP; `form-action 'self'` נשמר, כי הכפתור קורא ל-M1 ומנווט ל-`authUrl`.
+- **דפים ציבוריים חדשים** (`/trends`, `/trends/[slug]`, `/campaigns`, `/b/[slug]`, `/b/[slug]/privacy`, `/meta/data-deletion`, `/legal/dpa`) מקבלים את ה-CSP הסטטי בלי תוספות. הטופס של `/b/[slug]` שולח POST לאותו origin, עם honeypot ובלי CAPTCHA של צד שלישי, כך שאין צורך בדומיין נוסף.
 - בשבוע הראשון בפרודקשן: `Content-Security-Policy-Report-Only` עם דיווח ל-Sentry; אחרי שבוע בלי הפרות לגיטימיות — אכיפה (M7).
-- **כותרות נוספות** (כל התשובות): `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (פרודקשן בלבד) · `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()` (חריג אחד ב-v2: בנתיב זרימת ההסכמה לדמות ולקול — `microphone=(self), camera=(self)`, §11.10) · `Cross-Origin-Opener-Policy: same-origin` · `X-Frame-Options: DENY`.
-- **CSRF:** עוגיות `SameSite=Lax`, ובעטיפת `route()` בדיקת `Origin` לכל בקשה משנה (מול `NEXT_PUBLIC_SITE_URL` וכתובת ה-preview). חריגים: webhooks, cron, `POST /api/unsubscribe` (RFC 8058, בלי עוגיות).
+- **כותרות נוספות** (כל התשובות): `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (פרודקשן בלבד) · `X-Content-Type-Options: nosniff` · `Referrer-Policy: strict-origin-when-cross-origin` · `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()` (שני חריגים, ורק בנתיב עצמו: זרימת ההסכמה לדמות ולקול ב-v2 — `microphone=(self), camera=(self)`, §11.10; והצילום המודרך `/app/projects/[projectId]/shoot` — `camera=(self), microphone=(self)`, חלק 08 §J.7) · `Cross-Origin-Opener-Policy: same-origin` · `X-Frame-Options: DENY`.
+- **CSRF:** עוגיות `SameSite=Lax`, ובעטיפת `route()` בדיקת `Origin` לכל בקשה משנה (מול `NEXT_PUBLIC_SITE_URL` וכתובת ה-preview). חריגים: webhooks (כולל `/api/webhooks/meta`, `/api/webhooks/meta/deauthorize` ו-`/api/webhooks/meta/data-deletion`, שמאומתים בחתימה), cron, `POST /api/unsubscribe` (RFC 8058, בלי עוגיות), והטופס הציבורי `POST /api/b/[slug]/lead` שנבדק ב-`Origin` כרגיל. ה-callback של OAuth (`GET /api/meta/connect/callback`) מאומת ב-`state` ובעוגייה `meta_oauth_state`, לא ב-`Origin`.
 
 ### 15.4 זהות והרשאות
 
 - הרשאות בשרת תמיד (עטיפת `route()` + RLS כשכבה שנייה); הסתרה בממשק היא נוחות (חלק 03 §1.2).
 - **MFA חובה למנהלי פלטפורמה:** `/admin` דורש `is_platform_admin` **וגם** session ברמת `aal2` (TOTP של Supabase Auth). ב-SQL זה נאכף ב-`is_platform_admin()`, ו-`proxy.ts` קורא ל-`platform_admin_status()` (‏`'none' | 'needs_mfa' | 'ok'`; חלק 04 §9.2, §17.2): `none` ← 404, ‏`needs_mfa` ← הפניה ל-`/admin/mfa`, ‏`ok` ← ממשיכים. TOTP מופעל בפרויקט (`[auth.mfa.totp] enroll_enabled = true, verify_enabled = true`, חלק 04 §1.2, §1.4).
+- **חיבור Meta:** רק בעלים ומנהלים מתחילים חיבור (M1). ה-`state` הוא nonce שנחתם ב-`deriveKey("meta-oauth")` ונשמר בעוגייה `meta_oauth_state` (`HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/api/meta/connect`, 10 דקות), ונבדק ב-`timingSafeEqual` מול ה-`state` שחזר; אי־התאמה ← `?error=state_mismatch`. הטוקן נקשר לסביבה ולמשתמש שבעוגייה, אף פעם לא לפרמטר מהכתובת.
 - **`/admin/mfa`** ★ (נגיש ב-`aal1`, מופיע ברשימת נתיבי האדמין של חלק 03 §22.0): בלי factor רשום — `supabase.auth.mfa.enroll({ factorType: "totp" })` ← QR; עם factor — `mfa.challenge` ← `mfa.verify`; אחרי הצלחה רענון ה-session והפניה ל-`next` או ל-`/admin`. נוסח: כותרת **"אימות דו-שלבי למנהלים"** · בהרשמה ראשונה: **"כדי להיכנס לפאנל הניהול צריך להפעיל אימות דו-שלבי. סרקו את הקוד באפליקציית אימות (כמו Google Authenticator או 1Password) והקלידו את הקוד בן 6 הספרות."** · כשכבר יש factor: **"הקלידו את הקוד בן 6 הספרות מאפליקציית האימות."** · שדה **"קוד מהאפליקציה"** · כפתור **"הפעלה"** (בהרשמה) או **"אימות"** · שגיאה: **"הקוד לא נכון. כדאי לוודא שהשעה בטלפון מדויקת."**
 - כל חשבונות הספקים (GitHub, Vercel, Supabase, OpenRouter, Grow, Morning, Resend, PostHog, Sentry, Upstash, AWS לגיבויים) — עם 2FA, הרשאות מינימליות, ורשימת בעלי גישה ב-`docs/security/access.md`.
 
@@ -1785,15 +2098,17 @@ export function staticCspHeaders(themeHash: string, env: AppEnv, mode: "sri_hash
 // AES-256-GCM, 12-byte random IV; output "v{n}:{iv_b64}:{tag_b64}:{ct_b64}"
 export function encryptToken(plain: string): string;
 export function decryptToken(enc: string): string;              // tries APP_ENCRYPTION_KEY, then APP_ENCRYPTION_KEY_PREVIOUS ★
-export function deriveKey(info: "email-tokens" | "mock-gateway" | "share-tokens"): Buffer;   // HKDF-SHA256 from APP_ENCRYPTION_KEY
+export function deriveKey(info: "email-tokens" | "mock-gateway" | "share-tokens" | "meta-oauth"): Buffer;   // HKDF-SHA256 from APP_ENCRYPTION_KEY
 export function hmacHex(secret: string, data: string): string;
 export function hmacSign(secret: string, data: string): string;                  // = hmacHex; callers pass secrets[0]
 export function hmacVerifyAny(secrets: string[], data: string, mac: string): boolean;   // timingSafeEqual against every secret
-export function secretList(v: string): string[];               // "new,old" → ["new","old"] (OPENROUTER_CALLBACK_TOKEN_SECRET, GROW_WEBHOOK_SECRET)
+export function secretList(v: string): string[];               // "new,old" → ["new","old"] (OPENROUTER_CALLBACK_TOKEN_SECRET, GROW_WEBHOOK_SECRET, META_APP_SECRET)
 export function safeEqualHex(a: string, b: string): boolean;   // crypto.timingSafeEqual on equal-length buffers
+export function appsecretProof(accessToken: string): string;   // HMAC-SHA256(accessToken, secretList(META_APP_SECRET)[0]), hex — lib/meta/client.ts only
 ```
 
-- **רוטציה** (כל 12 חודשים, או מיד בחשד): מפתח חדש ל-`APP_ENCRYPTION_KEY`, הישן ל-`APP_ENCRYPTION_KEY_PREVIOUS` ★, `scripts/rotate-encryption-key.ts` מצפין מחדש את כל `payment_methods.token_enc` לגרסה החדשה, ואחרי ריצה נקייה מוחקים את הישן. טוקני הסרה מדיוור חייבים לעבוד לתמיד (חלק 04 §21.4), ולכן האימות שלהם מנסה את כל המפתחות שב-`APP_ENCRYPTION_KEY_PREVIOUS` (רשימה מופרדת בפסיקים). אותו כלל חל על כל אימות שמשתמש במפתח נגזר (`deriveKey`). הסודות `OPENROUTER_CALLBACK_TOKEN_SECRET` ו-`GROW_WEBHOOK_SECRET` מקבלים גם הם רשימה מופרדת בפסיק: חותמים בראשון ומאמתים מול כולם (`hmacVerifyAny`; runbook R12).
+- **רוטציה** (כל 12 חודשים, או מיד בחשד): מפתח חדש ל-`APP_ENCRYPTION_KEY`, הישן ל-`APP_ENCRYPTION_KEY_PREVIOUS` ★, `scripts/rotate-encryption-key.ts` מצפין מחדש את כל `payment_methods.token_enc` ו-`meta_tokens.token_enc` לגרסה החדשה, ואחרי ריצה נקייה מוחקים את הישן. טוקני הסרה מדיוור חייבים לעבוד לתמיד (חלק 04 §21.4), ולכן האימות שלהם מנסה את כל המפתחות שב-`APP_ENCRYPTION_KEY_PREVIOUS` (רשימה מופרדת בפסיקים). אותו כלל חל על כל אימות שמשתמש במפתח נגזר (`deriveKey`). הסודות `OPENROUTER_CALLBACK_TOKEN_SECRET`, `GROW_WEBHOOK_SECRET` ו-`META_APP_SECRET` מקבלים גם הם רשימה מופרדת בפסיק: חותמים בראשון (ב-Meta: `appsecret_proof`) ומאמתים מול כולם (`hmacVerifyAny`; ב-Meta: `X-Hub-Signature-256` ו-`signed_request`; runbook R12).
+- **טוקנים של Meta** נשמרים רק ב-`meta_tokens.token_enc` (`encryptToken`, אותו מפתח; אין מפתח חדש). הם לא יוצאים מ-`lib/meta/tokens.ts` ומ-`lib/meta/client.ts`, ו-`redactMetaPayload()` מסיר `access_token`, `appsecret_proof`, `signed_request`, `field_data` ו-`code` מכל לוג, אירוע Sentry ו-fixture (חלק 07 §2.1).
 - מפתח OpenRouter אחד לכל סביבה, עם **מגבלת אשראי למפתח** בלוח של OpenRouter (preview: ‏$20 ליום; פרודקשן: פי 1.5 מהתקציב היומי).
 
 ### 15.6 הגבלות קצב
@@ -1811,6 +2126,8 @@ export function safeEqualHex(a: string, b: string): boolean;   // crypto.timingS
 | Resend | Svix (`svix-signature`, `RESEND_WEBHOOK_SECRET`) | — | `svix-id` |
 | Supabase Send SMS Hook | Standard Webhooks (`SEND_SMS_HOOK_SECRET`) | דגל `phone_otp` | `webhook-id` |
 | WhatsApp (v2) | `POST`: ‏`X-Hub-Signature-256` (`WHATSAPP_APP_SECRET`); ‏`GET`: אתגר האימות של Meta (`hub.verify_token` שנגזר ב-HMAC מאותו סוד) | דגל `whatsapp_notify` (כבוי ← 404) | מזהה ההודעה |
+| Meta (webhooks) | `POST`: `X-Hub-Signature-256: sha256=<hex>` = HMAC-SHA256 של הגוף הגולמי, מול כל ערכי `secretList(META_APP_SECRET)`; `GET`: `hub.mode=subscribe` ו-`hub.verify_token` שווה ל-`META_WEBHOOK_VERIFY_TOKEN` (timing-safe) ← `hub.challenge` | התוכן נקרא מחדש מה-Graph API (ליד לפי `leadgen_id`, סטטוס לפי מזהה האובייקט); תשובה תוך שניות, והעבודה עצמה ב-flows; חתימה שגויה ← 401 `WEBHOOK_INVALID_SIGNATURE` | `leadgen:{leadgen_id}` · `issues:{object_id}:{entry.time}` · `inproc:{object_id}:{status_name}` · `{object}:{entry.id}:{field}:{entry.time}` |
+| Meta (deauthorize, מחיקת נתונים) | `signed_request` = `base64url(sig).base64url(payload)`, HMAC-SHA256 מול כל ערכי `META_APP_SECRET`, ו-`payload.algorithm = "HMAC-SHA256"` | מחיקה ← שורת `meta_data_deletion_requests` + flow `metaDataDeletion`; התשובה `{ url, confirmation_code }` | `deauth:{user_id}:{issued_at}` · `deletion:{user_id}:{issued_at}` [M0-verify ש-`issued_at` קיים ב-payload] |
 
 כולם: גוף גולמי, `timingSafeEqual`, גוף עד 1MB, ושורת `webhook_events` עם `signature_valid=false` בכשל (חלק 04 §22.1).
 
@@ -1840,10 +2157,13 @@ export async function safeFetch(rawUrl: string, o: { accept: "html" | "image"; m
 | הצהרות בהעלאה | אנשים מזוהים — הצהרת הסכמה; קטינים — הסכמת הורים (חלק 03) | `assets.metadata.consent_attested` |
 | פלט | מסנני הבטיחות של ספקי המודלים; הנחיית "בלי אנשים אמיתיים ובלי ילדים" בכל פרומפט תמונה (חלק 05) | — |
 | דפים ציבוריים | `/v/[token]` ו-`/approve/[token]` ב-`noindex`, עם **"דיווח על הסרטון"** (`abuse_reports`) | טיפול תוך 2 ימי עסקים; מיידי בחשד לפגיעה בקטינים או לשימוש בדמות בלי הסכמה |
+| מודעות ופוסטים (חלק 07) | `moderation.ad.v1` — נקודת ביקורת לפני C6 ו-C8, גם על טקסט שהמשתמש ערך — וכללי נספח E §18: תכונות אישיות ("את סובלת מ…"), הבטחות מוגזמות, לפני ואחרי בבריאות ובגוף, פוליטיקה ונושאי חברה; ושער הבטיחות של חלק 07 §10.6 (ממשק מטעה רק בפרסום רגיל, הסכמת אנשים, תווית AI, רישיון מוזיקה) | `MODERATION_BLOCKED` או `AD_NOT_ELIGIBLE {reason}` עם הסבר בעברית; פוליטיקה — חסומה תמיד |
+| דפי עסק (חלק 07 §14) | הטקסט שנוצר ב-`landing.copy.v1` וכל עריכה עוברים `moderation.ad.v1` לפני פרסום (הדף הוא דף נחיתה של מודעות), ובלי ביקורות או מחירים שלא הגיעו מהלקוח | חסימת הפרסום עם הסבר; הסרה בידי אדמין לפי דיווח (§7.3) |
+| סרטוני ייחוס (חלק 08 §J.2) | שער הסיכונים: דחייה אוטומטית ב-`political_or_war`, `minor`, `dangerous_stunt`, `real_injury`; `testimonial_format` ← רק צילום אמיתי עם הסכמה; פנים או קול של היוצר ← `do_not_copy` | `trend_analyses.status = 'rejected'` עם `reject_reason` |
 
 ### 15.10 יומן ביקורת
 
-- **שמות הפעולות:** רק מהרשימה הקנונית של חלק 04 §24.1 (‏regex `^[a-z_]+(\.[a-z_]+)+$`; אין שמות אחרים). כל פעולות האדמין נרשמות שם. מתוך הרשימה, פעולות של משתמשים שנרשמות גם הן: `billing.cancel`, ‏`billing.resume`, ‏`billing.plan_change`, ‏`member.role_change` (גם עם `metadata.reason` = `invite_accepted` / `ownership_transfer` / `plan_downgrade`), ‏`privacy.request`, ‏`notifications.whatsapp_opt_in`, ‏`notifications.whatsapp_opt_out`; הענקת אדמין ראשונה מ-`ADMIN_EMAILS` היא `user.admin_grant` עם `metadata.source = 'admin_emails_bootstrap'`; פתיחת אירוע אבטחה — `security.incident` (R7).
+- **שמות הפעולות:** רק מהרשימה הקנונית של חלק 04 §24.1 (‏regex `^[a-z_]+(\.[a-z_]+)+$`; אין שמות אחרים). כל פעולות האדמין נרשמות שם. מתוך הרשימה, פעולות של משתמשים שנרשמות גם הן: `billing.cancel`, ‏`billing.resume`, ‏`billing.plan_change`, ‏`member.role_change` (גם עם `metadata.reason` = `invite_accepted` / `ownership_transfer` / `plan_downgrade`), ‏`privacy.request`, ‏`notifications.whatsapp_opt_in`, ‏`notifications.whatsapp_opt_out`, ובהרחבה `meta.connect`, `meta.disconnect`, `meta.assets_select`, `meta.data_purge`, `meta.campaign_publish`, `meta.campaign_budget`, `meta.campaign_pause`, `meta.campaign_resume`, `meta.campaign_end`, `meta.rule_toggle`, `leads.export` ו-`leads.delete` (פעולות מערכת: `meta.deauthorize`, `meta.data_deletion`; פעולות אדמין: `meta.admin_health_check` ו-`trend.*`); הענקת אדמין ראשונה מ-`ADMIN_EMAILS` היא `user.admin_grant` עם `metadata.source = 'admin_emails_bootstrap'`; פתיחת אירוע אבטחה — `security.incident` (R7).
 - **פעולות שמתועדות בטבלה שלהן ולא ביומן הביקורת:** הזמנות (`workspace_invites`), החלפת כרטיס (`payment_methods`, `checkout_sessions`), קישורי שיתוף (`share_links`), בקשות ייצוא ומחיקה (`data_requests`) והרשמת MFA (טבלאות ה-MFA של Supabase Auth). לכל אחת יש `created_at` ומבצע, ולכן אין צורך בשם פעולה נוסף.
 - **שדות:** מבצע, פעולה, יעד, סביבה, IP, `metadata` עם לפני/אחרי (בלי סודות ובלי אסימונים) וסיבה.
 - **שלמות:** הטריגר `prevent_audit_mutation()` (חלק 04 §10.6) חוסם `update`, `delete` ו-`truncate` גם למפתח הסודי (`AUDIT_LOG_IMMUTABLE`), חוץ מ-`purge_audit_logs()`, שמדליקה הגדרת טרנזקציה (`app.allow_audit_purge`) ומוחקת רק שורות שעבר זמן השמירה שלהן (§11.5).
@@ -1868,6 +2188,7 @@ export async function safeFetch(rawUrl: string, o: { accept: "html" | "image"; m
 - `pnpm install --frozen-lockfile`; `pnpm.onlyBuiltDependencies` (pnpm 10 חוסם סקריפטי התקנה כברירת מחדל): רק `esbuild`, `sharp`, `@sentry/cli`, `supabase` ומה שהספייק יוסיף, עם הסבר ב-`DECISIONS.md`.
 - Renovate: קבוצות שבועיות; חבילות `remotion` ו-`@remotion/*` תמיד יחד ובאותה גרסה מדויקת; `ai` ו-`@openrouter/ai-sdk-provider` נעולות (נספח F §2, חלק 05 §3) — עדכון ראשי רק עם ספייק.
 - CI: `pnpm audit --prod --audit-level=high` (כישלון על high/critical בלי חריגה מתועדת), gitleaks, CodeQL (הגדרת ברירת המחדל של GitHub).
+- **בלי כלי הורדה וסקרייפינג:** `scripts/lint-deps.ts` (חלק מ-`pnpm lint`) מכשיל את ה-CI על חבילות מרשימת האיסור של חלק 08 §J.1 (מורידי וידאו וכלי סקרייפינג כמו yt-dlp, ytdl ו-Apify). `scripts/lint-meta.ts` מכשיל על גרסת Graph שכתובה מחוץ ל-`lib/meta/version.ts` ועל שדות שיצאו משימוש (חלק 07 §2.2).
 - **לפני השקה (M7):** בדיקת חדירות חיצונית, או לפחות הערכה מובנית לפי OWASP ASVS רמה 1, עם תיקון כל ממצא בחומרה גבוהה. הממצאים נשמרים ב-`docs/security/pentest-{yyyy}.md`.
 
 ### קריטריוני קבלה
@@ -1875,8 +2196,11 @@ export async function safeFetch(rawUrl: string, o: { accept: "html" | "image"; m
 - [ ] משתמש שאינו מנהל פלטפורמה מקבל 404 ב-`/admin`, ומנהל בלי `aal2` מופנה ל-`/admin/mfa` ומשם, אחרי קוד נכון, חוזר ל-`next`.
 - [ ] `safeFetch` דוחה (בדיקות יחידה): `http://127.0.0.1`, `http://[::1]`, `http://169.254.169.254/latest/meta-data`, `http://2130706433`, `http://0x7f.1`, דומיין שמפנה (DNS) ל-`10.0.0.5`, והפניה 302 מכתובת ציבורית לכתובת פנימית.
 - [ ] `update audit_logs …` ו-`delete from audit_logs …` נכשלים גם עם המפתח הסודי (`AUDIT_LOG_IMMUTABLE`), ו-`purge_audit_logs()` מוחקת רק שורות שעבר זמנן.
-- [ ] `decryptToken` מפענח טוקן שהוצפן במפתח הקודם אחרי רוטציה, ו-`rotate-encryption-key` מעביר את כולם לגרסה החדשה.
+- [ ] `decryptToken` מפענח טוקן שהוצפן במפתח הקודם אחרי רוטציה, ו-`rotate-encryption-key` מעביר את כולם (`payment_methods` ו-`meta_tokens`) לגרסה החדשה.
 - [ ] `backup.yml` רץ ב-staging, והקובץ המוצפן ניתן לשחזור (תועד תרגיל ראשון ב-M7).
+- [ ] `POST /api/webhooks/meta` שנחתם בסוד השני ברשימה מתקבל; חתימה שגויה ← 401 `WEBHOOK_INVALID_SIGNATURE` ושורת `webhook_events` בלי payload; ליד מ-webhook נקרא מחדש מה-Graph (MSW), ושינוי של `field_data` בגוף הבקשה לא משפיע.
+- [ ] ב-`/app/campaigns/new` ה-CSP מכיל `frame-src https://www.facebook.com`, ובכל דף אחר `frame-src 'none'`; C7 מחזיר `html` שיש בו רק `<iframe>` עם `sandbox` ו-`src` מ-`www.facebook.com`, גם כש-Meta מחזירה HTML עם סקריפט (fixture).
+- [ ] `Permissions-Policy` בנתיב הצילום המודרך מתיר מצלמה ומיקרופון, ובשאר `/app` לא.
 
 ---
 
@@ -1886,9 +2210,9 @@ export async function safeFetch(rawUrl: string, o: { accept: "html" | "image"; m
 
 - `@sentry/nextjs` עם `instrumentation.ts` (שרת ו-edge) ו-`instrumentation-client.ts`; `withSentryConfig` ב-`next.config.ts`; אזור נתונים באיחוד האירופי (DSN של `de.sentry.io`).
 - `environment = APP_ENV`, `release = VERCEL_GIT_COMMIT_SHA`; מפות מקור מועלות בבנייה ונמחקות מהפלט (`sourcemaps.deleteSourcemapsAfterUpload: true`).
-- `sendDefaultPii: false`; `beforeSend` / `beforeSendTransaction` (`lib/sentry/scrub.ts`): מסירים עוגיות, כותרות `authorization`, `apikey`, `cookie`, `x-openrouter-*`, פרמטרים `token|t|k|s|invite|session`, ומחליפים מיילים וטלפונים ישראליים בהודעות ב-`[redacted]`.
+- `sendDefaultPii: false`; `beforeSend` / `beforeSendTransaction` (`lib/sentry/scrub.ts`): מסירים עוגיות, כותרות `authorization`, `apikey`, `cookie`, `x-openrouter-*`, פרמטרים `token|t|k|s|invite|session`, ומחליפים מיילים וטלפונים ישראליים בהודעות ב-`[redacted]`. בנוסף, `redactMetaPayload()` (חלק 07 §2.1) מסיר `access_token`, `appsecret_proof`, `signed_request`, `field_data` ו-`code`, ושום פרט של ליד לא נכנס לאירוע.
 - `tracesSampleRate`: פרודקשן 0.1, preview 1.0. Session Replay כבוי. `tunnelRoute: "/monitoring"` (מוחרג מבדיקות ההתחברות ב-`proxy.ts`).
-- תגיות: `job_id`, `step_key`, `workspace_id`, `route`, `error_code`. שגיאות צנרת מקובצות לפי `error_code` + `step_key` (fingerprint).
+- תגיות: `job_id`, `step_key`, `workspace_id`, `route`, `error_code`, ובהרחבה `campaign_id`, `meta_code` ו-`flow` (שם ה-workflow). שגיאות צנרת מקובצות לפי `error_code` + `step_key` (fingerprint).
 - **Cron Monitors:** `Sentry.withMonitor` לכל נתיב cron (לוח זמנים מ-`vercel.json`), כדי שריצה שלא קרתה תתריע.
 - **Uptime Monitors** של Sentry ל-`/`, `/hooks/real-estate` ו-★ `/api/health`.
 - שמירה: 90 יום.
@@ -1907,7 +2231,7 @@ export const log = {
 // emit → one JSON line: { ts, level, msg, env, release, ...redact(fields) }
 ```
 
-- `redact()` מסיר מפתחות שתואמים `/token|secret|password|authorization|apikey|cookie|card|pan|cvv/i`, ומחליף מיילים וטלפונים ב-`[redacted]`. **אסור** לרשום גופי webhooks, גופי בקשות תשלום, טקסטים של פרומפטים או תסריטים (רק אורך ו-hash).
+- `redact()` מסיר מפתחות שתואמים `/token|secret|password|authorization|apikey|cookie|card|pan|cvv|signed_request|field_data|appsecret/i`, ומחליף מיילים וטלפונים ב-`[redacted]`. **אסור** לרשום גופי webhooks (כולל של Meta), גופי בקשות תשלום, טקסטים של פרומפטים או תסריטים (רק אורך ו-hash), ושום תוכן של ליד.
 - דגימה: `GET /api/hooks/search` ו-`estimate` — 1% מהבקשות המוצלחות; שגיאות — תמיד.
 - אירועים שחייבים להישמר לאורך זמן נשמרים **במסד**, לא רק בלוג: `webhook_events`, `audit_logs`, `ai_generations`, `job_steps`, `email_messages`. לוגי Vercel הם לטווח קצר; העברה (log drain) לספק חיצוני תתווסף רק בהחלטה מתועדת.
 
@@ -1938,7 +2262,7 @@ export const log = {
 | **חריגת הוצאה שעתית** | הוצאה בשעה האחרונה > max($5, פי 3 מהממוצע של אותה שעה ב-7 הימים הקודמים) | שעה | P1 | R6 |
 | **חריגת הוצאה של סביבה** | סביבה עם הוצאה היום מעל $20 וגם פי 5 מהממוצע היומי שלה ב-30 יום | שעה | P2 | R6 |
 | עבודה יקרה מהצפוי | עלות עבודה > פי 2 משווי הקרדיטים שנשמרו (חלק 05) | לכל עבודה | P3 | R6 (סיכום שבועי) |
-| שחיקת רווח | עלות 24 שעות ÷ (הקרדיטים שנצרכו × $0.02, עלות היעד לקרדיט) > 1.2 | יומי | P2 | R6 שלב 5 (בדיקת `credit_costs`) |
+| שחיקת רווח | עלות 24 שעות ÷ (הקרדיטים שנצרכו × $0.02, עלות היעד לקרדיט) > 1.2; העלות של פעולות ב-0 קרדיטים (§2.8) לא נכנסת למונה ומוצגת בנפרד בלוח העלויות | יומי | P2 | R6 שלב 5 (בדיקת `credit_costs`) |
 | יתרת OpenRouter נמוכה | יתרה < 3 ימי הוצאה ממוצעת [M0-verify נקודת יתרה ב-API] | שעה | P1 | R6 |
 | webhooks של תשלום | 3+ `webhook_events` של `payment` בסטטוס `failed`, או `reconcilePendingCheckouts` מצא תשלום שלא דווח | שעה | P1 | R3 |
 | אחוז השלמת קופה | `completed / created` < 50% עם 10 סשנים לפחות | 6 שעות | P2 | R3 |
@@ -1952,6 +2276,15 @@ export const log = {
 | זמינות | `/api/health` נכשל בשתי בדיקות רצופות | — | P0 | R9 |
 | מסד נתונים | CPU מעל 80% ל-15 דקות או דיסק מעל 80% (התראות Supabase) | — | P1 | R9 |
 | **סטייה בקרדיטים** | `credit_invariant_violations()` מחזירה שורות (בדיקה שעתית) | שעה | P0 | `billing_checkout` כבוי ו-`renewals_paused`, `maintenance_mode` אם הסטייה גדלה, ובדיקה מול היומן (R9 לשחזור) |
+| webhooks של Meta | 3+ `webhook_events` של `meta` בסטטוס `failed` או עם `signature_valid=false` | שעה | P1 | R15 (חתימה: R12) |
+| קליטת לידים | כשל של `metaLeadIngest` בליד שאינו ליד בדיקה, או פער בין ה-backfill הלילי ללידים שנקלטו | 15 ד׳ / יומי | P1 | R15 |
+| גל טוקנים לא תקפים | 5 חיבורים לפחות (או 10% מהחיבורים הפעילים) עברו ל-`needs_reconnect` בשעה | שעה | P1 | R18 |
+| כשלי פרסום רגיל | מעל 10% מהפרסומים נכשלו (10 ניסיונות לפחות) | שעה | P2 | R15 |
+| גל דחיות | מעל 30% מהמודעות שנבדקו ב-24 שעות נדחו (10 לפחות), או 5 דחיות עם אותה סיבה בשעה | שעה | P2 | R17 |
+| בדיקה ארוכה של Meta | קמפיין ב-`in_review` מעל 24 שעות | שעה | P2 | R17 (מוצג גם במוניטור הקמפיינים באדמין) |
+| הגבלות קצב של Meta | תור של חשבון מודעות מושהה (שימוש של 95% ומעלה) יותר מ-30 ד׳, או מעל 20% `META_API_ERROR` (20 קריאות לפחות) | 15 ד׳ | P2 | R15 |
+| הגבלה על האפליקציה | קפיצה בשגיאות 200/10 בכל החיבורים, או `tech_provider` בחיבורים חדשים | 15 ד׳ | P0 | R16 |
+| תקציב ניתוח הטרנדים | 80% מ-`trend_analysis_limits.monthly_usd` | יומי | P3 | R6 |
 
 ### קריטריוני קבלה
 - [ ] שגיאה יזומה בנתיב בדיקה מופיעה ב-Sentry עם `release` נכון, בלי עוגיות ובלי מייל בגוף.
@@ -1983,6 +2316,9 @@ export const log = {
 | | `GET /api/jobs/[id]` | < 150ms | |
 | | `POST /api/billing/checkout` | < 1.5 ש׳ (כולל הספק) | |
 | | אישור webhook תשלום / וידאו | < 2 ש׳ / < 500ms | |
+| | אישור webhook של Meta | < 2 ש׳ (העבודה עצמה ב-flows) | |
+| | ליד ← תיבת הלידים + התראה | < 60 ש׳ | e2e ובדיקת M10 |
+| | `GET /api/campaigns/[id]/insights` · `GET /api/meta/dashboard` | < 300ms (מהמראה ב-DB, בלי קריאה ל-Meta) | |
 | | תוצאת חילוץ מותג | < 20 ש׳ | |
 | מסד | שאילתה p95 | < 50ms | `pg_stat_statements` (סקירה ב-M7) |
 | | `reserve_credits` | < 20ms | בדיקת מקביליות |
@@ -1990,7 +2326,7 @@ export const log = {
 | | רינדור 30 ש׳ 1080p לפורמט | p50 < 90 ש׳ | `render_runs.render_ms` |
 | | הצלחת רינדור / הצלחת יצירה | ≥ 99% / ≥ 97% | לוח אדמין |
 
-`.lighthouserc.json` מריץ את הדפים `/`, `/hooks/real-estate`, `/niches/dentists`, `/pricing` (פריסט נייד) על כתובת ה-preview, עם assertions שמכשילות את ה-PR. `scripts/check-bundle.ts` קורא את פלט הבנייה [M0-verify את מבנה הפלט של Turbopack ב-Next 16; אם אין נתוני גודל לכל נתיב — נשענים על `resource-summary:script:size` של LHCI].
+`.lighthouserc.json` מריץ את הדפים `/`, `/hooks/real-estate`, `/niches/dentists`, `/pricing`, ומ-M8 גם את `/trends` ואת `/trends/bait-and-sign` (ביצועים ≥ 90), ומ-M10 דף עסק לדוגמה מה-fixtures (פריסט נייד) על כתובת ה-preview, עם assertions שמכשילות את ה-PR. `scripts/check-bundle.ts` קורא את פלט הבנייה [M0-verify את מבנה הפלט של Turbopack ב-Next 16; אם אין נתוני גודל לכל נתיב — נשענים על `resource-summary:script:size` של LHCI].
 
 ### קריטריוני קבלה
 - [ ] LHCI רץ על כל PR מול ה-preview ונכשל כשתקציב נשבר.
@@ -2006,7 +2342,7 @@ export const log = {
 | שכבה | כלי | איפה | מתי רץ | מה מכסה |
 |---|---|---|---|---|
 | יחידה | Vitest (node; jsdom לרכיבים) | `tests/unit/**` | כל PR | חישובים, נרמול עברית, bidi, כתוביות, חיוב, הצפנה, אנליטיקה, מיילים |
-| חוזה | Vitest + MSW + fixtures מוקלטים | `tests/contract/**` | כל PR | בוני הבקשות והמפענחים של OpenRouter, Grow, Morning, Resend; נתיבי API (חלק 04 §25.5) |
+| חוזה | Vitest + MSW + fixtures מוקלטים | `tests/contract/**` | כל PR | בוני הבקשות והמפענחים של OpenRouter, Grow, Morning, Resend, ובהרחבה Meta Graph / Marketing API; נתיבי API (חלק 04 §25.5) |
 | מסד | pgTAP (`supabase test db`) + מקביליות ב-Vitest | `supabase/tests/*.sql`, `tests/contract/credits.concurrency.test.ts` | כל PR | RLS, פונקציות קרדיטים, אחסון, Realtime (חלק 04 §25) |
 | e2e | Playwright | `tests/e2e/**` | כל PR (על build מקומי), smoke על preview ו-staging | זרימות מלאות ב-RTL |
 | נגישות | `@axe-core/playwright` + בדיקות מקלדת | `tests/e2e/a11y/**` | כל PR | WCAG 2.2 AA אוטומטי |
@@ -2014,7 +2350,7 @@ export const log = {
 | עומס | tsx (צנרת) + k6 (HTTP) | `tests/load/**` | M5, M7, ולפני שינוי תשתית | 20 עבודות במקביל, דפים ונתיבים חמים |
 | ידני | בדיקת שפה בידי דובר עברית כשפת אם, קוראי מסך, מכשירים | `docs/qa/**` | M2, M3, M5, M7 | איכות השפה, נגישות אמיתית |
 
-**ספי כיסוי** (`vitest --coverage`, נכשל מתחת): `lib/billing/**` ו-`lib/credits/**` — 95% שורות; `lib/captions/**`, `lib/hebrew/**`, `lib/security/**` — 90%; כל השאר — 75%.
+**ספי כיסוי** (`vitest --coverage`, נכשל מתחת): `lib/billing/**` ו-`lib/credits/**` — 95% שורות; `lib/meta/money.ts`, `lib/meta/signed-request.ts`, `lib/meta/webhooks.ts`, `lib/meta/eligibility.ts` ו-`lib/workspace/limits.ts` — 95%; שאר `lib/meta/**`, `lib/social/**` ו-`lib/trends/**` — 85%; `lib/captions/**`, `lib/hebrew/**`, `lib/security/**` — 90%; כל השאר — 75%.
 
 ### 18.2 בדיקות יחידה מחייבות
 
@@ -2038,6 +2374,16 @@ export const log = {
 | `lib/email/*` | snapshot לכל תבנית ווריאנט; "פרסומת:" חובה בדיוור; `dir="rtl"`; טקסט נקי |
 | `lib/flags.ts` | סדר עדיפויות (env ← סביבה ← תוכנית ← כללי), env לא גובר בפרודקשן |
 | `lib/env.ts` | `mock` אסור בפרודקשן; כל משתנה חובה חסר — שגיאה ברורה |
+| `lib/meta/money.ts` | `ilsToMetaMinor(50) = 5000`, `ilsToMetaMinor(39.99) = 3999`, `metaMinorToIls("5000") = 50`; `MetaMinor` לא ניתן להשמה לשדה `…Ils` (`expectTypeOf`); `spend` עשרוני נשמר כמו שהוא |
+| מיפוי המטרות (`lib/meta/campaigns/build.ts`) | לכל אחת מ-4 המטרות: `objective`, `destination_type`, `optimization_goal`, `promoted_object` ו-CTA (חלק 07 §9.9); תמיד `status: "PAUSED"`; `targeting_automation.advantage_audience` נשלח תמיד; אין Explore ואין `instagram_actor_id` |
+| `lib/meta/webhooks.ts` · `lib/meta/signed-request.ts` | חתימה נכונה, שגויה, ונחתמה בסוד השני ברשימה; אתגר `GET`; `external_id` לכל סוג שינוי; `signed_request` תקין, עם `algorithm` אחר, עם payload פגום ועם base64url בלי ריפוד |
+| `lib/social/caption.ts` | עד 5 האשטגים (השישי נחתך), ניקוי ׳ ״ - וניקוד, קו תחתון במקום רווח, U+200F בתחילת שורה שמתחילה בספרה, באימוג׳י, ב-₪ או בלטינית, טלפון וכתובת עטופים ב-U+2066…U+2069, עד 2,000 תווים, CTA בשורה הראשונה |
+| `lib/meta/rules.ts` · בחירת מנצח | 5 הכללים של חלק 07 §10.4 על נתונים מתוארכים: לא משהה את המודעה הפעילה האחרונה; `boost_winner` פעם ב-72 שעות ולא מעל התקרות; `monthly_cap_stop` רק מול התקרה של הלקוח. לפני המדגם המינימלי (`meta_min_sample`) אין מנצח; אחריו — עלות לתוצאה, ובשוויון hook rate |
+| `lib/meta/eligibility.ts` | 7 החסימות של חלק 07 §10.6, לפי הסדר; `organic_only` לא עובר גם עם תווית AI |
+| `lib/meta/rate-limit.ts` | פענוח `X-Business-Use-Case-Usage`; 75% ← השהיית התור; 95% ← רק קריאות סטטוס ודוחות; שינוי תקציב רביעי בשעה ← `RATE_LIMITED {scope: "meta_budget"}` |
+| `lib/workspace/limits.ts` | 4 המצבים של §2.7, תקרה 0, קמפיין ניסיון שני; `landingPageLimit` (חינם 0, חינם עם `has_paid` 1, סוכנות 1 לכל סביבה); `enforceMetaLimits` לא מכבה `monthly_cap_stop` |
+| `lib/meta/explain-fallback.ts` + המאמת הסמנטי | מספר שלא הופיע בקלט ← נפילה לתבנית הקבועה; לפני המדגם — רק `wait_more_data` |
+| `lib/trends/similarity.ts` | חפיפה של 6 מילים ברצף ← דחייה; "POV" ו-"GRWM" ברשימת ההיתר |
 
 ### 18.3 בדיקות חוזה עם fixtures מוקלטים
 
@@ -2056,7 +2402,9 @@ export const log = {
   - Grow (אחרי הספייק): יצירת עמוד; notify; שאילתה חוזרת; `approveTransaction` (אם קיים); חיוב לפי אסימון — הצלחה, סירוב, תוקף פג; החזר מלא וחלקי; שאילתת סטטוס.
   - Morning: טוקן; 320 כולל מע״מ; 330 מקושרת; תשובה עם מספר הקצאה; חיפוש לפי `remarks`; שגיאת ולידציה.
   - Resend: שליחה; webhook מסוג `email.bounced` ו-`email.complained` (חתימת Svix).
+  - **Meta** (`tests/fixtures/meta/*`; אותם קבצים משמשים את `lib/meta/mock/*` ואת MSW): החלפת `code` בטוקן; `/me/adaccounts`, `/me/accounts` וחשבון IG עסקי; `debug_token` תקין ופסול (190); יצירת campaign, ad set, creative ו-ad במצב PAUSED; `/previews` (גם עם HTML שמכיל סקריפט, לבדיקת הניקוי); insights עם `actions[]`; `PENDING_REVIEW` ← `ACTIVE` / `DISAPPROVED` עם `review_feedback`; כותרות `X-Business-Use-Case-Usage` של 80% ושל 96%; שגיאות 1, 17, 190, 613 (כולל subcode 1487632), 2207026 ו-2207089; ליד (`GET /{leadgen_id}`) בעברית; container של IG `IN_PROGRESS` ← `FINISHED` ← `media_publish`; `content_publishing_limit`; FB Reels start / rupload / finish; `boost_eligibility_info`. ההקלטה (`fixtures:record --provider=meta`) רצה רק מול חשבון המודעות שלנו בארגז החול, דרך `redactMetaPayload`.
 - **בדיקת סטייה שבועית** (`contract-live.yml`, יום שני 06:00): מפענחת את `/models` ו-`/videos/models` האמיתיים, מריצה קריאת `llm.cheap` אחת עם `json_schema` (פחות מ-$0.001), ופונה ל-sandbox של Grow ו-Morning. סטייה ← issue אוטומטי ב-GitHub עם ההבדלים.
+- **Meta smoke שבועי** (באותו workflow, job `meta-smoke`, §19.3): `pnpm meta:smoke` על חשבון המודעות שלנו בארגז החול, ל-`META_GRAPH_VERSION` ול-`META_GRAPH_VERSION_NEXT` כשהוא מוגדר (R14). כישלון ← issue אוטומטי.
 
 ### 18.4 e2e (Playwright)
 
@@ -2069,6 +2417,7 @@ export const log = {
 | `ORCHESTRATOR` / `RENDER_PROVIDER` | `inline` / `local` עם ★ `RENDER_SCALE=0.25` (רינדור 270×480, מהיר) |
 | `EMAIL_PROVIDER` ★ | `smtp` אל Mailpit/Inbucket של Supabase המקומי; הבדיקות קוראות מיילים מה-API שלו [M0-verify איזה מהשניים בגרסת ה-CLI] |
 | `APP_ENV` | `test` |
+| `META_PROVIDER` ★ | `mock` — handlers של `lib/meta/mock/*` (MSW בצד השרת), דף ההסכמה `/dev/mock-meta-login` וסימולטור ה-webhook של `leadgen` |
 
 **הגדרות:** `locale: "he-IL"`, `timezoneId: "Asia/Jerusalem"`; פרויקטים: `desktop-chrome` (1440×900), `mobile-safari` (iPhone 14), `mobile-chrome` (Pixel 7). איתור רכיבים **רק לפי תפקיד ושם נגיש בעברית** (`getByRole("button", { name: "המשך" })`) — כך כל בדיקה מאמתת גם את התוויות. התחברות: בדיקה אחת דרך קישור קסם אמיתי מ-Mailpit; השאר דרך `loginAs(page, email)` (`auth.admin.generateLink` ← `/auth/confirm`).
 
@@ -2107,27 +2456,40 @@ export const log = {
 | `privacy-account.spec.ts` | ייצוא (מייל + הורדה), חסימת מחיקה לבעלים עם צוות, מחיקה ומייל |
 | `security-headers.spec.ts` | CSP, HSTS (staging), nonce בדפים דינמיים, אפס `securitypolicyviolation`, 404 ל-`/dev/*` בפרודקשן-דמה |
 | `admin-mfa.spec.ts` | משתמש רגיל ← 404 ב-`/admin`; מנהל בלי `aal2` ← `/admin/mfa` ← קוד TOTP (סוד בדיקה) ← `/admin`; פעולת אדמין נרשמת ב-`audit_logs` |
+| `meta-connect.spec.ts` | בעלים ← "חיבור פייסבוק ואינסטגרם" ← `/dev/mock-meta-login` ← בחירת נכסים ← צ׳קליסט ירוק ושורת `meta_ads_terms`; עורך לא רואה את הכפתור; "ניתוק" מוחק את הטוקנים |
+| `social-publish.spec.ts` | רילס ל-IG ול-FB "עכשיו", ותזמון לעוד 30 דקות עם שעון מזויף; 6 האשטגים ← שגיאה; יום שקט ← התזמון חסום |
+| `campaign-launch.spec.ts` | פרויקט עם 3 הוקים ← "העלו לקמפיין" ← 4 השלבים ← "הכנה לפרסום" ← תצוגות מקדימות ← תיבת האישור ← "פרסום" ← `in_review` ← `active` (webhook מדומה) ← דוח עם 4 המספרים; שינוי תקציב רביעי בשעה נדחה בעברית; אי אפשר להשיק את T4 |
+| `leads-inbox.spec.ts` | webhook `leadgen` מדומה ← ליד בתיבה תוך 60 שניות + התראה + מייל ב-Mailpit; סטטוס, הערה, ייצוא CSV (UTF-8 עם BOM); צופה רואה ולא מעדכן |
+| `spend-cap.spec.ts` | 80% ← באנר ומייל אחד; 100% ועוד 8 ימים ← השקה חסומה עם הצעת שדרוג, והשהיה עובדת |
+| `trends-flow.spec.ts` | `/app/trends` ← כרטיס ← "צרו בקליק" ← האשף נפתח עם הטרנד ← רינדור (mock) ← "העלו לקמפיין"; תבנית `organic_only` מציגה את ההודעה ולא מתירה קמפיין |
+| `guided-shoot.spec.ts` | רשימת צילומים ← 3 קליפים (אחד webm) ← הצהרת ההסכמה ← עריכה אוטומטית ← סרטון; בלי הצהרה ← `consent_required` |
+| `landing-page.spec.ts` | חינם: יצירה (10 קרדיטים) ← תצוגה מקדימה עם סימן מים ← "פרסום" חסום עם "דף העסק זמין בתוכניות בתשלום"; בסיס: פרסום ← `/b/[slug]` עם זהות העסק ו-`noindex` ← ליד מהטופס מגיע לתיבה עם `source = landing_page`; honeypot ← 204 בלי שמירה |
+| `health-check.spec.ts` | חשבון mock עם 90 יום של היסטוריה ← דוח עם ציון ועד 5 תיקונים ← "תיקון" פותח את הבונה; בדיקה שנייה באותו יום ← `RATE_LIMITED` |
+| `monthly-plan.spec.ts` | אחרי האונבורדינג: תוכנית של כ-12 פריטים בלוח התוכן, בלי פריט ביום שקט; "צרו בקליק" פותח את האשף ממולא |
+| `meta-deletion.spec.ts` | `signed_request` של מחיקת נתונים ← JSON עם `url` ו-`confirmation_code` ← `/meta/data-deletion?code=` מציג "התקבלה" ואחר כך "הושלמה" |
 
-**תגיות:** `@smoke` (הרשמה, דף הבית, ספריית ההוקים, עמוד מחירים, `/api/health`) רץ על כל preview ו-staging; `@billing-sandbox` רץ רק ב-staging מול Grow ו-Morning sandbox; `@readonly` רץ בפרודקשן אחרי כל פריסה.
+**תגיות:** `@smoke` (הרשמה, דף הבית, ספריית ההוקים, עמוד מחירים, `/api/health`, ומ-M8 גם `/trends`) רץ על כל preview ו-staging; `@billing-sandbox` רץ רק ב-staging מול Grow ו-Morning sandbox; `@readonly` רץ בפרודקשן אחרי כל פריסה.
 
 ### 18.5 נגישות אוטומטית
 
-`tests/e2e/a11y/pages.spec.ts` עובר על כל תבניות הדפים הציבוריים (`/`, `/niches`, `/niches/[niche]`, `/hooks`, `/hooks/[niche]`, `/hooks/types/[type]`, `/hooks/season/[season]`, `/hooks/platform/[platform]`, `/examples`, `/templates/[slug]`, `/pricing`, `/blog/[slug]`, `/about`, `/contact`, `/faq`, 7 הדפים המשפטיים, `/login`, `/v/[token]`, `/approve/[token]`, `/unsubscribe`) ועל מסכי האפליקציה המרכזיים (דשבורד, כל שלב באשף, דיאלוג האישור, התקדמות, פרויקט, עורך, ספריות, ערכת מותג, חיוב, ביטול, הגדרות, צוות) — **בשתי הערכות, דסקטופ ומובייל, ועם `reducedMotion: "reduce"`**. תגיות axe: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`; כישלון על `serious`/`critical`; `moderate` נרשם בדוח. בנוסף, `keyboard.spec.ts`: האשף כולו במקלדת בלבד; סידור סצנות בעורך במקלדת (רווח, חצים, רווח); מיקוד נראה ולא מוסתר מתחת לכותרת הדביקה; `Esc` סוגר דיאלוגים ומחזיר מיקוד.
+`tests/e2e/a11y/pages.spec.ts` עובר על כל תבניות הדפים הציבוריים (`/`, `/niches`, `/niches/[niche]`, `/hooks`, `/hooks/[niche]`, `/hooks/types/[type]`, `/hooks/season/[season]`, `/hooks/platform/[platform]`, `/examples`, `/templates/[slug]`, `/pricing`, `/blog/[slug]`, `/about`, `/contact`, `/faq`, הדפים המשפטיים (7 בהשקה ו-`/legal/dpa` מ-M11), `/login`, `/v/[token]`, `/approve/[token]`, `/unsubscribe`, ובהרחבה `/trends`, `/trends/[slug]`, `/campaigns`, `/b/[slug]`, `/b/[slug]/privacy`, `/meta/data-deletion`) ועל מסכי האפליקציה המרכזיים (דשבורד, כל שלב באשף, דיאלוג האישור, התקדמות, פרויקט, עורך, ספריות, ערכת מותג, חיוב, ביטול, הגדרות, צוות, ובהרחבה קמפיינים, כל שלב בבונה, לידים, פרסום ותזמון, טרנדים, צילום מודרך, דפי עסק, בדיקת דופק, "התוכנית שלי" ואינטגרציות) — **בשתי הערכות, דסקטופ ומובייל, ועם `reducedMotion: "reduce"`**. תגיות axe: `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa`; כישלון על `serious`/`critical`; `moderate` נרשם בדוח. בנוסף, `keyboard.spec.ts`: האשף כולו במקלדת בלבד; סידור סצנות בעורך במקלדת (רווח, חצים, רווח); מיקוד נראה ולא מוסתר מתחת לכותרת הדביקה; `Esc` סוגר דיאלוגים ומחזיר מיקוד.
 
 ### 18.6 RLS ובידוד
 
-הסוויטה של חלק 04 §25 (pgTAP + מקביליות) היא הבסיס. מעליה, ב-`tests/contract/api/isolation.test.ts`: לכל נתיב שמקבל מזהה — משתמש מסביבה אחרת מקבל 404 (לא 403, כדי לא לחשוף קיום), כולל `/api/assets/[id]/url`, `/api/jobs/[id]`, `/api/billing/invoices/[id]`, ונתיבי האחסון החתומים.
+הסוויטה של חלק 04 §25 (pgTAP + מקביליות) היא הבסיס. מעליה, ב-`tests/contract/api/isolation.test.ts`: לכל נתיב שמקבל מזהה — משתמש מסביבה אחרת מקבל 404 (לא 403, כדי לא לחשוף קיום), כולל `/api/assets/[id]/url`, `/api/jobs/[id]`, `/api/billing/invoices/[id]`, ונתיבי האחסון החתומים, ובהרחבה `/api/campaigns/[id]/*`, `/api/leads/[id]`, `/api/social/posts/[id]/*`, `/api/landing-pages/[id]/*`, `/api/guided/shoots/[id]/*` ו-`/api/plan/items/[id]`.
 
 ### 18.7 בדיקות עומס
 
 - **צנרת** (`tests/load/pipeline.ts`): מול staging, עם ★ שרת mock של OpenRouter שנפרס כפרויקט Vercel נפרד (`tools/mock-openrouter`, השהיות ריאליות: תמונה 4–12 ש׳, וידאו 60–180 ש׳ עם webhook, TTS ‏3–8 ש׳; 5% כשלים מוזרקים בקליפים) ועם רינדור אמיתי ב-Sandbox. יוצר 20 סביבות עם 2,000 קרדיטים, מפעיל 20 עבודות `full_generate` במקביל (30 ש׳, סטנדרט, 3 פורמטים) וממתין. **קבלה:** לפחות 19 מצליחות (וכשל רק מוזרק), כל כשל קליפ מוזרק הופך לסצנה מתמונה ולא לכשל עבודה, `credit_invariant_violations()` = 0, אין שמירה פתוחה בסוף, p95 מקצה לקצה < 12 ד׳, אפס 5xx ב-webhooks, CPU של המסד < 70%, אפס שגיאות ריצה ב-Workflows. הדוח נשמר ב-`docs/qa/load-{date}.md`.
 - **HTTP** (`tests/load/http.k6.js`): `/hooks/real-estate` ב-100 בקשות לשנייה למשך 2 ד׳ (p95 TTFB < 300ms, אפס שגיאות); `/api/hooks/search` ב-50 לשנייה (p95 < 300ms); `estimate` מאומת ב-20 לשנייה (p95 < 200ms).
+- **Meta (M11):** 200 חשבונות מודעות מדומים (mock) בתוך הנעילה של ה-cron השעתי (`meta-insights-hourly`, 50 דקות): כל הסנכרונים מסתיימים בחלון, אף חשבון לא עובר את סף ה-75% של השער, ו-`refresh_managed_spend` רץ פעם אחת בסוף. הדוח נשמר יחד עם דוח M7.
 
 ### 18.8 בדיקות ידניות
 
 - **עברית** (M2, M5, M7): בודק שפה שעברית היא שפת האם שלו עובר על כל `messages/he.json`, המיילים, הדפים המשפטיים, הזרע, ו-20 בריפים בבדיקה עיוורת של מודלי התסריט (נספח F §7.1); ממצאים ב-`docs/qa/hebrew-review.md`, לפי נספח E.
 - **קוראי מסך** (M7): NVDA עם Chrome ו-Firefox ב-Windows, VoiceOver ב-iOS Safari — הרשמה, אשף, עמוד פרויקט, ביטול מנוי.
 - **מכשירים:** iPhone (Safari), אנדרואיד (Chrome), דסקטופ Chrome/Edge/Firefox/Safari; מיילים — §12.2 סעיף 13.
+- **Meta (M9–M11):** טופס הלידים ב-`HE_IL` על iPhone ועל אנדרואיד (RTL), תצוגות מקדימות של מודעות בכל המיקומים, וסרטוני ההדגמה ל-App Review (כתוביות באנגלית מעל הממשק העברי).
 
 ### קריטריוני קבלה
 - [ ] `pnpm test`, `pnpm test:contract`, `pnpm db:test`, `pnpm test:e2e`, `pnpm test:a11y` ירוקים ב-CI על `main`.
@@ -2135,6 +2497,8 @@ export const log = {
 - [ ] אין ב-repo מפתח אמיתי בתוך fixture (gitleaks + בדיקת `redact`).
 - [ ] בדיקת הסטייה השבועית רצה בהצלחה לפחות פעם אחת לפני ההשקה.
 - [ ] דוח עומס של M7 עומד בכל תנאי 18.7.
+- [ ] ה-e2e של ההרחבה (`meta-*`, `campaign-launch`, `leads-inbox`, `social-publish`, `spend-cap`, `trends-flow`, `guided-shoot`, `landing-page`, `health-check`, `monthly-plan`) עוברים מול ה-mock של Meta, בלי רשת חיצונית.
+- [ ] `pnpm meta:smoke` עבר על חשבון המודעות שלנו בארגז החול לפחות פעם אחת לפני M10, ורץ מאז כל שבוע.
 
 ---
 
@@ -2152,6 +2516,7 @@ export const log = {
 - `APP_ENV` ★ (`local` | `test` | `preview` | `staging` | `production`) קובע התנהגויות: חסימת `mock`, הצגת `/dev/*`, `EMAIL_ALLOWLIST`, דגימת Sentry, HSTS.
 - **`EMAIL_ALLOWLIST`** (רשימת סיומות וכתובות, למשל `@{{DOMAIN}},qa.inbox@gmail.com`): מחוץ לפרודקשן, מייל לכתובת שלא ברשימה לא נשלח, ונרשם `skipped_allowlist` — כך preview לא ישלח בטעות מייל ללקוח אמיתי.
 - סביבת staging משמשת גם לבדיקות עומס, לבדיקות sandbox של תשלומים ולתרגיל השחזור.
+- **Meta:** `META_PROVIDER` הוא `mock` ב-local, ב-test וב-preview (עם `/dev/mock-meta-login`, שמחזיר 404 בפרודקשן), ו-`meta` ב-staging (אפליקציית Meta שלנו, נכסי הבדיקה, ומשתמשים עם תפקיד באפליקציה) ובפרודקשן. ב-staging ה-webhooks של Meta נרשמים לכתובת ה-staging עם פרמטר ה-bypass [M0-verify ש-Meta מקבלת כתובת callback עם query].
 - **webhooks ו-cron מאחורי ההגנה:** כש-`APP_ENV` הוא `preview` או `staging`, כל כתובת callback שאנחנו נותנים לספק מקבלת `x-vercel-protection-bypass=${VERCEL_AUTOMATION_BYPASS_SECRET}`: `callbackUrlFor` של OpenRouter (ב-staging מחזיר כתובת; ב-preview עדיין `null`, וה-sweeper עושה polling), `notifyUrl` של Grow (§8.2), וכתובות ה-webhook של Resend ו-Morning שנרשמות ל-staging. בפרודקשן לעולם לא: `lib/env.ts` מתעלם מהמשתנה כש-`APP_ENV=production` (`callbackBypassParam()` מחזיר אז מחרוזת ריקה). Vercel Cron רץ רק בפריסות פרודקשן, ולכן ב-staging ה-crons מופעלים מ-`staging-crons.yml` (§19.3) עם `CRON_SECRET_STAGING` וכותרת ה-bypass; `smoke-staging` קורא בעצמו ל-`/api/cron/billing-renewals` אם רכישת ה-sandbox לא הוחלה תוך 60 שניות. [M0-verify ספייק 12: Vercel Cron רק בפרודקשן; POST של Grow, OpenRouter ו-Resend עובר עם פרמטר ה-bypass]
 
 ### 19.2 ענפים ו-PR
@@ -2172,6 +2537,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: ./.github/actions/setup
+      # pnpm lint = ESLint + lint:meta + lint:deps (§23.6; part 07 §2.2, part 08 §J.1)
       - run: pnpm typecheck && pnpm lint && pnpm lint:rtl && pnpm lint:copy && pnpm lint:billing && pnpm format:check
       - run: pnpm check-env --example            # .env.example covers every variable in lib/env.ts
   unit:
@@ -2243,13 +2609,13 @@ jobs:
 | `preview-checks.yml` | `deployment_status` (Preview הצליח) | LHCI + Playwright `@smoke` מול כתובת ה-preview, עם ★ `VERCEL_AUTOMATION_BYPASS_SECRET` לעקיפת ההגנה |
 | `release.yml` | push ל-`main` אחרי ש-`ci` עבר | `migrate-staging` ← `deploy-staging` ← `smoke-staging` (`@smoke` + `@billing-sandbox`; אם רכישת ה-sandbox לא הוחלה תוך 60 שניות, הוא קורא בעצמו ל-`/api/cron/billing-renewals`) ← **אישור ידני** (GitHub Environment `production` עם reviewer) ← `migrate-production` (על runner של GitHub בלי IP קבוע, ולכן הגבלות הרשת של המסד כבויות, §15.11) ← `deploy-production` (`vercel build --prod` + `vercel deploy --prebuilt --prod`) ← `smoke-production` (`@readonly`) ← שחרור ב-Sentry ותגית `v0.{m}.{patch}` |
 | `backup.yml` / `backup-storage.yml` | cron שבועי / יומי | §15.11 (רצים על runners של GitHub; מחרוזות החיבור רק בסודות) |
-| `staging-crons.yml` ★ | cron `*/10 * * * *` | קורא ל-`/api/cron/{sweep-jobs,billing-renewals,reminders,cleanup,hook-of-the-day}` ב-`staging.{{DOMAIN}}` עם `Authorization: Bearer ${CRON_SECRET_STAGING}` וכותרת `x-vercel-protection-bypass` (Vercel Cron רץ רק בפרודקשן, §19.1) |
-| `contract-live.yml` | cron שבועי | §18.3 |
+| `staging-crons.yml` ★ | cron `*/10 * * * *` | קורא ל-`/api/cron/{sweep-jobs,billing-renewals,reminders,cleanup,hook-of-the-day}`, ומ-M8–M10 גם `/api/cron/{meta-insights-hourly,meta-insights-backfill,meta-review-poll,social-publish,social-insights,meta-token-health,meta-rules,meta-leads-backfill,weekly-summary,trends-lifecycle}` (כל 10 דקות זה רק קירוב ללוח של פרודקשן; ריצה ידנית מ-`/admin` כשבדיקה צריכה שעה מדויקת), ב-`staging.{{DOMAIN}}` עם `Authorization: Bearer ${CRON_SECRET_STAGING}` וכותרת `x-vercel-protection-bypass` (Vercel Cron רץ רק בפרודקשן, §19.1) |
+| `contract-live.yml` | cron שבועי | §18.3, ובנוסף job `meta-smoke`: `pnpm meta:smoke` (campaign, ad set, creative ו-ad במצב PAUSED בחשבון המודעות שלנו בארגז החול, תצוגות מקדימות, insights ומחיקה) ל-`META_GRAPH_VERSION`, ושוב ל-`META_GRAPH_VERSION_NEXT` כשהמשתנה מוגדר (runbook R14); סודות `META_SANDBOX_*` ב-Environment `staging` |
 | `eval-prompts.yml` | cron לילי + `workflow_dispatch` | `pnpm eval:prompts` מול הנתיבים הפעילים, תקציב $5 להרצה, עם סוד `OPENROUTER_API_KEY` של staging (חלק 05 §23.5) |
 | `codeql.yml` | הגדרת ברירת המחדל של GitHub | סריקת קוד |
 
 - `vercel.json` כולל `"git": { "deploymentEnabled": { "main": false } }`, כדי ש-push ל-`main` **לא** יפרוס לפרודקשן לבד; הפריסה עוברת רק דרך `release.yml`, אחרי המיגרציות והאישור. פריסות Preview ל-PR נשארות אוטומטיות [M0-verify את המפתח ואת פריסת הסביבה המותאמת `staging` ב-CLI].
-- כל ה-Actions מקובעות ל-SHA. סודות ה-CI ★: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `SENTRY_AUTH_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET`, `CRON_SECRET_STAGING` (= `CRON_SECRET` של staging, ל-`staging-crons.yml`), וסודות הגיבוי — `BACKUP_DB_URL` ו-`BACKUP_*` (§15.11, §20). ‏`contract-live.yml` ו-`eval-prompts.yml` רצים ב-GitHub Environment ‏`staging`, עם מפתחות ה-sandbox וה-staging תחת אותם שמות כמו בזמן ריצה (`OPENROUTER_API_KEY`, ‏`GROW_*`, ‏`MORNING_*`).
+- כל ה-Actions מקובעות ל-SHA. סודות ה-CI ★: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `SENTRY_AUTH_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET`, `CRON_SECRET_STAGING` (= `CRON_SECRET` של staging, ל-`staging-crons.yml`), וסודות הגיבוי — `BACKUP_DB_URL` ו-`BACKUP_*` (§15.11, §20). מ-M9 גם `META_SANDBOX_AD_ACCOUNT_ID`, `META_SANDBOX_SYSTEM_TOKEN` ו-`META_SANDBOX_PAGE_ID` (Environment `staging`), והמשתנה (לא סוד) `META_GRAPH_VERSION_NEXT`. ‏`contract-live.yml` ו-`eval-prompts.yml` רצים ב-GitHub Environment ‏`staging`, עם מפתחות ה-sandbox וה-staging תחת אותם שמות כמו בזמן ריצה (`OPENROUTER_API_KEY`, ‏`GROW_*`, ‏`MORNING_*`).
 
 ### 19.4 מיגרציות בפריסה
 
@@ -2257,6 +2623,7 @@ jobs:
 - מילוי נתונים (backfill) — סקריפט נפרד ואידמפוטנטי ב-`scripts/backfill/*.ts`, לא בתוך המיגרציה, כשמדובר ביותר מ-10,000 שורות.
 - **Supabase Branching** (DB נפרד לכל PR שמשנה את `supabase/**`) — אופציונלי, אחרי ספייק [M0-verify: עלות, סנכרון המפתחות החדשים ל-Vercel, ושהוא לא מחיל מיגרציות על פרודקשן מחוץ ל-`release.yml`]. בלעדיו: preview עובד מול staging, ומיגרציות של PR נבדקות ב-CI על מסד מקומי בלבד; PR עם מיגרציה מוחל על staging רק אחרי מיזוג.
 - **אסור** להריץ מיגרציות "down" בפרודקשן. תיקון = מיגרציה קדימה.
+- **אחרי ההשקה:** כל שינוי סכמה הוא קובץ חדש בלבד — `0013_meta_integration.sql` (חלק 07 §6) ו-`0014_trends.sql` (חלק 08 §D) — ולעולם לא עריכה של `0001`–`0012`. ערכי enum חדשים (`alter type … add value if not exists`) יושבים בראש הקובץ ולא בשימוש בתוכו (חלק 04 §3). שני הקבצים תואמים לגרסה הקודמת של הקוד (רק expand), ולכן נפרסים לפני הקוד שמשתמש בהם, והדגלים כבויים עד שהקוד מוכן.
 
 ### 19.5 חזרה לאחור
 
@@ -2278,6 +2645,8 @@ jobs:
 | Supabase | Pro ‏$25 לחודש; PITR הוא תוספת בתשלום; המפתחות הישנים (`anon`/`service_role`) יוצאים משימוש בסוף 2026 | רק `sb_publishable_…` ו-`sb_secret_…` (§20); PITR מופעל ב-M7 לפני לקוחות משלמים (§15.11) |
 | רישיון Remotion | חינם לארגון של עד 3 עובדים. מעל זה — רישיון חברה: Creators ‏$25 למושב לחודש, Automators ‏$0.01 לרינדור עם מינימום $100 לחודש, Enterprise מ-$500 לחודש | בהשקה (עד 3 עובדים) אין תשלום. ביום שהחברה עוברת 3 עובדים — רוכשים רישיון Automators (רינדור אוטומטי בשרת הוא בדיוק המקרה הזה), מגדירים `REMOTION_LICENSE_KEY` [M0-verify איך המפתח מועבר ל-`@remotion/vercel`], ומוסיפים את העלות לעלויות הקבועות (נספח F §10.5). ההחלטה והתאריך נרשמים ב-`DECISIONS.md` |
 | סליקה | Stripe לא תומך בעסקים שרשומים בישראל (נכון ליולי 2026); ל-Grow יש מרכז מפתחים רשמי עם חיוב לפי אסימון ומנויים מנוהלים | Grow מאחורי `PaymentProvider` (§8), עם חלופות Cardcom / Sumit / PayPlus |
+| Vercel Cron | עם ההרחבה יש 16 נתיבי cron [M0-verify את המגבלה של Pro] | אם המגבלה נמוכה מזה — מאחדים את ה-crons של Meta לנתיב מתזמן אחד שמפעיל את השאר לפי הדקה, ומתעדים ב-`DECISIONS.md` |
+| Meta Marketing API | גרסה חיה כ-12 חודשים; v24 פג למודעות ב-2026-10-06; הגרסה המקובעת `v26.0` (מ-2026-07-29) | `META_GRAPH_VERSION`, `lint:meta` ו-runbook R14 |
 
 ### קריטריוני קבלה
 - [ ] פרויקט ה-Vercel בתוכנית Pro, ואף `app/api/**/route.ts` לא מגדיר `maxDuration` מעל 300; החריג היחיד הוא נתיבי הצעדים של WDK (`.well-known/workflow/*`), שמוגדרים ב-`vercel.json → functions` (בדיקת יחידה `tests/unit/route-config.test.ts` שסורקת רק את `app/api/**/route.ts`).
@@ -2338,12 +2707,20 @@ jobs:
 | `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST` | ציבורי | — | ✓ | ✓ | ✓ | `https://eu.i.posthog.com` |
 | `SMS_PROVIDER`, `SMS_API_KEY`, `SEND_SMS_HOOK_SECRET` | שרת | — | — | דגל | דגל | קוד כניסה בטלפון (`phone_otp`) |
 | `WHATSAPP_PROVIDER`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET` ★ | שרת | — | — | דגל | דגל | התראות וואטסאפ (`whatsapp_notify`) |
+| `META_PROVIDER` ★ | שרת | ✓ | ✓ | ✓ | ✓ | `meta` · `mock`. בפרודקשן `mock` אסור ברגע ש-`meta_connect` פעיל (נבדק בזמן ריצה, למטה) |
+| `META_APP_ID` ★ | שרת | — | — | ✓ | ✓ | אפליקציית Meta מסוג Business (חלק 07 §2.1) |
+| `META_APP_SECRET` ★ | שרת | — | — | ✓ | ✓ | **רשימה מופרדת בפסיק לרוטציה**: `appsecret_proof` נחתם בראשון; `X-Hub-Signature-256` ו-`signed_request` מאומתים מול כולם (§15.5, R12) |
+| `META_LOGIN_CONFIG_ID` ★ | שרת | — | — | ✓ | ✓ | תצורת Facebook Login for Business (טוקן system user) |
+| `META_GRAPH_VERSION` ★ | שרת | ✓ | ✓ | ✓ | ✓ | `v26.0`; כל כתובות ה-Graph נבנות ממנו (`lib/meta/version.ts`, R14) |
+| `META_WEBHOOK_VERIFY_TOKEN` ★ | שרת | — | — | ✓ | ✓ | אתגר `GET /api/webhooks/meta` (timing-safe) |
 | `FEATURE_*` | שרת | ✓ | ✓ | — | **מתעלמים** | עקיפה מקומית של `feature_flags` (מתעלמים כש-`APP_ENV=production`, §21.2) |
 | `VERCEL_ENV`, `VERCEL_URL`, `VERCEL_GIT_COMMIT_SHA` | מסופק על ידי Vercel (קריאה בלבד) | — | ✓ | ✓ | ✓ | `VERCEL_GIT_COMMIT_SHA` ← `release` ב-Sentry, ב-PostHog וב-`/api/health` |
 | `SUPABASE_AUTH_GOOGLE_CLIENT_ID`, `SUPABASE_AUTH_GOOGLE_SECRET` | Supabase CLI מקומי בלבד (`env()` ב-`supabase/config.toml`, חלק 04 §1.4) | ✓ | — | — | — | Google OAuth בפיתוח מקומי; בפרויקטים המנוהלים הוא מוגדר ב-Dashboard |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF_STAGING`, `SUPABASE_PROJECT_REF_PRODUCTION`, `SUPABASE_DB_URL_STAGING`, `SUPABASE_DB_URL_PRODUCTION`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_AUTOMATION_BYPASS_SECRET`, `CRON_SECRET_STAGING` | סודות GitHub (CI בלבד) | — | — | — | — | מיגרציות, פריסה, בדיקות על preview ו-crons של staging (§19.3) |
 | `BACKUP_DB_URL` ★ | סוד GitHub (CI בלבד) | — | — | — | — | מחרוזת חיבור Postgres של פרויקט הפרודקשן עם התפקיד לקריאה בלבד `backup_reader` (חלק 04 §15b), ל-`pg_dump -Fc` ב-`backup.yml`; לא נכנס ל-`lib/env.ts` ולא ל-Vercel. אם `BYPASSRLS` לא ניתן ל-`backup_reader` [M0-verify], ‏`backup.yml` משתמש ב-`SUPABASE_DB_URL_PRODUCTION` במקומו (§15.11) |
 | `BACKUP_S3_BUCKET`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_AGE_RECIPIENT` | סודות GitHub (CI בלבד) | — | — | — | — | גיבויים ל-S3 ב-`eu-central-1` והצפנה ב-`age` (§15.11) |
+| `META_GRAPH_VERSION_NEXT` ★ | משתנה GitHub (לא סוד, CI בלבד) | — | — | — | — | הגרסה הבאה ל-Meta smoke ב-`contract-live.yml` (R14); לא נכנס ל-`lib/env.ts` |
+| `META_SANDBOX_AD_ACCOUNT_ID`, `META_SANDBOX_SYSTEM_TOKEN`, `META_SANDBOX_PAGE_ID` ★ | סודות GitHub (Environment `staging`, CI בלבד) | — | — | — | — | חשבון המודעות, הטוקן והעמוד שלנו ל-`pnpm meta:smoke`; לא נכנסים ל-`lib/env.ts` ולא ל-Vercel |
 
 ```ts
 // lib/env.ts (server part, excerpt)
@@ -2358,8 +2735,14 @@ const Server = z.object({
   ORCHESTRATOR: z.enum(["vercel-workflow", "inline"]),
   RENDER_PROVIDER: z.enum(["vercel-sandbox", "lambda", "local"]),
   VERCEL_AUTOMATION_BYPASS_SECRET: z.string().optional(),   // read only via callbackBypassParam(), which returns "" when APP_ENV=production (§19.1)
+  META_PROVIDER: z.enum(["meta", "mock"]).default("mock"),
+  META_GRAPH_VERSION: z.string().regex(/^v\d{2}\.0$/).default("v26.0"),          // the only literal version outside lib/meta/version.ts
+  META_APP_ID: z.string().optional(), META_APP_SECRET: z.string().optional(),      // required when META_PROVIDER=meta (below)
+  META_LOGIN_CONFIG_ID: z.string().optional(), META_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
   // …
 }).superRefine((e, ctx) => {
+  if (e.META_PROVIDER === "meta" && !(e.META_APP_ID && e.META_APP_SECRET && e.META_LOGIN_CONFIG_ID && e.META_WEBHOOK_VERIFY_TOKEN))
+    ctx.addIssue({ code: "custom", message: "META_PROVIDER=meta needs META_APP_ID, META_APP_SECRET, META_LOGIN_CONFIG_ID, META_WEBHOOK_VERIFY_TOKEN" });
   if (e.APP_ENV !== "production") return;
   const bad: Array<[boolean, string]> = [
     [e.PAYMENT_PROVIDER === "mock", "PAYMENT_PROVIDER=mock in production"],
@@ -2372,6 +2755,7 @@ const Server = z.object({
 });
 ```
 
+**`META_PROVIDER=mock` בפרודקשן** לא נחסם בעלייה, כי לפני M9 אין חיבור אמיתי. הבדיקה היא בזמן ריצה: אי אפשר להדליק את `meta_connect` כש-`APP_ENV=production` ו-`META_PROVIDER=mock` (`PUT /api/admin/flags/meta_connect` ← 400 `INVALID_INPUT {reason: "meta_mock_in_production"}`), ו-`lib/meta/client.ts` זורק שגיאה ושולח התראת P0 אם שני התנאים מתקיימים בכל זאת.
 Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגדרים ב-Dashboard של Supabase, לא ב-env של האפליקציה (חלק 04 §1.2).
 
 ### 20.1 משתני תוכן שהבעלים ממלא (`{{…}}`)
@@ -2394,6 +2778,7 @@ Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגד�
 - [ ] אין משתנה עם `NEXT_PUBLIC_` שמכיל סוד (בדיקה על רשימת השמות).
 - [ ] `check-content --launch` נכשל כשנשאר ב-`lib/constants.ts` או בדפים המשפטיים משתנה מ-20.1 בלי ערך, חוץ מ-`{{DPO_NAME}}` (ריק מותר; המשפט שמזכיר אותו מוסתר) ו-`{{VERCEL_TEAM_SLUG}}` (לא נמצא בקוד).
 - [ ] עלייה עם `OPENROUTER_CALLBACK_TOKEN_SECRET="new,old"` חותמת ב-`new` ומאמתת גם `?t=` שנחתם ב-`old`.
+- [ ] עלייה עם `META_PROVIDER=meta` בלי `META_APP_SECRET` נכשלת עם הודעה ברורה; `META_GRAPH_VERSION=v26` (בלי `.0`) נדחה.
 
 ---
 
@@ -2401,7 +2786,7 @@ Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגד�
 
 ### 21.1 הדגלים (`feature_flags`)
 
-הרשימה הקנונית (13 דגלים); ערכי ה-seed (`feature_flags.json`, חלק 04 §16.4, מצב `insert_missing`) זהים בכל הסביבות. הבדל בין סביבות נעשה רק במשתני `FEATURE_*` (§21.2), שלא פועלים בפרודקשן — לעולם לא בקובצי seed שונים. דגלי PostHog לניסויים (`hero_copy_v1`) אינם דגלים כאן.
+הרשימה הקנונית (24 דגלים: 13 של ההשקה, 7 של חלקים 07–08 ו-4 של התוספות שאושרו); ערכי ה-seed (`feature_flags.json`, חלק 04 §16.4, מצב `insert_missing`) זהים בכל הסביבות. הבדל בין סביבות נעשה רק במשתני `FEATURE_*` (§21.2), שלא פועלים בפרודקשן — לעולם לא בקובצי seed שונים. דגלי PostHog לניסויים (`hero_copy_v1`, `hero_copy_v2`) אינם דגלים כאן.
 
 | מפתח | ערך ב-seed | `plans` | תיאור (מוצג באדמין) |
 |---|---|---|---|
@@ -2418,6 +2803,19 @@ Google OAuth ו-SMTP של Supabase בפרויקטים המנוהלים מוגד�
 | `format_4x5` | כבוי | — | "פורמט 4:5" |
 | `maintenance_mode` | כבוי | — | "עקיפה מקומית בלבד — מקור האמת הוא `app_settings.maintenance_mode`" (חלק 04 §16.4) |
 | `billing_checkout` ★ | פעיל | — | "קופה פתוחה לרכישות חדשות. כיבוי עוצר רכישות חדשות בלי לגעת במנויים קיימים" (כבוי ← ‏503 `MAINTENANCE {scope:"checkout"}`) |
+| `trends` ★ | כבוי | — | "פיד הטרנדים באפליקציה ויצירה מטרנד" (חלק 08) |
+| `trends_public` ★ | כבוי | — | "דפי הטרנדים הציבוריים (`/trends`)" |
+| `guided_filming` ★ | כבוי | — | "צילום מודרך ועריכה אוטומטית" |
+| `meta_connect` ★ | כבוי | — | "חיבור פייסבוק ואינסטגרם, פרסום רגיל ותזמון" (חלק 07). בפרודקשן לא נדלק עם `META_PROVIDER=mock` (§20). כשהוא דולק, כל רינדור 9:16 ו-1:1 מקבל את פרופיל הרינדור `meta_reels` (חלק 05 §20.11) |
+| `meta_ads` ★ | כבוי | — | "קמפיינים בפייסבוק ובאינסטגרם. כיבוי עוצר רק השקות חדשות" (§21.3) |
+| `meta_lead_forms` ★ | כבוי | — | "טופסי לידים ותיבת הלידים" |
+| `meta_auto_rules` ★ | כבוי | — (המספר המותר ב-`plans.limits.meta_auto_rules`) | "כללים אוטומטיים לקמפיינים" |
+| `landing_pages` ★ | כבוי | — (ההרשאה ב-`plans.limits.landing_pages`, §2.1) | "דף העסק" (חלק 07 §14) |
+| `meta_health_check` ★ | כבוי | — | "בדיקת דופק לחשבון המודעות" (חלק 07 §15) |
+| `monthly_plan` ★ | כבוי | — | "תוכנית 30 יום" (חלק 07 §16) |
+| `hook_score` ★ | כבוי | — | "ציון הוק לפני פרסום" (חלק 05, חלק 03) |
+
+**דגלי מפת הדרכים** (מתועדים כאן ו**לא נזרעים** ב-`feature_flags.json` עד אבן הדרך שבונה אותם; `isEnabled` מחזיר `false` לדגל שלא קיים, ולכן לא צריך שורה; מסך הדגלים באדמין מציג אותם מהקבוע `ROADMAP_FLAGS` ב-`lib/flags.ts`, כבויים ונעולים, חלק 03 §22): `whatsapp_bot` ("בוט וואטסאפ ללידים"), `review_videos` ("סרטון המלצה מביקורת אמיתית"), `human_review` ("ליווי אנושי לקמפיין", מק״ט `review-149`), `partners` ("תוכנית שותפים"). הפרטים ב-§24, "אחרי M11".
 
 ### 21.2 `lib/flags.ts`
 
@@ -2448,8 +2846,16 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | מצב בחירות | `app_settings.election_mode` | §11.11 |
 | באנר יום שקט | `app_settings.quiet_day_banner` | §11.11 |
 | קופה | `feature_flags.billing_checkout` | §21.1 |
+| קמפיינים | `feature_flags.meta_ads` | כיבוי **עוצר רק השקות חדשות**: יצירה (C2), טקסטים (C5), הכנה ופרסום (C6, C8), המשך (C10), שכפול (C13), קידום המנצח והגדלת תקציב (C11 כלפי מעלה, C14) ← 404. קמפיינים שכבר רצים ממשיכים במטא; השהיה (C9), הקטנת תקציב, סיום (C12), דוחות, הסברים ויומן השינויים ממשיכים לעבוד |
+| לידים | `feature_flags.meta_lead_forms` | כיבוי מוריד את המטרה "לידים בטופס" מקמפיינים חדשים. קמפיינים קיימים ממשיכים, הלידים שלהם ממשיכים להיקלט (webhook ו-backfill), ותיבת הלידים והייצוא נשארים זמינים |
+| כללים | `feature_flags.meta_auto_rules` | כיבוי עוצר את הערכת הכללים ב-cron `meta-rules`, חוץ מ-`monthly_cap_stop`, שרק משהה ורק מול התקרה שהלקוח עצמו קבע |
+| פרסום רגיל | `feature_flags.meta_connect` | כיבוי מסתיר את החיבור, הפרסום והתזמון ומחזיר 404 בנתיבים שלהם. פוסטים מתוזמנים מחכים (ה-cron `social-publish` מדלג) ומתפרסמים כשהדגל חוזר; פוסט שהמועד שלו עבר ביותר משעה עובר ל-`expired`, עם התראה ומייל `social_post_failed`. בדיקות הטוקנים ואיסוף הנתונים ממשיכים |
+| דפי עסק | `feature_flags.landing_pages` | כיבוי מסתיר את היצירה והעריכה; דפים שכבר מפורסמים ממשיכים לעלות, כי ייתכן שמודעות פעילות מפנות אליהם. דף בודד מוסר בידי אדמין (§7.3) |
+| חשבון Meta בפרודקשן | `META_PROVIDER` | `mock` אסור כש-`meta_connect` פעיל (§20) |
 
-מפתחות `app_settings` שהחלק הזה הוא הבעלים שלהם. הרשימה המלאה (21 מפתחות), ערכי ה-seed וסכמות ה-Zod (`lib/settings/schema.ts`) — בחלק 04 §16.4; עורך ההגדרות באדמין (חלק 03 §22.17) מציג את כולם.
+**כלל לכל דגלי ההרחבה:** דגל כבוי חוסם יצירה חדשה, אבל לא מעלים נתונים קיימים של לקוח (קמפיינים, לידים, דוחות, דפים מפורסמים). סביבה שהדגל לא הופעל לה מעולם ואין לה נתונים כאלה מקבלת 404 בכל הנתיבים, כמו בחלק 07 §7–§8.
+
+מפתחות `app_settings` שהחלק הזה הוא הבעלים שלהם. הרשימה המלאה (30 מפתחות: 21 של ההשקה ו-9 של ההרחבה; ארבעה מהם — `meta_budget_presets_ils`, `meta_min_sample`, `social_daily_caps`, `trends_weekly_drop` — בבעלות חלקים 07 ו-08), ערכי ה-seed וסכמות ה-Zod (`lib/settings/schema.ts`) — בחלק 04 §16.4; עורך ההגדרות באדמין (חלק 03 §22.17) מציג את כולם.
 
 | מפתח | ערך ב-seed (חלק 04 §16.4) | שימוש |
 |---|---|---|
@@ -2463,12 +2869,19 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | `renewals_paused` | `false` | עצירת חיובי חידוש בזמן תקלה אצל הספק (R3) |
 | `maintenance_mode` | `{"enabled": false, "until": null, "message_he": null}` | מצב תחזוקה (מקור האמת; `message_he` גובר על באנר ברירת המחדל, §22) |
 | `election_mode` | `{"enabled": true, "until": "2026-10-28T23:59:00+02:00"}` | §11.11 |
+| `meta_spend_cap_grace_days` | `7` | תקופת החסד בתקרת ההוצאה המנוהלת (§2.7) |
+| `lead_notify` | `{"include_phone_in_whatsapp": true, "untouched_reminder_min": 15}` | הטלפון בהתראת הוואטסאפ ⚖️ והתזכורת לליד שלא טופל (§11.14, §13.3) |
+| `cross_customer_benchmarks` | `{"enabled": false, "k_min": 5}` | נתונים בין לקוחות — כבוי (§11.16) |
+| `trend_ref_retention_days` | `30` | שמירת קובצי ייחוס (§11.5) |
+| `trend_analysis_limits` | `{"max_usd": 0.5, "monthly_usd": 50, "max_ref_mb": 200, "max_ref_sec": 180, "base64_max_mb": 8}` | מגן העלות של ניתוח הטרנדים (§16.4, R6) |
 
 ### קריטריוני קבלה
 - [ ] `FEATURE_AVATAR=1` לא מפעיל את הדגל כש-`APP_ENV=production`.
 - [ ] כיבוי `billing_checkout` מחזיר מ-`/api/billing/checkout` את ‏503 `MAINTENANCE {until: null, scope: "checkout"}`, וחידושים ממשיכים לרוץ.
-- [ ] `feature_flags` אחרי `db:seed` מכיל בדיוק את 13 המפתחות של 21.1, עם אותם ערכים בכל הסביבות.
+- [ ] `feature_flags` אחרי `db:seed` מכיל בדיוק את 24 המפתחות של 21.1 (בלי 4 דגלי מפת הדרכים), עם אותם ערכים בכל הסביבות.
 - [ ] שינוי דגל באדמין נרשם ב-`audit_logs` (`flag.update`) ומשפיע תוך 30 שניות.
+- [ ] עם `meta_ads` כבוי, `POST /api/campaigns/[id]/pause` של קמפיין פעיל עובד ו-`POST /api/campaigns` מחזיר 404; שום קריאה ל-Meta שמשהה מודעה לא נשלחת בגלל הכיבוי.
+- [ ] `PUT /api/admin/flags/meta_connect {enabled: true}` בפרודקשן עם `META_PROVIDER=mock` מחזיר 400 `INVALID_INPUT {reason: "meta_mock_in_production"}`.
 
 ---
 
@@ -2486,6 +2899,8 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | `checkoutPaused` | רכישות חדשות מושהות לזמן קצר. מנויים קיימים והקרדיטים שביתרה עובדים כרגיל. |
 | `emailDelayed` | יש עיכוב בשליחת מיילים. אפשר להיכנס עם Google, או לנסות לשלוח קישור שוב בעוד כמה דקות. |
 | `maintenance` | המערכת בתחזוקה קצרה, עד {until}. העבודה שלכם שמורה. (בלי `until`: "המערכת בתחזוקה קצרה. העבודה שלכם שמורה.") |
+| `metaDelayed` | יש כרגע עיכוב בתקשורת עם פייסבוק ואינסטגרם, ולכן הדוחות מתעדכנים לאט ופעולות חדשות על קמפיינים מושהות. הקמפיינים עצמם ממשיכים לרוץ במטא כרגיל. |
+| `metaRestricted` | ניהול הקמפיינים דרכנו מושבת זמנית. הקמפיינים שכבר פעילים ממשיכים לרוץ, ובינתיים אפשר לנהל אותם במנהל המודעות של מטא. |
 
 ### R1 — תקלה או האטה ב-OpenRouter
 
@@ -2550,6 +2965,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | הערכה | איזה מידע, כמה נושאי מידע, מאיזו תקופה, האם מוצפן |
 | דיווח | ברשות להגנת הפרטיות — באירוע חמור, ללא דיחוי ולפי התקנות (2017) ותיקון 13 ⚖️; לספקים רלוונטיים (Grow אם אסימונים בסיכון); לנפגעים — כשנדרש |
 | הודעה לנפגעים | נושא: **"הודעה על אירוע אבטחת מידע ב{{BRAND_NAME}}"** · גוף: **"שלום {firstName}, ב-{date} זיהינו {whatHappened}. המידע שעלול היה להיחשף: {dataTypes}. מה עשינו: {actions}. מה כדאי לעשות: {userActions}. אנחנו מצטערים על כך, וממשיכים לבדוק. לשאלות: privacy@{{DOMAIN}}."** (תבנית `security_notice` ★, נשלחת ידנית אחרי אישור עורך דין) |
+| Meta ולידים | דליפה של טוקנים של Meta או של לידים היא אירוע חמור: רוטציה של `APP_ENCRYPTION_KEY` ושל `META_APP_SECRET` (R12), ניתוק יזום של החיבורים שנפגעו (מחיקת הטוקנים; הלקוחות מתחברים מחדש), דיווח ל-Meta לפי תנאי הפלטפורמה [M0-verify הערוץ], והודעה לעסקים שהלידים שלהם נחשפו. העסקים הם בעלי המידע, ולכן ההודעה לאנשים שהשאירו לידים היא שלהם, בסיוע שלנו ⚖️ |
 | אחרי | סיכום אירוע, עדכון סקר הסיכונים ונוהל האבטחה |
 
 ### R8 — מיילים לא נשלחים / קפיצה בחזרות
@@ -2572,6 +2988,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 ### R11 — סוף מצב בחירות, ימי שקט ועונות
 
 - `election_mode` כבה לבד ב-`until`; לוודא בבוקר שאחרי (2026-10-29) שהבאנר ירד, שהנישה הפוליטית עדיין לא פעילה, ולסקור את יומני המודרציה של התקופה.
+- במצב בחירות `ELECTION_POLICY_BLOCKED` חל גם על קמפיינים ועל פוסטים רגילים (§11.11). אחרי `until` שום קמפיין או פוסט שנחסם לא נשלח אוטומטית; הלקוח מפעיל אותו מחדש בעצמו.
 - פעם בשנה (אוגוסט): עדכון תאריכי העונות וימי השקט מ-Hebcal ב-`/admin/seasons`, ושל `non_business_days`.
 
 ### R12 — רוטציית סודות
@@ -2585,16 +3002,81 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | `APP_ENCRYPTION_KEY` | §15.5 (`APP_ENCRYPTION_KEY_PREVIOUS` + `rotate-encryption-key`) | אין |
 | `CRON_SECRET` | עדכון ב-Vercel ופריסה (Vercel Cron שולח את הערך העדכני) | ריצה אחת עלולה להיכשל |
 | מפתחות Grow / Morning / Resend / Upstash | חדש ← Vercel ← פריסה ← ביטול | אין |
+| `META_APP_SECRET` | איפוס ב-App Dashboard של Meta ← הערך החדש **בתחילת הרשימה** ("חדש,ישן") ← פריסה. `appsecret_proof` נחתם בחדש מיד [M0-verify אם Meta מקבלת את הישן בזמן המעבר], ו-webhooks ו-`signed_request` מאומתים מול שניהם; אחרי 48 שעות מסירים את הישן | קריאות בודדות עלולות להיכשל עד הפריסה; Meta שולחת שוב webhooks שנכשלו |
+| `META_WEBHOOK_VERIFY_TOKEN` | עדכון ב-Vercel ← פריסה ← אימות מחדש של המנוי ב-App Dashboard | אין (משמש רק באתגר `GET`) |
+| `META_SANDBOX_SYSTEM_TOKEN` | טוקן חדש ל-system user של העסק שלנו ← סוד GitHub | רק Meta smoke |
 | `TRIAL_HASH_PEPPER` | **לא מחליפים** (שבירת מניעת הכפילויות); רק בחשיפה — ואז גם בסוד ה-Vault | הרשמות כפולות אפשריות |
 
 ### R13 — Chargeback והונאה
 
 §7.2: סימון באדמין (`POST /api/admin/billing/payments/[id]/chargeback`, ‏audit `payment.chargeback`) ← הסרת קרדיטים שנותרו מהתשלום ← סגירת המנוי ← בדיקה של שאר התשלומים מאותו כרטיס או סביבה ← חסימה אם יש דפוס ← תיעוד מול Grow עם הראיות (חשבונית, יומן שימוש, `consents` של הקופה).
 
+### R14 — עדכון גרסה של Graph / Marketing API
+
+| שלב | פעולה |
+|---|---|
+| בדיקה חודשית | בתחילת כל חודש: יומן השינויים של Marketing API ודף השינויים שמחוץ למחזור (למשל שינויי creative features מ-2026-06-28 וה-opt-in לפילוחים מ-2026-08-03); רשומה ב-`DECISIONS.md` גם כשאין שינוי |
+| גרסה חדשה יצאה | `META_GRAPH_VERSION_NEXT` במשתני ה-CI ← `contract-live.yml` מריץ את Meta smoke על שתי הגרסאות; כל הבדל נפתח כ-issue |
+| תיקון | שינויי קוד רק מאחורי `lib/meta/version.ts` (`lint:meta` חוסם `v2x.0` מחוץ לקובץ, וגם `instagram_actor_id`, `instagram_story_id`, `smart_promotion_type` ומיקום Explore) |
+| מעבר | staging עם `META_GRAPH_VERSION` החדש ← `pnpm meta:smoke` + e2e ← פרודקשן. **תוך 90 יום מיציאת הגרסה, ולפחות 60 יום לפני סוף החיים של הגרסה המקובעת** |
+| אחרי | הסרת `META_GRAPH_VERSION_NEXT`, עדכון ברירת המחדל ב-`lib/env.ts`, רשומה ב-`CHANGELOG.md` |
+
+### R15 — תקלה ב-Meta או הגבלות קצב
+
+| שלב | פעולה |
+|---|---|
+| זיהוי | ההתראות "webhooks של Meta", "קליטת לידים", "הגבלות קצב של Meta" ו"כשלי פרסום רגיל"; עמוד הסטטוס של Meta [M0-verify הכתובת]; קפיצה בשגיאות 1, 2, 4, 17, 32, 341, 613 או 5xx |
+| חשבון אחד | השער לכל חשבון מודעות (חלק 07 §5) משהה את התור שלו לבד, בלי פעולה ידנית; התור ממשיך אחרי `estimated_time_to_regain_access` |
+| תקלה כללית | באנר `metaDelayed` בדפי הקמפיינים והפרסום. לא מוסיפים ניסיונות חוזרים ידניים (סערת ניסיונות מחמירה את ההגבלה); פוסטים מתוזמנים ממשיכים לפי מדיניות הניסיונות של `socialPublish` |
+| webhooks שלא הגיעו | ה-backfill הלילי משלים לידים (`meta-leads-backfill`) ותובנות (`meta-insights-backfill`); אחרי תקלה ארוכה — הרצה ידנית מ-`/admin` (`POST /api/admin/ops/cron {name: "meta-leads-backfill"}`, audit `ops.cron_run`) |
+| התאוששות | הסרת הבאנר; בדיקה שאין קמפיין תקוע ב-`preparing` (`metaPrepareCampaign` ממשיך מהמזהים ששמר); סיכום אירוע |
+
+### R16 — האפליקציה הוגבלה או הרשאה נשללה
+
+| שלב | פעולה |
+|---|---|
+| זיהוי | מייל או התראה מ-Meta ב-App Dashboard; ההתראה "הגבלה על האפליקציה"; Data Use Checkup שלא הושלם בזמן |
+| מיידי | `meta_ads` כבוי (עוצר רק השקות חדשות, §21.3), ו-`meta_connect` כבוי אם גם הפרסום הרגיל נפגע; באנר `metaRestricted`. **לא נוגעים בקמפיינים שרצים** — הם של הלקוח, והוא יכול לנהל אותם במנהל המודעות של מטא |
+| טיפול | תשובה לדרישה ב-App Dashboard (מסמכים, DUC, הסבר על ה-use case), והגשה מחדש של App Review עם סרטוני ההדגמה (חלק 07 §4.2); רשומה ב-`DECISIONS.md` |
+| תקשורת | מייל אישי לבעלים של סביבות עם קמפיינים פעילים: מה קרה, שהקמפיינים ממשיכים לרוץ, ומה אפשר לעשות בינתיים |
+| התאוששות | הדגלים חוזרים רק אחרי ש-`pnpm meta:smoke` עובר בפרודקשן מול החשבון שלנו |
+
+### R17 — גל דחיות של מודעות
+
+| שלב | פעולה |
+|---|---|
+| זיהוי | ההתראות "גל דחיות" ו"בדיקה ארוכה של Meta"; מוניטור הקמפיינים באדמין (`/admin/meta/campaigns`), לפי סיבת הדחייה |
+| אבחון | קיבוץ לפי `review_feedback`, תבנית טרנד, נישה ומטרה: יש תבנית, ניסוח או נישה משותפים? |
+| תבנית אחת | הוצאה מהפיד (A9) או מעבר ל-`ad_safety = 'organic_only'`; הוספת הכלל ל-`moderation.ad.v1` ולנספח E §18 |
+| סיבה חדשה | הוספה ל-`REVIEW_FEEDBACK_HE` עם `titleHe`, `fixHe` ופעולה (חלק 07 §10.1–§10.2) |
+| בדיקה ארוכה | קמפיין ב-`in_review` מעל 24 שעות: בדיקה ידנית שהסטטוס מסונכרן (`meta-review-poll`), ואם כן — הסבר ללקוח שהבדיקה אצל Meta. לא שולחים לבדיקה מחדש בשם הלקוח |
+| אחרי | עדכון `ads.copy.v1` אם הניסוח שלנו גרם לדחיות, והרצת `eval:prompts` |
+
+### R18 — גל של טוקנים לא תקפים
+
+| שלב | פעולה |
+|---|---|
+| זיהוי | ההתראה "גל טוקנים לא תקפים"; קפיצה בשגיאות 190, 102, 463 ו-467 |
+| אבחון | `debug_token` על מדגם (`/admin/meta`, AM2): תקלה אצל Meta? הגבלה על האפליקציה (R16)? באג אצלנו, למשל פענוח שנכשל אחרי רוטציה של `APP_ENCRYPTION_KEY` (`decryptToken` מנסה גם את `APP_ENCRYPTION_KEY_PREVIOUS`)? |
+| באג אצלנו | rollback (§19.5), ואז "בדיקה מחדש" (AM2) לחיבורים שסומנו: חיבור שהטוקן שלו תקף חוזר ל-`active` |
+| תקלה אצל Meta | המתנה. המיילים `meta_connection_lost` מוגבלים לאחד ביום לחיבור (מפתח האידמפוטנטיות); אחרי שהתקלה נפתרת — "בדיקה מחדש" לכל החיבורים שסומנו באותו חלון |
+| אחרי | סיכום אירוע. אם הטוקנים באמת בוטלו, הלקוחות מתחברים מחדש מהבאנר "החיבור לפייסבוק ולאינסטגרם נותק. צריך לחבר מחדש." |
+
+### R19 — הסרה של תבנית טרנד (takedown)
+
+| שלב | פעולה |
+|---|---|
+| קבלה | פנייה על הפרת זכויות, על שימוש בדמות או על חשש אחר (`abuse_reports`, `reason = 'copyright'`, `source = 'support'`) ← SLA של 2 ימי עסקים |
+| בדיקה | השוואה בין התבנית (טקסטים, `recipe`, הדגמות) לבין הסרטון המקורי, עם ⚖️ כשיש ספק |
+| הסרה | A9 (`retired`) והסרת `demo_assets` ו-`explainer` (A6), כך שהדף הציבורי מחזיר 404 ולא נשאר עם התווית "הטרנד הזה כבר פחות חם"; מחיקת קובץ הייחוס (A11); `revalidateTag('trends', "max")`; audit `trend.template_retire` ו-`trend.reference_file_delete` |
+| לקוחות | הפרויקטים שלקוחות יצרו מהתבנית נשארים שלהם. אם נמצא שהתבנית העתיקה ביטוי — התראה מסוג `system` לסביבות שב-`trend_template_uses`, עם המלצה לא לפרסם את הסרטון שוב (⚖️ על הניסוח) |
+| אחרי | תשובה לפונה, סיכום אירוע, ועדכון `do_not_copy` ושומר הדמיון אם צריך |
+
 ### קריטריוני קבלה
-- [ ] 13 ה-runbooks קיימים ב-`docs/runbooks/`, וכל התראה בטבלה של §16.4 מפנה ל-runbook או לסעיף טיפול מפורש.
+- [ ] 19 ה-runbooks קיימים ב-`docs/runbooks/` (R1–R13 בהשקה, R14–R19 מ-M9–M11), וכל התראה בטבלה של §16.4 מפנה ל-runbook או לסעיף טיפול מפורש.
 - [ ] R1, R3 ו-R9 תורגלו ב-staging לפני ההשקה (כולל `or:halt`, `billing_checkout` כבוי, ושחזור), עם תיעוד.
 - [ ] כל מחרוזות הבאנר קיימות ב-`messages/he.json` תחת `ops.banners`.
+- [ ] R15 ו-R18 תורגלו ב-staging מול ה-mock לפני M11, ו-R14 תורגל פעם אחת עם `META_GRAPH_VERSION_NEXT`.
 
 ---
 
@@ -2609,7 +3091,7 @@ export async function isEnabled(key: FlagKey, ctx: { workspaceId?: string | null
 | מודולי שרת | `import "server-only"` בראש כל קובץ שנוגע בסודות | `lib/billing/engine.ts` |
 | Route Handlers | `app/api/**/route.ts`, רק דרך `route()` | — |
 | בדיקות | `tests/unit/**/*.test.ts`, `tests/contract/**`, `tests/e2e/**/*.spec.ts`, `supabase/tests/NN_*.sql` | `tests/unit/billing/refunds.test.ts` |
-| מיגרציות | `NNNN_snake_name.sql`; עד ההשקה עמודות וטבלאות חדשות נכנסות לקובץ הנושאי הקיים (חלק 04 §2.1) | `0012_ops_roles.sql` |
+| מיגרציות | `NNNN_snake_name.sql`; עד ההשקה עמודות וטבלאות חדשות נכנסות לקובץ הנושאי הקיים (חלק 04 §2.1); אחרי ההשקה — רק קובץ חדש (§19.4) | `0012_ops_roles.sql` · `0013_meta_integration.sql` |
 | מסד | snake_case, טבלאות ברבים | `email_messages` |
 | enum, אירועי אנליטיקה | snake_case | `subscription_renewed` |
 | קודי שגיאה | UPPER_SNAKE | `PAYMENT_FAILED` |
@@ -2623,8 +3105,8 @@ TypeScript: `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`
 
 ### 23.2 קומיטים וענפים
 
-- **Conventional Commits** באנגלית, בגוף ציווי: `type(scope): summary`. סוגים: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `chore`, `ci`, `build`. ה-scope הוא אבן הדרך (`m0`…`m7`) לעבודת אבן דרך, או התחום (`billing`, `pipeline`, `hooks`, `a11y`, `rtl`, `db`, `email`, `legal`) לתיקונים.
-- דוגמאות: `feat(m0): bootstrap Next 16, RTL tokens and spikes` · `feat(m6): Grow checkout, renewals and Morning invoices` · `fix(billing): never re-charge after an ambiguous gateway timeout`.
+- **Conventional Commits** באנגלית, בגוף ציווי: `type(scope): summary`. סוגים: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `chore`, `ci`, `build`. ה-scope הוא אבן הדרך (`m0`…`m11`) לעבודת אבן דרך, או התחום (`billing`, `pipeline`, `hooks`, `a11y`, `rtl`, `db`, `email`, `legal`, `meta`, `leads`, `trends`) לתיקונים.
+- דוגמאות: `feat(m0): bootstrap Next 16, RTL tokens and spikes` · `feat(m6): Grow checkout, renewals and Morning invoices` · `fix(billing): never re-charge after an ambiguous gateway timeout`. · `feat(m10): campaign builder with a 3-hook split test` · `fix(meta): never retry budget edits on subcode 1487632`.
 - לפחות קומיט אחד לכל אבן דרך (`feat(mX): …`), וכל קומיט על `main` עובר `pnpm typecheck && pnpm lint && pnpm test`.
 - גוף הקומיט מסביר **למה**; כשיש החלטה — `Refs: DECISIONS.md#2026-10-20-grow-webhook-verification`.
 
@@ -2643,7 +3125,7 @@ TypeScript: `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`
 
 ### 23.4 `CHANGELOG.md`
 
-Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד ההשקה, `1.0.0` בהשקה הציבורית), עם הקטגוריות Added / Changed / Fixed / Security. רשומה לכל אבן דרך, ותגית Git תואמת.
+Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד ההשקה, `1.0.0` בהשקה הציבורית), עם הקטגוריות Added / Changed / Fixed / Security. רשומה לכל אבן דרך, ותגית Git תואמת. אבני הדרך M8–M11 באות אחרי `1.0.0`, ולכן מתויגות M8 = `v1.1.0`, M9 = `v1.2.0`, M10 = `v1.3.0`, M11 = `v1.4.0`.
 
 ### 23.5 תבנית PR (`.github/pull_request_template.md`)
 
@@ -2660,6 +3142,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] Analytics events typed in lib/analytics/events.ts (no PII)
 - [ ] DECISIONS.md / CHANGELOG.md updated where relevant
 - [ ] No secrets, tokens or real customer data in code, fixtures or logs
+- [ ] Meta: no access token, `field_data` or lead PII in logs, fixtures or analytics; Graph version only via lib/meta/version.ts
 ```
 
 ### 23.6 סקריפטים (`package.json`)
@@ -2668,7 +3151,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 |---|---|
 | `dev` · `build` · `start` | Next |
 | `typecheck` | `tsc --noEmit` |
-| `lint` · `lint:rtl` · `lint:copy` ★ · `lint:billing` ★ | ESLint · מחלקות פיזיות (חלק 01 §9.3) · עברית (חלק 01 §2.6: `BANNED_PHRASES`, לוכסנים מגדריים, סימוני טקסט זמני וטקסט דמה, ₪ צמוד למשתנה, אזכור קשיח של שיעור מע״מ) · ליטרלים של מע״מ בקוד (`scripts/lint-billing.ts`) |
+| `lint` · `lint:rtl` · `lint:copy` ★ · `lint:billing` ★ | ESLint (ואחריו `lint:meta` ו-`lint:deps`) · מחלקות פיזיות (חלק 01 §9.3) · עברית (חלק 01 §2.6: `BANNED_PHRASES`, לוכסנים מגדריים, סימוני טקסט זמני וטקסט דמה, ₪ צמוד למשתנה, אזכור קשיח של שיעור מע״מ) · ליטרלים של מע״מ בקוד (`scripts/lint-billing.ts`) |
 | `format` · `format:check` | Prettier |
 | `test` · `test:watch` · `test:contract` · `test:e2e` · `test:a11y` · `test:visual` · `test:load` | §18 |
 | `test:pipeline` ★ | חלק 05 §23.1 |
@@ -2680,6 +3163,9 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 | `send-newsletter` ★ | `tsx scripts/send-newsletter.ts --issue={id} [--dry-run]` (§12.5) |
 | `fixtures:record` ★ | §18.3 |
 | `emails:dev` ★ | שרת התצוגה של React Email |
+| `lint:meta` ★ · `lint:deps` ★ | `tsx scripts/lint-meta.ts` (ליטרל `v2x.0` מחוץ ל-`lib/meta/version.ts`, `instagram_actor_id`, `instagram_story_id`, `smart_promotion_type`, מיקום Explore; חלק 07 §2.2) · `tsx scripts/lint-deps.ts` (חבילות הורדה וסקרייפינג אסורות; חלק 08 §J.1). שניהם רצים גם בתוך `pnpm lint` |
+| `meta:smoke` ★ | `tsx scripts/meta-smoke.ts [--version=v27.0]` — campaign, ad set, creative ו-ad במצב PAUSED בחשבון המודעות שלנו, תצוגות מקדימות, insights ומחיקה (R14) |
+| `trends:demos` ★ | `tsx scripts/trends-demos.ts` — רינדור ההדגמות של תבניות הטרנד בסביבה `ws-trends-studio` והעתקה ל-`public-media/trends/{slug}/` (חלק 08) |
 | `check-env` · `check-content` · `check-decisions` ★ | §20 · חלק 02 · 23.3 |
 | `analyze` | `ANALYZE=1 next build` |
 
@@ -2687,7 +3173,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 
 ### 23.7 מבנה `docs/`
 
-`docs/analytics.md` · `docs/m0-verify.md` · `docs/runbooks/R1…R13` (וגם `restore-drill-{yyyy-mm}.md`) · `docs/incidents/` · `docs/security/{access,threat-model,pentest-yyyy}.md` · `docs/legal/{launch-checklist,database-definition,security-procedure,risk-assessment-yyyy,incident-response,subprocessors}.md` · `docs/qa/{hebrew-review,emails,load-*}.md` · `docs/eval/listening-list.md` ו-`docs/eval/hebrew-review-m7.md` (נספח E §13.4) · `docs/launch/definition-of-done.md` (§25) · ומחקרי הרקע שכבר בריפו (`docs/research/`; בכל קובץ ה-"Verification addendum" גובר על מה שלפניו). בשורש הריפו: `DECISIONS.md`, `CHANGELOG.md`, `README.md`.
+`docs/analytics.md` · `docs/m0-verify.md` · `docs/runbooks/R1…R19` (וגם `restore-drill-{yyyy-mm}.md`) · `docs/incidents/` · `docs/security/{access,threat-model,pentest-yyyy}.md` · `docs/legal/{launch-checklist,database-definition,security-procedure,risk-assessment-yyyy,incident-response,subprocessors}.md` · `docs/qa/{hebrew-review,emails,load-*}.md` · `docs/eval/listening-list.md` ו-`docs/eval/hebrew-review-m7.md` (נספח E §13.4) · `docs/launch/definition-of-done.md` (§25) · `docs/meta/{owner-checklist,app-review,data-use-checkup-yyyy}.md` (§11.13; חלק 07 §4.2) · ומחקרי הרקע שכבר בריפו (`docs/research/`; בכל קובץ ה-"Verification addendum" גובר על מה שלפניו). בשורש הריפו: `DECISIONS.md`, `CHANGELOG.md`, `README.md`.
 
 ### קריטריוני קבלה
 - [ ] `commitlint` ב-CI דוחה כותרת PR שלא בפורמט.
@@ -2696,9 +3182,11 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 
 ---
 
-## §24. אבני הדרך M0–M7
+## §24. אבני הדרך M0–M11
 
 אבני הדרך מנספח F (§13), עם המשימות המלאות. אבן דרך מסתיימת רק כשכל קריטריון שלה מסומן, `pnpm typecheck && pnpm lint && pnpm test` ירוקים, ה-e2e והנגישות הרלוונטיים עוברים, `DECISIONS.md` ו-`CHANGELOG.md` עודכנו, ויש קומיט `feat(mX): …`.
+
+**M8–M11 באים אחרי M7 ומשוחררים מאחורי דגלים** (כולם כבויים ב-seed, §21.1); כל אחת מהן נסגרת באותם תנאים כמו M0–M7. המסלול של הבעלים מול Meta מתחיל כבר ב-M0 (משימה 7), כי זמני ההמתנה של Meta ארוכים, ואף שורת קוד לא מחכה לו.
 
 ### M0 — יסודות וניסויי אימות
 
@@ -2707,8 +3195,9 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 2. `lib/env.ts` + `.env.example` + `check-env`; ESLint, Prettier, `lint:rtl`, `lint:copy`, `lint:billing`; Vitest, Playwright, MSW; Sentry (EU, tunnel); שלד `ci.yml`.
 3. Vercel Pro (`fra1`; Hobby אסור לשימוש מסחרי, §19.6) עם preview/staging/production והגנת Vercel Authentication + Protection Bypass for Automation; Supabase staging ו-production (`eu-central-1`, מפתחות חדשים); Upstash (EU); דומיין שולח ב-Resend; ריפו ב-GitHub עם branch protection.
 4. `DECISIONS.md`, `CHANGELOG.md`, `README.md` (עברית קצרה), `docs/m0-verify.md` (כל תגיות `[M0-verify]` מכל החלקים).
-5. **ספייקים** (`scripts/spikes/*.ts`, כל אחד עם רשומה ב-`DECISIONS.md`): (1) נעילת AI SDK והספק; (2) צ׳אט OpenRouter עם `json_schema` ו-`models[]`; (3) `/videos` ← פורמט חתימת ה-webhook המדויק ← הורדה מאומתת; (4) מבנה המילים של Scribe ‏`verbose_json` בעברית; (5) Eleven v4 בעברית עם רמזי ניקוד; (6) hooks ו-sleep של WDK; (7) `@remotion/vercel` עם fixture כתוביות בעברית; (8) `next/og` בעברית; (9) Grow (10 הנקודות של §8.2) ו-Morning (§9.6); ובנוסף ★: (10) Resend — `Idempotency-Key`, צרופות, תצוגה ב-Gmail/Outlook; (11) Supabase CLI — קידומות מיגרציה ו-API של Mailpit/Inbucket; (12) Vercel — `git.deploymentEnabled`, פריסה לסביבה מותאמת מה-CLI, Vercel Cron רק בפריסות פרודקשן, ו-POST של Grow, OpenRouter ו-Resend שעובר את Vercel Authentication עם פרמטר ה-bypass (§19.1); (13) נתוני גודל bundle של Turbopack; (14) נקודת יתרה של OpenRouter; (15) מטא־דאטה `comment=ai-generated` ב-MP4; (16) CSP סטטי מול סקריפטי ה-inline של Next 16 (`experimental.sri` עם ה-hash, או החלופה של `'unsafe-inline'` בכותרת האוכפת + ה-hash ב-Report-Only, §15.3); (17) WhatsApp — זמינות תבנית Authentication בעברית (v2, אפשר לדחות עד הפעלת הדגל); (18) אופן העברת `REMOTION_LICENSE_KEY` ל-`@remotion/vercel` ואזור הריצה של Sandbox (§19.6).
+5. **ספייקים** (`scripts/spikes/*.ts`, כל אחד עם רשומה ב-`DECISIONS.md`): (1) נעילת AI SDK והספק; (2) צ׳אט OpenRouter עם `json_schema` ו-`models[]`; (3) `/videos` ← פורמט חתימת ה-webhook המדויק ← הורדה מאומתת; (4) מבנה המילים של Scribe ‏`verbose_json` בעברית; (5) Eleven v4 בעברית עם רמזי ניקוד; (6) hooks ו-sleep של WDK; (7) `@remotion/vercel` עם fixture כתוביות בעברית; (8) `next/og` בעברית; (9) Grow (10 הנקודות של §8.2) ו-Morning (§9.6); ובנוסף ★: (10) Resend — `Idempotency-Key`, צרופות, תצוגה ב-Gmail/Outlook; (11) Supabase CLI — קידומות מיגרציה ו-API של Mailpit/Inbucket; (12) Vercel — `git.deploymentEnabled`, פריסה לסביבה מותאמת מה-CLI, Vercel Cron רק בפריסות פרודקשן, ו-POST של Grow, OpenRouter ו-Resend שעובר את Vercel Authentication עם פרמטר ה-bypass (§19.1); (13) נתוני גודל bundle של Turbopack; (14) נקודת יתרה של OpenRouter; (15) מטא־דאטה `comment=ai-generated` ב-MP4; (16) CSP סטטי מול סקריפטי ה-inline של Next 16 (`experimental.sri` עם ה-hash, או החלופה של `'unsafe-inline'` בכותרת האוכפת + ה-hash ב-Report-Only, §15.3); (17) WhatsApp — זמינות תבנית Authentication בעברית (v2, אפשר לדחות עד הפעלת הדגל); (18) אופן העברת `REMOTION_LICENSE_KEY` ל-`@remotion/vercel` ואזור הריצה של Sandbox (§19.6); ובהרחבה ★: (19) Facebook Login for Business — `code` ← טוקן BISU, `client_business_id`, הקצוות שהטוקן יכול לקרוא, ו-`debug_token`; (20) העלאת וידאו ב-`file_url` מול resumable, ו-`in_process_ad_objects`; (21) ה-JSON של קמפיין לוואטסאפ (CTWA), `optimization_goal`, `minimum_budgets` בשקלים ו-`spend_cap` של קמפיין; (22) טופס לידים ב-`HE_IL` (RTL במכשירים) ו-webhook `leadgen`; (23) container של IG, `content_publishing_limit`, Trial Reels ו-rupload של FB; (24) `video_url` ב-base64 דרך OpenRouter בשני ספקי Gemini, מגבלת הגודל ו-`media_resolution`. התוצאות של 19–24 נרשמות ב-`DECISIONS.md` לפני שהקוד שתלוי בהן מתמזג.
 6. **פריטי `[M0-verify]` מהחלקים האחרים** שנכנסים ל-`docs/m0-verify.md` ונסגרים כמו השאר: `realtime.send` (חלק 04 §14; חלופה `broadcast_changes`); `BYPASSRLS` ל-`backup_reader` (חלק 04 §15b); שמות הקולות של `tts_fallback_voices` (חלק 05); `data_collection: "deny"` בנקודות המדיה של OpenRouter (חלק 05 §4); `input_references` ב-`/images` ו-`/images/models` (חלק 05 §4.1); Batch API של OpenRouter (חלק 05); ואימות כרטיס בלי סכום או J5 ב-Grow (§6.1).
+7. ★ **המסלול של הבעלים מול Meta** (לא קוד; חלק 07 §4.2, שורות 1–6 מתחילות כאן): business portfolio ל-{{LEGAL_ENTITY_NAME}} עם 2 מנהלים ו-2FA; הגשת **Business Verification** (תעודת התאגדות, הוכחת כתובת, אימות הדומיין {{DOMAIN}}) בשבוע הראשון; אפליקציה מסוג Business עם המוצרים של חלק 07 §2.1 ו-"Require App Secret" (`META_APP_ID`); תצורת Facebook Login for Business (`META_LOGIN_CONFIG_ID`); תכנון כתובות הפרטיות, התנאים והוראות המחיקה; ונכסי בדיקה משלנו (עמוד, חשבון IG מקצועי שמקושר אליו, חשבון מודעות בשקלים עם אמצעי תשלום, מספר וואטסאפ עסקי שמחובר לעמוד, וטופס לידים לבדיקה). אף שורת קוד לא מחכה למסלול הזה, אבל ההשקה הציבורית ב-M11 לא קורית בלעדיו.
 
 **קריטריוני קבלה:**
 - [ ] `pnpm dev` מציג עמוד עברי RTL בשתי הערכות; `pnpm typecheck && pnpm lint && pnpm test` עוברים.
@@ -2717,6 +3206,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] ספייק Grow הוכיח: עמוד תשלום, אסימון, חיוב לפי אסימון, החזר, שאילתת סטטוס ואימות כרטיס בלי גבייה — או שנבחר מתאם חלופי ותועד.
 - [ ] דף הבית ודף `/app` עולים בלי הפרת CSP, לפי ההחלטה של ספייק 16.
 - [ ] ספייק Morning הפיק 320 ו-330 ב-sandbox עם סכומים תואמים.
+- [ ] Business Verification הוגש, האפליקציה ותצורת ההתחברות קיימות (`META_APP_ID` ו-`META_LOGIN_CONFIG_ID` רשומים ב-`DECISIONS.md`), וספייקים 19–24 רשומים ב-`docs/m0-verify.md`: כל אחד בוצע ותועד, או — כשנכס הבדיקה של Meta שהוא צריך עוד לא קיים (חלק 07 §4.2, שורה 6) — נסגר ברשומת "נדחה עד תחילת M8/M9" ב-`DECISIONS.md`, ש-`check-decisions` מקבל. אף קוד שתלוי בספייק לא מתמזג לפני התוצאה שלו.
 
 ### M1 — שכבת הנתונים
 
@@ -2782,14 +3272,75 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 **משימות:** סקירת אבטחה ובדיקת חדירות (או ASVS L1), CSP באכיפה, סקירת הגבלות קצב; בדיקת עומס מלאה (20 עבודות במקביל); ביקורת נגישות ידנית והצהרה; סקירת עורך דין ורו״ח, כולל כל ההחלטות שממתינות לאישור (§25), והחלפת כל המשתנים המשפטיים (`check-content --launch`); בדיקה של כל הטקסטים בידי דובר עברית כשפת אם, עם חתימה ב-`docs/eval/hebrew-review-m7.md` (הטופס של נספח E); בדיקת השמיעה של נספח E §13.4 יחד עם הבדיקה העיוורת של הקולות, ומיפוי `voices` (התוצאות ב-`docs/eval/listening-list.md`); המיילים `terms_update`, `security_notice` ו-`newsletter_weekly`; בדיקת רישיון Remotion (§19.6); הפקת ספריית המוזיקה; סרטוני דוגמה ו-`examples` מרינדורים אמיתיים; לוחות והתראות; PITR + גיבויים + תרגיל שחזור; runbooks ותרגולם; ערכת Product Hunt (סרטון דמו באנגלית, גלריה, תגובת מייסד); smoke בפרודקשן.
 
 **קריטריוני קבלה:**
-- [ ] כל סעיפי "הגדרת גמור" (§25) מסומנים.
+- [ ] כל סעיפי "הגדרת גמור" (§25) מסומנים, חוץ מהבלוק "קמפיינים, פרסום וטרנדים" ומשורות ⚖️ 17 ואילך, שנסגרים ב-M11.
 - [ ] אפס באגים בדרגה P0/P1 פתוחים.
 - [ ] התראות התקציב והזמינות מחוברות ונבדקו.
 - [ ] `docs/eval/hebrew-review-m7.md` ו-`docs/eval/listening-list.md` חתומים, עם תוצאה לכל קול פעיל.
 - [ ] smoke בפרודקשן עובר; `DECISIONS.md` שלם.
 
+### M8 — מנוע הטרנדים וצילום מודרך
+
+**משימות:** חלק 08 במלואו: המיגרציות `0013_meta_integration.sql` ו-`0014_trends.sql`, שנכנסות **יחד** במיזוג הראשון של M8 (ל-`0014` יש FK לעמודות של `0013`; חלק 04 §2.3) — `0013` שלם כבר עכשיו, כולל הטבלאות של Meta, של דף העסק ושל תוכנית 30 יום, והן נשארות בלי שימוש עד M9–M10 כי כל הנתיבים שלהן מחזירים 404 כל עוד הדגלים כבויים; Trend Studio באדמין (A1–A11) עם בסיס זכויות והצהרה, ה-bucket `trend-refs` והשמירה (§11.5); ה-workflow `trendAnalyze` (ffmpeg בצעד WDK, Scribe, `trends.analyze.v1` על `llm.video` עם נפילה ל-`llm.vision_frames`, ושער הסיכונים); 11 רכיבי השכבות של Remotion, `TrendOverlays` והגופנים `Amatic SC` ו-`Noto Color Emoji`; `script.generate.v2` ו-`storyboard.generate.v2` (חלק 05 §12.2, §18); הפרומפטים `trends.*` ו-`guided.*`; הפיד באפליקציה ודפי הטרנד; הדפים הציבוריים `/trends` ו-`/trends/[slug]` (חלק 02); הערכה המודרכת ו-`guidedAutocut`; 12 תבניות ה-seed עם הדגמות (`pnpm trends:demos`); המייל `trends_weekly`; ★ "ציון הוק" (`lib/hooks/score.ts` ו-`hooks.score.v1` בחלק 05, `HookScoreBadge` והפאנל בחלק 03, העמודה `project_versions.hook_score` בחלק 04); הדגלים `trends`, `trends_public`, `guided_filming` ו-`hook_score`; `lint:deps`; runbook R19.
+
+**קריטריוני קבלה:**
+- [ ] סרטון ייחוס ברישיון מנותח (לפחות 12 פריימים מתוזמנים ורשימת חיתוכים) בפחות מ-2 דקות ובפחות מ-$0.10.
+- [ ] T1 (`bait-and-sign`) מתרנדר ל-3 נישות עם עברית נכונה על השלט; T4 (`fake-system-popup`) מתרנדר ומסומן "רק לפרסום רגיל".
+- [ ] צילום מודרך של T2 (3 קליפים, אחד מהם webm) נערך אוטומטית ומתרנדר עם כתוביות ומוזיקה ברישיון.
+- [ ] `/trends/[slug]` מקבל Lighthouse ≥ 90 ולא מכיל שום מדיה מסרטון הייחוס.
+- [ ] שומר הדמיון דוחה טקסט שלט שהועתק, ותלות של סקרייפינג מכשילה את ה-CI.
+- [ ] לכל גרסה שהתרנדרה יש ציון הוק תוך 5 שניות, עם עד 3 הצעות ועם הכיתוב "הערכה לפי כללי הוקים — לא הבטחה לתוצאות."
+
+### M9 — חיבור ל-Meta ופרסום רגיל
+
+**משימות:** חלק 07 §2–§8 ו-§13 (הטבלאות של `0013` כבר במסד מ-M8, ושינוי סכמה שמתגלה עכשיו הוא `0015_…`, חלק 04 §2.3); `lib/meta` (client, mock, טוקנים, webhooks, deauthorize, מחיקת נתונים ודף הסטטוס `/meta/data-deletion`); זרימת החיבור, שלב האונבורדינג "חיבור פייסבוק ואינסטגרם", ההגדרות והצ׳קליסט; רילס ל-IG ול-FB, עכשיו ובתזמון, עם המתזמן שלנו; תובנות אורגניות ולוח התוכן; מטא־דאטה של AI וההודעה (§11.9); `post.caption.v2`; ★ "תוכנית 30 יום" (חלק 07 §16: `plan.month.v1`, `/app/plan`, `monthly_plan_ready`); הדגלים `meta_connect` ו-`monthly_plan`; CSP, סודות ו-webhooks של §15; runbooks R14 ו-R18.
+
+**קריטריוני קבלה:**
+- [ ] בודקים עם תפקיד באפליקציה מתחברים ← צ׳קליסט ירוק.
+- [ ] רילס מתפרסם ל-IG ול-FB "עכשיו", ורילס שתוזמן לעוד 30 דקות עולה בטווח של ±2 דקות; המכסה של IG נקראת בזמן אמת.
+- [ ] טוקן שבוטל הופך ל"נדרש חיבור מחדש" בריצה אחת של הבדיקה היומית, עם מייל אחד.
+- [ ] האתגר והחתימה של ה-webhook עוברים ב-staging; ה-callback של המחיקה מחזיר `{url, confirmation_code}`.
+- [ ] אף טוקן לא מופיע בלוגים או ב-Sentry (בדיקה).
+- [ ] אחרי האונבורדינג נבנית תוכנית של כ-12 פריטים ל-30 יום, בלי פריט ביום שקט; כל פריט עם "צרו בקליק" שפותח את האשף ממולא, והמייל `monthly_plan_ready` יוצא ב-1 לחודש.
+
+### M10 — קמפיינים, דשבורד ולידים
+
+**משימות:** חלק 07 §9–§12: הבונה, הפריסטים, הטקסטים, בדיקת המדיניות, הכנה, תצוגות מקדימות ופרסום, סנכרון הסטטוסים ומיפוי סיבות הדחייה, עריכות, מגבלת שינויי התקציב, בדיקת 3 הוקים, שני סוגי הקידום, הכללים, הדשבורד, סנכרון התובנות וה-backfill, ההסברים, הסיכום השבועי, התקרות (§2.7), טופסי לידים, תיבת הלידים, CSV והתראות; ★ "דף העסק" (חלק 07 §14, בתשלום לפי §2.1: `landing.generate` ב-10 קרדיטים, `/b/[slug]` ו-`/b/[slug]/privacy`) ו"בדיקת דופק" (חלק 07 §15: `metaHealthCheck`, `ads.health_check.v1`, `/app/campaigns/health`, `health_check_ready`); הדגלים `meta_ads`, `meta_lead_forms`, `meta_auto_rules`, `landing_pages` ו-`meta_health_check`; לפחות 500 קריאות נקיות ל-Marketing API ב-15 יום (Full Access tier); הגשת App Review; runbooks R15–R17.
+
+**קריטריוני קבלה:**
+- [ ] בחשבון המודעות שלנו בשקלים: קמפיין וואטסאפ עם 3 הוקים עובר ממושהה ← תצוגות מקדימות ← פרסום ← `in_review` ← `active` בממשק שלנו.
+- [ ] שינוי תקציב רביעי בשעה נדחה בעברית; אי אפשר להשיק את T4.
+- [ ] ליד בדיקה מגיע לתיבה ולהתראה תוך פחות מ-60 שניות.
+- [ ] ההוצאה תואמת למנהל המודעות של מטא בטווח של ±1% אחרי ה-backfill.
+- [ ] קמפיין הניסיון החינמי נעצר ב-₪300 (`spend_cap` של Meta); תקרה של 100% חוסמת השקות ולא משהה כלום.
+- [ ] המייל השבועי מוצג נכון ב-Gmail וב-Outlook.
+- [ ] בתוכנית החינמית דף העסק נוצר (10 קרדיטים) כתצוגה מקדימה עם סימן מים, ואי אפשר לפרסם אותו; אחרי רכישת חבילה (`has_paid`) אותה סביבה מפרסמת דף אחד עם "נבנה עם {{BRAND_NAME}}"; בתוכנית בסיס דף אחד מתפרסם, וליד מהטופס שלו מגיע לתיבה עם `source = 'landing_page'` ומייל `lead_new`.
+- [ ] בדיקת דופק על חשבון בדיקה עם היסטוריה מחזירה ציון ועד 5 תיקונים, כל אחד עם פעולה לבונה כשאפשר; בדיקה שנייה באותו יום נחסמת.
+
+### M11 — הקשחה של App Review והשקה ציבורית
+
+**משימות:** אישור לכל ההרשאות של חלק 07 §4.1; Tech Provider access verification; Full Access tier; Data Use Checkup ביומן התפעול; Meta smoke שבועי ב-`contract-live.yml`; תרגול runbooks R14–R19; סקירת אבטחה (טוקנים, webhooks, לידים, דפי עסק); סקירה משפטית (חלק 07 §21, ה-DPA, תבנית הודעת הפרטיות של דף העסק, שורות ⚖️ 17 ואילך של §25); בדיקה של כל הטקסטים החדשים בידי דובר עברית כשפת אם (נספח E §18–§19); בדיקת עומס (200 חשבונות מדומים בתוך הנעילה השעתית, §18.7); בטא עם 10 עסקים קטנים; בדיקה ידנית של עוגני המחיר ב-`comparisons.json` ו-10 הצעות מחיר של סוכנויות; הפעלת השיווק מאחורי שער הטענות והדלקת הדגלים.
+
+**קריטריוני קבלה:**
+- [ ] משתמש בלי תפקיד באפליקציה שלנו מתחבר, בלי שגיאה 100.
+- [ ] כל פריט ⚖️ של Meta, הלידים, דף העסק והטרנדים נסגר (§25).
+- [ ] `check-content --launch` עובר עם טענות שנבדקו (`comparisons.json`).
+- [ ] אפס באגים בדרגה P0/P1 פתוחים, וכל הבלוק "קמפיינים, פרסום וטרנדים" של §25 מסומן.
+- [ ] smoke בפרודקשן על חשבון המודעות שלנו.
+
+### אחרי M11 — מפת הדרכים (מתועד בלבד; לא נבנה ב-M8–M11)
+
+כל פריט מאחורי דגל משלו (כבוי ולא נזרע, §21.1), עם שער משפטי או עסקי משלו, ונכנס לאבן דרך חדשה רק אחרי החלטה ב-`DECISIONS.md`. הפירוט — חלק 07, פרק מפת הדרכים.
+
+1. **בוט וואטסאפ ללידים** (`whatsapp_bot`): תשובות מיידיות ללידים מקמפיינים של קליק לוואטסאפ (שאלות נפוצות, מחירון, קביעת תור) דרך WhatsApp Business Platform Cloud API; רק תשובות שהעסק אישר; אפשרות הסרה; בדיקה של חוק הספאם ושל מדיניות ההודעות של Meta ⚖️.
+2. **סרטון המלצה מביקורת אמיתית** (`review_videos`): ביקורת אמיתית מגוגל או מוואטסאפ הופכת לסרטון המלצה — רק עם הוכחת מקור והסכמה מפורשת של מי שכתב אותה; לעולם לא המלצה שנוצרה ב-AI.
+3. **ליווי אנושי לקמפיין** (`human_review`, מק״ט חד־פעמי `review-149`, ₪149 כולל מע״מ): מומחה בודק את הקמפיין לפני ההשקה. נדחה ב-MVP (חלק 07 §23, רעיון 15) ונבחן מחדש אחרי הבטא. מכירה כזו היא סוג תשלום חד־פעמי חדש במנוע החיוב, עם חשבונית ומדיניות ביטול משלה ⚖️.
+4. **תוכנית שותפים** (`partners`): רואי חשבון, יועצים עסקיים, קורסים וקהילות עסקיות מפנים לקוחות תמורת חלק מההכנסה; קישורי מעקב ודוח תשלומים חודשי (חשבונית מהשותף, ⚖️ רו״ח).
+5. **אפליקציה לנייד (PWA + push):** הצעת התקנה, התראות push על לידים חדשים ועל סטטוס קמפיינים, וצילום מודרך מהטלפון (ה-manifest כבר קיים בחלק 01).
+6. **ערוצים נוספים:** טיקטוק, יוטיוב שורטס ופרסום ל-Google Business Profile; מצב לרשתות ולעסקים עם כמה סניפים.
+7. **דומיין מותאם לדף העסק** (למשל `www.mybusiness.co.il`, חלק 07 §14.1).
+
 ### קריטריוני קבלה (לכל אבני הדרך)
-- [ ] לכל אבן דרך יש קומיט `feat(mX): …`, רשומה ב-`CHANGELOG.md` ותגית `v0.{m}.0`.
+- [ ] לכל אבן דרך יש קומיט `feat(mX): …`, רשומה ב-`CHANGELOG.md` ותגית `v0.{m}.0`. M8–M11 מתויגות `v1.1.0`–`v1.4.0` (§23.4).
 - [ ] אף אבן דרך לא התחילה לפני שכל הקריטריונים של הקודמת סומנו (נבדק בהיסטוריית ה-PR-ים).
 - [ ] כל `[M0-verify]` שנוגע לאבן הדרך נסגר ב-`DECISIONS.md` לפני שהקוד שתלוי בו מוזג.
 
@@ -2839,7 +3390,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] אין תוסף נגישות צף.
 
 **משפט ותאימות** ⚖️
-- [ ] שבעת הדפים המשפטיים אושרו על ידי עורך דין, וכל המשתנים המשפטיים הוחלפו (`check-content --launch`).
+- [ ] הדפים המשפטיים (שבעה בהשקה, ו-`/legal/dpa` מ-M11) אושרו על ידי עורך דין, וכל המשתנים המשפטיים הוחלפו (`check-content --launch`).
 - [ ] "ביטול מנוי" בפוטר של כל עמוד, בעמוד החיוב ובמדיניות; ביטול ב-2 לחיצות עם מייל אישור.
 - [ ] ביטול במייל או בטלפון מטופל תוך פחות מ-3 ימי עסקים, עם התראת SLA.
 - [ ] גילוי לפני עסקה, תיבת תנאים לא מסומנת בקופה, ומסמך גילוי (`payment_receipt`) אחרי.
@@ -2851,7 +3402,7 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] דיוור: "פרסומת:" בנושא, פרטי שולח, הסרה בלחיצה (RFC 8058), רק עם הסכמה.
 - [ ] תוכן פוליטי ופוליטיקאים חסומים; מצב בחירות פעיל עד 2026-10-28 23:59.
 - [ ] תווית AI, צ׳קליסט ייצוא, הצהרות הסכמה בהעלאת אנשים; שיבוט קול ואווטאר כבויים.
-- [ ] כל 25 שורות §11.1 מסומנות ב-`docs/legal/launch-checklist.md` עם ראיה.
+- [ ] כל 25 שורות §11.1 של ההשקה (L-01–L-25) מסומנות ב-`docs/legal/launch-checklist.md` עם ראיה; L-26–L-37 נבדקות בבלוק "קמפיינים, פרסום וטרנדים".
 - [ ] כל ההחלטות שבטבלה "החלטות שממתינות לאישור עורך דין / רו״ח" (למטה) אושרו בכתב או שונו, והתוצאה רשומה ב-`DECISIONS.md`.
 
 **החלטות שממתינות לאישור עורך דין / רו״ח** ⚖️ — ממומשות כברירת מחדל, ולא עולות לפרודקשן ציבורי לפני אישור:
@@ -2868,13 +3419,27 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 | 8 | החזר מלא כשהביטול התקבל לפני חיוב שיצא בתוך חלון 3 ימי העסקים | עו״ד צרכנות | §10.2 |
 | 9 | פטור ממחיקת סרטונים אחרי 90 יום לסביבות ששילמו אי־פעם | עו״ד פרטיות | §11.5; חלק 04 §11.4 (`mark_retention`); חלק 02 §10.3 |
 | 10 | מילת האישור "מחיקה" בדיאלוג מחיקת החשבון | עו״ד | חלק 04 §21.3; חלק 03 §16.4 |
-| 11 | כל הדפים המשפטיים (תנאים, פרטיות, ביטול, נגישות, AI, דמות וקול, עוגיות) | עו״ד | חלק 02 §10 |
+| 11 | כל הדפים המשפטיים (תנאים, פרטיות, ביטול, נגישות, AI, דמות וקול, עוגיות, ומ-M11 גם DPA) | עו״ד | חלק 02 §10 |
 | 12 | הניסוח על Bit בתנאי השימוש ("אם האפשרות מוצגת בעמוד התשלום") | עו״ד | חלק 02 §10.2 (6.2); §3.1, §8.2 |
 | 13 | סוג המסמך (חשבונית מס-קבלה בלבד; עוסק פטור לא נתמך) ושורות החשבונית | רו״ח | §9.2–§9.3 |
 | 14 | נוהל בקשת מספר הקצאה בדיעבד, ועיכוב חשבונית מעל יום עסקים | רו״ח | §9.4, R5 |
 | 15 | וואטסאפ כ"דבר פרסומת" לפי ס׳ 30א, ומועד התחולה של כללי הבחירות על זיוף עמוק (שניהם לא אומתו במחקר) | עו״ד | §11.8, §11.11, §13 |
 | 16 | `low_credits` כהודעת שירות ולא "דבר פרסומת": בלי מחירים, בלי חבילה או תוכנית מוצעת ובלי כפתור רכישה, ולכן בלי הסכמה, בלי "פרסומת:" ובלי קישור הסרה של ס׳ 30א (הכיבוי בהגדרות ההתראות נשאר) | עו״ד | §11.8, §12.5 (`low_credits`) |
+| 17 | DPA: הלקוח בעל המידע של הלידים, ואנחנו המעבדים; הנוסח של `/legal/dpa` | עו״ד פרטיות | §11.14; חלק 02 (`/legal/dpa`); חלק 07 §12.5 |
+| 18 | הטלפון של הליד בהתראת וואטסאפ (`lead_notify.include_phone_in_whatsapp`, ברירת מחדל `true`) | עו״ד פרטיות | §13.3, §11.14 |
+| 19 | היקף המחיקה בבקשה מ-Meta: המזהים האישיים של משתמש הפייסבוק נמחקים, וסטטיסטיקות הקמפיינים והלידים של העסק נשארים | עו״ד פרטיות | §11.6; חלק 07 §3 |
+| 20 | נתונים בין לקוחות (מדדי השוואה) — כבויים עד אישור | עו״ד פרטיות (גם מול התנאים של Meta) | §11.16 |
+| 21 | הקלטת מסך של פוסט של אחרים כבסיס זכויות לניתוח (לא מותר עד אישור) | עו״ד IP | §11.15; חלק 08 §J.1 |
+| 22 | "פורמט ולא ביטוי" (ס׳ 5 לחוק זכות יוצרים; פס״ד ברודסקי נ׳ ארמוסה), ו-`do_not_copy` ושומר הדמיון כבקרה מספקת | עו״ד IP | §11.15; חלק 08 §J.10 |
+| 23 | תבנית הודעת הפרטיות לכל עסק (`/b/[slug]/privacy`) ונוסח ההסכמה בטופס הליד | עו״ד פרטיות | §11.14; חלק 07 §14 |
+| 24 | התוספות לתנאים על פרסום ב-Meta (כלי, הלקוח המפרסם, תקציב שנגבה ב-Meta, בלי הבטחת תוצאות) והסכמת `meta_ads_terms` | עו״ד צרכנות | §11.12; חלק 02 §10.2 |
+| 25 | השוואות "זול יותר מסוכנות" עם מקורות, טווחים ו"לא כולל תקציב פרסום" | עו״ד צרכנות | חלק 02 (`comparisons.json`); חלק 07 §1.3 |
+| 26 | `weekly_results`, `monthly_plan_ready` ו-`health_check_ready` כהודעות שירות ולא "דבר פרסומת" | עו״ד | §11.8, §12.4 |
+| 27 | הודעה ללקוחות שהשתמשו בתבנית טרנד שהוסרה (R19) | עו״ד IP | §22 (R19) |
+| 28 | תנאי Lyria לשימוש במוזיקה שנוצרה בפרסום ממומן, ותוכנית B של ספרייה מורשית | עו״ד IP | חלק 08 §16.5; חלק 07 §21 |
+| 29 | ההסכמה בכתב של עובדים ושל אנשים שמצטלמים בצילום מודרך (`people_on_camera_consent`) | עו״ד פרטיות | חלק 08 §10.6, §16.5 |
 
+השורות 17 ואילך חוסמות את ההשקה הציבורית של חלקים 07–08 (M11), ולא את M7.
 **פריט פתוח (לא משפטי):** הגבלות הרשת של מסד הפרודקשן כבויות בהשקה (§15.11). הפעלתן מחכה ל-runner עם IP יציא קבוע ברשימת ההיתר, וההחלטה רשומה ב-`DECISIONS.md`.
 
 **אבטחה ופרטיות**
@@ -2921,12 +3486,12 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] כל שורות התאימות של §11.1 שנוגעות לחיוב מסומנות עם ראיה.
 - [ ] עדכון כרטיס לא גובה כסף, וב-`past_due` מחייב מיד את החוב פעם אחת; Bit מוצג רק בחבילות וכש-`GROW_PAGE_CODE_BIT` מוגדר.
 - [ ] chargeback, החזר ידני וצירוף חשבונית ידנית עובדים מהאדמין ונרשמים בשמות הקנוניים (`payment.chargeback`, ‏`payment.refund`, ‏`invoice.attach`).
-- [ ] כל 26 תבניות המייל קיימות, וכל מייל חיוב נבדק ידנית ב-Gmail, Apple Mail ו-Outlook.
+- [ ] כל תבניות המייל של §12.4 קיימות (26 בהשקה, 36 אחרי M11), וכל מייל חיוב נבדק ידנית ב-Gmail, Apple Mail ו-Outlook.
 
 **אנליטיקה**
-- [ ] `lib/analytics/events.ts` מכיל בדיוק את 63 האירועים של §14.2, ואירועי שרת לא נשלחים מהלקוח.
+- [ ] `lib/analytics/events.ts` מכיל בדיוק את האירועים של §14.2 (63 בהשקה, 108 אחרי M11), ואירועי שרת לא נשלחים מהלקוח.
 - [ ] לפני הסכמה אין PostHog, אין עוגיות `ph_*` ואין `exp_hero`; אירועי שרת נשלחים רק למי שהסכים.
-- [ ] אין PII בשום מאפיין (בדיקת יחידה), ו-`docs/analytics.md` מכיל את 8 המשפכים ו-4 הלוחות.
+- [ ] אין PII בשום מאפיין (בדיקת יחידה), ו-`docs/analytics.md` מכיל את המשפכים והלוחות של §14.4 (8 ו-4 בהשקה, 12 ו-5 אחרי M11).
 
 **צנרת AI**
 - [ ] כל הקריאות ל-AI עוברות דרך OpenRouter מהשרת בלבד, עם `data_collection: "deny"` וכותרות שיוך.
@@ -2956,26 +3521,46 @@ Keep a Changelog, באנגלית, לפי גרסה (`0.{milestone}.{patch}` עד 
 - [ ] כל משתני הסביבה מתועדים ב-`.env.example` ומאומתים ב-`lib/env.ts`.
 - [ ] דגלים ומתגי חירום (`maintenance_mode`, `or:halt`, `billing_checkout`) נבדקו.
 - [ ] Sentry עם מפות מקור, Cron Monitors ו-Uptime; כל ההתראות של §16.4 מחוברות.
-- [ ] 13 runbooks קיימים, ו-R1, R3, R9 תורגלו.
+- [ ] ה-runbooks של §22 קיימים (R1–R13 בהשקה, R14–R19 מ-M9–M11), ו-R1, R3, R9 תורגלו.
 - [ ] Remotion: רישיון מתאים לגודל החברה (חינם עד 3 עובדים; מעבר לזה Automators, §19.6), ו-`REMOTION_LICENSE_KEY` מוגדר כשצריך.
 - [ ] אף `app/api/**/route.ts` לא מגדיר `maxDuration` מעל 300 (החריג היחיד: נתיבי הצעדים של WDK, `.well-known/workflow/*`, שמוגדרים ב-`vercel.json → functions`), ואף גוף בקשה לא עובר 4MB (§19.6).
 - [ ] מגבלת אשראי לכל מפתח OpenRouter; יתרה מספיקה ל-7 ימים.
 - [ ] `README.md` מסביר התקנה, סביבות ופריסה; `DECISIONS.md` ו-`CHANGELOG.md` שלמים.
 - [ ] ערכת ההשקה (Product Hunt) מוכנה, וסרטוני הדוגמה באתר הם רינדורים אמיתיים של המוצר.
 
+**קמפיינים, פרסום וטרנדים** (נסגר ב-M11; ⚖️ בשורות המשפטיות)
+- [ ] מסרטון לקמפיין בפייסבוק ובאינסטגרם ב-4 שלבים: הכול נוצר מושהה, תצוגות מקדימות, ואישור מפורש לפני "פרסום"; סטטוסים וסיבות דחייה בעברית.
+- [ ] 4 המספרים בעברית ("כמה הוצאתם", "כמה אנשים ראו", "כמה פניות", "כמה עלתה כל פנייה"), השוואת הוקים, "מה זה אומר?" בלי הבטחות ובלי מספרים שלא הופיעו בנתונים, וסיכום שבועי.
+- [ ] 0% מהתקציב: שום סכום של תקציב פרסום לא עובר דרך החיוב, החשבוניות או ההחזרים שלנו (§1.8).
+- [ ] תקרות ההוצאה המנוהלת לפי §2.7: ב-80% אזהרה אחת; ב-100% חסד של 7 ימים, ואז חסימה של השקות, המשך והגדלת תקציב — ואף פעם לא השהיה של מודעות הלקוח; קמפיין הניסיון החינמי נעצר ב-₪300.
+- [ ] לידים: נקלטים תוך פחות מ-60 שניות, עם התראה ותזכורת אחרי 15 דקות, מיני-CRM ו-CSV; שמירה 24 חודשים; אף פעם לא ב-LLM, באנליטיקה או בלוגים.
+- [ ] פרסום רגיל ותזמון ל-IG ול-FB, עד 5 האשטגים, לוח תוכן עם עונות וימי שקט, ותובנות אורגניות.
+- [ ] טוקנים מוצפנים בלי grant ללקוח, וניתוק מוחק אותם; ה-callback של מחיקת הנתונים ודף הסטטוס עובדים; כל webhook של Meta מאומת בחתימה.
+- [ ] `META_GRAPH_VERSION` מקובע (`v26.0`), `lint:meta` ו-`lint:deps` ירוקים, ו-Meta smoke שבועי פעיל (R14).
+- [ ] Business Verification, App Review לכל ההרשאות, Tech Provider ו-Full Access tier הושלמו, ו-Data Use Checkup ביומן התפעול עם בעלים (חלק 07 §4.2).
+- [ ] 12 תבניות הטרנד פורסמו עם הדגמות שלנו; בשום מקום אין מדיה, שם או כינוי של יוצר מקורי; שומר הדמיון פעיל; הדפים הציבוריים ב-ISR עם JSON-LD.
+- [ ] צילום מודרך: מצלמה בדפדפן רק בנתיב הצילום, הצהרת הסכמה לאנשים ועריכה אוטומטית.
+- [ ] דף העסק בתשלום לפי §2.1: בתוכנית החינמית רק תצוגה מקדימה (חוץ מאחרי רכישת חבילה), 10 קרדיטים ליצירה, וזהות העסק והודעת פרטיות בכל דף.
+- [ ] בדיקת דופק, תוכנית 30 יום וציון הוק עובדים מאחורי הדגלים שלהם, וציון ההוק מוצג תמיד עם "הערכה לפי כללי הוקים — לא הבטחה לתוצאות."
+- [ ] שורות L-26–L-37 של §11.1 מסומנות עם ראיה, וכל ההחלטות 17 ואילך בטבלת עורך הדין אושרו או שונו.
+- [ ] 36 תבניות המייל ו-11 תבניות הוואטסאפ קיימות; 108 האירועים ב-`lib/analytics/events.ts`; 24 הדגלים ו-30 מפתחות `app_settings` ב-seed; 19 runbooks, ו-R15, R16 ו-R18 תורגלו.
+- [ ] בטא עם 10 עסקים קטנים הושלמה, והטקסטים החדשים אושרו בבדיקת עברית (נספח E §18–§19).
+
 ### קריטריוני קבלה
 - [ ] הרשימה הזו מועתקת ל-`docs/launch/definition-of-done.md`, וכל סעיף מסומן עם קישור לראיה (בדיקה ירוקה, צילום, דוח או מסמך חתום).
 - [ ] סעיפי ⚖️ מסומנים רק אחרי אישור בכתב של עורך הדין או רואה החשבון, שמצורף ב-`docs/legal/`.
-- [ ] אין פריסת פרודקשן ציבורית (הסרת ההגנה מהדומיין) לפני שכל הסעיפים מסומנים.
+- [ ] אין פריסת פרודקשן ציבורית (הסרת ההגנה מהדומיין) לפני שכל הסעיפים מסומנים, ואין הדלקה של `meta_connect`, `meta_ads` או `trends_public` בפרודקשן לכל הלקוחות לפני שהבלוק "קמפיינים, פרסום וטרנדים" מסומן (בבטא — רק עם `workspace_ids`).
 
 ---
 
 ## תלויות בין חלקים
 
-- **חלק 00:** פורמט `DECISIONS.md` וסדר העדיפויות בין המסמכים; הרשימה המלאה של משתני התוכן `{{…}}` נמצאת כאן ב-§20.1.
-- **חלק 01:** `formatIls` (§2.5) היא המעצבת היחידה של ₪, ו-`formatAgorot` כאן עוטפת אותה; `Price`, ‏`Num`, ‏`LtrInput`; ה-hash של `THEME_SCRIPT_SOURCE` (§6.2) נכנס לשני ענפי ה-CSP (§15.3); ‏`font-src 'self'` לגופני הכתוביות בנגן; `lint:rtl` ו-`lint:copy` (§2.6, §9.3); העוגיות `theme`, ‏`motion`, ‏`sidebar_state` (§11.7).
-- **חלק 02:** הדפים המשפטיים (§10) משקפים את §10–§11 כאן: דוגמאות ההחזר של מדיניות הביטול = §10.5, טבלת השמירה = §11.5, רשימת העוגיות = §11.7, ספקי המשנה = `docs/legal/subprocessors.md`; ‏`bitEnabled` נגזר מ-`GROW_PAGE_CODE_BIT` (מחרוזות `…ByCardOnly`); אירועי השיווק הם שורות של §14.2 (עם `SignupSource` ו-`CtaLocation` של §14.3); ‏`check-content --launch` בודק את משתני §20.1.
-- **חלק 03:** מסכי החיוב (§15) מציגים את בלוק הגילוי ותיבת התנאים (§4.1), את הבורר "מתי לעבור?" (§5.5), את באנר `past_due` ואת תוצאת עדכון הכרטיס (§6), ואת זרימת הביטול וההחזר (§10.6–§10.7); ‏`/admin/mfa` (§15.4); כלי האדמין לחיוב (chargeback, צירוף חשבונית ידנית, הסרת יתרה מדלי, "התאמת תשלומים עכשיו"); קטלוג האירועים של §14.2, כולל ההפרדה בין אירועי לקוח לאירועי שרת; מחרוזות `ops.banners` (§22).
-- **חלק 04:** האובייקטים שהמנוע נשען עליהם — עמודות `subscriptions` ו-`payments` (§7), ‏`email_messages` ו-`abuse_reports.source` (§8), ‏`platform_admin_status` (§9.2), ‏`enforce_plan_limits` (§9.5b), ‏`revoke_grant_remaining` (§10.3), החתימות של `billing_apply_*` (§10.8; הגוף נכתב לפי §4–§5 כאן), ‏`prevent_audit_mutation` (§10.6), משימות הניקוי (§15), ‏`backup_reader` (§15b), ‏`app_settings` ו-`feature_flags` (§16.4), ‏`proxy.ts` (§17.2), ‏`maxDuration` (§18.5), מגבלות הקצב ומפתחות Upstash (§18.6), חוזי החיוב, החשבון וה-WhatsApp (§21), ‏`/api/health` (§21.5), ה-webhooks (§22.4–§22.6), נתיבי ה-cron (§23), ‏Admin API ורשימת פעולות הביקורת הקנונית (§24.1).
-- **חלק 05:** ‏`moderation.upload.v1` (§10.14); ‏`data_collection: "deny"` (§4); מגן התקציב ו-`or:halt` (§2.3, §7.3); ‏`SAMPLE_PRESETS` ו-`estimateSample` (§14.2); אירועי הצנרת של §14.2 כאן; ‏`eval:prompts` ו-`test:pipeline` (§23); הרינדור ב-Vercel Sandbox ו-`REMOTION_LICENSE_KEY` (§19.6 כאן).
-- **נספחים:** נספח D — ה-fixtures של בדיקות ה-e2e ו-`demo:render`; נספח E §13.4 — בדיקת השמיעה וטופס סקירת העברית של M7; נספח F — הבסיס, והחלק הזה גובר עליו בממשקי `PaymentProvider`/`InvoiceProvider`, ב-26 תבניות המייל, ב-63 האירועים, במשתני הסביבה, בדגלים וב-CSP.
+- **חלק 00:** פורמט `DECISIONS.md` וסדר העדיפויות בין המסמכים; הרשימה המלאה של משתני התוכן `{{…}}` נמצאת כאן ב-§20.1. העקרונות החדשים — "כסף של פרסום: 0% מהתקציב, לא מחזיקים כסף של לקוחות, הכול נוצר מושהה" ו"טרנדים: מעתיקים פורמט, לא ביטוי" — מקבלים כאן את הבקרות שלהם (§1.8, §2.7, §11.13–§11.16).
+- **חלק 01:** `formatIls` (§2.5) היא המעצבת היחידה של ₪, ו-`formatAgorot` כאן עוטפת אותה; `Price`, ‏`Num`, ‏`LtrInput`; ה-hash של `THEME_SCRIPT_SOURCE` (§6.2) נכנס לשני ענפי ה-CSP (§15.3); ‏`font-src 'self'` לגופני הכתוביות בנגן; `lint:rtl` ו-`lint:copy` (§2.6, §9.3); העוגיות `theme`, ‏`motion`, ‏`sidebar_state` (§11.7). בהרחבה: `SpendCapMeter` (המצבים של §2.7), `MetaPreviewFrame` (בתוך ה-`frame-src` של §15.3), `KpiTile`, `ClaimFootnote`; הגופנים `Amatic SC` ו-`Noto Color Emoji` נטענים מאותו origin (`font-src 'self'`).
+- **חלק 02:** הדפים המשפטיים (§10) משקפים את §10–§11 כאן: דוגמאות ההחזר של מדיניות הביטול = §10.5, טבלת השמירה = §11.5, רשימת העוגיות = §11.7, ספקי המשנה = `docs/legal/subprocessors.md`; ‏`bitEnabled` נגזר מ-`GROW_PAGE_CODE_BIT` (מחרוזות `…ByCardOnly`); אירועי השיווק הם שורות של §14.2 (עם `SignupSource` ו-`CtaLocation` של §14.3); ‏`check-content --launch` בודק את משתני §20.1. בהרחבה: `/legal/dpa`, `/meta/data-deletion`, התוספות לתנאים ולפרטיות (§11.6, §11.12–§11.14), רשימת האחסון המקומי החדשה (§11.7), `comparisons.json` ו-`check-content --launch` (L-33), `PlanMetaFeatures` מהטבלה של §2.1 (כולל דף העסק כפיצ׳ר בתשלום ובדיקות הדופק), וה-`CtaLocation` החדשים (§14.3).
+- **חלק 03:** מסכי החיוב (§15) מציגים את בלוק הגילוי ותיבת התנאים (§4.1), את הבורר "מתי לעבור?" (§5.5), את באנר `past_due` ואת תוצאת עדכון הכרטיס (§6), ואת זרימת הביטול וההחזר (§10.6–§10.7); ‏`/admin/mfa` (§15.4); כלי האדמין לחיוב (chargeback, צירוף חשבונית ידנית, הסרת יתרה מדלי, "התאמת תשלומים עכשיו"); קטלוג האירועים של §14.2, כולל ההפרדה בין אירועי לקוח לאירועי שרת; מחרוזות `ops.banners` (§22). בהרחבה: הנוסחים של `PLAN_LIMIT` למפתחות של §2.1 ולפרטים `cap`/`used` של §2.7; השפעות השנמוך החדשות (`downgradeImpacts`, §5.3–§5.4) ובלוק הקמפיינים שממשיכים לרוץ בביטול (§12.5); **רשום בחלק 03 §16.2:** שורה למפתח ההעדפה `monthly_plan` (§12.1) ונוסח הסכמת הוואטסאפ המעודכן (§13.2).
+- **חלק 04:** האובייקטים שהמנוע נשען עליהם — עמודות `subscriptions` ו-`payments` (§7), ‏`email_messages` ו-`abuse_reports.source` (§8), ‏`platform_admin_status` (§9.2), ‏`enforce_plan_limits` (§9.5b), ‏`revoke_grant_remaining` (§10.3), החתימות של `billing_apply_*` (§10.8; הגוף נכתב לפי §4–§5 כאן), ‏`prevent_audit_mutation` (§10.6), משימות הניקוי (§15), ‏`backup_reader` (§15b), ‏`app_settings` ו-`feature_flags` (§16.4), ‏`proxy.ts` (§17.2), ‏`maxDuration` (§18.5), מגבלות הקצב ומפתחות Upstash (§18.6), חוזי החיוב, החשבון וה-WhatsApp (§21), ‏`/api/health` (§21.5), ה-webhooks (§22.4–§22.6), נתיבי ה-cron (§23), ‏Admin API ורשימת פעולות הביקורת הקנונית (§24.1). בהרחבה: 10 המפתחות החדשים של `plans.limits` (§2.1) ו-`credit_costs` (§2.8, כולל `landing.generate` = 10), 30 מפתחות `app_settings`, פעולות הביקורת `meta.*`, `leads.*` ו-`trend.*`, ו-`purge_meta_data` במחיקת סביבה (§10.7). **רשום בחלק 04:** `PlanChangeResponse.downgradeImpacts.limit` מקבל גם `meta_ad_accounts`, `meta_active_campaigns`, `meta_auto_rules`, `social_scheduled_max`, `landing_pages` (§21.2 שם); `notification_prefs.kinds` מקבל גם את המפתח `monthly_plan` (§4 שם); 24 דגלים ב-`feature_flags.json`, בלי 4 דגלי מפת הדרכים (§16.4 שם); צעד 9 של `cleanup` מוחק את כל התיקייה `trend-refs/{reference_id}/` (§23 שם); `PUT /api/admin/flags/meta_connect` מחזיר `INVALID_INPUT {reason: "meta_mock_in_production"}` בפרודקשן עם mock (§24.1 שם).
+- **חלק 05:** ‏`moderation.upload.v1` (§10.14); ‏`data_collection: "deny"` (§4); מגן התקציב ו-`or:halt` (§2.3, §7.3); ‏`SAMPLE_PRESETS` ו-`estimateSample` (§14.2); אירועי הצנרת של §14.2 כאן; ‏`eval:prompts` ו-`test:pipeline` (§23); הרינדור ב-Vercel Sandbox ו-`REMOTION_LICENSE_KEY` (§19.6 כאן). בהרחבה: `hooks.score.v1` ו-`lib/hooks/score.ts` (הטיפוס `HookScoreFix` של אירוע 108); `moderation.ad.v1` כנקודת ביקורת (§15.9); המטא־דאטה `DigitalSourceType` בסיום (§11.9).
+- **חלק 07:** כל הלוגיקה של Meta שהחלק הזה קובע לה כללים: 0% מהתקציב (§1.8); `meta_spend_summary`, `refresh_managed_spend` ו-`managed_spend_monthly` מאחורי השער `assertMetaSpendAllowed` (§2.7); הנוסח של 9 מיילים (§12.5); הצ׳קליסט של הבעלים (חלק 07 §4.2 ↔ משימה 7 של M0; כאן §11.13); העדכונים של L-26–L-31 ו-L-33–L-37. **רשום בחלק 07:** קמפיין הניסיון לא נספר בהוצאה המנוהלת, ותקרה 0 חוסמת קמפיין רגיל בלי חסד (§2.7); `meta_active_campaigns` סופר `in_review`, `active` ו-`with_issues`, ונבדק בפרסום ובחידוש (§2.1, כמו חלק 07 §17); `has_paid` מתיר דף עסק אחד בתוכנית החינמית, ו-`landing.generate` נגבה גם על תצוגה מקדימה (§2.1, §2.8); אחרי שנמוך דפים מפורסמים מעבר למגבלה נשארים באוויר לקריאה בלבד, וכללים עודפים נכבים חוץ מ-`monthly_cap_stop` (§5.4); התזכורת על ליד היא וריאנט של `lead_new` עם המפתח `lead_new:{leadId}:reminder` (§12.4); `lead_new_he` נדחית בשעות השקטות ונשלחת רק אם הליד עדיין `new` (§13.3); `lead_received.source` הוא ה-enum `lead_source` של חלק 07 §6.1 (§14.2); ה-`html` של C7 נבנה מחדש כ-`<iframe>` עם `sandbox` (§15.3); מפתחות האידמפוטנטיות `deauth:{user_id}:{issued_at}` ו-`deletion:{user_id}:{issued_at}` (§15.7); honeypot בלי CAPTCHA בטופס של `/b/[slug]`, ו-`moderation.ad.v1` על הטקסט של דף העסק (§7.3, §15.9); `purge-meta-raw` מוחק גם `ad_health_reports` בני 12 חודשים ו-`meta_data_deletion_requests` בני 3 שנים (§11.5); דגל כבוי לא מעלים נתונים קיימים, ו-`meta_ads` כבוי עוצר רק השקות (§21.3); פוסט שפג כשהדגל `meta_connect` כבוי עובר ל-`expired` (§21.3).
+- **חלק 08:** הנוסח של `trends_weekly` (§12.5); בסיס הזכויות, השמירה וההסרה (§11.5, §11.15, R19); `lint:deps` ורשימת החבילות האסורות (§15.12); `trend_analysis_limits` (§16.4); `pnpm trends:demos` (§23.6). **רשום בחלק 08:** דף טרנד בסטטוס `retired` בלי `demo_assets` מחזיר 404 (R19).
+- **נספחים:** נספח D — ה-fixtures של בדיקות ה-e2e ו-`demo:render`; נספח E §13.4 — בדיקת השמיעה וטופס סקירת העברית של M7; נספח F — הבסיס, והחלק הזה גובר עליו בממשקי `PaymentProvider`/`InvoiceProvider`, ב-36 תבניות המייל, ב-108 האירועים, במשתני הסביבה, בדגלים וב-CSP; נספח E §18–§19 — כללי הקופי למודעות ושפת הדוחות, שהמיילים וההודעות של ההרחבה נבדקים מולם.

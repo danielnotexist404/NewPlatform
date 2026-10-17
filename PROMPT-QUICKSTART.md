@@ -573,7 +573,7 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | `render:{aspect}` | Remotion ב-Vercel Sandbox, העלאה ל-`renders` | `render.base` / `render.extra_format` | 18 |
 | `finalize` | פוסטר, SRT, ‏VTT, ‏`settle_reservation` | 0 | 2 |
 
-**אינווריאנטים:** אף שקל לא יוצא פעמיים (אידמפוטנטיות לפי `(job_id, step_key)`); חיוב בסוף צעד, לא בהתחלה; **כישלון של סצנה אחת לא מפיל סרטון** — קליפ שנכשל הופך ל"תמונה בתנועה" (Ken Burns) עם החזר מיידי; עבודה נכשלת רק על קריינות, רוב ה-keyframes או הרכבת הפורמט הראשי, ואז `refund_reservation` מלא; ה-workflow לא נוגע ב-DB — רק הצעדים; מעבירים בין צעדים מזהים בלבד. ‏`sweep-jobs` משלים webhooks שאבדו ועבודות תקועות. **זרימות של M8–M11:** `orchestrator.startFlow(name, input, { idempotencyKey })` מפעיל את `metaConnectSync`, ‏`metaPrepareCampaign`, ‏`metaLeadIngest`, ‏`socialPublish`, ‏`metaDataDeletion`, ‏`metaHealthCheck`, ‏`trendAnalyze` ו-`guidedAutocut`; הסרטונים ממשיכים ב-`start(jobId)`.
+**אינווריאנטים:** אף שקל לא יוצא פעמיים (אידמפוטנטיות לפי `(job_id, step_key)`); חיוב בסוף צעד, לא בהתחלה; **כישלון של סצנה אחת לא מפיל סרטון** — קליפ שנכשל הופך ל"תמונה בתנועה" (Ken Burns) עם החזר מיידי; עבודה נכשלת רק על קריינות, רוב ה-keyframes או הרכבת הפורמט הראשי, ואז `refund_reservation` מלא; ה-workflow לא נוגע ב-DB — רק הצעדים; מעבירים בין צעדים מזהים בלבד. ‏`sweep-jobs` משלים webhooks שאבדו ועבודות תקועות. **זרימות של M8–M11:** `orchestrator.startFlow(name, input, { idempotencyKey })` מפעיל את `metaConnectSync`, ‏`metaPrepareCampaign`, ‏`metaLeadIngest`, ‏`socialPublish`, ‏`metaDataDeletion`, ‏`metaHealthCheck`, ‏`monthlyPlanGenerate`, ‏`trendAnalyze` ו-`guidedAutocut`; הסרטונים ממשיכים ב-`start(jobId)`.
 
 **כתוביות RTL:** הקריינות מתומללת ב-Scribe (`stt.default`, ‏`verbose_json`); היישור דו-שלבי, כי הכתוביות מציגות את **טקסט התצוגה** (`vo_full_he`, עם ספרות: "₪99", "50%") אבל הזמנים מגיעים ממה שנאמר בפועל ("תשעים ותשעה שקלים"). מילים מיושרות ← עימוד לפי `CAPTION_PRESETS[preset].paging` (קוד משותף לנגן ולרינדור) ← הדגשת מילת מפתח אופציונלית (`captions.emphasis.v1`) ← `CaptionTrackV1` ב-`project_versions.caption_track`. תמלול שנכשל או יישור באיכות מתחת ל-70% ← יישור חלופי (`alignment_fallback`: משך הקריינות מחולק בין המילים לפי אורכן), והצעד `captions` לעולם לא מכשיל עבודה. SRT ו-VTT נבנים ב-`finalize` מאותו מסלול. ברינדור: `unicode-bidi: plaintext` לכל שורה וכל טוקן לועזי או מספרי בתוך `<bdi>`, וההדגשה מתקדמת לפי סדר הדיבור, מימין לשמאל.
 
@@ -618,7 +618,7 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | כללים אוטומטיים פעילים (`meta_auto_rules`) | 0 | 2 | 5 | 5 |
 | ניהול לידים: סטטוס, הערות, אחראי, ‏CSV (`meta_lead_inbox`) | — | ✓ | ✓ | ✓ |
 | פוסטים מתוזמנים במקביל (`social_scheduled_max`) | 3 | 30 | ללא הגבלה | ללא הגבלה |
-| "דף העסק" (`landing_pages`) | תצוגה מקדימה בלבד | 1 | 3 | 1 לכל סביבת לקוח |
+| "דף העסק" (`landing_pages`) | תצוגה מקדימה בלבד (דף אחד אחרי רכישת חבילה) | 1 | 3 | 1 לכל סביבת לקוח |
 | "בדיקת דופק" בחודש (`health_checks_per_month`) | 1 | 2 | 4 | 4 לכל סביבת לקוח |
 
 "≈ N סרטונים" = `floor(monthly_credits / typical_video_credits)` (50). צופים לא נספרים במכסת המשתמשים. מחיר המנוי ננעל ברגע הרכישה. ‏"שנתי · חיסכון של 20%" רק כשהדגל `annual_billing` פעיל.
