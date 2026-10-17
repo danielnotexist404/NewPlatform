@@ -77,11 +77,11 @@ export function PlanComparisonTable() {
     <div className="flex flex-col gap-3">
       <p className="text-small text-muted md:hidden">{COMPARE.scrollHint}</p>
       <div className="relative -mx-4 overflow-x-auto px-4 lg:mx-0 lg:overflow-visible lg:px-0" tabIndex={0} role="region" aria-label={COMPARE.caption}>
-        <table className="w-full min-w-[760px] border-separate border-spacing-0 text-small" aria-describedby="seats-footnote">
+        <table className="w-full min-w-[760px] table-fixed border-separate border-spacing-0 text-small" aria-describedby="seats-footnote">
           <caption className="sr-only">{COMPARE.caption}</caption>
           <thead>
             <tr>
-              <th scope="col" className="sticky inset-s-0 z-20 w-[30%] bg-bg py-4 pe-4 text-start font-semibold text-text-2 lg:top-16">
+              <th scope="col" className="sticky inset-s-0 z-20 w-[28%] bg-bg py-4 pe-4 text-start font-semibold text-text-2 lg:top-16 lg:bg-bg/90 lg:backdrop-blur">
                 {COMPARE.planCol}
               </th>
               {PLANS.map((p) => (
@@ -89,8 +89,8 @@ export function PlanComparisonTable() {
                   key={p.id}
                   scope="col"
                   className={cn(
-                    "z-10 bg-bg px-3 py-4 text-center lg:sticky lg:top-16",
-                    p.id === highlighted && "rounded-t-md bg-surface-2 shadow-[inset_0_2px_0_var(--color-primary)]",
+                    "z-10 bg-bg px-3 py-4 text-center lg:sticky lg:top-16 lg:bg-bg/90 lg:backdrop-blur",
+                    p.id === highlighted && "rounded-t-md bg-surface-2 shadow-[inset_0_2px_0_var(--color-primary)] lg:bg-surface-2",
                   )}
                 >
                   <span className="block text-body-lg font-bold">{p.nameHe}</span>
@@ -102,13 +102,13 @@ export function PlanComparisonTable() {
           {groups.map((g) => (
             <tbody key={g.id}>
               <tr>
-                <th scope="rowgroup" colSpan={PLANS.length + 1} className="sticky inset-s-0 bg-bg pb-2 pt-8 text-start text-body-lg font-bold text-primary-text">
+                <th scope="rowgroup" colSpan={PLANS.length + 1} className="sticky inset-s-0 bg-bg pb-2 pt-8 text-start text-body-lg font-bold text-primary-text lg:static lg:bg-transparent">
                   {g.title}
                 </th>
               </tr>
               {g.rows.map((r) => (
                 <tr key={r.id} className="group">
-                  <th scope="row" className="sticky inset-s-0 z-10 border-b border-border bg-bg py-3 pe-4 text-start font-medium group-hover:bg-surface-1">
+                  <th scope="row" className="sticky inset-s-0 z-10 border-b border-border bg-bg py-3 pe-4 text-start font-medium group-hover:bg-surface-1 lg:static lg:bg-transparent">
                     {r.label}
                     {r.hint && <span className="mt-0.5 block text-micro font-normal text-muted">{r.hint}</span>}
                   </th>

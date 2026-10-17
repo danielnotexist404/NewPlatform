@@ -148,7 +148,10 @@ export function initWizard(project: MockProject, q: URLSearchParams): { data: Wi
     fastHighlight: q.get("fast") === "1",
     trendSlug: q.get("trend"),
   };
-  if (type === "offer" && data.seasonSlug === null && q.get("type") === "offer") data.seasonSlug = null;
+  // projects past the script stage already had every fact decided
+  if (scriptReady && project.stage !== "script") {
+    for (const sl of scriptSlots(data)) data.factAnswers[`script|${sl.id}`] = { action: "confirmed" };
+  }
 
   let landing: WizardStep = project.wizardStep ?? "business";
   const hookParam = q.get("hook");
@@ -195,7 +198,7 @@ export function hookSlots(d: WizardData): { hook: SelectedHook; slots: FactSlot[
 export function scriptSlots(d: WizardData): FactSlot[] {
   return d.scenes.flatMap((s, i) =>
     i === 0 ? [] : [s.onscreen, s.vo].flatMap((t) => detectFactSlots({ text: t, source: "script", beatIndex: i, confirmedValues: CONFIRMED_VALUES })),
-  ).filter((s, i, arr) => arr.findIndex((x) => x.token === s.token && x.beatIndex === s.beatIndex) === i);
+  ).filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
 }
 export const hookFactsOpen = (d: WizardData) =>
   hookSlots(d).reduce((a, { hook, slots }) => a + slots.filter((s) => !s.resolvedFrom && !d.factAnswers[`${hook.key}|${s.id}`]).length, 0);

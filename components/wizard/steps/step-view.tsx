@@ -1,5 +1,7 @@
 "use client";
-import type { WizardStep } from "@/lib/mock/projects";
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { useCurrentStep } from "../wizard-shell";
 import { BusinessStep } from "./business-step";
 import { GoalStep, NicheStep } from "./niche-goal-steps";
 import { HookStep } from "./hook-step";
@@ -8,7 +10,12 @@ import { MusicStep, StyleStep, VoiceStep } from "./style-voice-music";
 import { PreviewStep } from "./preview-step";
 
 /** Renders one of the 9 wizard steps (Part 03 §6.1–§6.9). */
-export function WizardStepView({ step }: { step: WizardStep }) {
+export function WizardStepView() {
+  const step = useCurrentStep();
+  return <StepSwitch step={step} />;
+}
+
+function StepSwitch({ step }: { step: ReturnType<typeof useCurrentStep> }) {
   switch (step) {
     case "business": return <BusinessStep />;
     case "niche": return <NicheStep />;

@@ -6,7 +6,7 @@ import { HooksProvider } from "@/components/hooks/hooks-provider";
 import { HookCard } from "@/components/hooks/hook-card";
 import { HookPersonalizer } from "@/components/hooks/hook-personalizer";
 import { HookScore } from "@/components/hooks/hook-score";
-import { SingleHookHero, CreateFromHookButton } from "@/components/hooks/single-hook";
+import { CreateFromHookButton } from "@/components/hooks/single-hook";
 import { ALL_HOOKS, hookById, hooksOfNiche, hooksOfType } from "@/components/hooks/hook-data";
 import { pageMeta } from "@/components/hooks/seo";
 import { getHookType } from "@/lib/data/seed";
@@ -76,9 +76,11 @@ export default async function SingleHookPage({ params }: Props) {
           <Breadcrumbs items={crumbs} />
           <div className="mt-10 grid items-start gap-12 lg:grid-cols-[1.5fr_1fr]">
             <div className="flex flex-col gap-8">
-              <SingleHookHero hook={h} eyebrow={S.eyebrow(h.typeName)} />
+              <div className="flex flex-col gap-4">
+                <p className="inline-flex w-fit rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">{S.eyebrow(h.typeName)}</p>
+                <HookCard hook={h} variant="page" location="hook_page" />
+              </div>
               {fields.length > 0 && <HookPersonalizer only={fields} />}
-              <HookCard hook={h} location="hook_page" headingLevel="h2" />
             </div>
             <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--header-h)+24px)]">
               <PhoneFrame label={`תצוגה להמחשה: ${h.typeName}`} className="max-w-[260px]">

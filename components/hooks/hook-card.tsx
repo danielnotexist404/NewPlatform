@@ -19,7 +19,7 @@ import { createFromHookHref, hookPermalink, signupHref, variationsHref } from ".
 
 const C = HOOKS_COPY.card;
 
-export type HookCardVariant = "library" | "compact" | "featured";
+export type HookCardVariant = "library" | "compact" | "featured" | "page";
 
 export interface HookCardProps {
   hook: HookView;
@@ -93,14 +93,16 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
       className={cn(
         "group/card relative flex scroll-mt-28 flex-col outline-none focus-visible:outline-2 rounded-lg bg-surface-1 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-1 transition-[background-color,box-shadow] duration-200",
         "hover:shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-primary)_28%,transparent)]",
-        variant === "featured" ? "gap-5 p-6 md:p-8" : variant === "compact" ? "gap-3 p-4" : "gap-4 p-5",
-        variant === "featured" && "glow-primary bg-[radial-gradient(120%_90%_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]",
+        variant === "featured" ? "gap-5 p-6 md:p-8" : variant === "compact" ? "gap-3 p-4" : variant === "page" ? "gap-6 p-6 md:p-8" : "gap-4 p-5",
+        (variant === "featured" || variant === "page") && "glow-primary bg-[radial-gradient(120%_90%_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]",
         className,
       )}
     >
-      <H id={titleId} className="sr-only">
-        {C.srTitle(hook.typeName, hook.nicheShort)}
-      </H>
+      {variant !== "page" && (
+        <H id={titleId} className="sr-only">
+          {C.srTitle(hook.typeName, hook.nicheShort)}
+        </H>
+      )}
 
       <div className="flex items-start justify-between gap-3">
         <ul className="flex flex-wrap items-center gap-1.5" aria-label="מאפייני ההוק">
@@ -140,17 +142,23 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
         )}
       </div>
 
-      <blockquote
-        className={cn(
-          "font-bold text-text",
-          variant === "featured" ? "text-h3" : variant === "compact" ? "text-[1.0625rem] leading-[1.5]" : "text-[1.25rem] leading-[1.45]",
-        )}
-      >
-        <HookText text={hook.text} values={values} />
-      </blockquote>
+      {variant === "page" ? (
+        <h1 id={titleId} className="text-h2 font-extrabold text-text">
+          <HookText text={hook.text} values={values} />
+        </h1>
+      ) : (
+        <blockquote
+          className={cn(
+            "font-bold text-text",
+            variant === "featured" ? "text-h3" : variant === "compact" ? "text-[1.0625rem] leading-[1.5]" : "text-[1.25rem] leading-[1.45]",
+          )}
+        >
+          <HookText text={hook.text} values={values} />
+        </blockquote>
+      )}
 
       {full && (
-        <dl className="flex flex-col gap-2 text-small">
+        <dl className={cn("flex flex-col gap-2", variant === "page" ? "text-body" : "text-small")}>
           <div className="flex gap-2">
             <Eye className="mt-1 size-4 shrink-0 text-muted" aria-hidden />
             <div>
