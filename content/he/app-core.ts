@@ -122,6 +122,7 @@ export const APP_CORE = {
       copied: "הועתק",
       create: "צרו סרטון מההוק",
       more: "עוד הוקים לנישה",
+      toast: "ההוק הועתק",
     },
     trend: {
       badgeNew: "חדש השבוע",

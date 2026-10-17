@@ -628,6 +628,7 @@ export const settingsCopy = {
     pronunciation: { title: "מילון הגייה", description: "מילים שהקריין צריך לומר אחרת, לכל הסרטונים של העסק." },
   },
   title: "הגדרות",
+  subtitle: "הפרופיל שלכם, סביבת העבודה, התראות, נגישות ופרטיות.",
   navLabel: "ניווט בהגדרות",
   nav: {
     profile: "פרופיל",

@@ -28,6 +28,22 @@ export function replaceSearch(params: URLSearchParams) {
   urlListeners.forEach((l) => l());
 }
 
+/* ---------- Search draft (what is typed before the debounced URL write) ---------- */
+let draft: string | null = null;
+const draftListeners = new Set<() => void>();
+function subscribeDraft(cb: () => void) {
+  draftListeners.add(cb);
+  return () => draftListeners.delete(cb);
+}
+export function useSearchDraft(): string | null {
+  return React.useSyncExternalStore(subscribeDraft, () => draft, () => null);
+}
+export function setSearchDraft(v: string | null) {
+  if (draft === v) return;
+  draft = v;
+  draftListeners.forEach((l) => l());
+}
+
 /* ---------- Today (Israel time) ---------- */
 const noop = () => () => {};
 /** "YYYY-MM-DD" on the client, null during prerender and hydration. */
