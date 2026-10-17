@@ -43,7 +43,7 @@ export function CancelSubscriptionFlow() {
   const [extended, setExtended] = React.useState(false);
   const [state, setState] = React.useState<"form" | "submitting" | "done" | "error">("form");
   const [attempt, setAttempt] = React.useState(0);
-  const submitted = React.useRef<{ refund: boolean; extended: boolean }>({ refund: false, extended: false });
+  const [submitted, setSubmitted] = React.useState<{ refund: boolean; extended: boolean }>({ refund: false, extended: false });
   const headingRef = React.useRef<HTMLHeadingElement>(null);
 
   React.useEffect(() => { if (state === "done") headingRef.current?.focus(); }, [state]);
@@ -82,7 +82,7 @@ export function CancelSubscriptionFlow() {
   }
 
   if (state === "done") {
-    const withRefund = submitted.current.refund && q.refundIls > 0;
+    const withRefund = submitted.refund && q.refundIls > 0;
     const closed = withRefund && q.reasonCode === "distance_14d";
     return (
       <Panel tone="gold" className="relative flex max-w-2xl flex-col items-center gap-5 overflow-hidden py-12 text-center md:py-14">
@@ -97,7 +97,7 @@ export function CancelSubscriptionFlow() {
           {fill(c.done.canceledAt, { date: formatDateHe("2026-10-17") })}
         </p>
         {withRefund && <Note tone="success" className="relative max-w-md text-start">{fill(c.done.refund, { refund: formatIls(scenario === "annual" ? q.annualRefundIls : q.refundIls) })}</Note>}
-        {submitted.current.extended && <Note tone="success" className="relative max-w-md text-start">{c.done.extended}</Note>}
+        {submitted.extended && <Note tone="success" className="relative max-w-md text-start">{c.done.extended}</Note>}
         <div className="relative flex flex-wrap justify-center gap-2">
           <ButtonLink href="/app" variant="primary">{c.done.backToAccount}</ButtonLink>
           {!withRefund && (
@@ -116,7 +116,7 @@ export function CancelSubscriptionFlow() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (state === "submitting") return;
-    submitted.current = { refund: scenario === "annual" ? true : refund, extended };
+    setSubmitted({ refund: scenario === "annual" ? true : refund, extended });
     setState("submitting");
     setTimeout(() => {
       if (scenario === "error" && attempt === 0) { setAttempt(1); setState("error"); return; }

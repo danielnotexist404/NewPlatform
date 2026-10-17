@@ -19,7 +19,6 @@ import {
   MOCK_BUSINESS_PROFILE, MOCK_VOICES, type BrandKit, type BrandFont, type CaptionPresetId, type CtaType, type MusicMood,
 } from "@/lib/mock/account";
 import { fill, isHex } from "@/components/settings/format";
-import { cn } from "@/components/settings/cn";
 
 const e = brandCopy.editor;
 const SECTIONS = ["logo", "colors", "fonts", "captions", "intro", "endCard", "voice", "numbers"] as const;
