@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Calendar, Clapperboard, Flame, Smartphone, WandSparkles } from "lucide-react";
 import { DirIcon } from "@/components/a11y/dir-icon";
-import { Plural } from "@/components/projects/plural";
+import { Plural, WithRanges } from "@/components/projects/plural";
 import { sampleCost } from "@/components/wizard/estimate";
 import { APP_CORE } from "@/content/he/app-core";
 import { MOCK_TREND } from "@/lib/mock/workspace";
@@ -54,7 +54,7 @@ export function QuickStarts() {
                 <div className="flex flex-col gap-1">
                   <h3 className="text-h3">{copy.title}</h3>
                   <p className="text-small text-text-2">
-                    {isTrend ? `${MOCK_TREND.nameHe} · ${copy.description}` : copy.description}
+                    <WithRanges text={isTrend ? `${MOCK_TREND.nameHe} · ${copy.description}` : copy.description} />
                   </p>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-1 text-small">

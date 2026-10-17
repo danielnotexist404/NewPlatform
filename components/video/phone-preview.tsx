@@ -54,7 +54,7 @@ const END_SEC = 2.5;
 const SHADOW = "0 4px 18px color-mix(in oklab, var(--color-black) 55%, transparent)";
 const STROKE = "color-mix(in oklab, var(--color-black) 88%, transparent)";
 
-/** Placeholder tokens such as {מחיר} render as a lemon marker chip inside the frame. */
+/** Placeholder tokens such as {מחיר} render as a lemon marker chip inside the frame (wizard drafts). */
 function withPlaceholders(text: string) {
   const parts = text.split(/(\{[^}]+\})/g);
   return parts.map((p, i) =>
@@ -317,7 +317,7 @@ export function PhonePreview({
                   textTop,
                   idx === 0 ? "text-[9.6cqw] font-black" : "text-[6.6cqw] font-extrabold",
                   aspect !== "9:16" && (idx === 0 ? "text-[6.4cqw]" : "text-[4.6cqw]"),
-                  local < 0.04 && !reduced ? "opacity-0" : "opacity-100",
+                  started && local < 0.04 && !reduced ? "opacity-0" : "opacity-100",
                 )}
                 style={{ textShadow: SHADOW }}
               >

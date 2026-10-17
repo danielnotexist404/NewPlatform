@@ -132,7 +132,7 @@ export function VoiceStep() {
   const [playing, setPlaying] = React.useState<string | null>(null);
   const voices = MOCK_VOICES.filter((v) => v.gender === data.voiceGender);
   const words = data.scenes.reduce((a, s) => a + s.vo.split(/\s+/).filter(Boolean).length, 0) || 70;
-  const seconds = Math.round(words / (2.5 * data.speed));
+  const seconds = Math.round(words / (2.4 * data.speed));
   const play = (id: string) => {
     setPlaying(id);
     window.setTimeout(() => setPlaying((p) => (p === id ? null : p)), 2200);

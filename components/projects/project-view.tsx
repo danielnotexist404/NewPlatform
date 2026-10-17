@@ -7,6 +7,7 @@ import {
   Archive, Camera, Copy, Download, Ellipsis, FileText, Image as ImageIcon, Megaphone, Pencil, Plus, RefreshCw, Send, Share2, Split, Subtitles, Trash2, TriangleAlert, Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -36,6 +37,7 @@ export function ProjectView({ project }: { project: MockProject }) {
   const router = useRouter();
   const q = useSearchParams();
   const [title, setTitle] = React.useState(project.title);
+  const [renaming, setRenaming] = React.useState(false);
   const [aspect, setAspect] = React.useState<Aspect>(project.renderedFormats[0] ?? project.primaryAspect);
   const [addFormat, setAddFormat] = React.useState<Aspect | null>(null);
   const [variant, setVariant] = React.useState(0);
@@ -52,7 +54,7 @@ export function ProjectView({ project }: { project: MockProject }) {
   const endCard = { headline: project.endCardHeadline, name: MOCK_BUSINESS.name, logoLetter: MOCK_BUSINESS.logoLetter, lines: [fillText(APP_CORE.player.endWhatsapp, { phone: MOCK_BUSINESS.whatsapp })] };
 
   return (
-    <div className="flex flex-col gap-8 pb-12">
+    <div className="flex flex-col gap-8 overflow-x-clip pb-12">
       {/* header */}
       <header className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -62,38 +64,66 @@ export function ProjectView({ project }: { project: MockProject }) {
           </Link>
           <DemoBadge />
         </div>
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex flex-col gap-5">
           <div className="flex min-w-0 flex-col gap-2">
             <div className="flex flex-wrap items-center gap-3">
-              <label htmlFor="project-title" className="sr-only">{PJ.renameLabel}</label>
-              <input
-                id="project-title"
-                dir="auto"
-                value={title}
-                maxLength={80}
-                onChange={(e) => setTitle(e.target.value)}
-                onBlur={() => title !== project.title && toast.success(APP_CORE.wizard.saved)}
-                className="-ms-2 min-w-0 max-w-full rounded-sm bg-transparent px-2 py-0.5 text-h2 font-bold [field-sizing:content] hover:bg-surface-2 focus-visible:bg-surface-2"
-              />
-              <StatusBadge kind="project" status={project.stage} size="md" />
-              {project.hookScore && <HookScoreBadge score={project.hookScore.score} size={40} />}
+              {renaming ? (
+                <>
+                  <label htmlFor="project-title" className="sr-only">{PJ.renameLabel}</label>
+                  <input
+                    id="project-title"
+                    dir="auto"
+                    autoFocus
+                    value={title}
+                    maxLength={80}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={() => { setRenaming(false); if (title !== project.title) toast.success(APP_CORE.wizard.saved); }}
+                    onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                    className="w-full max-w-3xl rounded-sm bg-surface-2 px-3 py-1 text-h2 font-bold"
+                  />
+                </>
+              ) : (
+                <h1 className="text-h2 [text-wrap:balance]" dir="auto">
+                  {title}
+                  <button type="button" onClick={() => setRenaming(true)} aria-label={PJ.renameLabel} className="ms-2 inline-flex size-8 translate-y-[-4px] items-center justify-center rounded-full align-middle text-text-2 hover:bg-surface-2 hover:text-text">
+                    <Pencil className="size-4" aria-hidden />
+                  </button>
+                </h1>
+              )}
             </div>
-            <p className="text-small text-text-2">
-              {fill(PJ.meta, {
-                type: VIDEO_TYPE_LABEL[project.videoType],
-                duration: <Num value={project.durationSec} />,
-                creator: project.creator,
-                date: <bdi className="num">{formatDate(project.createdAt)}</bdi>,
-              })}
-            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusBadge kind="project" status={project.stage} size="md" />
+              {project.hookScore && <HookScoreBadge score={project.hookScore.score} size={36} />}
+              <p className="text-small text-text-2">
+                {fill(PJ.meta, {
+                  type: VIDEO_TYPE_LABEL[project.videoType],
+                  duration: <Num value={project.durationSec} />,
+                  creator: project.creator,
+                  date: <bdi className="num">{formatDate(project.createdAt)}</bdi>,
+                })}
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button asChild size="lg" className="glow-primary">
-              <Link href={`/app/campaigns/new?project=${project.id}`}><Megaphone aria-hidden />{PJ.actions.campaign}</Link>
-            </Button>
-            <Button asChild size="lg" variant="secondary">
-              <Link href={`/app/publish/new?project=${project.id}`}><Send aria-hidden />{PJ.actions.publish}</Link>
-            </Button>
+            {failed ? (
+              <>
+                <Tooltip content={PJ.needsRender}>
+                  <Button size="lg" aria-disabled="true" onClick={(e) => e.preventDefault()}><Megaphone aria-hidden />{PJ.actions.campaign}</Button>
+                </Tooltip>
+                <Tooltip content={PJ.needsRender}>
+                  <Button size="lg" variant="secondary" aria-disabled="true" onClick={(e) => e.preventDefault()}><Send aria-hidden />{PJ.actions.publish}</Button>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <Button asChild size="lg" className="glow-primary">
+                  <Link href={`/app/campaigns/new?project=${project.id}`}><Megaphone aria-hidden />{PJ.actions.campaign}</Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary">
+                  <Link href={`/app/publish/new?project=${project.id}`}><Send aria-hidden />{PJ.actions.publish}</Link>
+                </Button>
+              </>
+            )}
             <Button size="lg" variant="outline" onClick={() => setExportOpen(true)} disabled={failed}><Download aria-hidden />{PJ.actions.download}</Button>
             <Button size="lg" variant="outline" onClick={() => setShareOpen(true)} disabled={failed}><Share2 aria-hidden />{PJ.actions.share}</Button>
             <DropdownMenu dir="rtl">
@@ -214,7 +244,7 @@ export function ProjectView({ project }: { project: MockProject }) {
                     className={cn("relative block aspect-reel w-full overflow-hidden rounded-sm shadow-[inset_0_0_0_1px_var(--color-frame)] transition-shadow", activeScene === i && "ring-2 ring-primary")}
                   >
                     <SceneArt tone={s.tone} icon={s.icon} />
-                    <span className="absolute top-1 inset-s-1 rounded-[4px] bg-black/60 px-1 font-mono text-[11px] text-white" dir="ltr">{formatDuration(s.durationSec)}</span>
+                    <span className="absolute top-1 inset-s-1 rounded-[4px] bg-black/60 px-1 font-mono text-[11px] text-white"><bdi dir="ltr">{formatDuration(s.durationSec)}</bdi></span>
                   </button>
                   <div className="mt-1 flex items-center justify-between">
                     <span className="text-micro text-muted"><bdi className="num">{i + 1}</bdi></span>
@@ -250,10 +280,10 @@ export function ProjectView({ project }: { project: MockProject }) {
           {project.hookScore && <HookScorePanel data={project.hookScore} />}
           <Tabs defaultValue="downloads" dir="rtl" className="flex flex-col gap-4">
             <TabsList variant="underline" className="overflow-x-auto">
-              <TabsTrigger value="downloads">{PJ.tabs.downloads}</TabsTrigger>
-              <TabsTrigger value="share">{PJ.tabs.share}</TabsTrigger>
-              <TabsTrigger value="versions">{PJ.tabs.versions}</TabsTrigger>
-              <TabsTrigger value="details">{PJ.tabs.details}</TabsTrigger>
+              <TabsTrigger value="downloads" className="whitespace-nowrap">{PJ.tabs.downloads}</TabsTrigger>
+              <TabsTrigger value="share" className="whitespace-nowrap">{PJ.tabs.share}</TabsTrigger>
+              <TabsTrigger value="versions" className="whitespace-nowrap">{PJ.tabs.versions}</TabsTrigger>
+              <TabsTrigger value="details" className="whitespace-nowrap">{PJ.tabs.details}</TabsTrigger>
             </TabsList>
             <TabsContent value="downloads"><DownloadsPanel project={project} disabled={failed} /></TabsContent>
             <TabsContent value="share"><SharePanel project={project} onShare={() => setShareOpen(true)} /></TabsContent>
@@ -336,6 +366,7 @@ function DownloadsPanel({ project, disabled }: { project: MockProject; disabled:
   const [rewriting, setRewriting] = React.useState(false);
   const demo = () => toast(APP_CORE.demo.noFile);
   const dl = <Button size="sm" variant="secondary" onClick={demo} disabled={disabled}><Download aria-hidden />{D.download}</Button>;
+  if (disabled) return <p className="rounded-lg bg-surface-1 p-5 text-small text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">{PJ.noFiles}</p>;
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
       <ul className="flex flex-col divide-y divide-border">

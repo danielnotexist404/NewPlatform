@@ -82,7 +82,7 @@ export function HookScore({ hook }: { hook: HookView }) {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="num font-display text-[2.75rem] leading-none">{score}</span>
+            <span className="num text-[2.25rem] font-extrabold leading-none">{score}</span>
             <span className="text-micro font-normal text-muted">{S.outOf}</span>
           </div>
         </div>

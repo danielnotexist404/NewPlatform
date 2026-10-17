@@ -2,13 +2,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/misc";
 import { Button } from "@/components/ui/button";
-import { Num } from "@/components/a11y/num";
 import { VideoTile } from "@/components/video/video-tile";
 import { StatusBadge } from "@/components/projects/status-badge";
 import { Plural, plural } from "@/components/projects/plural";
 import { CancelJobDialog } from "@/components/projects/cancel-job-dialog";
+import { AiProgress, Pct } from "@/components/projects/ai-progress";
 import { APP_CORE } from "@/content/he/app-core";
 import type { MockJob, MockProject } from "@/lib/mock/projects";
 
@@ -66,8 +65,8 @@ function JobQueueCard({ job, project }: { job: MockJob; project: MockProject }) 
           </div>
           <p className="text-small text-text-2">{stageLabel(progress, project.scenes.length || 5)}</p>
           <div className="flex items-center gap-3">
-            <Progress value={progress} variant="ai" aria-label={`${progress}%`} className="max-w-md" />
-            <span className="shrink-0 text-small font-semibold"><Num value={progress} />%</span>
+            <AiProgress value={progress} label={project.title} className="max-w-md" />
+            <Pct value={progress} className="shrink-0 text-small font-semibold" />
           </div>
           <p className="text-micro font-normal text-muted">
             {plural(minutesLeft, APP_CORE.counts.minutesLeft)} · <Plural n={job.reservedCredits} forms={APP_CORE.counts.reserved} />

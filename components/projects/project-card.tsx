@@ -53,13 +53,13 @@ export function ProjectCard({
           durationSec={project.durationSec}
           textSize="sm"
           className={cn("transition-shadow group-hover/card:shadow-[inset_0_0_0_1px_var(--color-frame),var(--glow-primary)]", selected && "ring-2 ring-primary")}
-          topStart={
+          bottomStart={
             project.renderedFormats.length > 1 ? (
-              <span dir="ltr" className="rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">
-                {project.renderedFormats.join(" · ")}
+              <span className="rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">
+                <bdi dir="ltr">{project.renderedFormats.join(" · ")}</bdi>
               </span>
             ) : project.primaryAspect !== "9:16" ? (
-              <span dir="ltr" className="rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">{project.primaryAspect}</span>
+              <span className="rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white"><bdi dir="ltr">{project.primaryAspect}</bdi></span>
             ) : null
           }
           badge={
@@ -71,7 +71,7 @@ export function ProjectCard({
           }
         />
         {group === "progress" && (
-          <span className="absolute inset-x-3 bottom-3 h-1 overflow-hidden rounded-full bg-white/20" aria-hidden>
+          <span className="absolute inset-x-3 bottom-10 h-1 overflow-hidden rounded-full bg-white/20" aria-hidden>
             <span className="block h-full w-[46%] rounded-full shimmer-ai bg-violet" />
           </span>
         )}

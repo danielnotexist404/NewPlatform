@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -48,7 +50,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function NichePage({ params }: Props) {
+export default function NichePage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <NichePageView params={params} />
+    </Suspense>
+  );
+}
+
+async function NichePageView({ params }: Props) {
   const { niche: slug } = await params;
   const n = getNiche(slug);
   const content = nicheContent(slug);
@@ -105,7 +115,7 @@ export default async function NichePage({ params }: Props) {
             </ul>
           </div>
           {heroHook && (
-            <PhoneFrame label={P.phoneLabel(short)} className="lg:me-0">
+            <PhoneFrame label={P.phoneLabel(short)} className="max-w-[260px] md:max-w-[300px] lg:me-0">
               <ReelTile
                 icon={n.icon}
                 category={n.category_slug}
@@ -122,14 +132,14 @@ export default async function NichePage({ params }: Props) {
       {/* 3 What to publish */}
       <Section labelledBy="videos-title" className="pt-0">
         <SectionHeading id="videos-title" title={P.videosTitle(short)} subtitle={P.videosNote} />
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <ol className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
           {n.video_types_he.map((v, i) => (
-            <li key={v} className="flex flex-col gap-4 rounded-md bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
+            <li key={v} className="flex flex-col gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:gap-4 md:p-5">
               <span className="flex items-center justify-between text-muted">
                 <Film className="size-5 text-primary-text" aria-hidden />
-                <span className="num font-display text-[2rem] leading-none text-text-2/60">{String(i + 1).padStart(2, "0")}</span>
+                <span className="num text-[1.5rem] font-extrabold leading-none text-text-2/50">{String(i + 1).padStart(2, "0")}</span>
               </span>
-              <span className="text-body-lg font-bold leading-snug">{v}</span>
+              <span className="font-bold leading-snug md:text-body-lg">{v}</span>
             </li>
           ))}
         </ol>

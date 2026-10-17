@@ -39,7 +39,7 @@ export function SmartText({ text }: { text: string }) {
 function Runs({ text }: { text: string }) {
   return (
     <>
-      {bidiRuns(text).map((r, i) => (r.isolate ? <bdi key={i}>{r.text}</bdi> : <React.Fragment key={i}>{r.text}</React.Fragment>))}
+      {bidiRuns(text).map((r, i) => (r.isolate ? <bdi key={i} dir="ltr">{r.text}</bdi> : <React.Fragment key={i}>{r.text}</React.Fragment>))}
     </>
   );
 }

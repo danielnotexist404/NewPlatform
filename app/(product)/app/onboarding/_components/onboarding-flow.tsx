@@ -98,7 +98,7 @@ export function OnboardingFlow() {
                 <span className={cn("flex size-7 items-center justify-center rounded-full text-micro", i < idx ? "bg-primary/15 text-primary-text" : i === idx ? "bg-primary text-on-primary glow-primary" : "bg-surface-2 text-muted")}>
                   {i < idx ? <Check className="size-3.5" aria-hidden /> : <bdi className="num">{i + 1}</bdi>}
                 </span>
-                <span className={cn("hidden text-small font-semibold sm:inline", i === idx ? "text-text" : "text-muted")}>{O.steps[s]}</span>
+                <span className={cn("hidden whitespace-nowrap text-small font-semibold sm:inline", i === idx ? "text-text" : "text-muted")}>{O.steps[s]}</span>
                 {i < STEPS.length - 1 && <span aria-hidden className={cn("h-px w-4 sm:w-6", i < idx ? "bg-primary/50" : "bg-border")} />}
               </li>
             ))}

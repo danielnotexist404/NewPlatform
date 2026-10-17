@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -53,7 +55,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function NicheTypePage({ params }: Props) {
+export default function NicheTypePage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <NicheTypePageView params={params} />
+    </Suspense>
+  );
+}
+
+async function NicheTypePageView({ params }: Props) {
   const { niche, type } = await params;
   const d = load(niche, type);
   if (!d) notFound();
@@ -92,7 +102,7 @@ export default async function NicheTypePage({ params }: Props) {
       </section>
 
       <div className="container-marketing flex flex-col gap-8">
-        <HookPersonalizer fields={placeholdersIn(hooks)} />
+        {placeholdersIn(hooks).length > 0 && <HookPersonalizer fields={placeholdersIn(hooks)} />}
         <ul className="grid items-start gap-4 md:grid-cols-2">
           {hooks.map((h) => (
             <li key={h.id} className="contents"><HookCard hook={h} showNiche={false} location="hook_niche_type_page" /></li>

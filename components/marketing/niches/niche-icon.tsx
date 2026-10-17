@@ -13,7 +13,7 @@ const ICONS: Record<string, LucideIcon> = {
   UtensilsCrossed, Vote, Wrench,
 };
 
-export function NicheIcon({ name, ...props }: Omit<LucideProps, "ref"> & { name: string | null }) {
+export function NicheIcon({ name, ...props }: Omit<LucideProps, "ref" | "name"> & { name: string | null }) {
   const Icon = (name && ICONS[name]) || Store;
   return <Icon aria-hidden {...props} />;
 }

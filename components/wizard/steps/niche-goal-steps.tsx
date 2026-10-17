@@ -4,7 +4,7 @@ import { ChevronDown, MessageCircle, Phone, CalendarCheck, Link2, Navigation, Cl
 import { Input, LtrInput } from "@/components/ui/input";
 import { Field } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plural } from "@/components/projects/plural";
+import { Plural, WithRanges } from "@/components/projects/plural";
 import { APP_CORE } from "@/content/he/app-core";
 import { GOAL_LABEL, PLATFORM_LABEL, VIDEO_TYPE_LABEL, type Platform } from "@/lib/labels";
 import { seasons } from "@/lib/data/seed";
@@ -85,7 +85,7 @@ export function GoalStep() {
             value: t,
             title: VIDEO_TYPE_LABEL[t],
             description: G.types[t].description,
-            aside: <span className="text-micro font-normal text-muted">{G.types[t].duration}</span>,
+            aside: <span className="text-micro font-normal text-muted"><WithRanges text={G.types[t].duration} /></span>,
           }))}
         />
         {data.videoType === "testimonial" && <p className="rounded-md bg-lemon/[.08] p-3 text-small">{G.testimonialWarn}</p>}

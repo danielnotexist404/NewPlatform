@@ -48,7 +48,7 @@ export default function HookTypesPage() {
         {hookFamilies.map((f, i) => (
           <section key={f.slug} id={f.slug} aria-labelledby={`fam-${f.slug}`} className="scroll-mt-24">
             <div className="mb-6 flex flex-wrap items-end gap-x-6 gap-y-2 border-b border-border pb-4">
-              <span className="num font-display text-[3rem] leading-none text-primary-text/70">{String(i + 1).padStart(2, "0")}</span>
+              <span className="num text-[2.5rem] font-extrabold leading-none text-primary-text/60">{String(i + 1).padStart(2, "0")}</span>
               <div>
                 <h2 id={`fam-${f.slug}`} className="text-h2">{f.name_he}</h2>
                 <p className="mt-1 text-text-2">{f.description_he}</p>

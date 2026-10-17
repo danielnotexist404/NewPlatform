@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   return (
     <div className="relative flex flex-col gap-10 pb-10">
-      <div aria-hidden className="pointer-events-none absolute -top-6 -inset-x-8 -z-10 h-72 bg-projector opacity-80" />
+      <div aria-hidden className="pointer-events-none absolute -top-6 inset-x-0 -z-10 h-72 bg-projector opacity-80" />
       <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
         <Greeting firstName={MOCK_USER.firstName} />
         <DemoBadge />
@@ -42,7 +42,7 @@ export default function DashboardPage() {
       <JobQueue items={queue} />
 
       <div className="grid gap-8 lg:grid-cols-12">
-        <div className="flex flex-col gap-8 lg:col-span-8">
+        <div className="flex min-w-0 flex-col gap-8 lg:col-span-8">
           <section aria-labelledby="recent-title" className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <h2 id="recent-title" className="text-h3">{D.recent.title}</h2>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
             nicheShort={niche ? nicheShortName(niche) : ""}
           />
         </div>
-        <aside className="flex flex-col gap-6 lg:col-span-4" aria-label="קמפיינים, לידים ותוכנית">
+        <aside className="flex min-w-0 flex-col gap-6 lg:col-span-4" aria-label="קמפיינים, לידים ותוכנית">
           <CampaignKpiWidget />
           <NewLeadsWidget />
           <PlanItemsWidget />

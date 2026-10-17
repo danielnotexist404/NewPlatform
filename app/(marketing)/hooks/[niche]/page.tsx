@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cacheLife } from "next/cache";
@@ -54,7 +56,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function HooksNichePage({ params }: Props) {
+export default function HooksNichePage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <HooksNichePageView params={params} />
+    </Suspense>
+  );
+}
+
+async function HooksNichePageView({ params }: Props) {
   const { niche: slug } = await params;
   const n = getNiche(slug);
   const content = nicheContent(slug);
@@ -93,7 +103,7 @@ export default async function HooksNichePage({ params }: Props) {
       />
       <section id="hero" className="container-marketing pt-8 pb-8 md:pt-12">
         <Breadcrumbs items={crumbs} />
-        <div className="mt-10 max-w-4xl">
+        <div className="mt-10 max-w-5xl">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">
             <NicheIcon name={n.icon} className="size-3.5" />
             {n.name_he}

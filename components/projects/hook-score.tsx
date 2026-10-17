@@ -40,7 +40,7 @@ export function HookScoreBadge({ score, size = 56, className }: { score: number;
           className="transition-[stroke-dashoffset] duration-700 ease-[var(--ease-out)]"
         />
       </svg>
-      <bdi className={cn("num absolute font-extrabold", size >= 56 ? "text-h3" : "text-small", toneClass(score))} aria-hidden>{score}</bdi>
+      <bdi className={cn("num absolute font-extrabold", size >= 56 ? "text-h3" : "text-micro", toneClass(score))} aria-hidden>{score}</bdi>
     </span>
   );
 }
@@ -78,7 +78,7 @@ export function HookScorePanel({ data, onFix }: { data: HookScoreData; onFix?: (
                 <li key={s.id} className={cn("flex flex-col gap-2 rounded-md bg-surface-2 p-3", done && "opacity-80")}>
                   <p className="text-small">{s.text}</p>
                   <div className="flex items-center justify-between gap-2">
-                    <bdi className="num text-micro text-success">+{s.gain}</bdi>
+                    <bdi dir="ltr" className="num text-micro text-success">+{s.gain}</bdi>
                     {done ? (
                       <span className="inline-flex items-center gap-1 text-micro text-success"><Check className="size-3.5" aria-hidden />{HS.fixed}</span>
                     ) : (

@@ -150,7 +150,7 @@ export function HookExplorer({ hooks, mode, facets, nicheSlug, personalizerField
             enterKeyHint="search"
             className={cn(
               "w-full rounded-full border border-border-strong bg-surface-1 ps-12 pe-12 text-text placeholder:text-muted transition-shadow focus-visible:outline-2 focus-visible:outline-offset-0 [&::-webkit-search-cancel-button]:hidden",
-              mode === "hub" ? "h-16 text-body-lg elev-2 focus-visible:glow-primary" : "h-12 text-base",
+              mode === "hub" ? "h-14 text-body elev-2 focus-visible:glow-primary md:h-16 md:text-body-lg" : "h-12 text-base",
             )}
           />
           {qValue && (
@@ -170,14 +170,14 @@ export function HookExplorer({ hooks, mode, facets, nicheSlug, personalizerField
           )}
         </div>
         {mode === "hub" && !active && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-micro text-muted">{HOOKS_COPY.hub.quickLabel}:</span>
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-0">
+            <span className="shrink-0 text-micro text-muted">{HOOKS_COPY.hub.quickLabel}:</span>
             {QUICK_FILTERS.map((q) => (
               <button
                 key={`${q.param}-${q.value}`}
                 type="button"
                 onClick={() => enterResults(q.param === "featured" ? { featured: true } : ({ [q.param]: q.value } as Partial<Filters>))}
-                className="rounded-full bg-surface-2 px-3 py-1.5 text-sm font-semibold text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-3 hover:text-text"
+                className="shrink-0 rounded-full bg-surface-2 px-3 py-1.5 text-sm font-semibold text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-3 hover:text-text"
               >
                 {q.label}
               </button>
@@ -185,7 +185,7 @@ export function HookExplorer({ hooks, mode, facets, nicheSlug, personalizerField
             <button
               type="button"
               onClick={() => enterResults({ all: true })}
-              className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-primary-text hover:underline"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold text-primary-text hover:underline"
             >
               <LayoutGrid className="size-4" aria-hidden />
               {plural(hooks.length, HOOKS_COPY.hub.browseAll)}

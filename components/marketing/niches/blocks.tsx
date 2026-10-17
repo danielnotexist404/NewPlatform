@@ -37,7 +37,7 @@ export function ComplianceBox({ note, disclaimers, title = NICHES_COPY.page.comp
         <p className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-sm bg-surface-2 px-3 py-2 text-small">
           <span className="text-text-2">{P.disclaimerLabel}</span>
           {disclaimers.map((d) => (
-            <q key={d} className="font-semibold text-text">{d}</q>
+            <span key={d} className="font-semibold text-text">&quot;{d}&quot;</span>
           ))}
         </p>
       )}
@@ -69,11 +69,7 @@ export function CostBlock({ headingId, title }: { headingId: string; title: stri
     <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
       <div className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-8">
         <h2 id={headingId} className="text-h2">{title}</h2>
-        <p className="mt-6 flex justify-between text-micro text-muted">
-          <span>{P.costCredits}</span>
-          <span>{P.costIlsHeader}</span>
-        </p>
-        <ul className="mt-2 divide-y divide-border">
+        <ul className="mt-6 divide-y divide-border">
           {rows.map((r) => (
             <li key={r.labelHe} className="flex flex-wrap items-center justify-between gap-3 py-4">
               <span className="font-semibold">{r.labelHe}</span>
@@ -101,7 +97,7 @@ export function CostBlock({ headingId, title }: { headingId: string; title: stri
         </div>
         <p className="relative text-text-2">{business.taglineHe}</p>
         <p className="relative">
-          <Price ils={business.monthlyIls} className="font-display text-[3.5rem] leading-none" />{" "}
+          <Price ils={business.monthlyIls} className="text-[3rem] font-extrabold leading-none" />{" "}
           <span className="text-small text-muted">{P.planPerMonth}</span>
         </p>
         <ul className="relative flex flex-col gap-1.5 text-small text-text-2">

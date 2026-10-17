@@ -48,3 +48,13 @@ export function fill(template: string, vars: Record<string, React.ReactNode>): R
 export function fillText(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (all, k: string) => (k in vars ? (typeof vars[k] === "number" ? nf.format(vars[k] as number) : String(vars[k])) : all));
 }
+
+/** Numeric ranges with an en dash ("45–60") are isolated LTR so they read 45→60 inside Hebrew text. */
+export function WithRanges({ text }: { text: string }) {
+  const parts = text.split(/(\d[\d,.]*–\d[\d,.]*)/g);
+  return (
+    <>
+      {parts.map((p, i) => (i % 2 ? <bdi key={i} dir="ltr" className="num">{p}</bdi> : <React.Fragment key={i}>{p}</React.Fragment>))}
+    </>
+  );
+}

@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Check, CircleAlert, Clock, Download, MessageCircle, Pencil, Share2, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/misc";
-import { Num } from "@/components/a11y/num";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { PhoneFrame } from "@/components/video/phone-frame";
 import { PhonePreview } from "@/components/video/phone-preview";
@@ -17,6 +15,7 @@ import { whatsappHref } from "@/lib/constants";
 import { formatDuration, type MockJob, type MockProject, type MockScene } from "@/lib/mock/projects";
 import { MOCK_BUSINESS } from "@/lib/mock/workspace";
 import { CancelJobDialog } from "./cancel-job-dialog";
+import { AiProgress, Pct } from "./ai-progress";
 import { ExportDialog, ShareDialog } from "./share-export";
 import { Plural, fill, fillText, plural } from "./plural";
 import { statusLabel } from "./status-badge";
@@ -53,6 +52,7 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
   const status = rawStatus === "running" && progress >= 100 ? "done" : rawStatus;
   const [elapsed, setElapsed] = React.useState(0);
   const [stopOpen, setStopOpen] = React.useState(false);
+  const [allStages, setAllStages] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [exportOpen, setExportOpen] = React.useState(false);
   const degradedIdx = job.id === "j-new" ? -1 : Math.min(1, scenes.length - 1);
@@ -98,9 +98,9 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
     { key: "script", label: R.stages.script, state: "done" },
     { key: "voice", label: R.stages.voice, detail: R.details.voice, state: stageOf("voice") },
     { key: "captions", label: R.stages.captions, detail: R.details.captions, state: stageOf("captions") },
-    { key: "scenes", label: fill(R.stages.scenes, { done: <Num value={readyCount} />, total: <Num value={scenes.length} /> }), detail: progress < 50 ? R.details.scenesImages : R.details.scenesClips, state: stageOf("scenes") },
+    { key: "scenes", label: fill(R.stages.scenes.replace("{done}/{total}", "{frac}"), { frac: <bdi dir="ltr" className="num">{readyCount}/{scenes.length}</bdi> }), detail: progress < 50 ? R.details.scenesImages : R.details.scenesClips, state: stageOf("scenes") },
     { key: "music", label: R.stages.music, detail: R.details.music, state: stageOf("music") },
-    { key: "render", label: fill(R.stages.render, { done: <Num value={renderDone} />, total: <Num value={formats.length} /> }), detail: fillText(R.details.render, { aspect: formats[Math.min(renderDone, formats.length - 1)] }), state: stageOf("render") },
+    { key: "render", label: fill(R.stages.render.replace("{done}/{total}", "{frac}"), { frac: <bdi dir="ltr" className="num">{renderDone}/{formats.length}</bdi> }), detail: fillText(R.details.render, { aspect: formats[Math.min(renderDone, formats.length - 1)] }), state: stageOf("render") },
     { key: "done", label: R.stages.done, detail: R.details.done, state: stageOf("done") },
   ];
 
@@ -113,7 +113,7 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
   const title = status === "done" ? R.doneTitle : status === "canceled" ? R.canceledTitle : status === "failed" ? R.failedTitle : R.title;
 
   return (
-    <div className="flex flex-col gap-8 pb-10">
+    <div className="flex flex-col gap-8 overflow-x-clip pb-10">
       <header className="flex flex-col gap-4">
         <Link href={`/app/projects/${project.id}`} className="inline-flex w-fit items-center gap-1 text-small text-text-2 hover:text-text">
           <DirIcon name="back" className="size-4" />
@@ -123,8 +123,8 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
         {status !== "failed" && status !== "canceled" && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-4">
-              <Progress value={progress} variant="ai" className="h-2.5" aria-label={R.title} />
-              <span className="shrink-0 text-h3 font-extrabold"><Num value={Math.round(progress)} />%</span>
+              <AiProgress value={progress} className="h-2.5" label={R.title} />
+              <Pct value={progress} className="shrink-0 text-h3 font-extrabold" />
             </div>
             <p className="text-small text-text-2" aria-live="off">{status === "done" ? null : etaText}</p>
           </div>
@@ -133,11 +133,11 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
       </header>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        <div className="flex flex-col gap-6 lg:col-span-4">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-4">
           <section aria-label={R.stepsLabel} className="rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
             <ol className="flex flex-col">
               {STAGES.map((s, i) => (
-                <li key={s.key} aria-current={s.state === "active" ? "step" : undefined} className="relative flex gap-3 pb-5 last:pb-0">
+                <li key={s.key} aria-current={s.state === "active" ? "step" : undefined} className={cn("relative flex gap-3 pb-5 last:pb-0", !allStages && s.state !== "active" && s.state !== "failed" && "max-lg:hidden", !allStages && "max-lg:pb-0")}>
                   {i < STAGES.length - 1 && <span aria-hidden className={cn("absolute top-8 bottom-0 inset-s-[13px] w-px", s.state === "done" ? "bg-primary/50" : "bg-border")} />}
                   <span className={cn(
                     "relative z-10 flex size-7 shrink-0 items-center justify-center rounded-full",
@@ -157,6 +157,9 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
                 </li>
               ))}
             </ol>
+            <button type="button" onClick={() => setAllStages((v) => !v)} aria-expanded={allStages} className="mt-3 text-small font-semibold text-link underline underline-offset-2 lg:hidden">
+              {allStages ? R.showLess : R.showAll}
+            </button>
           </section>
 
           {status === "running" && (
@@ -179,7 +182,7 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
           )}
         </div>
 
-        <div className="flex flex-col items-center gap-6 lg:col-span-8">
+        <div className="order-first flex min-w-0 flex-col items-center gap-6 lg:order-none lg:col-span-8">
           {status === "failed" ? (
             <div role="alert" className="flex w-full max-w-xl flex-col gap-4 rounded-lg bg-rose/[.08] p-6 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-rose)_45%,transparent)]">
               <p className="flex items-center gap-2 text-h3 text-rose"><TriangleAlert className="size-6" aria-hidden />{R.failure.title}</p>
@@ -214,7 +217,7 @@ export function RenderProgress({ project, job, scenes }: { project: MockProject;
               </div>
             </>
           ) : (
-            <PhoneFrame width={300} glow label={R.title}>
+            <PhoneFrame width={300} glow label={R.title} className="max-lg:w-[62%]">
               {lastReady < 0 ? (
                 <div className="absolute inset-0 flex flex-col justify-center gap-4 bg-black px-[9%] text-center">
                   <p className="text-[8cqw] font-black leading-tight text-white">{scenes[0]?.onscreen}</p>

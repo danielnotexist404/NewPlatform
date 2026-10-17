@@ -109,7 +109,7 @@ export function fillText(text: string, values: Values): { text: string; missing:
 /** Wraps Latin words and numbers in <bdi> runs (rendering helper data). */
 export function bidiRuns(text: string): { text: string; isolate: boolean }[] {
   const out: { text: string; isolate: boolean }[] = [];
-  const re = /[A-Za-z0-9][A-Za-z0-9.,%:+/\u2013-]*[A-Za-z0-9%]|[A-Za-z0-9]/g;
+  const re = /(?<=^|\s)[0-9]{1,2}\.(?=\s[\u05D0-\u05EA])|[A-Za-z0-9](?:[A-Za-z0-9.,%:+/\u2013-]|\s(?=[A-Za-z]))*[A-Za-z0-9%]|[A-Za-z0-9]/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {

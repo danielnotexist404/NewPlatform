@@ -16,7 +16,7 @@ import { hasPriceClaim, scriptSlots, useWizard, withHook } from "../wizard-state
 import { cn } from "@/lib/utils";
 
 const S = APP_CORE.wizard.script;
-const WPS = 2.5;
+const WPS = 2.4; // app_settings.hebrew_wps.default (Part 05 §12)
 
 const fixShekel = (t: string) => t.replace(/(\d[\d,.]*)\s?₪/g, "₪$1");
 const dropToken = (t: string, token: string) =>
@@ -57,10 +57,6 @@ export function ScriptStep() {
 
   const updateScene = (i: number, p: Partial<MockScene>) => set((d) => ({ scenes: d.scenes.map((s, j) => (j === i ? { ...s, ...p } : s)) }));
 
-  const factItems: PanelSlot[] = data.scriptState === "ready"
-    ? scriptSlots(data).map((slot) => ({ key: `script|${slot.id}`, slot, context: data.scenes[slot.beatIndex ?? 0]?.onscreen.includes(slot.token) ? data.scenes[slot.beatIndex ?? 0].onscreen : data.scenes[slot.beatIndex ?? 0]?.vo ?? "" }))
-    : [];
-
   return (
     <>
       <StepHeading title={S.title} subtitle={S.subtitle} />
@@ -73,42 +69,20 @@ export function ScriptStep() {
         </p>
       ) : (
         <>
-          {factItems.length > 0 && (
-            <MissingFactsPanel
-              items={factItems}
-              answers={data.factAnswers}
-              onConfirm={(it) => set((d) => ({ factAnswers: { ...d.factAnswers, [it.key]: { action: "confirmed" } } }))}
-              onReplace={(it, value) =>
-                set((d) => {
-                  const bi = it.slot.beatIndex ?? 0;
-                  const rep = (t: string) => fixShekel(it.slot.kind === "placeholder" ? t.replaceAll(it.slot.token, value) : t.replace(it.slot.number ?? "", value));
-                  return {
-                    scenes: d.scenes.map((s, j) => (j === bi ? { ...s, onscreen: rep(s.onscreen), vo: rep(s.vo) } : s)),
-                    factAnswers: { ...d.factAnswers, [it.key]: { action: "replaced", value }, [`script|script:${bi}:${value}`]: { action: "confirmed" } },
-                  };
-                })
-              }
-              removeActions={(it) => [
-                {
-                  label: APP_CORE.wizard.facts.removeScript,
-                  onClick: () =>
-                    set((d) => {
-                      const bi = it.slot.beatIndex ?? 0;
-                      return {
-                        scenes: d.scenes.map((s, j) => (j === bi ? { ...s, onscreen: dropToken(s.onscreen, it.slot.token), vo: dropToken(s.vo, it.slot.token) } : s)),
-                        factAnswers: { ...d.factAnswers, [it.key]: { action: "removed" } },
-                      };
-                    }),
-                },
-              ]}
-            />
-          )}
+          <ScriptFactsPanel />
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-surface-2 px-3 py-1 text-small">{fillText(S.structure, { label: S.structureLabel })}</span>
             <span className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-small", lengthOk ? "bg-success/12 text-success" : "bg-lemon/15 text-primary-text")}>
               {lengthOk && <Check className="size-3.5" aria-hidden />}
               {fill(S.length, { estimated: <Num value={estSec} />, target: <Num value={target} /> })}
             </span>
+            {!lengthOk && (
+              <span className="w-full text-micro font-normal text-text-2 sm:w-auto">
+                {ratio > 1
+                  ? fillText(S.tooLong, { diff: estSec - target, next: Math.min(60, target + 15) })
+                  : fillText(S.tooShort, { diff: Math.round(target * 0.9 - estSec), prev: Math.max(15, target - 15) })}
+              </span>
+            )}
             <Button variant="ghost" size="sm" className="ms-auto" onClick={() => { set({ scriptState: "writing" }); setShown(0); setElapsed(0); }}>
               <RefreshCw aria-hidden />
               {S.regenerate}
@@ -237,5 +211,44 @@ function PostCaption() {
         </>
       )}
     </Panel>
+  );
+}
+
+/** The script facts gate (Part 03 §6.12), shared by the script and preview steps. */
+export function ScriptFactsPanel() {
+  const { data, set } = useWizard();
+  const factItems: PanelSlot[] = data.scriptState === "ready"
+    ? scriptSlots(data).map((slot) => ({ key: `script|${slot.id}`, slot, context: data.scenes[slot.beatIndex ?? 0]?.onscreen.includes(slot.token) ? data.scenes[slot.beatIndex ?? 0].onscreen : data.scenes[slot.beatIndex ?? 0]?.vo ?? "" }))
+    : [];
+  if (factItems.length === 0) return null;
+  return (
+            <MissingFactsPanel
+              items={factItems}
+              answers={data.factAnswers}
+              onConfirm={(it) => set((d) => ({ factAnswers: { ...d.factAnswers, [it.key]: { action: "confirmed" } } }))}
+              onReplace={(it, value) =>
+                set((d) => {
+                  const bi = it.slot.beatIndex ?? 0;
+                  const rep = (t: string) => fixShekel(it.slot.kind === "placeholder" ? t.replaceAll(it.slot.token, value) : t.replace(it.slot.number ?? "", value));
+                  return {
+                    scenes: d.scenes.map((s, j) => (j === bi ? { ...s, onscreen: rep(s.onscreen), vo: rep(s.vo) } : s)),
+                    factAnswers: { ...d.factAnswers, [it.key]: { action: "replaced", value }, [`script|script:${bi}:${value}`]: { action: "confirmed" } },
+                  };
+                })
+              }
+              removeActions={(it) => [
+                {
+                  label: APP_CORE.wizard.facts.removeScript,
+                  onClick: () =>
+                    set((d) => {
+                      const bi = it.slot.beatIndex ?? 0;
+                      return {
+                        scenes: d.scenes.map((s, j) => (j === bi ? { ...s, onscreen: dropToken(s.onscreen, it.slot.token), vo: dropToken(s.vo, it.slot.token) } : s)),
+                        factAnswers: { ...d.factAnswers, [it.key]: { action: "removed" } },
+                      };
+                    }),
+                },
+              ]}
+            />
   );
 }

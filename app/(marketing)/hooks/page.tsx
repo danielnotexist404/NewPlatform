@@ -121,7 +121,7 @@ export default function HooksHubPage() {
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {hookFamilies.map((f, i) => (
               <li key={f.slug} className="flex flex-col gap-3 rounded-md bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-                <span className="num font-display text-[2rem] leading-none text-primary-text/70">{String(i + 1).padStart(2, "0")}</span>
+                <span className="num text-[1.75rem] font-extrabold leading-none text-primary-text/60">{String(i + 1).padStart(2, "0")}</span>
                 <h3 className="text-body-lg font-bold">{f.name_he}</h3>
                 <p className="text-small text-text-2">{f.description_he}</p>
                 <ul className="mt-auto flex flex-wrap gap-1.5 pt-2">

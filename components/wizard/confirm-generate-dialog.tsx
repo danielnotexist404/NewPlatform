@@ -85,7 +85,7 @@ export function ConfirmGenerateDialog({ open, onOpenChange, balance }: { open: b
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
             {C.refund}
           </p>
-          <p className="text-text-2">{fill(C.time, { eta: <bdi className="num">{`${eMin}–${eMax}`}</bdi> })}</p>
+          <p className="text-text-2">{fill(C.time, { eta: <bdi dir="ltr" className="num">{`${eMin}–${eMax}`}</bdi> })}</p>
         </div>
 
         {insufficient && (

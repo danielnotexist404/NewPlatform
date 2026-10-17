@@ -143,10 +143,10 @@ export function HookStep() {
       )}
 
       <Tabs value={tab} onValueChange={setTab} dir="rtl" className="flex flex-col gap-5">
-        <TabsList className="self-start">
-          <TabsTrigger value="forYou">{H.tabs.forYou}</TabsTrigger>
-          <TabsTrigger value="library">{H.tabs.library}</TabsTrigger>
-          <TabsTrigger value="own">{H.tabs.own}</TabsTrigger>
+        <TabsList className="max-w-full self-start overflow-x-auto [scrollbar-width:none]">
+          <TabsTrigger value="forYou" className="whitespace-nowrap">{H.tabs.forYou}</TabsTrigger>
+          <TabsTrigger value="library" className="whitespace-nowrap">{H.tabs.library}</TabsTrigger>
+          <TabsTrigger value="own" className="whitespace-nowrap">{H.tabs.own}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="forYou" className="flex flex-col gap-4">

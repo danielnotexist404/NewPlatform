@@ -1,7 +1,9 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ListOrdered, Sigma } from "lucide-react";
+import { AlertTriangle, ListOrdered } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
@@ -59,14 +61,22 @@ function Formula({ text }: { text: string }) {
       </span>
       {ex && (
         <span className="mt-1 block text-text-2">
-          <SmartText text={ex} />
+          <HookText text={ex} />
         </span>
       )}
     </>
   );
 }
 
-export default async function HookTypePage({ params }: Props) {
+export default function HookTypePage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <HookTypePageView params={params} />
+    </Suspense>
+  );
+}
+
+async function HookTypePageView({ params }: Props) {
   const { type } = await params;
   const g = guideFor(type);
   if (!g) notFound();
@@ -135,7 +145,6 @@ export default async function HookTypePage({ params }: Props) {
                   <li key={f} className="flex gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)]">
                     <span className="num mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-lemon text-micro text-on-primary">{i + 1}</span>
                     <span className="flex-1"><Formula text={f} /></span>
-                    <Sigma className="mt-1 size-4 shrink-0 text-muted" aria-hidden />
                   </li>
                 ))}
               </ol>

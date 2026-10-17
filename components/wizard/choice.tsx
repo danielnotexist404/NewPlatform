@@ -42,7 +42,7 @@ export function LockedNote({ text, className }: { text: string; className?: stri
 export function DeltaChip({ n }: { n: number }) {
   if (n === 0) return null;
   return (
-    <bdi className={cn("num rounded-xs px-1.5 py-0.5 text-micro", n > 0 ? "bg-surface-3 text-text-2" : "bg-success/15 text-success")}>
+    <bdi dir="ltr" className={cn("num rounded-xs px-1.5 py-0.5 text-micro", n > 0 ? "bg-surface-3 text-text-2" : "bg-success/15 text-success")}>
       {n > 0 ? "+" : "−"}{Math.abs(n)}
     </bdi>
   );

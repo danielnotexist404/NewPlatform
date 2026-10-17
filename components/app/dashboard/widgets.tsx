@@ -37,7 +37,7 @@ function Delta({ pct, goodWhenDown }: { pct: number; goodWhenDown?: boolean }) {
   return (
     <span className={cn("inline-flex items-center gap-1 text-micro", good ? "text-success" : "text-text-2")}>
       <I className="size-3.5" aria-hidden />
-      <bdi className="num">{up ? "+" : "−"}{Math.abs(pct)}%</bdi>
+      <bdi dir="ltr" className="num">{up ? "+" : "−"}{Math.abs(pct)}%</bdi>
       <span className="sr-only">{D.campaigns.vsPrev}</span>
     </span>
   );

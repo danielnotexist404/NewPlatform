@@ -177,7 +177,7 @@ export function WizardShell({ children }: { children: React.ReactNode }) {
 
       {/* footer */}
       <div className="sticky bottom-0 z-[var(--z-sticky)] -mx-4 mt-auto border-t border-border glass px-4 py-3 md:-mx-8 md:px-8">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           {idx > 0 ? (
             <Button variant="ghost" onClick={() => go(WIZARD_STEPS[idx - 1])}>
               <DirIcon name="back" />
@@ -186,13 +186,13 @@ export function WizardShell({ children }: { children: React.ReactNode }) {
           ) : (
             <span />
           )}
-          <span id="wizard-blocked" className="me-auto text-micro font-normal text-text-2">{blockedReason}</span>
+          <span id="wizard-blocked" className="order-first w-full text-micro font-normal text-text-2 empty:hidden md:order-none md:me-auto md:w-auto">{blockedReason}</span>
           <Button
             size="lg"
             onClick={onNext}
             disabled={!valid}
             aria-describedby={!valid && blockedReason ? "wizard-blocked" : undefined}
-            className="ms-auto"
+            className="ms-auto min-w-0 max-md:flex-1 max-md:px-4"
           >
             {cfg.label}
             {cfg.cost != null && <span className="font-normal opacity-80">· {plural(cfg.cost, credits)}</span>}

@@ -16,6 +16,7 @@ import { ChipRadio, ChipToggle, Group, Panel, RadioCards, StepHeading } from "..
 import { CostBadge } from "../cost-badge";
 import { etaRange } from "../estimate";
 import { costOf, formatsOf, hasPriceClaim, scriptFactsOpen, useWizard, withHook } from "../wizard-state";
+import { ScriptFactsPanel } from "./script-step";
 import { cn } from "@/lib/utils";
 
 const P = APP_CORE.wizard.preview;
@@ -71,15 +72,23 @@ export function PreviewStep() {
       )}
 
       {openFacts > 0 || needsAttest ? (
-        <Panel tone="warn" className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 font-bold">
-            <TriangleAlert className="size-4 text-primary-text" aria-hidden />
-            {openFacts > 0 ? <Plural n={openFacts} forms={APP_CORE.counts.factsLeft} /> : P.needAttest}
-          </p>
-          <Link href={`/app/projects/${data.projectId}/create/script`} className="text-small font-semibold text-link underline underline-offset-2">
-            {APP_CORE.wizard.preview.editInScript}
-          </Link>
-        </Panel>
+        <>
+          {openFacts > 0 && (
+            <p className="flex items-center gap-2 font-bold" role="status">
+              <TriangleAlert className="size-4 text-primary-text" aria-hidden />
+              <Plural n={openFacts} forms={APP_CORE.counts.factsLeft} />
+            </p>
+          )}
+          <ScriptFactsPanel />
+          {needsAttest && (
+            <Panel tone="warn">
+              <label className="flex items-start gap-3 text-small">
+                <input type="checkbox" checked={data.priceAttested} onChange={(e) => set({ priceAttested: e.target.checked })} className="mt-1 size-4 accent-[var(--color-primary)]" />
+                <span><span className="text-text-2">{APP_CORE.wizard.script.priceClaim} </span><span className="font-semibold">{APP_CORE.wizard.script.priceAttest}</span></span>
+              </label>
+            </Panel>
+          )}
+        </>
       ) : (
         <p className="flex items-center gap-2 rounded-md bg-success/10 px-4 py-3 text-small font-semibold text-success">
           <CircleCheck className="size-4" aria-hidden />
@@ -220,7 +229,7 @@ export function PreviewStep() {
           <span className="text-micro font-normal text-text-2">
             {fill(P.balance, { balance: <Num value={MOCK_CREDITS.balance} />, after: <Num value={Math.max(0, MOCK_CREDITS.balance - est.credits)} /> })}
           </span>
-          <span className="text-micro font-normal text-text-2">{fill(P.eta, { eta: <bdi className="num">{`${eMin}–${eMax}`}</bdi> })}</span>
+          <span className="text-micro font-normal text-text-2">{fill(P.eta, { eta: <bdi dir="ltr" className="num">{`${eMin}–${eMax}`}</bdi> })}</span>
         </div>
         {MOCK_PLAN.id === "free" && <p className="text-small text-text-2">{P.watermark}</p>}
       </Panel>

@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -57,7 +59,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function SeasonPage({ params }: Props) {
+export default function SeasonPage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <SeasonPageView params={params} />
+    </Suspense>
+  );
+}
+
+async function SeasonPageView({ params }: Props) {
   const { season } = await params;
   const d = load(season);
   if (!d) notFound();
@@ -133,7 +143,7 @@ export default async function SeasonPage({ params }: Props) {
       </section>
 
       <div className="container-marketing flex flex-col gap-8">
-        <HookPersonalizer fields={fields} />
+        {fields.length > 0 && <HookPersonalizer fields={fields} />}
         <section aria-labelledby="season-hooks">
           <h2 id="season-hooks" className="mb-6 text-h2">{S.hooks}</h2>
           {own.length > 0 ? (

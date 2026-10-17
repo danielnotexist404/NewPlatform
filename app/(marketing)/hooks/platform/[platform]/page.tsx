@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -40,7 +42,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function PlatformPage({ params }: Props) {
+export default function PlatformPage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <PlatformPageView params={params} />
+    </Suspense>
+  );
+}
+
+async function PlatformPageView({ params }: Props) {
   const { platform } = await params;
   if (!isPagePlatform(platform)) notFound();
   const l = PLATFORM_LABEL_L[platform];

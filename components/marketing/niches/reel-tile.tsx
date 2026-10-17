@@ -39,7 +39,7 @@ export function ReelTile({ icon, category, hookText, caption, handle, badge, siz
     >
       <div aria-hidden className="absolute inset-0 bg-[radial-gradient(130%_75%_at_50%_0%,color-mix(in_oklab,var(--tint)_42%,transparent),transparent_62%),radial-gradient(90%_60%_at_100%_100%,color-mix(in_oklab,var(--color-violet)_28%,transparent),transparent_70%),linear-gradient(180deg,var(--color-surface-2),var(--color-bg))]" />
       <div aria-hidden className="absolute inset-0 animate-sweep bg-[linear-gradient(105deg,transparent_35%,color-mix(in_oklab,var(--color-white)_9%,transparent)_50%,transparent_65%)] bg-[length:260%_100%]" />
-      <NicheIcon name={icon} strokeWidth={1.1} className={cn("absolute inset-s-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 text-white/12", size === "sm" ? "size-24" : "size-44")} />
+      <NicheIcon name={icon} strokeWidth={1.1} className={cn("absolute inset-s-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 text-white/[0.07]", size === "sm" ? "size-28" : "size-56")} />
 
       {/* top: story bars + account */}
       <div className="absolute inset-x-3 top-3 flex gap-1" aria-hidden>

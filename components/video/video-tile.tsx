@@ -18,6 +18,7 @@ export function VideoTile({
   durationSec,
   badge,
   topStart,
+  bottomStart,
   alt,
   className,
   textSize = "md",
@@ -29,6 +30,7 @@ export function VideoTile({
   durationSec?: number | null;
   badge?: React.ReactNode;
   topStart?: React.ReactNode;
+  bottomStart?: React.ReactNode;
   alt?: string;
   className?: string;
   textSize?: "sm" | "md" | "lg";
@@ -64,9 +66,10 @@ export function VideoTile({
           <div>{badge}</div>
         </div>
       )}
+      {bottomStart && <div className="absolute bottom-2 inset-s-2">{bottomStart}</div>}
       {durationSec != null && (
-        <span dir="ltr" className="absolute bottom-2 inset-e-2 rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">
-          {formatDuration(durationSec)}
+        <span className="absolute bottom-2 inset-e-2 rounded-xs bg-black/60 px-1.5 py-0.5 font-mono text-micro text-white">
+          <bdi dir="ltr">{formatDuration(durationSec)}</bdi>
         </span>
       )}
     </div>

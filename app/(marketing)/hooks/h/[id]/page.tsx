@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
@@ -39,7 +41,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function SingleHookPage({ params }: Props) {
+export default function SingleHookPage({ params }: Props) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <SingleHookPageView params={params} />
+    </Suspense>
+  );
+}
+
+async function SingleHookPageView({ params }: Props) {
   const { id } = await params;
   const h = hookById.get(id);
   if (!h) notFound();
