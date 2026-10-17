@@ -2,8 +2,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { buttonVariants } from "@/components/ui/button";
 import { WhatsAppButton } from "./whatsapp-button";
+import { accentCta } from "./cta-styles";
 import { SIGNUP_HREF } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -32,15 +32,17 @@ export function MobileStickyCta() {
   return (
     <div
       className={cn(
-        "glass fixed inset-x-0 bottom-0 z-[var(--z-sticky)] flex h-[72px] items-center gap-3 px-4 transition-transform md:hidden",
-        show ? "translate-y-0" : "translate-y-full",
+        "fixed inset-x-0 bottom-0 z-[var(--z-sticky)] px-3 pb-3 transition-transform duration-500 ease-out md:hidden",
+        show ? "translate-y-0" : "translate-y-[120%]",
       )}
       aria-hidden={!show}
     >
-      <Link href={SIGNUP_HREF} tabIndex={show ? 0 : -1} className={cn(buttonVariants({ size: "lg" }), "flex-1")}>
-        צרו סרטון בחינם
-      </Link>
-      <WhatsAppButton iconOnly />
+      <div className="glass flex h-[60px] items-center gap-2 rounded-full p-1.5 shadow-[0_12px_32px_-12px_color-mix(in_oklab,var(--color-ink)_30%,transparent),inset_0_0_0_1px_var(--color-frame)]">
+        <Link href={SIGNUP_HREF} tabIndex={show ? 0 : -1} className={cn(accentCta, "h-full flex-1 text-base")}>
+          צרו סרטון בחינם
+        </Link>
+        <WhatsAppButton iconOnly />
+      </div>
     </div>
   );
 }

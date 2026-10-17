@@ -24,6 +24,7 @@ export function DisplaySettings() {
   React.useEffect(() => {
     const t = read("theme");
     // No stored choice: reflect the shell default currently applied (marketing light, app dark).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate from storage / <html> after mount
     setTheme(t === "light" || t === "dark" || t === "system" ? t : document.documentElement.dataset.theme === "light" ? "light" : "dark");
     setReduce(read("motion") === "reduce");
   }, []);

@@ -1,137 +1,142 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Banknote, Check, MousePointerClick, ReceiptText, Repeat, RotateCcw, Percent, type LucideIcon } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/misc";
-import { Num, Price } from "@/components/a11y/num";
-import { PLANS, PLAN_PROMISES_HE, VIDEO_COST_EXAMPLES } from "@/lib/data/plans";
+import { Check, Gift } from "lucide-react";
+import { CountUp } from "./count-up";
+import { SectionHeading } from "./section-heading";
 import { loginNext } from "./create-link";
+import { DirIcon } from "@/components/a11y/dir-icon";
+import { accentCta, ctaArrow, inkCta } from "@/components/layout/cta-styles";
+import { PLANS, type Plan } from "@/lib/data/plans";
+import { SIGNUP_HREF } from "@/lib/constants";
 import { LANDING } from "@/content/he/landing";
 import { cn } from "@/lib/utils";
 
-const T = LANDING.pricing;
-const PROMISE_ICONS: LucideIcon[] = [Percent, Repeat, RotateCcw, MousePointerClick, ReceiptText, Banknote];
+const C = LANDING.pricing;
+const nf = new Intl.NumberFormat("he-IL");
+type Cycle = "monthly" | "annual";
 
-/** §3.12 PricingCards + short CreditCostTable, from lib/data/plans.ts. */
-export function PricingTeaser() {
-  const [cycle, setCycle] = React.useState<"monthly" | "annual">("monthly");
-  const id = React.useId();
+const PAID = PLANS.filter((p) => p.id !== "free");
+const SAVE_PCT = Math.round(
+  Math.min(...PAID.map((p) => (p.annualMonthlyIls ? 1 - p.annualMonthlyIls / p.monthlyIls : 0))) * 100,
+);
+
+function PlanCard({ plan, cycle }: { plan: Plan; cycle: Cycle }) {
+  const featured = plan.badgeHe === C.recommended;
+  const price = cycle === "annual" && plan.annualMonthlyIls ? plan.annualMonthlyIls : plan.monthlyIls;
+  const features = C.features[plan.id] ?? plan.featuresHe.slice(0, 6);
   return (
-    <div className="mt-10 flex flex-col gap-8">
-      <ToggleGroup
-        type="single"
-        value={cycle}
-        onValueChange={(v) => v && setCycle(v as "monthly" | "annual")}
-        aria-label={T.cycleLabel}
-        className="w-fit rounded-full p-1 [&>button]:rounded-full [&>button]:px-4"
-      >
-        <ToggleGroupItem value="monthly">{T.monthly}</ToggleGroupItem>
-        <ToggleGroupItem value="annual">{T.annual}</ToggleGroupItem>
-      </ToggleGroup>
+    <li
+      className={cn(
+        "reveal relative flex flex-col rounded-[28px] p-px transition-[translate,box-shadow] duration-500 ease-out hover:-translate-y-1",
+        featured
+          ? "bg-accent-gradient shadow-[0_40px_80px_-36px_color-mix(in_oklab,var(--color-coral)_70%,transparent)] lg:-my-4"
+          : "bg-border shadow-[0_1px_2px_color-mix(in_oklab,var(--color-ink)_5%,transparent)] hover:shadow-[0_24px_60px_-28px_color-mix(in_oklab,var(--color-ink)_25%,transparent)]",
+      )}
+    >
+      <div className={cn("flex h-full flex-col rounded-[27px] bg-surface-1 p-6 md:p-7", featured && "lg:py-10")}>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-h3 text-text">{plan.nameHe}</h3>
+          {featured && <span className="rounded-full bg-accent-gradient px-3 py-1 text-micro text-ink">{plan.badgeHe}</span>}
+        </div>
+        <p className="mt-1 text-small text-text-2">{plan.taglineHe}</p>
+        <p className="mt-6 flex items-baseline gap-1.5">
+          <CountUp
+            value={price}
+            from={Math.round(price * 0.6)}
+            prefix="₪"
+            label={`${price} שקלים`}
+            className="text-[3.25rem] font-black leading-none text-text"
+          />
+          <span className="text-small text-muted">{C.perMonth}</span>
+        </p>
+        <p className="mt-2 min-h-[1.4em] text-micro font-normal text-muted">
+          {cycle === "annual" && plan.annualTotalIls ? C.billedAnnual(`₪${nf.format(plan.annualTotalIls)}`) : C.billedMonthly}
+        </p>
+        <Link
+          href={loginNext(`/app/billing/plans?plan=${plan.id}&cycle=${cycle}`)}
+          className={cn(featured ? accentCta : cn(inkCta, "dark:bg-text dark:text-bg"), "mt-6 h-12 w-full text-base")}
+        >
+          {C.cta(plan.nameHe)}
+          <DirIcon name="forward" className={ctaArrow} />
+        </Link>
+        <ul className="mt-7 flex flex-col gap-3 border-t border-border pt-6 text-small text-text">
+          {features.map((f) => (
+            <li key={f} className="flex items-start gap-2.5">
+              <span aria-hidden className={cn("mt-0.5 inline-flex size-[18px] shrink-0 items-center justify-center rounded-full", featured ? "bg-accent-gradient text-ink" : "bg-surface-3 text-text")}>
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </li>
+  );
+}
 
-      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {PLANS.map((p) => {
-          const highlighted = !!p.badgeHe;
-          const annual = cycle === "annual" && p.annualMonthlyIls != null;
-          const href = p.id === "free" ? loginNext("/app/onboarding") : loginNext(`/app/billing/plans?plan=${p.id}&cycle=${cycle}`);
-          return (
-            <li
-              key={p.id}
-              className={cn(
-                "relative flex flex-col gap-5 rounded-xl bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]",
-                highlighted && "shadow-[inset_0_0_0_1.5px_var(--color-primary),var(--glow-primary)] xl:-my-2 xl:py-8",
-              )}
-            >
-              {highlighted && (
-                <span className="absolute -top-3 inset-s-6 rounded-full bg-primary px-3 py-0.5 text-micro text-on-primary">{T.recommended}</span>
-              )}
-              <div className="flex flex-col gap-1">
-                <h3 className="text-h3 text-text">{p.nameHe}</h3>
-                <p className="text-small text-text-2">{p.taglineHe}</p>
-              </div>
-              <div className="flex flex-col gap-1">
-                {annual && (
-                  <span className="text-small text-muted line-through">
-                    <Price ils={p.monthlyIls} />
-                    <span className="sr-only">{T.insteadOf(p.monthlyIls)}</span>
-                  </span>
+export function PricingTeaser() {
+  const [cycle, setCycle] = React.useState<Cycle>("monthly");
+  return (
+    <section id="pricing" aria-labelledby="pricing-title" className="relative scroll-mt-20 py-20 md:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-[30%] -z-10 mx-auto h-[60%] max-w-5xl rounded-[50%] opacity-60 blur-3xl"
+        style={{ background: "radial-gradient(closest-side, color-mix(in oklab, var(--color-primary) 22%, transparent), transparent)" }}
+      />
+      <div className="container-marketing">
+        <SectionHeading id="pricing-title" eyebrow={C.eyebrow} title={C.title} subtitle={C.subtitle}>
+          <div role="radiogroup" aria-label={C.cycleLabel} className="mt-4 inline-flex rounded-full bg-surface-3 p-1 shadow-[inset_0_0_0_1px_var(--color-frame)]">
+            {(["monthly", "annual"] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={cycle === c}
+                onClick={() => setCycle(c)}
+                className={cn(
+                  "inline-flex h-10 items-center gap-2 rounded-full px-5 text-small font-semibold transition-[background-color,color,box-shadow] duration-300",
+                  cycle === c ? "bg-surface-1 text-text shadow-[0_1px_3px_color-mix(in_oklab,var(--color-ink)_14%,transparent)]" : "text-text-2 hover:text-text",
                 )}
-                <span className="text-5xl font-extrabold leading-none text-text">
-                  <Price ils={annual ? p.annualMonthlyIls! : p.monthlyIls} />
-                </span>
-                <span className="text-micro font-normal text-text-2">{annual ? T.perMonthAnnual(p.annualTotalIls!) : T.perMonth}</span>
-                <span className="mt-1 text-small font-semibold text-primary-text">{p.id === "free" ? T.approxFree : T.approxPaid(p.approxVideos)}</span>
-              </div>
-              <ul className="flex flex-col gap-2">
-                {p.featuresHe.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-small text-text">
-                    <Check className="mt-0.5 size-4 shrink-0 text-success" style={{ transform: "none" }} aria-hidden />
-                    <span>
-                      <span className="sr-only">{T.included}: </span>
-                      {f}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href={href}
-                className={buttonVariants({ variant: highlighted ? "primary" : "secondary", size: "lg", className: "mt-auto w-full" })}
-                data-cta-location={`pricing_card_${p.id}`}
               >
-                {T.cta[p.id]}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+                {c === "monthly" ? C.monthly : C.annual}
+                {c === "annual" && SAVE_PCT > 0 && (
+                  <span className="rounded-full bg-success/12 px-2 py-0.5 text-micro text-success">{C.save(SAVE_PCT)}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </SectionHeading>
 
-      <ul aria-label={T.promisesLabel} className="grid gap-x-6 gap-y-3 rounded-lg bg-surface-1/60 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] sm:grid-cols-2 lg:grid-cols-3">
-        {PLAN_PROMISES_HE.map((t, i) => {
-          const Icon = PROMISE_ICONS[i] ?? Check;
-          return (
-            <li key={t} className="flex items-start gap-2 text-small text-text-2">
-              <Icon className="mt-0.5 size-4 shrink-0 text-primary-text" aria-hidden />
-              {t}
-            </li>
-          );
-        })}
-      </ul>
+        <ul className="mt-14 grid items-stretch gap-5 lg:grid-cols-3 lg:gap-6">
+          {PAID.map((p) => (
+            <PlanCard key={p.id} plan={p} cycle={cycle} />
+          ))}
+        </ul>
 
-      <div id="credit-costs-short" className="grid gap-6 lg:grid-cols-12 lg:items-start">
-        <div className="flex flex-col gap-2 lg:col-span-5">
-          <h3 className="text-h3 text-text">{T.costTitle}</h3>
-          <p className="text-small text-text-2">{T.costIntro}</p>
+        <div className="reveal mt-8 flex flex-col items-center justify-between gap-4 rounded-[22px] bg-surface-2 px-5 py-4 shadow-[inset_0_0_0_1px_var(--color-frame)] sm:flex-row md:px-7">
+          <div className="flex items-center gap-3 text-center sm:text-start">
+            <span aria-hidden className="hidden size-10 shrink-0 items-center justify-center rounded-full bg-surface-1 text-primary-text shadow-[inset_0_0_0_1px_var(--color-frame)] sm:inline-flex">
+              <Gift className="size-[18px]" />
+            </span>
+            <p className="text-body text-text">
+              <span className="font-bold">{C.trial.title}</span> <span className="text-text-2">{C.trial.text}</span>
+            </p>
+          </div>
+          <Link href={SIGNUP_HREF} className="group inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-surface-1 px-5 text-small font-bold text-text shadow-[0_1px_2px_color-mix(in_oklab,var(--color-ink)_8%,transparent),inset_0_0_0_1px_var(--color-frame)] transition-transform hover:-translate-y-px">
+            {C.trial.cta}
+            <DirIcon name="forward" className={ctaArrow} />
+          </Link>
         </div>
-        <div className="overflow-hidden rounded-lg bg-surface-1 shadow-[inset_0_0_0_1px_var(--color-frame)] lg:col-span-7">
-          <table className="w-full text-small" aria-describedby={`${id}-cap`}>
-            <caption id={`${id}-cap`} className="sr-only">{T.costCaption}</caption>
-            <thead>
-              <tr className="border-b border-border text-micro text-muted">
-                <th scope="col" className="px-4 py-3 text-start font-semibold">{T.costCols.video}</th>
-                <th scope="col" className="px-4 py-3 text-end font-semibold">{T.costCols.credits}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {VIDEO_COST_EXAMPLES.slice(0, 4).map((r) => (
-                <tr key={r.labelHe} className="border-b border-border last:border-0">
-                  <th scope="row" className="px-4 py-3 text-start font-normal text-text">{r.labelHe}</th>
-                  <td className="px-4 py-3 text-end text-lg font-bold text-primary-text"><Num value={r.credits} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        <div className="mt-6 flex flex-col items-center gap-2 text-center">
+          <p className="text-small text-muted">{C.note}</p>
+          <Link href="/pricing" className="group inline-flex items-center gap-1 text-small font-semibold text-primary-text hover:underline">
+            {C.all}
+            <DirIcon name="forward" className="size-3.5" />
+          </Link>
         </div>
       </div>
-
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <Link href="/pricing" className={buttonVariants({ variant: "secondary", size: "lg" })} data-cta-location="landing_pricing">
-          {T.cta_all}
-        </Link>
-        <Link href={loginNext("/app/campaigns/health")} className="text-sm font-semibold text-link underline-offset-4 hover:underline" data-cta-location="health_check">
-          {T.healthLine}
-        </Link>
-      </div>
-    </div>
+    </section>
   );
 }

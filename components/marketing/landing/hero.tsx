@@ -1,77 +1,88 @@
-import { Clock, Minus } from "lucide-react";
-import { launchNiches, nicheCategories, niches, nicheShortName } from "@/lib/data/seed";
-import { WALL_TILES, resolveWallTile, type ResolvedTile } from "@/lib/mock/landing";
-import { HeroPromptCard } from "./hero-prompt-card";
-import type { NicheGroup, NicheOption } from "./niche-picker";
-import { searchKey } from "./create-link";
-import { TrustRow } from "./trust-row";
-import { VideoWall } from "./video-wall";
-import { LANDING } from "@/content/he/landing";
+import Link from "next/link";
+import { Check, Play } from "lucide-react";
+import { HeroFan } from "./hero-fan";
+import { CountUp } from "./count-up";
+import { Eyebrow } from "./section-heading";
+import { createHref } from "./create-link";
+import { DirIcon } from "@/components/a11y/dir-icon";
+import { accentCta, ctaArrow, quietCta } from "@/components/layout/cta-styles";
+import { LANDING, STARTING_PRICE } from "@/content/he/landing";
+import { cn } from "@/lib/utils";
 
-const T = LANDING.hero;
+const H = LANDING.hero;
 
-const toOption = (n: (typeof niches)[number]): NicheOption => ({
-  slug: n.slug,
-  label: nicheShortName(n),
-  icon: n.icon,
-  search: searchKey(`${n.name_he} ${nicheShortName(n)} ${n.name_en}`),
-});
+/** Projector beam + warm glow pool + faint dot grid. Decorative only. */
+function HeroBackdrop() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+      <div
+        className="absolute inset-x-0 top-0 h-[760px] opacity-80"
+        style={{
+          background:
+            "conic-gradient(from 180deg at 50% -6%, transparent 158deg, color-mix(in oklab, var(--color-primary) 16%, transparent) 172deg, color-mix(in oklab, var(--color-coral) 12%, transparent) 188deg, transparent 202deg)",
+          maskImage: "linear-gradient(180deg, #000 30%, transparent 95%)",
+          WebkitMaskImage: "linear-gradient(180deg, #000 30%, transparent 95%)",
+        }}
+      />
+      <div
+        className="absolute inset-x-0 top-0 h-[560px] bg-dots opacity-60"
+        style={{ maskImage: "radial-gradient(50% 70% at 50% 0%, #000, transparent)", WebkitMaskImage: "radial-gradient(50% 70% at 50% 0%, #000, transparent)" }}
+      />
+      <div
+        className="absolute inset-x-0 bottom-[-8%] mx-auto h-[62%] max-w-[1100px] rounded-[50%] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(50% 50% at 50% 50%, color-mix(in oklab, var(--color-primary) 34%, transparent), color-mix(in oklab, var(--color-coral) 16%, transparent) 55%, transparent 75%)",
+        }}
+      />
+    </div>
+  );
+}
 
 export function Hero() {
-  const launch = launchNiches().map(toOption);
-  const groups: NicheGroup[] = nicheCategories
-    .map((c) => ({ slug: c.slug, label: c.name_he, items: niches.filter((n) => n.category_slug === c.slug).map(toOption) }))
-    .filter((g) => g.items.length > 0);
-
-  const resolved = WALL_TILES.map((t) => ({ t, r: resolveWallTile(t) })).filter((x): x is { t: (typeof WALL_TILES)[number]; r: ResolvedTile } => !!x.r);
-  const columns = [1, 2, 3].map((c) => resolved.filter((x) => x.t.column === c).map((x) => x.r));
-  const mobile = resolved.filter((x) => x.t.mobile).map((x) => x.r);
-
   return (
-    <section id="hero" aria-labelledby="hero-title" className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-afterglow opacity-80 [mask-image:linear-gradient(to_bottom,black_60%,transparent)]" aria-hidden />
-      <div className="container-marketing grid grid-cols-[minmax(0,1fr)] gap-10 pb-16 pt-6 md:pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-12 lg:pt-4">
-        <div className="flex min-w-0 flex-col gap-5 lg:col-span-7 lg:pb-6 lg:pt-4">
-          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-surface-2/80 px-3 py-1 text-micro text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-            <span aria-hidden className="relative flex size-2">
-              <span className="kd-ring absolute inline-flex size-full rounded-full bg-primary" />
-              <span className="relative inline-flex size-2 rounded-full bg-primary" />
-            </span>
-            {T.eyebrow}
+    <section id="hero" aria-labelledby="hero-title" className="relative isolate overflow-x-clip pb-6 pt-10 md:pb-10 md:pt-14">
+      <HeroBackdrop />
+      <div className="container-marketing relative flex flex-col items-center text-center">
+        <Eyebrow className="rise">{H.eyebrow}</Eyebrow>
+        <h1 id="hero-title" className="rise mt-6 text-hero text-text [--d:60ms]">
+          <span className="block">{H.title}</span>
+          <span className="mt-2 block text-[0.6em] leading-[1.18] md:text-[0.56em]">
+            <span className="text-accent-gradient">{H.accentLead}</span>
+            <br className="sm:hidden" />
+            <span className="text-accent-gradient"> {H.accentBefore}</span>
+            <CountUp value={STARTING_PRICE} prefix="₪" label={`${STARTING_PRICE} שקלים`} className="text-accent-gradient" />
+            <span className="text-accent-gradient">{H.accentAfter}</span>
           </span>
-
-          <h1 id="hero-title" className="font-display text-display text-text xl:text-[6.5rem]">
-            {T.h1.before}
-            <span className="text-gold-gradient">{T.h1.highlight}</span>
-            {T.h1.after}
-          </h1>
-
-          <p className="text-body-lg max-w-2xl text-text-2">{T.sub}</p>
-
-          <ul aria-label={T.withoutLabel} className="flex flex-wrap gap-2">
-            {T.without.map((w) => (
-              <li key={w} className="inline-flex items-center gap-1.5 rounded-full bg-surface-1/70 px-3 py-1.5 text-small font-semibold text-text shadow-[inset_0_0_0_1px_var(--color-border)]">
-                <Minus className="size-3.5 text-rose" aria-hidden />
-                {w}
-              </li>
-            ))}
-          </ul>
-
-          <HeroPromptCard launch={launch} groups={groups} />
-
-          <div className="flex flex-col gap-3">
-            <TrustRow />
-            <p className="inline-flex items-center gap-1.5 text-micro font-normal text-muted">
-              <Clock className="size-3.5" aria-hidden />
-              {T.reviewNote}
-            </p>
-          </div>
+        </h1>
+        <p className="rise mt-6 max-w-[36rem] text-body-lg text-text-2 [--d:140ms]">
+          {H.sub[0]}
+          <br className="hidden sm:inline" /> {H.sub[1]}
+        </p>
+        <div className="rise mt-9 flex w-full flex-col items-center justify-center gap-2 sm:w-auto sm:flex-row [--d:220ms]">
+          <Link href={createHref("hero")} className={cn(accentCta, "h-14 w-full px-8 text-lg sm:w-auto")}>
+            {H.ctaPrimary}
+            <DirIcon name="forward" className={ctaArrow} />
+          </Link>
+          <Link href="#how-it-works" className={cn(quietCta, "h-14 px-6 text-base")}>
+            <span aria-hidden className="inline-flex size-8 items-center justify-center rounded-full bg-surface-1 shadow-[0_1px_2px_color-mix(in_oklab,var(--color-ink)_10%,transparent),inset_0_0_0_1px_var(--color-frame)]">
+              <Play className="size-3.5 fill-current" style={{ transform: "none" }} />
+            </span>
+            {H.ctaSecondary}
+          </Link>
         </div>
-
-        <div className="relative min-w-0 md:h-[520px] lg:col-span-5 lg:h-auto lg:min-h-[680px]">
-          <VideoWall columns={columns} mobile={mobile} />
-        </div>
+        <ul className="rise mt-7 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-small text-text-2 [--d:300ms]">
+          {H.trust.map((t) => (
+            <li key={t} className="inline-flex items-center gap-1.5">
+              <span aria-hidden className="inline-flex size-4 items-center justify-center rounded-full bg-primary/25 text-primary-text">
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+              {t}
+            </li>
+          ))}
+        </ul>
       </div>
+      <HeroFan />
     </section>
   );
 }
