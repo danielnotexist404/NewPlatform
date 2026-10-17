@@ -1,0 +1,321 @@
+/* app/globals.css — design tokens & base styles.
+   Dark ("Premiere") is the default theme; light overrides live under :root[data-theme="light"]. */
+@import "tailwindcss";
+
+/* ---------- Variants ---------- */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+@custom-variant reduced (&:where([data-motion="reduce"], [data-motion="reduce"] *));
+
+/* ---------- Color tokens (dark = default) ---------- */
+@theme static {
+  --color-*: initial;
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+
+  --color-bg: #08080C;
+  --color-surface-1: #121219;
+  --color-surface-2: #1A1A24;
+  --color-surface-3: #23232F;
+  --color-border: #2A2A38;          /* decorative hairlines only */
+  --color-border-strong: #686884;   /* inputs, toggles: >= 3:1 */
+  --color-text: #F5F4F0;
+  --color-text-2: #A3A3B5;
+  --color-muted: #8A8AA0;           /* TEXT color for meta/captions — never a background */
+  --color-primary: #FFB547;         /* projector gold: CTA fill */
+  --color-primary-hover: #FFC56B;
+  --color-on-primary: #0A0A0F;      /* ink on gold 11.24:1 */
+  --color-primary-text: #FFB547;    /* gold used as text */
+  --color-focus: #FFB547;
+  --color-rose: #FF4F7B;
+  --color-violet: #8E7BFF;
+  --color-link: #8E7BFF;
+  --color-success: #3DDC97;
+  --color-danger: #FF6B6B;
+  --color-on-danger: #0A0A0F;       /* ink on #FF6B6B 7.12:1 (white fails: 2.78:1) */
+  --color-lemon: #FFE14D;           /* on-primary ink on lemon 15.17:1 */
+  --color-glass: rgb(18 18 25 / 0.6);
+  --color-overlay: rgb(4 4 8 / 0.72);
+  --color-frame: rgb(255 255 255 / 0.08);
+}
+
+/* ---------- shadcn/ui bridge + fonts + aspect (resolved at use site) ---------- */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface-1);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-surface-2);
+  --color-popover-foreground: var(--color-text);
+  --color-primary-foreground: var(--color-on-primary);
+  --color-secondary: var(--color-surface-2);
+  --color-secondary-foreground: var(--color-text);
+  --color-muted-foreground: var(--color-muted);
+  --color-accent: var(--color-surface-3);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: var(--color-on-danger);
+  --color-input: var(--color-border-strong);
+  --color-ring: var(--color-focus);
+  --color-sidebar: var(--color-surface-1);
+  --color-sidebar-foreground: var(--color-text);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-on-primary);
+  --color-sidebar-accent: var(--color-surface-3);
+  --color-sidebar-accent-foreground: var(--color-text);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-focus);
+  --color-chart-1: var(--color-primary);
+  --color-chart-2: var(--color-violet);
+  --color-chart-3: var(--color-rose);
+  --color-chart-4: var(--color-success);
+  --color-chart-5: var(--color-text-2);
+
+  --font-sans: var(--font-heebo), "Arial Hebrew", "Noto Sans Hebrew", Arial, system-ui, sans-serif;
+  --font-display: var(--font-karantina), var(--font-heebo), "Arial Hebrew", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --aspect-reel: var(--ar-reel);
+  --aspect-feed: var(--ar-feed);
+  --aspect-square: var(--ar-square);
+  --aspect-wide: var(--ar-wide);
+  --aspect-cine: var(--ar-cine);
+}
+
+/* ---------- Scale tokens (theme-independent) ---------- */
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-xs: 24.375rem;  /* 390px  mobile baseline */
+  --breakpoint-sm: 40rem;      /* 640px  kept only because shadcn primitives use sm: */
+  --breakpoint-md: 48rem;      /* 768px  */
+  --breakpoint-lg: 64rem;      /* 1024px */
+  --breakpoint-xl: 80rem;      /* 1280px */
+  --breakpoint-2xl: 96rem;     /* 1536px */
+
+  /* Hebrew-tuned defaults used by shadcn primitives */
+  --text-xs: 0.8125rem;  --text-xs--line-height: 1.4;
+  --text-sm: 0.9375rem;  --text-sm--line-height: 1.6;
+  --text-base: 1.0625rem; --text-base--line-height: 1.7;
+  --text-lg: 1.1875rem;  --text-lg--line-height: 1.7;
+
+  /* Brand type scale */
+  --text-display: clamp(3.25rem, 2rem + 6vw, 7.5rem);   --text-display--line-height: 0.98; --text-display--font-weight: 700;
+  --text-h1: clamp(2.25rem, 1.6rem + 3vw, 4.25rem);     --text-h1--line-height: 1.08;      --text-h1--font-weight: 800;
+  --text-h2: clamp(1.75rem, 1.3rem + 2vw, 3rem);        --text-h2--line-height: 1.15;      --text-h2--font-weight: 700;
+  --text-h3: clamp(1.25rem, 1.1rem + 0.8vw, 1.625rem);  --text-h3--line-height: 1.25;      --text-h3--font-weight: 700;
+  --text-body-lg: 1.1875rem; --text-body-lg--line-height: 1.7;
+  --text-body: 1.0625rem;    --text-body--line-height: 1.7;
+  --text-small: 0.9375rem;   --text-small--line-height: 1.6;
+  --text-micro: 0.8125rem;   --text-micro--line-height: 1.4;   --text-micro--font-weight: 600;
+
+  --radius-xs: 6px;   /* badges */
+  --radius-sm: 10px;  /* inputs, chips, segmented controls */
+  --radius-md: 14px;  /* cards, video tiles */
+  --radius-lg: 20px;  /* panels, modals, sheets */
+  --radius-xl: 28px;  /* hero prompt card */
+  /* pills (CTAs, credits meter) use rounded-full */
+
+  --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+
+  --animate-marquee: marquee var(--marquee-duration, 40s) linear infinite;
+  --animate-marquee-y: marquee-y var(--marquee-duration, 45s) linear infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-sweep: projector-sweep 6s var(--ease-in-out) infinite;
+  --animate-pulse-dot: pulse-dot 1.4s var(--ease-in-out) infinite;
+
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(var(--marquee-shift)); } }
+  @keyframes marquee-y { from { transform: translateY(0); } to { transform: translateY(calc(-50% - var(--marquee-gap, 16px) / 2)); } }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  @keyframes projector-sweep { 0%, 82% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
+  @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+}
+
+/* ---------- Raw variables (non-Tailwind) + light theme ----------
+   Everything that the light theme overrides MUST live in a layer: an unlayered :root rule
+   would beat the layered :root[data-theme="light"] rule regardless of specificity. */
+@layer base {
+  :root {
+    color-scheme: dark;
+    --ar-reel: 9 / 16; --ar-feed: 4 / 5; --ar-square: 1 / 1; --ar-wide: 16 / 9; --ar-cine: 2.39 / 1;
+
+    --z-base: 0; --z-sticky: 40; --z-dropdown: 50; --z-overlay: 60; --z-modal: 70; --z-toast: 80;
+
+    --duration-hover: 120ms; --duration-press: 200ms; --duration-panel: 320ms;
+    --duration-reveal: 600ms; --duration-letterbox: 900ms; --duration-reduced: 150ms;
+
+    --shadow-1: 0 1px 0 rgb(255 255 255 / .04) inset, 0 1px 2px rgb(0 0 0 / .6);
+    --shadow-2: 0 8px 24px rgb(0 0 0 / .45), 0 1px 0 rgb(255 255 255 / .05) inset;
+    --shadow-3: 0 24px 64px rgb(0 0 0 / .6);
+    --glow-primary: 0 0 0 1px rgb(255 181 71 / .5), 0 8px 32px rgb(255 181 71 / .25);
+    --glow-ai: 0 0 0 1px rgb(142 123 255 / .45), 0 0 40px rgb(142 123 255 / .2);
+
+    --beam-x: 25%;               /* end side in RTL */
+    --header-h: 0px;             /* set per shell below */
+    --bottom-bar-h: 0px;
+    --marquee-gap: 16px;
+    --marquee-shift: calc(-50% - var(--marquee-gap) / 2);   /* LTR: content moves toward the left */
+  }
+  :root[dir="ltr"] { --beam-x: 75%; }
+  :root[dir="rtl"] { --marquee-shift: calc(50% + var(--marquee-gap) / 2); } /* RTL: items enter from the end (left) */
+
+  /* Shell heights drive scroll-padding so sticky bars never hide focused elements (WCAG 2.4.11) */
+  :root:has([data-shell="marketing"]) { --header-h: 64px; }
+  :root:has([data-shell="app"]) { --header-h: 56px; }
+  @media (max-width: 47.99rem) {
+    :root:has([data-shell="marketing"]) { --bottom-bar-h: 72px; }  /* MobileStickyCta */
+    :root:has([data-shell="app"]) { --bottom-bar-h: 64px; }        /* MobileTabBar */
+  }
+
+  /* ---------- Light theme (same layer, higher specificity => wins) ---------- */
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --color-bg: #FAF7F2;
+    --color-surface-1: #FFFFFF;
+    --color-surface-2: #F1ECE4;
+    --color-surface-3: #E9E2D7;
+    --color-border: #E4DDD1;
+    --color-border-strong: #8C8577;
+    --color-text: #16140F;
+    --color-text-2: #5A554C;
+    --color-muted: #6F6A60;          /* allowed on bg / surface-1 / surface-2 only (4.18:1 on surface-3) */
+    --color-primary: #FFB547;        /* fill only, always with ink text */
+    --color-primary-hover: #FFC56B;
+    --color-on-primary: #0A0A0F;
+    --color-primary-text: #9A5B00;   /* 5.08:1 on paper */
+    --color-focus: #1F3DFF;          /* ultramarine ring, 6.20:1 on paper */
+    --color-rose: #C2185B;
+    --color-violet: #5B47E0;
+    --color-link: #5B47E0;
+    --color-success: #0B7A53;
+    --color-danger: #C62F1D;
+    --color-on-danger: #FFFFFF;
+    --color-lemon: #FFE14D;
+    --color-glass: rgb(255 255 255 / 0.72);
+    --color-overlay: rgb(22 20 15 / 0.42);
+    --color-frame: rgb(22 20 15 / 0.08);
+
+    --shadow-1: 0 1px 2px rgb(22 20 15 / .06);
+    --shadow-2: 0 6px 20px rgb(22 20 15 / .08);
+    --shadow-3: 0 20px 50px rgb(22 20 15 / .12);
+    --glow-primary: 0 6px 20px rgb(22 20 15 / .10);
+    --glow-ai: 0 0 0 1px rgb(91 71 224 / .35);
+  }
+
+  @media (prefers-contrast: more) {
+    :root, :root[data-theme="light"] { --color-text-2: var(--color-text); --color-border: var(--color-border-strong); }
+  }
+
+  html {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    scroll-padding-top: calc(var(--header-h) + 8px);
+    scroll-padding-bottom: calc(var(--bottom-bar-h) + 8px);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  body { background: var(--color-bg); font-size: var(--text-body); line-height: 1.7; min-height: 100dvh; }
+  h1, h2, h3, h4 { text-wrap: balance; letter-spacing: 0; }
+  p, li, dd, figcaption { text-wrap: pretty; }
+  * { hyphens: none; letter-spacing: 0; }
+  em, i, cite { font-style: normal; font-weight: 700; }
+  bdi, .num { font-variant-numeric: tabular-nums; }
+  code, kbd, samp, pre { font-family: var(--font-mono); direction: ltr; unicode-bidi: isolate; }
+  ::selection { background: color-mix(in oklab, var(--color-primary) 35%, transparent); color: var(--color-text); }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+}
+
+/* ---------- Brand utilities ---------- */
+@utility num { font-variant-numeric: tabular-nums; }
+@utility elev-1 { box-shadow: var(--shadow-1); }
+@utility elev-2 { box-shadow: var(--shadow-2); }
+@utility elev-3 { box-shadow: var(--shadow-3); }
+@utility glow-primary { box-shadow: var(--glow-primary); }
+@utility glow-ai { box-shadow: var(--glow-ai); }
+@utility glass {
+  background: var(--color-glass);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  backdrop-filter: blur(16px) saturate(140%);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--color-surface-1); -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+}
+@utility container-marketing { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 16px; @media (width >= 48rem) { padding-inline: 24px; } }
+@utility reading { max-width: 68ch; }
+@utility frame-tile { border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--color-frame); overflow: hidden; }
+/* Light-theme overrides of custom utilities live INSIDE the utility (utilities layer beats components layer) */
+@utility bg-projector {
+  background-image: radial-gradient(60% 50% at var(--beam-x) 0%, rgb(255 181 71 / .18), transparent 70%);
+  [data-theme="light"] & { background-image: none; }            /* light: no projector beam */
+}
+@utility bg-afterglow {
+  background-image: radial-gradient(40% 40% at 20% 80%, rgb(255 79 123 / .14), transparent), radial-gradient(35% 35% at 85% 70%, rgb(142 123 255 / .12), transparent);
+  [data-theme="light"] & { background-image: none; }
+}
+@utility text-gold-gradient {
+  background-image: linear-gradient(180deg, #FFD58A, #FFB547 60%, #E8902A);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  [data-theme="light"] & {                                         /* light: lemon highlighter instead of gold text */
+    background-image: linear-gradient(transparent 62%, var(--color-lemon) 62%);
+    -webkit-background-clip: border-box; background-clip: border-box; color: var(--color-text);
+  }
+}
+@utility shimmer-ai {
+  background-image: linear-gradient(90deg, var(--color-surface-2) 0%, color-mix(in oklab, var(--color-violet) 22%, var(--color-surface-2)) 50%, var(--color-surface-2) 100%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+@layer components {
+  /* Film grain — marketing shell only */
+  .film-grain { position: relative; isolation: isolate; }
+  .film-grain::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1; opacity: .05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  :root[data-theme="light"] .film-grain::after, :root[data-motion="reduce"] .film-grain::after { display: none; }
+  @media (prefers-reduced-transparency: reduce) {
+    .film-grain::after { display: none; }   /* .glass handles this inside its @utility */
+  }
+
+  /* Long-read typography: blog, legal, hooks intros (both themes) */
+  .prose-he { max-width: 68ch; font-size: 1.125rem; line-height: 1.75; color: var(--color-text); }
+  .prose-he :where(h2) { font-size: var(--text-h2); line-height: 1.15; font-weight: 700; margin-block: 2.2em .6em; }
+  .prose-he :where(h3) { font-size: var(--text-h3); line-height: 1.25; font-weight: 700; margin-block: 1.8em .5em; }
+  .prose-he :where(p, ul, ol, blockquote, table, pre, figure) { margin-block: 0 1.1em; }
+  .prose-he :where(ul) { list-style: disc; padding-inline-start: 1.4em; }
+  .prose-he :where(ol) { list-style: decimal; padding-inline-start: 1.4em; }
+  .prose-he :where(li) { margin-block: .35em; }
+  .prose-he :where(a) { color: var(--color-link); text-decoration: underline; text-underline-offset: .22em; text-decoration-thickness: 1px; }
+  .prose-he :where(a:hover) { text-decoration-thickness: 2px; }
+  .prose-he :where(blockquote) { border-inline-start: 3px solid var(--color-primary); padding-inline-start: 1em; color: var(--color-text-2); }
+  .prose-he :where(strong, b) { font-weight: 700; }
+  .prose-he :where(code) { font-size: .9em; background: var(--color-surface-2); border-radius: var(--radius-xs); padding: .1em .35em; }
+  .prose-he :where(table) { width: 100%; border-collapse: collapse; font-size: 1rem; }
+  .prose-he :where(th, td) { border-block-end: 1px solid var(--color-border); padding: .6em .8em; text-align: start; vertical-align: top; }
+  .prose-he :where(th) { color: var(--color-text-2); font-weight: 600; }
+  .prose-he :where(hr) { border: 0; border-block-start: 1px solid var(--color-border); margin-block: 2.5em; }
+}
+
+/* ---------- Reduced motion: OS preference OR the global toggle ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-reduced) !important; scroll-behavior: auto !important;
+  }
+}
+:root[data-motion="reduce"] *, :root[data-motion="reduce"] *::before, :root[data-motion="reduce"] *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: var(--duration-reduced) !important; scroll-behavior: auto !important;
+}
+
+/* ---------- Forced colors (Windows High Contrast) ---------- */
+@media (forced-colors: active) {
+  .text-gold-gradient { background: none; color: CanvasText; }
+  .frame-tile { outline: 1px solid CanvasText; }
+  :focus-visible { outline-color: Highlight; }
+}
