@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ChevronsLeftRight, MessageCircle } from "lucide-react";
+import { ChevronsLeftRight, Image as ImageIcon, MessageCircle } from "lucide-react";
 import { ReelArt } from "./reel-tile";
 import { LANDING } from "@/content/he/landing";
 
@@ -18,9 +18,11 @@ function BeforeArt() {
       ].map((p, i) => (
         <div key={i} className={`absolute aspect-[3/4] rounded-[6px] p-[3%] shadow-[var(--shadow-2)] ${p.cls}`} style={{ background: "var(--color-text)" }}>
           <div
-            className="size-full rounded-[3px] opacity-80"
+            className="flex size-full items-center justify-center rounded-[3px] opacity-80"
             style={{ background: `linear-gradient(${120 + i * 40}deg, ${p.tone}, color-mix(in oklab, var(--color-muted) 60%, ${p.tone}))`, filter: "blur(.4px) saturate(.6)" }}
-          />
+          >
+            <ImageIcon className="size-1/3 text-text-2/50" aria-hidden />
+          </div>
         </div>
       ))}
       <div className="absolute bottom-[6%] inset-e-[6%] w-[50%] rounded-lg rounded-be-[4px] bg-surface-1 p-3 text-[11px] leading-relaxed text-text shadow-[var(--shadow-2)]">
@@ -85,9 +87,9 @@ export function BeforeAfterSlider() {
       >
         {/* after (full) */}
         <div className="absolute inset-0" aria-hidden>
-          <ReelArt text={S.hook} preset="bold-pop" icon="Hammer" categorySlug="real-estate-home" aspect="square" chrome={false} variant={3} className="h-full rounded-none [aspect-ratio:auto]">
-            <div className="absolute inset-x-[8%] bottom-[16%]">
-              <p className="kd-cap kd-cap-clean-box"><span>{S.afterCaption}</span></p>
+          <ReelArt text={S.hook} preset="clean-box" icon="Hammer" categorySlug="real-estate-home" aspect="square" chrome={false} variant={3} className="h-full rounded-none [aspect-ratio:auto]">
+            <div className="absolute inset-x-[10%] bottom-[14%]">
+              <p className="kd-cap kd-cap-karaoke !text-[6cqi]">{S.afterCaption}</p>
             </div>
           </ReelArt>
         </div>
