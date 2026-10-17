@@ -3,8 +3,9 @@ import * as React from "react";
 import { Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { CONTENT_UI } from "@/content/he/site";
 
-export function CopyButton({ text, label = "העתקה", copiedToast = "ההוק הועתק" }: { text: string; label?: string; copiedToast?: string }) {
+export function CopyButton({ text, label, copiedToast }: { text: string; label: string; copiedToast: string }) {
   const [done, setDone] = React.useState(false);
   return (
     <Button
@@ -18,12 +19,12 @@ export function CopyButton({ text, label = "העתקה", copiedToast = "ההוק
           toast.success(copiedToast);
           window.setTimeout(() => setDone(false), 1800);
         } catch {
-          toast.error("לא הצלחנו להעתיק. אפשר לסמן את הטקסט ולהעתיק ידנית.");
+          toast.error(CONTENT_UI.copy.failed);
         }
       }}
     >
       {done ? <Check aria-hidden /> : <Copy aria-hidden />}
-      {done ? "הועתק" : label}
+      {done ? CONTENT_UI.copy.done : label}
     </Button>
   );
 }

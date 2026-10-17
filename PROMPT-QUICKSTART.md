@@ -29,13 +29,13 @@
 1. **בוני אפליקציות עם מגבלת קלט** (Lovable, ‏Bolt, ‏v0, ‏Replit Agent, צ׳אט של Cursor) שלא יכולים לקרוא כמה מגה-בייט של מפרט.
 2. **מעבר ראשון** — שלד עובד שאפשר להראות, לפני שמתחילים את הבנייה המלאה לפי אבני הדרך.
 
-**כלל העל:** הפרומפט המלא נמצא ב-`PROMPT.md` (חלק 00 ומפת המסמך) וב-`prompt/*.md`. **סוכן שיכול לקרוא את הריפו חייב לעבוד לפי הפרומפט המלא**, ולהשתמש בקובץ הזה רק כמפה. הקובץ הזה לא מוסיף דרישות ולא מבטל אף אחת. בכל סתירה גובר הפרומפט המלא, לפי סדר העדיפויות שלו: עקרונות חלק 00 ← החלק שהנושא בבעלותו (01–06) ← נספחים A–E ← נספח F. כל שם שמופיע כאן (טבלה, נתיב, רכיב, אירוע, קוד שגיאה, משתנה סביבה, מזהה פרומפט) הוא חוזה, ומשתמשים בו אות באות.
+**כלל העל:** הפרומפט המלא נמצא ב-`PROMPT.md` (חלק 00 ומפת המסמך) וב-`prompt/*.md`. **סוכן שיכול לקרוא את הריפו חייב לעבוד לפי הפרומפט המלא**, ולהשתמש בקובץ הזה רק כמפה. הקובץ הזה לא מוסיף דרישות ולא מבטל אף אחת. בכל סתירה גובר הפרומפט המלא, לפי סדר העדיפויות שלו: עקרונות חלק 00 ← החלק שהנושא בבעלותו (01–08) ← נספחים A–E ← נספח F. כל שם שמופיע כאן (טבלה, נתיב, רכיב, אירוע, קוד שגיאה, משתנה סביבה, מזהה פרומפט) הוא חוזה, ומשתמשים בו אות באות.
 
 ### 0.1 מה טוענים לסוכן בכל אבן דרך
 
 | אבן דרך | מה בונים | קבצים שטוענים מהפרומפט המלא |
 |---|---|---|
-| M0 | יסודות, טוקנים, RTL, CI, ספייקים `[M0-verify]` | `PROMPT.md`, ‏`prompt/06` §19–§24, ‏`prompt/01` §4–§9 |
+| M0 | יסודות, טוקנים, RTL, CI, ספייקים `[M0-verify]` (כולל 19–24 של Meta ושל ניתוח וידאו); הבעלים מתחילים את המסלול מול Meta | `PROMPT.md`, ‏`prompt/06` §19–§24, ‏`prompt/01` §4–§9, ‏`prompt/07` (רשימת הבעלים מול Meta) |
 | M1 | מיגרציות `0001`–`0012`, ‏RLS, פונקציות, אחסון, Realtime, ‏seed | `prompt/04`, ‏`prompt/A-niches.md`, ‏`prompt/B-hook-taxonomy.md`, ‏`prompt/C-hooks.md`, ‏`seed/*.json` |
 | M2 | אתר שיווקי וספריית הוקים | `prompt/02`, ‏`prompt/01`, נספח E ב-`prompt/D-E-samples-style.md` |
 | M3 | התחברות, אונבורדינג, סביבות עבודה, ערכת מותג | `prompt/03` §2–§4, §11–§12, §16–§17; ‏`prompt/04` |
@@ -43,14 +43,20 @@
 | M5 | צנרת היצירה והרינדור | `prompt/05`, ‏`prompt/03` §7–§9 |
 | M6 | חיוב, סוכנות, אדמין | `prompt/06` §1–§10, ‏`prompt/03` §15, §18, §22 |
 | M7 | הקשחה והשקה | `prompt/06` §15, §25; נספח E §13.4 |
+| M8 | מנוע הטרנדים: Trend Studio, ניתוח סרטוני ייחוס, 12 תבניות, שכבות הטרנד ב-Remotion, צילום מודרך, "ציון הוק" | `prompt/08`, ‏`prompt/05` §20 והסעיף של "ציון הוק", ‏`prompt/03` (ממשק ציון ההוק), ‏`seed/trend_templates.json` |
+| M9 | חיבור Meta ופרסום רגיל: `0013`, ‏`lib/meta`, חיבור ובדיקה מקדימה, רילס לאינסטגרם ולפייסבוק עכשיו או בתזמון, לוח תוכן, "תוכנית 30 יום" | `prompt/07` (ארכיטקטורה, חיבור וטוקנים, הרשאות, ‏`0013`, נתיבים, ‏webhooks, ‏crons ו-workflows, פרסום רגיל, תוכנית 30 יום), ‏`prompt/06` §24 |
+| M10 | קמפיינים, דשבורד ולידים: בונה הקמפיינים, תצוגות מקדימות, סטטוסים, בדיקת 3 הוקים, כללים, דוחות, תיבת הלידים, "דף העסק", "בדיקת דופק" | `prompt/07` (בונה הקמפיינים, דשבורד ודוחות, לידים, דף העסק, בדיקת דופק), ‏`prompt/06` §2 |
+| M11 | אישורי Meta והשקה ציבורית של יכולות Meta: App Review, ‏Tech Provider, ‏Full Access, בדיקת smoke שבועית, סקירות אבטחה ומשפט | `prompt/07` (רשימת הבעלים מול Meta), ‏`prompt/06` §22, §24–§25 |
 
-`prompt/F-spec.md` (נספח F, המפרט הטכני באנגלית) הוא רקע ונימוקים בלבד, ולא מקור לשמות. `docs/research/*` — רק כשצריך לאמת עובדה; ה-"Verification addendum" בכל קובץ גובר על מה שלפניו.
+M8–M11 באים אחרי M7, משוחררים מאחורי דגלים, וכל אחת נסגרת כמו M0–M7. המסלול של הבעלים מול Meta (Business Verification, אפליקציה, ‏App Review, ‏Tech Provider) מתחיל כבר ב-M0, כי האישורים לוקחים שבועות ולא תלויים בקוד.
+
+`prompt/F-spec.md` (נספח F, המפרט הטכני באנגלית) הוא רקע ונימוקים בלבד, ולא מקור לשמות. `docs/research/*` — רק כשצריך לאמת עובדה; ה-"Verification addendum" בכל קובץ גובר על מה שלפניו. בקבצים 10–15 אין נספח כזה: כל טענה מתויגת במקום, ומה שמסומן שם (unverified) מופיע בחלקים 07–08 כ-`[M0-verify]`.
 
 ### 0.2 איך עובדים (מקוצר)
 
 - **אל תשאל — תחליט ותתעד** ב-`DECISIONS.md` בפורמט: תאריך · נושא, ההחלטה, חלופות, סיבה, השפעה. אסור להחליט לשנות שם שמוגדר בפרומפט, ואסור להחליש עיקרון.
-- **`[M0-verify]`** מסמן הנחה על ספק חיצוני שעוד לא נבדקה (חתימת webhook של OpenRouter, Vercel Workflows, ‏`@remotion/vercel`, ‏Grow, ‏Morning ועוד). בודקים בספייק, רושמים תוצאה, ורק אז ממזגים קוד שתלוי בה.
-- **בלי מפתחות אמיתיים — mocks מלאים** לכל ספק (OpenRouter, ‏Grow, ‏Morning, ‏Resend), כך שכל הזרימות עובדות מקצה לקצה.
+- **`[M0-verify]`** מסמן הנחה על ספק חיצוני שעוד לא נבדקה (חתימת webhook של OpenRouter, Vercel Workflows, ‏`@remotion/vercel`, ‏Grow, ‏Morning, ובחלקים 07–08 גם טוקן ה-BISU של Meta, מבנה ה-JSON של קמפיין לוואטסאפ, התקציב המינימלי בשקלים ו-`video_url` ב-OpenRouter). בודקים בספייק, רושמים תוצאה, ורק אז ממזגים קוד שתלוי בה.
+- **בלי מפתחות אמיתיים — mocks מלאים** לכל ספק (OpenRouter, ‏Grow, ‏Morning, ‏Resend, ומ-M9 גם Meta עם `META_PROVIDER=mock`), כך שכל הזרימות עובדות מקצה לקצה.
 - **קוד, מזהים, לוגים וקומיטים באנגלית; כל טקסט שמשתמש רואה בעברית סופית** ב-`messages/he.json`. בלי lorem ipsum, בלי "TBD".
 - **Conventional Commits** (`feat(m0): …`), ענפים `m{n}/{topic}`, ‏squash merge, תגית `v0.{m}.0` לכל אבן דרך. אבן דרך נסגרת רק כש-`pnpm typecheck && pnpm lint && pnpm test` ירוקים וכל הקריטריונים מסומנים.
 
@@ -64,6 +70,20 @@
 
 **ספריית הוקים ציבורית בעברית** — לפי נישה, סוג הוק, פלטפורמה, מטרה ועונה, בדפים מאונדקסים. כל הוק אפשר להעתיק בחינם, להתאים לשם העסק ולעיר, או להפוך לסרטון. היא מנוע SEO, מגנט לידים וחלק מהמוצר.
 
+**הרחבת ההיקף (M8–M11): מסרטון לקמפיין.** הקהל: עסקים קטנים בתחילת הדרך ועסקים בצמיחה, שרוצים לפרסם בפייסבוק ובאינסטגרם בלי לשבור את הבנק, בלי לשלם למשווק אלפי שקלים בחודש ובלי ללמוד את מנהל המודעות של מטא. הלולאה: לוחצים על כפתור ← מקבלים סרטון מוכן בעברית (הרבה פעמים מפורמט טרנדי) ← מעלים אותו כקמפיין בפייסבוק ובאינסטגרם, או כפוסט רגיל, מתוך הממשק שלנו ← רואים דשבורד פשוט בעברית: בוחרים תקציב, רואים מה קרה, ומשנים תקציב, משהים או מגבירים את ההוק המנצח מאותו מקום. המשפט הפנימי: **"סרטון טרנדי בעברית בדקות, קמפיין בפייסבוק ובאינסטגרם בלחיצה, ודוח שמבינים. בלי סוכנות ובלי מנהל המודעות של מטא."**
+
+**חמשת עמודי המסר** (כיוון; הקופי הסופי בחלק 02, וכל טענה על קמפיינים, לידים, פרסום וטרנדים מוצגת רק כשהדגל שלה פעיל):
+
+| # | עמוד המסר | ההוכחה במוצר |
+|---|---|---|
+| 1 | "לוחצים, ויש סרטון" | האשף, תבניות הטרנד, הצילום המודרך |
+| 2 | "מעלים לקמפיין מכאן" | בונה קמפיין ב-4 צעדים, הכול נוצר מושהה, תצוגות מקדימות, כפתור "פרסום" אחד |
+| 3 | "רואים מה עובד, בעברית" | 4 מדדים, השוואת הוקים, הסבר פשוט, סיכום שבועי |
+| 4 | "טרנדים חדשים, מותאמים לעסק שלכם" | הפיד "טרנדים השבוע" ודפי "פירוק טרנד" ציבוריים |
+| 5 | "בלי לשבור את הבנק" | מחיר קבוע כולל מע״מ, 0% מהתקציב, התקציב משולם ישירות למטא, תקרות הוצאה שמוצגות בכל מקום |
+
+**הבידול:** קריאייטיב עברי מקורי עם שכבות RTL; תבניות טרנד שכל נישה יכולה להפיק; תוצאות בשפה של וואטסאפ ("פניות בוואטסאפ", "₪ לפנייה"); דוח של 4 מספרים ומשפט אחד; פרסום רגיל וממומן באותה לולאה; 0% מהתקציב, ואנחנו אף פעם לא מחזיקים כסף של פרסום; ומעקות בטיחות: הכול נוצר מושהה, אישור מפורש, תקרות קשיחות ויומן שינויים. **הסיכון:** המתחרה הגדול הוא מטא עצמה, וה-AI שלה משתפר כל הזמן. לכן החפיר הוא קריאייטיב בעברית, ידע נישתי, מהירות בטרנדים וממשק פשוט, ולא הצנרת מול ה-API; חלק 07 משתמש באוטומציה של מטא (Advantage+) במקום להילחם בה.
+
 **המיצוב:** המתחרה הישראלי הקרוב הוא ארגז כלים של מנועי AI שמתמחר בדולרים ומשאיר למשתמש לבחור מנוע. אנחנו מוכרים **תוצאה מוגמרת** על שלושה עמודי תווך:
 
 | עמוד תווך | מה זה אומר |
@@ -74,7 +94,7 @@
 
 **אישיות:** במאי-מפיק ותיק שעובד בשבילכם — ישיר וחם, מדויק ושקוף, מקומי בלי קיטש, פרימיום בשקט, אחראי ("לא הצלחנו", "הקרדיטים חזרו אליכם"), אפוליטי ורגיש לימי זיכרון.
 
-**אחד-עשר העקרונות שאינם נתונים למשא ומתן** (חלק 00 §3, בקיצור):
+**שלושה-עשר העקרונות שאינם נתונים למשא ומתן** (חלק 00 §3, בקיצור):
 
 1. עברית ו-RTL כשפת אם: `<html lang="he" dir="rtl">`, מאפיינים לוגיים בלבד, פנייה ברבים או ניטרלית, בלי לוכסנים מגדריים, ₪ לפני המספר.
 2. עיצוב פרימיום בכיוון "בכורה": קולנועי, כהה כברירת מחדל, זהב של מקרן, וערכה בהירה מלאה.
@@ -87,6 +107,8 @@
 9. בלי טקסט זמני — כל מחרוזת בעברית סופית.
 10. אמת בפרסום: בלי מספרים, ביקורות, לקוחות או דחיפות מומצאים — לא בסרטוני הלקוחות ולא באתר שלנו.
 11. עלות שקופה: כל כפתור יצירה מציג מחיר בקרדיטים, כישלון מחזיר קרדיטים אוטומטית.
+12. כסף של פרסום: 0% מהתקציב, לא מחזיקים כסף של לקוחות, הכול נוצר מושהה ומתפרסם רק באישור מפורש.
+13. טרנדים: מעתיקים פורמט, לא ביטוי; בלי סקרייפינג, בלי דמות או קול של יוצרים, בלי מוזיקה מוגנת.
 
 ---
 
@@ -104,6 +126,8 @@
 | הרכבת וידאו | Remotion 4 על Vercel Sandbox ‏(`@remotion/vercel`) מאחורי `RenderProvider`; חלופה: Remotion Lambda ב-`eu-central-1` |
 | תשלומים | Grow מאחורי `PaymentProvider`; חשבוניות ב-Morning (חשבונית ירוקה) מאחורי `InvoiceProvider`; לשניהם מתאם `mock` |
 | מייל | Resend + React Email (תבניות RTL) |
+| פרסום ברשתות (M9–M11) | Meta Graph / Marketing API `v26.0` (`META_GRAPH_VERSION`), ‏Facebook Login for Business עם טוקן system user לעסק של הלקוח, ‏webhooks של Meta; כל קריאה דרך `metaFetch()` ב-`lib/meta/client.ts`, עם מתאם `mock` מלא (`META_PROVIDER`) |
+| ניתוח וידאו (M8) | OpenRouter עם חלק `video_url` (קליפ קצר ב-base64), ‏ffmpeg בתוך צעד workflow (`ffmpeg-static`), ‏Scribe לתמלול |
 | ניטור | Sentry (EU), ‏PostHog (EU, רק אחרי הסכמה), ‏Upstash Ratelimit/Redis (EU) |
 | בדיקות | Vitest, ‏Playwright + axe, ‏MSW, ‏pgTAP |
 
@@ -134,6 +158,7 @@ flowchart LR
   GROW[Grow payments]
   MORN[Morning invoices]
   RS[Resend email]
+  META[Meta Graph and Marketing API v26.0]
 
   MKT -->|createStaticClient anon| PG
   APP -->|NDJSON / JSON| RH
@@ -154,13 +179,16 @@ flowchart LR
   WH --> MORN
   RH --> RS
   CRON --> PG
+  RH -->|metaFetch| META
+  WF -->|campaign and publish flows| META
+  META -->|signed webhooks| WH
 ```
 
 **שלוש תחנות קבועות לכל קריאת AI:** `route(taskKey, ctx)` ‏(`lib/ai/registry.ts`, בוחר ראשי וגיבויים מ-`model_routes` ו-`model_registry`) ← לקוח (`lib/ai/aisdk.ts` לטקסט, ‏`lib/ai/openrouter/*.ts` למדיה) ← `record()` ‏(`lib/ai/cost.ts`, שורה ב-`ai_generations` עם העלות מ-`usage.cost`). שום קוד בדפדפן לא מדבר עם OpenRouter, ושום כתובת של OpenRouter לא מגיעה לדפדפן או ל-renderer.
 
-**פקודות הבסיס:** `pnpm dev` (ספקי mock כשאין מפתחות) · `pnpm typecheck` · `pnpm lint` · `pnpm lint:rtl` · `pnpm lint:copy` · `pnpm test` · `pnpm test:e2e` · `pnpm test:a11y` · `pnpm db:reset` · `pnpm seed:sync` · `pnpm db:seed` · `pnpm db:types` · `pnpm models:sync` · `pnpm check-env` · `pnpm check-content` · `pnpm check-decisions` · `pnpm demo:render`.
+**פקודות הבסיס:** `pnpm dev` (ספקי mock כשאין מפתחות) · `pnpm typecheck` · `pnpm lint` · `pnpm lint:rtl` · `pnpm lint:copy` · `pnpm test` · `pnpm test:e2e` · `pnpm test:a11y` · `pnpm db:reset` · `pnpm seed:sync` · `pnpm db:seed` · `pnpm db:types` · `pnpm models:sync` · `pnpm check-env` · `pnpm check-content` · `pnpm check-decisions` · `pnpm demo:render`; ומ-M8–M11 גם `pnpm meta:smoke` ו-`pnpm trends:demos`. `pnpm lint` כולל את `scripts/lint-meta.ts` ואת `scripts/lint-deps.ts`.
 
-**משתני סביבה עיקריים** (הרשימה המלאה ב-`.env.example` ובחלק 06 §20; כולם נבדקים ב-`lib/env.ts`): `APP_ENV` (`local` · `test` · `preview` · `staging` · `production`), ‏`NEXT_PUBLIC_SITE_URL`, ‏`NEXT_PUBLIC_SUPABASE_URL`, ‏`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, ‏`SUPABASE_SECRET_KEY`, ‏`OPENROUTER_API_KEY`, ‏`OPENROUTER_BASE_URL`, ‏`OPENROUTER_APP_URL`, ‏`OPENROUTER_WEBHOOK_SECRET`, ‏`OPENROUTER_CALLBACK_TOKEN_SECRET`, ‏`OPENROUTER_DAILY_BUDGET_USD`, ‏`ORCHESTRATOR` (`vercel-workflow` · `inline` לבדיקות), ‏`RENDER_PROVIDER` (`vercel-sandbox` · `lambda` · `local`), ‏`REMOTION_LICENSE_KEY`, ‏`PAYMENT_PROVIDER` (`grow` · `mock`, ‏`mock` אסור בפרודקשן), ‏`GROW_PAGE_CODE_BIT`, ‏`INVOICE_PROVIDER` (`morning` · `mock`), ‏`EMAIL_PROVIDER` (`resend` · `smtp` · `log`), ‏`RESEND_API_KEY`, ‏`UPSTASH_REDIS_REST_URL`, ‏`CRON_SECRET`, ‏`APP_ENCRYPTION_KEY`, ‏`TRIAL_HASH_PEPPER`, ‏`ADMIN_EMAILS`, ‏`NEXT_PUBLIC_SENTRY_DSN`, ‏`NEXT_PUBLIC_POSTHOG_KEY`. אין `NEXT_PUBLIC_` עם סוד.
+**משתני סביבה עיקריים** (הרשימה המלאה ב-`.env.example` ובחלק 06 §20; כולם נבדקים ב-`lib/env.ts`): `APP_ENV` (`local` · `test` · `preview` · `staging` · `production`), ‏`NEXT_PUBLIC_SITE_URL`, ‏`NEXT_PUBLIC_SUPABASE_URL`, ‏`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, ‏`SUPABASE_SECRET_KEY`, ‏`OPENROUTER_API_KEY`, ‏`OPENROUTER_BASE_URL`, ‏`OPENROUTER_APP_URL`, ‏`OPENROUTER_WEBHOOK_SECRET`, ‏`OPENROUTER_CALLBACK_TOKEN_SECRET`, ‏`OPENROUTER_DAILY_BUDGET_USD`, ‏`ORCHESTRATOR` (`vercel-workflow` · `inline` לבדיקות), ‏`RENDER_PROVIDER` (`vercel-sandbox` · `lambda` · `local`), ‏`REMOTION_LICENSE_KEY`, ‏`PAYMENT_PROVIDER` (`grow` · `mock`, ‏`mock` אסור בפרודקשן), ‏`GROW_PAGE_CODE_BIT`, ‏`INVOICE_PROVIDER` (`morning` · `mock`), ‏`EMAIL_PROVIDER` (`resend` · `smtp` · `log`), ‏`RESEND_API_KEY`, ‏`UPSTASH_REDIS_REST_URL`, ‏`CRON_SECRET`, ‏`APP_ENCRYPTION_KEY`, ‏`TRIAL_HASH_PEPPER`, ‏`ADMIN_EMAILS`, ‏`NEXT_PUBLIC_SENTRY_DSN`, ‏`NEXT_PUBLIC_POSTHOG_KEY`. מ-M8–M11: `META_PROVIDER` (`meta` · `mock`; `mock` אסור בפרודקשן כשהדגל `meta_connect` פעיל), ‏`META_APP_ID`, ‏`META_APP_SECRET` (רשימה מופרדת בפסיקים לרוטציה), ‏`META_LOGIN_CONFIG_ID`, ‏`META_GRAPH_VERSION` (`v26.0`), ‏`META_WEBHOOK_VERIFY_TOKEN`; ב-CI בלבד `META_GRAPH_VERSION_NEXT`, ‏`META_SANDBOX_AD_ACCOUNT_ID`, ‏`META_SANDBOX_SYSTEM_TOKEN`, ‏`META_SANDBOX_PAGE_ID`. אין `NEXT_PUBLIC_` עם סוד.
 
 ---
 
@@ -210,6 +238,7 @@ flowchart LR
 | **Karantina** 700 | תצוגה: 1–3 מילים ענקיות או מספר גדול | לעולם לא לפסקה, לכפתור או מתחת ל-40px |
 | **JetBrains Mono** 400/600 | קודי זמן, מזהים | לטינית בלבד |
 | Rubik 800, ‏Suez One 400, ‏Fredoka 600, ‏Assistant, ‏Secular One | גופני כתוביות וערכת מותג | נטענים רק במסכים עם תצוגת כתוביות, מאותו origin (CSP); `@remotion/google-fonts` רק בסביבת הרינדור |
+| Amatic SC · Noto Color Emoji | כתב יד עברי על שלט (`SignOverlay` בלבד, בנגן וברינדור); אימוג׳י צבעוני ברינדור בלבד | שכבות הטרנד של M8 (חלק 08); איכות הגליפים העבריים ב-Amatic SC `[M0-verify]` |
 
 סולם: `display` ‏clamp(52→120px)/0.98/700 · `h1` ‏clamp(36→68px)/1.08/800 · `h2` ‏clamp(28→48px)/1.15/700 · `h3` ‏clamp(20→26px)/1.25/700 · `body-lg` 19px · `body` 17px/1.7 · `small` 15px · `micro` 13px/600 · קריאה ארוכה (`.prose-he`) 18px/1.75, ‏68ch. באפליקציה כותרת מסך היא `text-h3`–`text-h2`. שדות קלט לעולם לא מתחת ל-16px.
 
@@ -227,6 +256,8 @@ flowchart LR
 ### 3.5 רכיבים משותפים (חוזה, חלק 01 §10)
 
 `Num` · `Price` (תמיד "כולל מע״מ" לצרכן) · `LtrInput` · `DirIcon` · `VideoTile` (מתנגן רק כשנראה, מושתק) · `PhoneFrame` · `VideoPlayer` (עם `<track srclang="he">`) · `CostBadge` (עלות בקרדיטים לפני כל יצירה: "צרו את הסרטון · 107 קרדיטים") · `CreditsMeter` · `StatusBadge` (אייקון + טקסט, אף פעם לא צבע בלבד) · `EmptyState` · `CaptionPreview` · `SkipLink`, ‏`MotionToggle`, ‏`ThemeToggle`, ‏`UtilityMenu`, ‏`LiveAnnouncer` · `NicheIcon`, ‏`NichePicker` · `HookCard`, ‏`HookFilters` · `SectionHeading`, ‏`GlowCard`, ‏`LegalPage`, ‏`Breadcrumbs`, ‏`JsonLd`. מצבי טעינה בצורת התוכן הסופי, מצבים ריקים מאוירים, ושגיאות שעונות על שלוש שאלות: מה קרה, מה קרה לקרדיטים, מה עושים עכשיו.
+
+**רכיבים של M8–M11** (חלק 01 §10.17; המסכים בחלקים 07–08): `KpiTile` (חץ שינוי מול התקופה הקודמת) · `SpendCapMeter` (מצבי 80% ו-100%) · `HookComparisonTable` · `CampaignStatusTimeline` · `MetaConnectChecklist` · `MetaPreviewFrame` · `BudgetPresetPicker` · `AreaPicker` · `LeadCard` · `CalendarGrid` · `TrendCard` · `TrendLifecycleBadge` · `CameraGhostGuide` · `ClaimFootnote` · `HookScoreBadge`. `StatusBadge` מקבל את הסוגים `campaign`, ‏`ad`, ‏`social_post`, ‏`lead` ו-`trend`. גרפים (Recharts) נשארים `dir="ltr"`, ותמיד יש לצידם טבלה חלופית.
 
 ### 3.6 נגישות (WCAG 2.2 AA, הבסיס החוקי ת״י 5568)
 
@@ -268,44 +299,58 @@ flowchart LR
 | `/legal/{terms,privacy,cancellation,accessibility,ai-policy,likeness-consent,cookies}` | שבעת הדפים המשפטיים (`?v=` לגרסה מהארכיון) | דינמי |
 | `/accessibility` | הפניה 308 ל-`/legal/accessibility` | — |
 | `/exp/hero/[variant]` | וריאנטים `b`, `c` של ניסוי ה-hero (noindex, יעד rewrite בלבד) | SSG |
+| `/trends` · `/trends/[slug]` | האב הטרנדים (סינון לפי נישה ומחזור חיים) ועמוד "פירוק טרנד": סרטון הדגמה שלנו, "למה זה עובד", "איך עושים את זה", דוגמאות לנישות ושאלות; אף פעם לא סרטון הייחוס או שם היוצר. דגל `trends_public` (M8) | ISR (תג `trends`) |
+| `/campaigns` | עמוד הפיצ׳ר "קמפיינים בפייסבוק ובאינסטגרם בלי סוכנות"; הקופי מוצג רק כשהדגל `meta_ads` פעיל (שער הטענות) | SSG + ISR |
+| `/legal/dpa` | הסכם עיבוד נתונים: העסק הוא בעל השליטה בלידים שלו, ואנחנו המעבד ⚖️ (M10) | דינמי |
 | `/sitemap.xml` · `/robots.txt` · תמונות OG | — | — |
 
 ### 4.2 נתיבים ציבוריים דינמיים ו-Auth (כולם `noindex`)
 
-`/login` (`?next=&invite=&email=`) — מסך אחד להתחברות והרשמה (קישור קסם, Google) · `/auth/callback` · `/auth/confirm` · `/auth/error` · `/v/[token]` — עמוד שיתוף ציבורי · `/approve/[token]` — אישור לקוח · `/unsubscribe` (`?token=`).
+`/login` (`?next=&invite=&email=`) — מסך אחד להתחברות והרשמה (קישור קסם, Google) · `/auth/callback` · `/auth/confirm` · `/auth/error` · `/v/[token]` — עמוד שיתוף ציבורי · `/approve/[token]` — אישור לקוח · `/unsubscribe` (`?token=`) · `/meta/data-deletion?code=` — סטטוס בקשת מחיקת נתונים שהגיעה מ-Meta ("התקבלה" · "בטיפול" · "הושלמה") · `/b/[slug]` ו-`/b/[slug]/privacy` — "דף העסק" הציבורי של לקוח והודעת הפרטיות שנוצרת לו (ISR; מאונדקס רק אם העסק בחר `indexable`).
 
 ### 4.3 האפליקציה (`app/(product)/app/`)
 
 | נתיב | מה יש בו |
 |---|---|
 | `/app` | הדף הראשי (בניווט: "ראשי"): ברכה והתחלה מהירה, תור היצירות, פרויקטים אחרונים, הוק השבוע לנישה, חגים קרובים, צעדים ראשונים |
-| `/app/onboarding` | שלושה שלבים: העסק (חילוץ מותג מקישור) · נישה · איך מדברים |
+| `/app/onboarding` | שלושה שלבים: העסק (חילוץ מותג מקישור) · נישה · איך מדברים; כשהדגל `meta_connect` פעיל נוסף שלב רביעי, "חיבור פייסבוק ואינסטגרם" (`?step=connect`), עם "דילוג, אחבר אחר כך" תמיד גלוי |
 | `/app/create` | יוצר טיוטה (`POST /api/projects`) ומפנה לשלב הנכון באשף |
 | `/app/projects/[projectId]/create/[step]` | אשף היצירה, 9 שלבים (§6) |
 | `/app/projects` | רשימת פרויקטים |
-| `/app/projects/[projectId]` | דף הפרויקט: נגן, גרסאות הוק, ייצוא, שיתוף, אישור לקוח |
+| `/app/projects/[projectId]` | דף הפרויקט: נגן, גרסאות הוק, ייצוא, שיתוף, אישור לקוח; מ-M8–M10 גם "ציון הוק", "העלו לקמפיין" ו"פרסמו עכשיו" (בפרויקט מתבנית לפרסום רגיל בלבד, "העלו לקמפיין" כבוי ומציג את הסיבה) |
 | `/app/projects/[projectId]/jobs/[jobId]` | מסך התקדמות היצירה |
 | `/app/projects/[projectId]/editor` | עורך הסטוריבורד |
+| `/app/projects/[projectId]/shoot` | ערכת הצילום המודרך: רשימת צילומים, מצלמה עם קווי מנחה, העלאה ועריכה אוטומטית (דגל `guided_filming`, חלק 08) |
+| `/app/trends` · `/app/trends/[slug]` | "טרנדים השבוע": הדרופ של השבוע, ואחריו פורמטים ותבניות נצחיות שמתאימים לנישה; "צרו בקליק" או "צלמו בעצמכם" (חלק 08) |
+| `/app/campaigns` · `/app/campaigns/new` · `/app/campaigns/[campaignId]` | דשבורד הקמפיינים (4 מדדים ומד תקרת ההוצאה), בונה הקמפיין ב-4 צעדים (`?project=&group=&post=&season=&duplicate=`) ועמוד קמפיין עם השוואת הוקים, "מה זה אומר?" ויומן שינויים (חלק 07) |
+| `/app/campaigns/health` | "בדיקת דופק" לחשבון מודעות קיים: איפה הכסף נשרף, ועד 5 תיקונים עם פעולה בלחיצה (חלק 07) |
+| `/app/leads` | תיבת הלידים: סטטוס, הערות, אחראי, "התקשרו" ו"וואטסאפ", ייצוא CSV (חלק 07) |
+| `/app/publish` · `/app/publish/new?project=` | "פרסום ותזמון": לוח תוכן (פוסטים, קמפיינים, עונות וימי שקט) ודיאלוג הפרסום לאינסטגרם ולפייסבוק (חלק 07) |
+| `/app/plan` | "התוכנית שלי": תוכנית 30 יום עם כ-12 פריטי תוכן ו-1–2 הצעות לקמפיין, ולכל פריט "צרו בקליק" (חלק 07) |
+| `/app/landing-pages` · `/app/landing-pages/[id]` | "דף העסק": יצירה, עריכת טקסט, פרסום והסרה; בתוכניות בתשלום בלבד, ובחינם רק תצוגה מקדימה (חלק 07) |
 | `/app/templates` · `/app/hooks` · `/app/library` | תבניות, ספריית ההוקים באפליקציה, ספריית המדיה |
 | `/app/brand` · `/app/brand/[kitId]` | פרטי העסק וערכות מותג (`BrandKitEditor`) |
 | `/app/team` | צוות, הזמנות, הרשאות |
 | `/app/clients` | סביבות לקוח ו-White label (תוכנית סוכנות) |
 | `/app/billing` · `/plans` · `/return` · `/cancel` | חיוב וקרדיטים, החלפת תוכנית, חזרה מהסליקה, ביטול מנוי (`CancelSubscriptionFlow`) |
 | `/app/settings` · `/notifications` · `/accessibility` · `/privacy` · `/pronunciation` | פרופיל וסביבה, התראות, נגישות ותצוגה, פרטיות ונתונים, מילון הגייה |
+| `/app/settings/integrations` · `/app/settings/integrations/meta` | כרטיס החיבור ל-Meta: סטטוס, שם העסק, הנכסים שנבחרו, בדיקה אחרונה, "החלפת נכסים", "בדיקה מחדש", "ניתוק" ו"מחיקת נתוני מטא"; אישור מספר הוואטסאפ וכתובת מדיניות הפרטיות לטופסי לידים |
 
-מעטפת: `AppShell` עם `SidebarNav` בצד ימין (248px, או 72px מכווץ), ‏`TopBar` 56px עם `CreditsMeter` ו-`NotificationBell`, ‏`WorkspaceSwitcher`, ‏`CommandMenu` (⌘K / Ctrl+K), ובמובייל `MobileTabBar` 64px. פריטי הניווט לפי הסדר: ראשי · סרטון חדש (כפתור זהוב) · פרויקטים · תבניות · ספריית הוקים · ערכת מותג · ספריית מדיה · צוות · לקוחות (סוכנות בלבד) · חיוב וקרדיטים (בעלים ומנהלים) · הגדרות.
+מעטפת: `AppShell` עם `SidebarNav` בצד ימין (248px, או 72px מכווץ), ‏`TopBar` 56px עם `CreditsMeter` ו-`NotificationBell`, ‏`WorkspaceSwitcher`, ‏`CommandMenu` (⌘K / Ctrl+K), ובמובייל `MobileTabBar` 64px. פריטי הניווט לפי הסדר: ראשי · סרטון חדש (כפתור זהוב) · פרויקטים · טרנדים (`Flame`) · קמפיינים (`Megaphone`) · לידים (`Inbox`, עם מונה של לידים שלא נקראו) · פרסום ותזמון (`CalendarClock`) · תבניות · ספריית הוקים · ערכת מותג · ספריית מדיה · צוות · לקוחות (סוכנות בלבד) · חיוב וקרדיטים (בעלים ומנהלים) · הגדרות. פריט שהדגל שלו כבוי מוסתר. ב-`MobileTabBar`: ראשי · פרויקטים · ＋ · קמפיינים · חשבון (הוקים, טרנדים, לידים ופרסום עוברים לגיליון, ומונה הלידים יושב על "חשבון"). ב-`CommandMenu` נוספים "קמפיין חדש", "פרסום סרטון", "לידים חדשים" ו"טרנדים השבוע". המקום של "התוכנית שלי" ושל "דף העסק" בניווט — לפי חלק 03 §2.
 
-**תפקידים** (`member_role`): `owner` בעלים · `admin` מנהל · `editor` עורך · `viewer` צופה. צופה רק צופה ומוריד; עורך יוצר ומוציא קרדיטים; חיוב, רכישה וצוות — בעלים ומנהלים; שינוי תוכנית וביטול — בעלים בלבד. השרת תמיד אוכף (RLS + בדיקת תפקיד); הסתרה בממשק היא נוחות.
+**תפקידים** (`member_role`): `owner` בעלים · `admin` מנהל · `editor` עורך · `viewer` צופה. צופה רק צופה ומוריד; עורך יוצר ומוציא קרדיטים; חיוב, רכישה וצוות — בעלים ומנהלים; שינוי תוכנית וביטול — בעלים בלבד. השרת תמיד אוכף (RLS + בדיקת תפקיד); הסתרה בממשק היא נוחות. **ב-Meta:** חיבור, ניתוק, בחירת נכסים, פרסום קמפיין, חידוש, שינוי תקציב, הגברת המנצח, כללים וייצוא לידים — בעלים ומנהלים; טיוטות, השהיה, פרסום רגיל ותזמון ועדכון לידים — עורך ומעלה; צפייה — כל חבר בסביבה, כולל צופה (הלידים הם הנתונים של העסק).
 
 ### 4.4 פאנל הניהול (`app/(admin)/admin/`, רק מנהלי פלטפורמה עם MFA — `/admin/mfa`)
 
-`/admin` לוח בקרה · `/admin/users` · `/admin/workspaces/[id]` · `/admin/jobs` ו-`/admin/jobs/[id]` (ניסיון חוזר, החזר) · `/admin/costs` עלויות מול הכנסות · `/admin/models` רישום מודלים ונתיבים (כולל "בדיקה" וסנכרון) · `/admin/prompts` · `/admin/niches` (כולל "נבדק" ל-SEO) · `/admin/seasons` · `/admin/hooks` · `/admin/templates` · `/admin/examples` · `/admin/voices` · `/admin/music` · `/admin/billing` (תשלומים, החזרים, חשבוניות, chargeback, מנויים) · `/admin/credits` (התאמות, הסרת יתרה מדלי, עלויות פעולה) · `/admin/settings` (הגדרות ודגלים) · `/admin/audit` יומן ביקורת · `/admin/abuse` דיווחים · `/admin/design` גלריית רכיבים בכל מצב ובשתי הערכות. כל פעולת אדמין עוברת דרך `/api/admin/*` עם `requirePlatformAdmin()` ונרשמת ב-`audit_logs`.
+`/admin` לוח בקרה · `/admin/users` · `/admin/workspaces/[id]` · `/admin/jobs` ו-`/admin/jobs/[id]` (ניסיון חוזר, החזר) · `/admin/costs` עלויות מול הכנסות · `/admin/models` רישום מודלים ונתיבים (כולל "בדיקה" וסנכרון) · `/admin/prompts` · `/admin/niches` (כולל "נבדק" ל-SEO) · `/admin/seasons` · `/admin/hooks` · `/admin/templates` · `/admin/examples` · `/admin/voices` · `/admin/music` · `/admin/billing` (תשלומים, החזרים, חשבוניות, chargeback, מנויים) · `/admin/credits` (התאמות, הסרת יתרה מדלי, עלויות פעולה) · `/admin/settings` (הגדרות ודגלים) · `/admin/audit` יומן ביקורת · `/admin/abuse` דיווחים · `/admin/design` גלריית רכיבים בכל מצב ובשתי הערכות · ומ-M8–M11: `/admin/trends` (Trend Studio: סרטוני ייחוס עם בסיס זכויות ותאריך מחיקה, מציג ניתוחים, עורך תבניות לפי נישה, רינדורי הדגמה, תזמון פרסום ולוח מחזור חיים) · `/admin/trends/references/new` · `/admin/trends/references/[id]` · `/admin/trends/templates/[id]` · `/admin/meta` (בריאות החיבורים ושגיאות אחרונות, אף פעם לא טוקנים) · `/admin/meta/campaigns` (קמפיינים בבדיקה יותר מ-24 שעות, סיבות דחייה, שגיאות, המוציאים הגדולים). בפיתוח בלבד: `/dev/mock-meta-login` (404 בפרודקשן). כל פעולת אדמין עוברת דרך `/api/admin/*` עם `requirePlatformAdmin()` ונרשמת ב-`audit_logs`.
 
 ---
 
 ## 5. דף הבית — סקשנים, כותרות והנעה לפעולה (קופי סופי, להעתקה מדויקת)
 
 **סדר קבוע:** `AnnouncementBar` → `MarketingHeader` → Hero → `EnginesStrip` → `NicheShowcase` → `HowItWorks` → `EditorMath` → `FeatureBento` → `HooksTeaser` → `ShowcaseGallery` → `Testimonials` → `PricingCards` + `CreditCostTable` → `FaqAccordion` → `FinalCtaBand` → `MarketingFooter` → `MobileStickyCta`. כל סקשן `<section aria-labelledby>` עם `id` קבוע: `hero`, `engines`, `niches`, `how-it-works`, `editor-math`, `features`, `hooks`, `examples`, `testimonials`, `pricing`, `faq`, `start`. ה-LCP הוא טקסט ה-H1. כל CTA שולח `cta_clicked {location}`.
+
+**כשהדגלים של M8–M11 פעילים** (שער הטענות; הקופי הסופי בחלק 02): אחרי `HowItWorks` נכנס `CampaignFlow` (`#campaigns`: סרטון ← קמפיין ← דוח, עם דשבורד לדוגמה שמסומן "דוגמה להמחשה"), אחרי `HooksTeaser` נכנס `TrendsTeaser` (`#trends`), ולפני `PricingCards` נכנס `ComparisonBlock` (`#compare`: טענות מ-`content/claims/comparisons.json` עם הערת שוליים, מקור ותאריך גישה). `FeatureBento` מקבל אריחים של קמפיינים, לידים, תזמון, טרנדים וצילום מודרך. כשהדגל `meta_ads` פעיל, מנגנון ה-A/B הקיים מקבל וריאנט בקרה חדש ל-hero, עם H1 בכיוון "מסרטון לקמפיין בפייסבוק ובאינסטגרם, בלי סוכנות." הכפתור "בדיקת דופק חינם לחשבון המודעות שלכם" (בדף הבית ובעמוד המחירים) מוביל להרשמה ← חיבור ← דוח. `cta_clicked.location` מקבל את `campaigns_page`, ‏`trends_hub`, ‏`trend_page` ו-`compare`. טענה על "זול יותר מסוכנות" מוצגת רק עם מקור ותאריך, ומשווה מחיר ניהול חודשי למחיר התוכנית, בשני הצדדים בלי תקציב הפרסום.
 
 **`AnnouncementBar`** (ברירת מחדל): **"חדש: ספריית הוקים בעברית לפי נישה. מעתיקים בחינם ←"** → `/hooks`. ביום שקט (יום הזיכרון, יום השואה) מוחלף ב-`QuietDayBanner` מאופק בלי זהב ובלי קישור, וקיר הווידאו מציג פוסטרים בלבד.
 
@@ -382,7 +427,7 @@ flowchart LR
 - **מוזיקה:** מצבי רוח אנרגטי · חם · יוקרתי · קליל ומצחיק · רגוע · מעורר השראה · אורבני; "מוזיקה מקורית לסרטון · 5 קרדיטים" (עסק וסוכנות); "בלי מוזיקה"; הנמכה אוטומטית בזמן הקריינות.
 
 **כללים לרוחב האשף:**
-- **`/app/create`** קורא `POST /api/projects` עם פרמטרי ה-query (`template`, ‏`hook`, ‏`workspaceHook`, ‏`niche`, ‏`type`, ‏`season`, ‏`fast=1`, ‏`src`) ומפנה לשלב שחזר (`lib/wizard/progress.ts`). אי אפשר לדלג קדימה מעבר לשלב הראשון שאינו תקין.
+- **`/app/create`** קורא `POST /api/projects` עם פרמטרי ה-query (`template`, ‏`hook`, ‏`workspaceHook`, ‏`niche`, ‏`type`, ‏`season`, ‏`fast=1`, ‏`src`, ומ-M8 גם `trend`) ומפנה לשלב שחזר (`lib/wizard/progress.ts`). אי אפשר לדלג קדימה מעבר לשלב הראשון שאינו תקין.
 - **שמירה אוטומטית** בכל שינוי: `PATCH /api/projects/[id]` עם `ifUnmodifiedSince` (debounce 800ms לטקסט), חיווי "שומרים…" / "נשמר". "שמירה ויציאה" חוזר לדף הראשי.
 - **`LivePreviewPhone`** לאורך כל האשף: אנימטיק (`@remotion/player`, קומפוזיציית `Animatic`) בלי עלות רינדור, עם `CostBadge variant="chip"` "≈ {n, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}" מ-`POST /api/projects/[id]/estimate`.
 - **הוק:** שלוש לשוניות — "הוקים בשבילכם" (6 מהספרייה + "כתבו לי הוקים · קרדיט אחד", זרם NDJSON) · "מהספרייה" · "כתבו בעצמכם" (עד 12 מילים מומלץ, 20 מקסימום). מצב "בדיקת A/B" מאפשר עד `limits.hook_variants_max` הוקים, וכל אחד הופך לפרויקט אח עם נכסים משותפים. placeholders מסוג פרופיל (`{עיר}`, ‏`{שירות}`, ‏`{שם_העסק}`…) מתמלאים אוטומטית; השאר מוצגים כ-`PlaceholderChip`.
@@ -391,6 +436,8 @@ flowchart LR
 - **אישורי ציות:** בדיקת אישורי הציות (`brief.attestations`) נאכפת גם בשרת (`422 MISSING_FACTS`), על הגרסה שנוצרת וגם ביצירה מחדש של סצנה; המלצה (`testimonial`) דורשת גם `brief.testimonial.consent_attested`.
 - **העלאות** (`MediaDropzone`): עד 20 קבצים לפרויקט, JPG/PNG/WEBP/HEIC/MP4/MOV, תמונות עד 25MB, סרטונים עד 500MB; מעל 6MB ב-TUS; תיבת הסכמה למי שמופיע בצילומים (וקטינים — הסכמת הורים) חובה; בדיקת תוכן `moderation.upload.v1`.
 - **הנתיב המהיר "סרטון ב-3 לחיצות":** מתוך `business` תקין — "צרו לי הכול אוטומטית · 3 קרדיטים" (תסריט + סטוריבורד) ← תצוגה מקדימה (3 קרדיטים: תסריט + סצנות; הצפייה עצמה לא עולה קרדיטים נוספים) ← אישור.
+- **מטרנד (M8, חלק 08):** `/app/create?trend={slug}&src=trend` שולח `POST /api/projects { trendSlug, productionMode: "ai" | "guided", nicheSlug?, src: "trend" }`. הפרויקט נוצר עם `trend_template_id`, ‏`production_mode`, ברירות המחדל של התבנית ו-3 גרסאות הוק מסומנות (עד `limits.hook_variants_max`), ותשעת השלבים הקיימים נפתחים בשלב הראשון שלא הושלם, בלי שלב חדש. בתבנית מודרכת או משולבת, השלב `style` מציע "הצילומים שלכם לפי רשימת צילומים", שפותח את ערכת הצילום וחוזר ל-`preview`.
+- **"ציון הוק" (M8):** כל גרסה שהורכבה, וכל הדגמה של תבנית טרנד, מקבלת ציון 0–100 לפני פרסום או השקה (`POST /api/projects/[id]/hook-score`, נשמר ב-`project_versions.hook_score`): בדיקות דטרמיניסטיות ב-`lib/hooks/score.ts` ועוד `hooks.score.v1` על טקסט הסטוריבורד, ועד 3 הצעות עם "תקנו בקליק". `HookScoreBadge` מוצג בדף הפרויקט, בשלב הסקירה של בונה הקמפיין ובכרטיסי הטרנד, תמיד עם הכיתוב "הערכה לפי כללי הוקים — לא הבטחה לתוצאות."
 
 ### 6.2 `ConfirmGenerateDialog`
 
@@ -406,6 +453,7 @@ flowchart LR
 - **גרסאות:** העורך עובד תמיד על גרסת טיוטה; שינוי בגרסה שכבר הורכבה מפצל אותה (`POST /api/projects/[id]/versions`). ביטול וחזרה עד 50 פעולות. התנגשות: `409 EDIT_CONFLICT`.
 - **סצנת ההוק** תמיד ראשונה ולא נמחקת ("ההוק תמיד פותח את הסרטון.").
 - **מה עולה בהרכבה:** טקסט על המסך, סדר, משך, מעברים, כתוביות, לוגו, כרטיס סיום, מוזיקה מהספרייה — הרכבה בלבד; טקסט קריינות, קול או מהירות — + הקלטה מחדש; מוזיקה מקורית — + 5. "יצירה מחדש · {n, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}" לסצנה בודדת (`RegenerateSceneDialog`). הכפתור הראשי: **"הרכבה מחדש · {n, plural, one {קרדיט אחד} two {שני קרדיטים} other {# קרדיטים}}"** או **"ייצוא"**.
+- **שכבות טרנד (M8):** טקסט על השלט או בהודעה ("טקסט על השלט", "טקסט בהודעה") נערך כאן ועובר מודרציה כמו כל טקסט סצנה; בסצנה מצילום של הלקוח אפשר לקצץ התחלה וסוף (`user_media_in_ms`, ‏`user_media_out_ms`).
 - **ייצוא ושיתוף:** MP4 לכל פורמט, SRT, ‏VTT ופוסטר; `ShareDialog` לקישור ציבורי (`/v/[token]`) ולקישור אישור לקוח (`/approve/[token]`, עסק וסוכנות). קישור אישור לקוח: 14/30/90 יום, תמיד עם תוקף (ברירת מחדל 14).
 
 ---
@@ -414,7 +462,7 @@ flowchart LR
 
 ### 7.1 מיגרציות
 
-`supabase/migrations/`: `0001_extensions_enums.sql` (‏pgcrypto, ‏citext, ‏pg_trgm, ‏pg_cron, ‏supabase_vault; 36 enum-ים) · `0002_tenancy.sql` · `0003_catalog.sql` · `0004_projects_jobs.sql` · `0005_credits_billing.sql` · `0006_sharing_ops.sql` · `0007_functions.sql` · `0008_rls.sql` · `0009_storage.sql` · `0010_realtime.sql` · `0011_cron.sql` · `0012_ops_roles.sql`. snake_case, טבלאות ברבים, `created_at`/`updated_at` עם טריגר `set_updated_at`. אסור לערוך מיגרציה שכבר רצה ב-staging או בפרודקשן.
+`supabase/migrations/`: `0001_extensions_enums.sql` (‏pgcrypto, ‏citext, ‏pg_trgm, ‏pg_cron, ‏supabase_vault; 36 enum-ים) · `0002_tenancy.sql` · `0003_catalog.sql` · `0004_projects_jobs.sql` · `0005_credits_billing.sql` · `0006_sharing_ops.sql` · `0007_functions.sql` · `0008_rls.sql` · `0009_storage.sql` · `0010_realtime.sql` · `0011_cron.sql` · `0012_ops_roles.sql`. snake_case, טבלאות ברבים, `created_at`/`updated_at` עם טריגר `set_updated_at`. אסור לערוך מיגרציה שכבר רצה ב-staging או בפרודקשן. **אחרי ההשקה** נוספות שתי מיגרציות חדשות, שלא נוגעות ב-`0001`–`0012`: `0013_meta_integration.sql` (חלק 07: חיבור Meta, קמפיינים, לידים, פרסום רגיל, תקרות הוצאה, "דף העסק", "בדיקת דופק" ו"תוכנית 30 יום") ו-`0014_trends.sql` (חלק 08: סרטוני ייחוס, ניתוחים, תבניות טרנד, צילום מודרך, העמודות החדשות ב-`projects`, ‏`scenes` ו-`workspaces`, והבאקט `trend-refs`). ערכים חדשים ל-enum-ים קיימים נוספים בראש הקובץ ב-`alter type … add value if not exists`, ולא משמשים באותו קובץ (חלק 04 §3). שתי המיגרציות מוסיפות 20 enum-ים, ועוד 2 של התוספות שאושרו (`landing_page_status`, ‏`lead_source`): 58 בסך הכול.
 
 **enum-ים מרכזיים:** `workspace_type` (`personal`, ‏`business`, ‏`agency`, ‏`client`) · `member_role` · `compliance_flag` (`none`, ‏`medical`, ‏`legal`, ‏`financial`, ‏`real_estate`, ‏`alcohol`, ‏`political`, ‏`other`) · `platform` · `hook_goal` · `hook_gender` · `audience_gender` · `register` · `video_type` · `aspect_ratio` · `quality_tier` · `visual_mix` · `visual_source` (`ai_clip`, ‏`ai_image_kenburns`, ‏`user_media`, ‏`user_photo_animated`, ‏`brand_card`, ‏`stock_broll`) · `project_stage` · `job_kind` (`full_generate`, ‏`regenerate_scene`, ‏`rerender`) · `job_status` (`queued`, ‏`running`, ‏`waiting_external`, ‏`succeeded`, ‏`failed`, ‏`canceled`) · `job_stage` · `step_status` · `asset_kind` · `ledger_kind` · `grant_source` · `consent_kind`.
 
@@ -440,10 +488,19 @@ flowchart LR
 | | `credit_grants` · `credit_reservations` · `credit_ledger` · `workspace_balances` | דליים עם `remaining` ו-`expires_at`; שמירות `open/settled/refunded`; יומן append-only עם `idempotency_key`; יתרה ו-`reserved` |
 | חיוב | `plans` · `credit_packs` · `subscriptions` · `checkout_sessions` · `payments` · `payment_methods` · `invoices` · `billing_profiles` · `refund_requests` | מחירים כוללי מע״מ ב-`numeric(10,2)`; `payments.vat_rate`; אסימון מוצפן `token_enc`; `invoices.allocation_number` |
 | תפעול | `share_links` · `approvals` · `abuse_reports` · `notifications` · `consents` · `email_messages` · `email_suppressions` · `trial_claims` · `audit_logs` · `webhook_events` · `model_registry` · `model_routes` · `app_settings` · `feature_flags` · `contact_messages` · `data_requests` · `api_idempotency_keys` | |
+| Meta (`0013`, חלק 07) | `meta_connections` · `meta_tokens` · `meta_assets` | חיבור חי אחד לכל סביבה (`status`: `active` · `needs_reconnect` · `revoked`); טוקנים מוצפנים ב-`token_enc` בלי שום הרשאה ל-`anon` או ל-`authenticated`; הנכסים שנבחרו (עמוד, חשבון מודעות בשקלים, אינסטגרם, מספר וואטסאפ) ו-`preflight` |
+| | `ad_campaigns` · `ad_variants` · `ad_insights_daily` · `ad_change_log` · `ad_rules` | קמפיין עם `goal` (4 מטרות), ‏`status`, ‏`daily_budget_ils`, ‏`geo` ומזהי Meta; עד 3 מודעות (`position` 1–3, ‏`hook_variant_key`, ‏`is_winner`); מדדים יומיים לכל מודעה (`spend_ils`, ‏`reach`, ‏`video_3s_plays`, ‏`thruplays`, ‏`results`); יומן שינויים; 5 כללים מוכנים |
+| | `lead_forms` · `leads` | טופס `HE_IL`; ליד עם `status` (חדש · יצרנו קשר · רלוונטי · נסגר · לא רלוונטי · ספאם) ו-`source` (`meta_form` · `whatsapp` · `landing_page` · `manual`), נמחק אחרי 24 חודשים |
+| | `social_posts` · `social_post_metrics` | פוסט לכל פלטפורמה (`instagram` · `facebook`; `reel` · `trial_reel`), תזמון שלנו, עד 5 האשטגים; צילומי מצב של `views`, ‏`reach` ו-`skip_rate` |
+| | `managed_spend_monthly` · `meta_data_deletion_requests` | ההוצאה המנוהלת בחודש מול התקרה של סביבת החיוב; בקשות מחיקה מ-Meta עם `confirmation_code` |
+| | `landing_pages` · `ad_health_reports` · `content_plans` · `content_plan_items` | "דף העסק" (`slug`, ‏`status`, ‏`content`, ‏`show_branding`); דוח "בדיקת דופק" (`score` 0–100, נשמר 12 חודשים); "תוכנית 30 יום" ופריטיה (`kind`: `video` · `trend` · `campaign` · `post`) |
+| טרנדים (`0014`, חלק 08) | `trend_references` · `trend_analyses` | סרטון ייחוס עם `rights_basis` והצהרה, קובץ פרטי ב-`trend-refs` עם `retention_until`; ניתוח `TrendAnalysisV1` ו-`hook_package`, למנהלי פלטפורמה בלבד |
+| | `trend_templates` · `trend_template_uses` · `trend_template_stats_daily` · `guided_shoots` | תבנית עם `slug`, ‏`lifecycle` (`moment` · `format` · `evergreen`), ‏`production_mode` (`ai` · `guided` · `hybrid`), ‏`ad_safety` (`ad_safe` · `organic_only` · `needs_consent` · `needs_ai_label`), ‏`recipe`, ‏`hook_variants` (3 לפחות) ו-`music_brief`; סטטיסטיקה חוצת לקוחות כבויה כברירת מחדל; צילום מודרך לכל פרויקט |
+| עמודות חדשות | `projects` · `scenes` · `workspaces` · `project_versions` | `projects.trend_template_id`, ‏`projects.production_mode`; `scenes.overlay`, ‏`scenes.user_media_in_ms`, ‏`scenes.user_media_out_ms`; `workspaces.benchmarks_opt_out`; `project_versions.hook_score` |
 
 ### 7.3 RLS — העיקרון
 
-RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authenticated` או `to anon`; `(select auth.uid())`; סינון לפי סביבה תמיד דרך `workspace_id in (select public.accessible_workspace_ids())` (member), ‏`workspace_ids_with_role('{owner,admin,editor}')` (editor+) או `'{owner,admin}'`. ‏`anon` קורא רק קטלוג מפורסם. כתיבה לטבלאות כספיות, לעבודות, לסצנות, להסכמות, ליומנים ולהגדרות — רק בשרת עם המפתח הסודי, אחרי בדיקת הרשאה. שינוי תפקיד חבר רק דרך `change_member_role` (נעילה ובדיקה מחדש של מכסת המשתמשים). הטריגר `cross_ref_guard` מונע הפניה לנכס של סביבה אחרת. מנהל פלטפורמה לא עוקף RLS באפליקציה. סביבה זרה מקבלת 404.
+RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authenticated` או `to anon`; `(select auth.uid())`; סינון לפי סביבה תמיד דרך `workspace_id in (select public.accessible_workspace_ids())` (member), ‏`workspace_ids_with_role('{owner,admin,editor}')` (editor+) או `'{owner,admin}'`. ‏`anon` קורא רק קטלוג מפורסם. כתיבה לטבלאות כספיות, לעבודות, לסצנות, להסכמות, ליומנים ולהגדרות — רק בשרת עם המפתח הסודי, אחרי בדיקת הרשאה. שינוי תפקיד חבר רק דרך `change_member_role` (נעילה ובדיקה מחדש של מכסת המשתמשים). הטריגר `cross_ref_guard` מונע הפניה לנכס של סביבה אחרת. מנהל פלטפורמה לא עוקף RLS באפליקציה. סביבה זרה מקבלת 404. בטבלאות של `0013`–`0014` כל הכתיבה בשרת בלבד; ל-`meta_tokens` ול-`meta_data_deletion_requests` אין שום הרשאה; `trend_templates` גלויה ל-`anon` רק כשהיא `published`, ובלי `source_reference_id` ו-`do_not_copy`; ו"דף העסק" הציבורי נקרא רק דרך `landing_page_public(p_slug)`.
 
 ### 7.4 מנוע הקרדיטים (`0007_functions.sql`)
 
@@ -454,10 +511,11 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 
 ### 7.5 אחסון, Realtime ו-API
 
-- **Buckets:** `brand-assets` · `uploads` (עד 500MB, ‏TUS) · `generated` · `renders` · `public-media` (ציבורי: דוגמאות, הוקים, מוזיקה, OG, דמו) · `exports` · `invoices` (כתובת חתומה ל-5 דקות, רק לבעלים ומנהלים).
-- **Realtime:** הטריגר `broadcast_job_change()` משדר לערוץ `job:{jobId}` ול-`workspace:{workspaceId}`.
-- **קודי שגיאה — 22 בדיוק** (`lib/errors.ts`): `INSUFFICIENT_CREDITS` 402 · `PLAN_LIMIT` 403 · `CONCURRENCY_LIMIT` 409 · `RATE_LIMITED` 429 · `MODERATION_BLOCKED` 422 · `ELECTION_POLICY_BLOCKED` 451 · `MISSING_FACTS` 422 · `PROVIDER_UNAVAILABLE` 503 · `PROVIDER_TIMEOUT` 504 · `VIDEO_JOB_FAILED` 502 · `TTS_FAILED` 502 · `RENDER_FAILED` 502 · `BUDGET_GUARD` 503 · `INVALID_INPUT` 400 · `NOT_FOUND` 404 · `FORBIDDEN` 403 · `PAYMENT_FAILED` 402 · `WEBHOOK_INVALID_SIGNATURE` 401 · `MAINTENANCE` 503 · `UNAUTHENTICATED` 401 · `EDIT_CONFLICT` 409 · `INTERNAL_ERROR` 500. הממשק מציג `errors.{code}.title/body` מ-`messages/he.json`.
-- **נתיבי API עיקריים:** `POST /api/projects` · `PATCH /api/projects/[id]` · `POST /api/brand/extract` (SSE) · `GET|POST /api/projects/[id]/hooks` (POST בזרם NDJSON) · `POST|PATCH /api/projects/[id]/script` (POST בזרם NDJSON) · `POST /api/projects/[id]/storyboard` · `PATCH|DELETE /api/projects/[id]/scenes/[sceneId]` · `POST /api/projects/[id]/scenes/reorder` · `POST /api/projects/[id]/estimate` · `POST /api/projects/[id]/generate` · `POST /api/projects/[id]/scenes/[sceneId]/regenerate` · `POST /api/projects/[id]/render` · `GET /api/jobs/[id]` · `POST /api/jobs/[id]/cancel` · `POST /api/uploads/sign|complete` · `GET /api/assets/[id]/url` · `GET /api/hooks/search` · `POST /api/share` · `POST /api/approvals/[token]` · `POST /api/billing/checkout|cancel|resume|refund-request|plan-change` · `POST /api/account/export|delete` · `POST /api/consents` · `GET /api/health`. נתיבים שמוציאים קרדיטים דורשים כותרת `Idempotency-Key`. **Webhooks:** `/api/webhooks/openrouter/video`, ‏`/api/webhooks/render`, ‏`/api/webhooks/payments/[provider]`, ‏`/api/webhooks/invoices/[provider]` — כולם מאומתים ואידמפוטנטיים דרך `webhook_events`. **Cron** (`vercel.json`, ‏`Bearer ${CRON_SECRET}`): `sweep-jobs` (כל דקה), ‏`billing-renewals` (כל שעה), ‏`sync-models`, ‏`hook-of-the-day`, ‏`reminders`, ‏`cleanup`.
+- **Buckets:** `brand-assets` · `uploads` (עד 500MB, ‏TUS) · `generated` · `renders` · `public-media` (ציבורי: דוגמאות, הוקים, מוזיקה, OG, דמו) · `exports` · `invoices` (כתובת חתומה ל-5 דקות, רק לבעלים ומנהלים). מ-M8: `trend-refs` (פרטי, עד 200MB, סרטוני ייחוס למנהלי פלטפורמה בלבד), ‏`uploads` מקבל גם `video/webm` (צילום מהמצלמה בדפדפן), והדגמות הטרנד שלנו ב-`public-media/trends/{slug}/`.
+- **Realtime:** הטריגר `broadcast_job_change()` משדר לערוץ `job:{jobId}` ול-`workspace:{workspaceId}`. מ-M9 גם `campaign.updated`, ‏`lead.created` ו-`social_post.updated` בערוץ `workspace:{workspaceId}`.
+- **קודי שגיאה — 27 בדיוק** (`lib/errors.ts`; 22 עד M7, ועוד 5 של Meta): `INSUFFICIENT_CREDITS` 402 · `PLAN_LIMIT` 403 · `CONCURRENCY_LIMIT` 409 · `RATE_LIMITED` 429 · `MODERATION_BLOCKED` 422 · `ELECTION_POLICY_BLOCKED` 451 · `MISSING_FACTS` 422 · `PROVIDER_UNAVAILABLE` 503 · `PROVIDER_TIMEOUT` 504 · `VIDEO_JOB_FAILED` 502 · `TTS_FAILED` 502 · `RENDER_FAILED` 502 · `BUDGET_GUARD` 503 · `INVALID_INPUT` 400 · `NOT_FOUND` 404 · `FORBIDDEN` 403 · `PAYMENT_FAILED` 402 · `WEBHOOK_INVALID_SIGNATURE` 401 · `MAINTENANCE` 503 · `UNAUTHENTICATED` 401 · `EDIT_CONFLICT` 409 · `INTERNAL_ERROR` 500 · `META_NOT_CONNECTED` 409 · `META_ACCOUNT_NOT_READY` 409 · `META_API_ERROR` 502 · `AD_NOT_ELIGIBLE` 422 · `SOCIAL_PUBLISH_FAILED` 502. הממשק מציג `errors.{code}.title/body` מ-`messages/he.json`.
+- **נתיבי API עיקריים:** `POST /api/projects` · `PATCH /api/projects/[id]` · `POST /api/brand/extract` (SSE) · `GET|POST /api/projects/[id]/hooks` (POST בזרם NDJSON) · `POST|PATCH /api/projects/[id]/script` (POST בזרם NDJSON) · `POST /api/projects/[id]/storyboard` · `PATCH|DELETE /api/projects/[id]/scenes/[sceneId]` · `POST /api/projects/[id]/scenes/reorder` · `POST /api/projects/[id]/estimate` · `POST /api/projects/[id]/generate` · `POST /api/projects/[id]/scenes/[sceneId]/regenerate` · `POST /api/projects/[id]/render` · `GET /api/jobs/[id]` · `POST /api/jobs/[id]/cancel` · `POST /api/uploads/sign|complete` · `GET /api/assets/[id]/url` · `GET /api/hooks/search` · `POST /api/share` · `POST /api/approvals/[token]` · `POST /api/billing/checkout|cancel|resume|refund-request|plan-change` · `POST /api/account/export|delete` · `POST /api/consents` · `GET /api/health`. **מ-M8–M11** (הרשימה המלאה בחלק 04, החוזים בחלקים 07–08; כל נתיב מחזיר 404 כשהדגל שלו כבוי): `/api/meta/*` (חיבור, נכסים, בדיקה מקדימה, ניתוק, חיפוש אזורים, דשבורד, ‏`health-check`) · `/api/campaigns/*` (יצירה, טקסטים, הכנה, תצוגות מקדימות, פרסום, השהיה, חידוש, תקציב, סיום, שכפול, הגברת המנצח, מדדים, הסבר, כללים) · `/api/leads/*` (כולל `export.csv`) · `/api/social/*` (פוסטים, לוח תוכן, ביטול, ניסיון חוזר, זכאות לקידום) · `/api/trends` · `/api/guided/shoots/*` · `/api/landing-pages/*` והנתיב הציבורי `POST /api/b/[slug]/lead` · `/api/plan/*` · `POST /api/projects/[id]/hook-score` · `/api/admin/trends/*` ו-`/api/admin/meta/*`. נתיבים שמוציאים קרדיטים דורשים כותרת `Idempotency-Key`. **Webhooks:** `/api/webhooks/openrouter/video`, ‏`/api/webhooks/render`, ‏`/api/webhooks/payments/[provider]`, ‏`/api/webhooks/invoices/[provider]` , ומ-M9 `GET|POST /api/webhooks/meta` (אתגר `hub.challenge` וחתימת `X-Hub-Signature-256`), ‏`POST /api/webhooks/meta/deauthorize` ו-`POST /api/webhooks/meta/data-deletion` (`signed_request`) — כולם מאומתים ואידמפוטנטיים דרך `webhook_events`. **Cron** (`vercel.json`, ‏`Bearer ${CRON_SECRET}`): `sweep-jobs` (כל דקה), ‏`billing-renewals` (כל שעה), ‏`sync-models`, ‏`hook-of-the-day`, ‏`reminders`, ‏`cleanup`. מ-M8–M11 עוד 10 (16 בסך הכול): `meta-insights-hourly`, ‏`meta-insights-backfill`, ‏`meta-review-poll`, ‏`social-publish`, ‏`social-insights`, ‏`meta-token-health`, ‏`meta-rules`, ‏`meta-leads-backfill`, ‏`weekly-summary`, ‏`trends-lifecycle`; ול-`cleanup` נוסף צעד 9 (מחיקת קובצי ייחוס שפג תוקפם). pg_cron: עוד 3 משימות (`purge-meta-raw`, ‏`purge-leads`, ‏`refresh-trend-stats`), 14 בסך הכול.
+- **מגבלות קצב חדשות (M8–M11):** `meta_write` 30 לדקה לסביבה · `meta_read` 120 לדקה לסביבה · `meta_refresh` פעם ב-15 דקות לקמפיין · `social_publish` 20 לשעה לסביבה · `leads_export` 5 לשעה למשתמש · `trends` 120 לדקה למשתמש · `landing_lead` 10 לשעה לכתובת IP · `health_check` פעם ביום לסביבה · `plan_generate` 3 ביום לסביבה.
 
 ---
 
@@ -477,6 +535,9 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | `llm.premium` | `anthropic/claude-opus-5` | `anthropic/claude-sonnet-5.5` |
 | `llm.cheap` | `google/gemini-3.8-flash` | `openai/gpt-6.1-sol` |
 | `llm.batch` | `google/gemini-3.8-flash:batch` | — |
+| `llm.ads` (M10) | `anthropic/claude-sonnet-5.5` | `openai/gpt-6.1-sol`, ‏`google/gemini-3.8-flash` |
+| `llm.video` (M8) | `google/gemini-3.8-flash` (רק מודלים עם `capabilities.video_in`) | `google/gemini-3.1-pro-preview` |
+| `llm.vision_frames` (M8) | `anthropic/claude-sonnet-5.5` | `google/gemini-3.8-flash` |
 | `image.draft` | `google/gemini-3.1-flash-lite-image` | `google/gemini-3.1-flash-image` |
 | `image.standard` | `google/gemini-3.1-flash-image` | `google/gemini-3.1-flash-lite-image` |
 | `image.premium` | `google/gemini-3-pro-image` | `google/gemini-3.1-flash-image` |
@@ -485,15 +546,18 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | `video.premium` | `google/veo-3.1` (1080p) | `kwaivgi/kling-v3.0-pro`, ‏`google/veo-3.1-fast` |
 | `tts.default` | `elevenlabs/eleven-v4` (`heb`) | `google/gemini-3.8-flash-tts` |
 | `tts.preview` | `elevenlabs/eleven-v4-turbo` | `google/gemini-3.8-flash-tts` |
+| `tts.alt` | `google/gemini-3.8-flash-tts` | — |
 | `stt.default` | `elevenlabs/scribe-v2` (`verbose_json`) | — |
 | `music.default` | `google/lyria-3-pro-preview` | — (גיבוי: הספרייה) |
 | `avatar.default` | `heygen/avatar-iv` (מאחורי הדגל `avatar`, כבוי) | — |
 
-לכל נתיבי הווידאו `generate_audio: false`. Sora לא נכנס לשום נתיב (ה-API שלו נסגר ב-2026-09-24). `sync-models` מסנכרן יומית ולעולם לא מפעיל מודל לבד.
+לכל נתיבי הווידאו `generate_audio: false`. Sora לא נכנס לשום נתיב (ה-API שלו נסגר ב-2026-09-24). `sync-models` מסנכרן יומית ולעולם לא מפעיל מודל לבד. סך הכול 21 נתיבים. `route()` מקבל `needsVideoInput` ומסנן לפי `capabilities.video_in`, ו-`model_registry` מקבל את `google/gemini-3.1-pro-preview` (23 שורות). וידאו נשלח למודל רק כקליפ קצר שגזרנו בעצמנו, בחלק `video_url` עם `data:video/mp4;base64,…`, ואף פעם לא ככתובת מרוחקת, חוץ מסרטון יוטיוב ציבורי `[M0-verify]`.
 
 ### 8.3 פרומפטים וסכמות
 
 מזהי הפרומפטים (`lib/ai/prompts/`): `sys.hebrew_style.v1` (מדריך הסגנון המשותף, לפי נספח E) · `brand.extract.v1` · `moderation.brief.v1` · `hooks.generate.v1` · `hooks.inflect.v1` · `hooks.library_batch.v1` · `script.generate.v1` · `storyboard.generate.v1` · `scene.rewrite.v1` · `tts.normalize.v1` · `captions.emphasis.v1` · `post.caption.v1` · `seo.niche_intro.v1` · `edit.chat.v1` (v2) · `moderation.upload.v1`. סכמות Zod: `BrandProfileV1`, ‏`HookBatchV1`, ‏`ScriptV1`, ‏`StoryboardV1`, ‏`CaptionTrackV1`, ‏`ModerationV1`, ‏`PostCaptionV1`, ‏`SeoNicheIntroV1` ועוד; כל פלט LLM עובר Zod וולידציה סמנטית. נקודת כניסה יחידה: `runStructured()`. placeholders מותרים בלבד (`ALLOWED_PLACEHOLDERS`, 22): עיר, שכונה, שירות, מוצר, מחיר, סכום, מספר, זמן, חודש, קהל_יעד, שם_העסק, פעולה_שגויה, מיתוס, לפני, אחרי, הנחה, בעיה (17 הראשונים גם בהוקים), דירוג, כתובת, שם_לקוח, מספר_רישיון, מילה. פרומפטים לתמונה ולווידאו נכתבים באנגלית, **בלי טקסט בתוך הפריים** (רשימה שלילית קבועה `BASE_NEGATIVE_EN`).
+
+**מ-M8–M11 עוד 16 מזהים** (הרישום בחלק 05 §8.1; הטקסטים בחלקים 07–08, ו-`hooks.score.v1` בחלק 05): `ads.copy.v1` · `ads.insight_explain.v1` · `moderation.ad.v1` · `post.caption.v2` (מחליף את v1 בנתיב טקסט הפוסט, עד 5 האשטגים) · `trends.analyze.v1` · `trends.adapt.v1` · `trends.explainer.v1` · `trends.sign_quad.v1` · `guided.shotlist.v1` · `guided.autocut.v1` · `script.generate.v2` ו-`storyboard.generate.v2` (הטקסט של v1 מילה במילה, ועוד סעיף שחל רק כשיש `<trend_recipe>`) · `landing.copy.v1` · `ads.health_check.v1` · `plan.month.v1` · `hooks.score.v1`. סכמות חדשות לדוגמה: `AdCopyV1`, ‏`InsightExplainV1`, ‏`AdPolicyCheckV1`, ‏`PostCaptionV2`, ‏`TrendAnalysisV1`, ‏`TrendTemplateV1`, ‏`SceneOverlayV1`, ‏`GuidedShotListV1`, ‏`LandingPageContentV1`, ‏`HealthCheckReportV1`, ‏`MonthlyPlanV1`, ‏`HookScoreV1`.
 
 ### 8.4 הצנרת `videoPipeline` (Vercel Workflows)
 
@@ -509,13 +573,13 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | `render:{aspect}` | Remotion ב-Vercel Sandbox, העלאה ל-`renders` | `render.base` / `render.extra_format` | 18 |
 | `finalize` | פוסטר, SRT, ‏VTT, ‏`settle_reservation` | 0 | 2 |
 
-**אינווריאנטים:** אף שקל לא יוצא פעמיים (אידמפוטנטיות לפי `(job_id, step_key)`); חיוב בסוף צעד, לא בהתחלה; **כישלון של סצנה אחת לא מפיל סרטון** — קליפ שנכשל הופך ל"תמונה בתנועה" (Ken Burns) עם החזר מיידי; עבודה נכשלת רק על קריינות, רוב ה-keyframes או הרכבת הפורמט הראשי, ואז `refund_reservation` מלא; ה-workflow לא נוגע ב-DB — רק הצעדים; מעבירים בין צעדים מזהים בלבד. ‏`sweep-jobs` משלים webhooks שאבדו ועבודות תקועות.
+**אינווריאנטים:** אף שקל לא יוצא פעמיים (אידמפוטנטיות לפי `(job_id, step_key)`); חיוב בסוף צעד, לא בהתחלה; **כישלון של סצנה אחת לא מפיל סרטון** — קליפ שנכשל הופך ל"תמונה בתנועה" (Ken Burns) עם החזר מיידי; עבודה נכשלת רק על קריינות, רוב ה-keyframes או הרכבת הפורמט הראשי, ואז `refund_reservation` מלא; ה-workflow לא נוגע ב-DB — רק הצעדים; מעבירים בין צעדים מזהים בלבד. ‏`sweep-jobs` משלים webhooks שאבדו ועבודות תקועות. **זרימות של M8–M11:** `orchestrator.startFlow(name, input, { idempotencyKey })` מפעיל את `metaConnectSync`, ‏`metaPrepareCampaign`, ‏`metaLeadIngest`, ‏`socialPublish`, ‏`metaDataDeletion`, ‏`metaHealthCheck`, ‏`trendAnalyze` ו-`guidedAutocut`; הסרטונים ממשיכים ב-`start(jobId)`.
 
 **כתוביות RTL:** הקריינות מתומללת ב-Scribe (`stt.default`, ‏`verbose_json`); היישור דו-שלבי, כי הכתוביות מציגות את **טקסט התצוגה** (`vo_full_he`, עם ספרות: "₪99", "50%") אבל הזמנים מגיעים ממה שנאמר בפועל ("תשעים ותשעה שקלים"). מילים מיושרות ← עימוד לפי `CAPTION_PRESETS[preset].paging` (קוד משותף לנגן ולרינדור) ← הדגשת מילת מפתח אופציונלית (`captions.emphasis.v1`) ← `CaptionTrackV1` ב-`project_versions.caption_track`. תמלול שנכשל או יישור באיכות מתחת ל-70% ← יישור חלופי (`alignment_fallback`: משך הקריינות מחולק בין המילים לפי אורכן), והצעד `captions` לעולם לא מכשיל עבודה. SRT ו-VTT נבנים ב-`finalize` מאותו מסלול. ברינדור: `unicode-bidi: plaintext` לכל שורה וכל טוקן לועזי או מספרי בתוך `<bdi>`, וההדגשה מתקדמת לפי סדר הדיבור, מימין לשמאל.
 
 ### 8.5 Remotion
 
-קומפוזיציות (`remotion/Root.tsx`, ‏30fps): `PromoVertical` 1080×1920 · `PromoSquare` 1080×1080 · `PromoWide` 1920×1080 · `Animatic` · `PosterStill` · `CaptionStyleSample`. עץ השכבות (`PromoComposition`, ‏`direction: rtl`): `SceneTrack` → `ColorGrade` → `HookTitle` (מפריים 0, תמיד לפני פתיח) → `OverlayTexts` → `CaptionsLayer` → `IntroCard` (אחרי ההוק) → `LowerThird` / `LogoBug` / `LogoWatermark` / `DisclaimerStrip` → `EndCard` (2.5 שנ׳) → `AiLabel` → `Watermark` (חינם) → `AudioMix` (הנמכה בזמן קריינות). אותם רכיבים רצים בדפדפן ב-`@remotion/player` לאשף ולעורך. `RenderProvider`: `vercel-sandbox` (ברירת מחדל) · `lambda` · `local`. רישיון Remotion: חינם עד 3 עובדים, ומעבר לזה רישיון Automators (`REMOTION_LICENSE_KEY`).
+קומפוזיציות (`remotion/Root.tsx`, ‏30fps): `PromoVertical` 1080×1920 · `PromoSquare` 1080×1080 · `PromoWide` 1920×1080 · `Animatic` · `PosterStill` · `CaptionStyleSample`. עץ השכבות (`PromoComposition`, ‏`direction: rtl`): `SceneTrack` → `ColorGrade` → `HookTitle` (מפריים 0, תמיד לפני פתיח) → `OverlayTexts` → `CaptionsLayer` → `IntroCard` (אחרי ההוק) → `LowerThird` / `LogoBug` / `LogoWatermark` / `DisclaimerStrip` → `EndCard` (2.5 שנ׳) → `AiLabel` → `Watermark` (חינם) → `AudioMix` (הנמכה בזמן קריינות). אותם רכיבים רצים בדפדפן ב-`@remotion/player` לאשף ולעורך. `RenderProvider`: `vercel-sandbox` (ברירת מחדל) · `lambda` · `local`. רישיון Remotion: חינם עד 3 עובדים, ומעבר לזה רישיון Automators (`REMOTION_LICENSE_KEY`). מ-M8: המיכל `TrendOverlays` יושב בין `OverlayTexts` ל-`CaptionsLayer`, עם 11 שכבות טרנד מתוך `scenes.overlay` (`SignOverlay`, ‏`FakeUiPopup` לפרסום רגיל בלבד, ‏`MemeCaption`, ‏`BtsLabel`, ‏`SplitReveal`, ‏`CommentBubble`, ‏`RatingStamp`, ‏`PovLabel`, ‏`ClockStamp`, ‏`StickerPop`, ‏`PriceTag`); כל העברית מרונדרת אצלנו, בתנועה לפי מילה. פרופיל הרינדור `meta_reels` (1080×1920, 30fps, ‏H.264, ‏AAC 48kHz עד 128kbps, ‏`+faststart`, עד 20Mbps, 3–90 שנ׳) לכל סרטון שעולה ל-Meta.
 
 ### 8.6 עלות מול קרדיטים
 
@@ -523,7 +587,7 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 
 ### 8.7 בטיחות וציות
 
-מודרציה על בריף, תסריט והעלאות; `COMPLIANCE_RULES` לפי `compliance_flag` של הנישה (הסתייגויות חובה, ניסוחים חסומים, סוגי הוק או סרטון חסומים, למשל אין המלצות מטופלים ב-`therapists`); **מצב בחירות** — תוכן פוליטי ופוליטיקאים חסומים (`ELECTION_POLICY_BLOCKED`) עד 2026-10-28 23:59; ימי זיכרון — בלי הצעות קידום; בלי שיבוט קול או אווטאר בהשקה; תווית "נוצר באמצעות AI" אופציונלית ומטא-דאטה בקובץ.
+מודרציה על בריף, תסריט והעלאות; `COMPLIANCE_RULES` לפי `compliance_flag` של הנישה (הסתייגויות חובה, ניסוחים חסומים, סוגי הוק או סרטון חסומים, למשל אין המלצות מטופלים ב-`therapists`); **מצב בחירות** — תוכן פוליטי ופוליטיקאים חסומים (`ELECTION_POLICY_BLOCKED`) עד 2026-10-28 23:59; ימי זיכרון — בלי הצעות קידום; בלי שיבוט קול או אווטאר בהשקה; תווית "נוצר באמצעות AI" אופציונלית ומטא-דאטה בקובץ. **מ-M8–M10:** `moderation.ad.v1` רץ לפני הכנה ופרסום של קמפיין, ושער `adEligibility` חוסם (`AD_NOT_ELIGIBLE`) תבנית `organic_only`, ממשק מזויף, חוסר הסכמה של מצולמים, תווית AI חסרה, מוזיקה בלי רישיון ותוכן פוליטי. כל רינדור כותב `Iptc4xmpExt:DigitalSourceType`, ולפני פרסום מוצגת הודעה שמטא עשויה לסמן את הסרטון "AI info". בטרנדים: שער סיכונים (מלחמה ופוליטיקה, קטינים, פעלולים מסוכנים, פציעה אמיתית) ובדיקת דמיון שחוסמת טקסט שהועתק מהייחוס.
 
 ---
 
@@ -546,14 +610,26 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | גרסאות הוק · במקביל · תקרה יומית | 1 · 1 · 70 | 3 · 2 · 400 | 5 · 3 · 800 | 5 · 6 · 2,500 |
 | משתמשים · ערכות מותג | 1 · 1 | 1 · 1 | 3 · 3 | 10 · ללא הגבלה (אחת לכל לקוח) |
 | מיוחד | עד 3 פרויקטים | | קישורי אישור ללקוח | עד 15 סביבות לקוח, White label |
+| **Meta:** חשבונות מודעות מחוברים (`meta_ad_accounts`) | 1 | 1 | 2 | 15 (אחד לכל סביבת לקוח) |
+| קמפיינים פעילים (`meta_active_campaigns`) | 1 | 2 | ללא הגבלה | ללא הגבלה |
+| תקרת הוצאה מנוהלת בחודש (`meta_monthly_spend_cap_ils`) | ₪0 | ₪3,000 | ₪15,000 | ₪100,000 (מצטבר על כל הלקוחות) |
+| קמפיין בדיקה חד-פעמי (`meta_test_spend_ils`) | עד ₪300 | — | — | — |
+| בדיקת 3 הוקים בקמפיין (`meta_split_test`) | — | ✓ | ✓ | ✓ |
+| כללים אוטומטיים פעילים (`meta_auto_rules`) | 0 | 2 | 5 | 5 |
+| ניהול לידים: סטטוס, הערות, אחראי, ‏CSV (`meta_lead_inbox`) | — | ✓ | ✓ | ✓ |
+| פוסטים מתוזמנים במקביל (`social_scheduled_max`) | 3 | 30 | ללא הגבלה | ללא הגבלה |
+| "דף העסק" (`landing_pages`) | תצוגה מקדימה בלבד | 1 | 3 | 1 לכל סביבת לקוח |
+| "בדיקת דופק" בחודש (`health_checks_per_month`) | 1 | 2 | 4 | 4 לכל סביבת לקוח |
 
 "≈ N סרטונים" = `floor(monthly_credits / typical_video_credits)` (50). צופים לא נספרים במכסת המשתמשים. מחיר המנוי ננעל ברגע הרכישה. ‏"שנתי · חיסכון של 20%" רק כשהדגל `annual_billing` פעיל.
 
+**ניהול Meta כלול בכל תוכנית** (M9–M10; הערכים ב-`plans.limits`, ושמות המפתחות הם גם `PLAN_LIMIT.details.limit`): **0% מהתקציב**, התקציב משולם תמיד מהכרטיס של הלקוח ישירות למטא, ואנחנו לא גובים, לא מחזיקים ולא מחזירים כסף של פרסום. השקה, ניהול ודוחות לא עולים קרדיטים; יצירת סרטונים עולה קרדיטים כמו היום. בחינם: חיבור, פרסום רגיל ותזמון (3 בתור), טיוטות ותצוגות מקדימות, וקמפיין בדיקה אחד עד ₪300 בסך הכול (`spend_cap` של Meta). ב-80% מהתקרה יש באנר ומייל `spend_cap_warning` פעם בחודש. ב-100% **לא משהים אף מודעה של הלקוח**, אלא חוסמים השקות חדשות, חידוש והגדלת תקציב אחרי 7 ימי חסד (`meta_spend_cap_grace_days`), עם הצעה לשדרוג. אין תוספת מעבר לתקרה ואין "בדיקת מומחה" ב-MVP. **"דף העסק" בתשלום בלבד:** בחינם אפשר ליצור תצוגה מקדימה עם סימן מים שאי אפשר לפרסם ("דף העסק זמין בתוכניות בתשלום"), והפרסום דורש תוכנית בתשלום או רכישת חבילה (חלק 07); `show_branding` כבוי בכל התוכניות בתשלום, ודומיין מותאם אישית נשאר במפת הדרכים.
+
 **חבילות קרדיטים** (לא פגות, זמינות בכל תוכנית, התשלום הראשון מסיר סימן מים): `pack-150` ‏₪59 · `pack-500` ‏₪179 · `pack-1500` ‏₪449. כרטיס אשראי; Bit רק בחבילות ורק כש-`GROW_PAGE_CODE_BIT` מוגדר (אחרת כל המחרוזות בגרסת `…ByCardOnly`).
 
-**מחירון הפעולות** (`credit_costs`): `script.generate` 2 · `storyboard.generate` 1 · `hooks.generate` 1 · `brand.extract`, ‏`scene.rewrite`, ‏`voice.preview`, ‏`captions.transcribe`, ‏`music.library` חינם (עם הגבלת קצב) · `image.draft/standard/premium` 2 / 4 / 7 · `clip.draft/standard/premium` לכל שנייה 2 / 5 / 11 · `voice.tts` 1 לכל 15 שניות · `music.generate` 5 · `render.base` 3 / 5 (עד 30 / 31–60 שנ׳) · `render.extra_format` 2 / 3.
+**מחירון הפעולות** (`credit_costs`): `script.generate` 2 · `storyboard.generate` 1 · `hooks.generate` 1 · `brand.extract`, ‏`scene.rewrite`, ‏`voice.preview`, ‏`captions.transcribe`, ‏`music.library` חינם (עם הגבלת קצב) · `image.draft/standard/premium` 2 / 4 / 7 · `clip.draft/standard/premium` לכל שנייה 2 / 5 / 11 · `voice.tts` 1 לכל 15 שניות · `music.generate` 5 · `render.base` 3 / 5 (עד 30 / 31–60 שנ׳) · `render.extra_format` 2 / 3. · מ-M8–M11: `ads.copy`, ‏`ads.insight`, ‏`trends.analyze` (צוות בלבד), ‏`guided.shotlist`, ‏`meta.health_check`, ‏`plan.generate` ו-`hooks.score` חינם (עם הגבלת קצב) · `guided.autocut` 1 לכל קליפ · `landing.generate` 10 לכל יצירה או יצירה מחדש של "דף העסק" (עריכת טקסט, פרסום והסרה חינם).
 
-**הבטחות (קופי קנוני):** קרדיטים שלא נוצלו עוברים לחודש הבא · החזר קרדיטים אוטומטי על יצירה שנכשלה · ביטול מנוי אונליין בכל רגע · חשבונית מס לכל תשלום · המחירים כוללים מע״מ · תשלום בכרטיס אשראי; חבילות קרדיטים גם ב-Bit.
+**הבטחות (קופי קנוני):** קרדיטים שלא נוצלו עוברים לחודש הבא · החזר קרדיטים אוטומטי על יצירה שנכשלה · ביטול מנוי אונליין בכל רגע · חשבונית מס לכל תשלום · המחירים כוללים מע״מ · תשלום בכרטיס אשראי; חבילות קרדיטים גם ב-Bit. · כשהדגל `meta_ads` פעיל: **"0% מהתקציב. התקציב משולם ישירות למטא, מהכרטיס שלכם"**.
 
 ### 9.2 מנוע החיוב (חובה)
 
@@ -562,6 +638,7 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 - **קרדיטים מוענקים רק מ-webhook מאומת או מה-cron**, לעולם לא מדף החזרה ולא מהדפדפן; כל פעולה אידמפוטנטית; **אף פעם לא חיוב שני אחרי timeout עמום** — קודם שואלים את הספק.
 - **תקופות לפי `Asia/Jerusalem`** ועוגן התשלום הראשון; הענקה חודשית גם במנוי שנתי; גלגול קרדיטים חודש אחד דרך התוקף; dunning של 4 ניסיונות ו-4 מיילים, `expired` ביום 7; שדרוג מיידי עם יחסיות, שנמוך בסוף התקופה.
 - **חשבוניות:** Morning מאחורי `InvoiceProvider` — חשבונית מס לכל תשלום (מסמך מסוג חשבונית מס-קבלה), חשבונית זיכוי לכל החזר, **מספר הקצאה** ללקוח עסקי כשהנטו מעל הסף (₪5,000 לפני מע״מ מ-1 ביוני 2026, נקרא מ-`app_settings.allocation_threshold_schedule`).
+- **כסף של פרסום (M9–M11):** Meta מקבלת תקציבים ביחידות המשנה של המטבע (`daily_budget: 5000` = ₪50.00), וההמרה היחידה נעשית ב-`lib/meta/money.ts` (`MetaMinor`, ‏`ilsToMetaMinor`, ‏`metaMinorToIls`); במסד, ב-API ובממשק הכול `…_ils`/`…Ils`. קמפיינים רק בחשבון מודעות בשקלים, והתקציב המינימלי נקרא מ-Meta לכל חשבון ולא נכתב בקוד. ההוצאה המנוהלת נמדדת כל שעה (`meta_spend_summary`, ‏`managed_spend_monthly`) מול התקרה של סביבת החיוב, וסביבות לקוח מצטברות לסוכנות.
 
 ### 9.3 משפט ותאימות בישראל ⚖️
 
@@ -571,9 +648,10 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 - **פרטיות (תיקון 13):** הודעת איסוף מלאה, יומן הסכמות (`consents`: תנאים, פרטיות, AI, דיוור, עוגיות — נכתבות בשרת בלבד, עם גרסה, IP ומקור), ייצוא ומחיקה, אחסון באיחוד האירופי, DPA עם כל ספק משנה, `data_collection: "deny"`. סרטונים בחשבון חינם שמעולם לא שילם נשמרים 90 יום.
 - **עוגיות:** אנליטיקה רק אחרי הסכמה (`CookieConsentBanner`), בלי PostHog ובלי `exp_hero` לפני בחירה; `theme`, ‏`motion`, ‏`sidebar_state` הכרחיות.
 - **ספאם (ס׳ 30א):** הסכמה מפורשת לא מסומנת, "פרסומת:" בנושא, פרטי שולח, הסרה בלחיצה (RFC 8058).
-- **הדפים המשפטיים:** תנאי שימוש · פרטיות · עוגיות · ביטול והחזרים · הצהרת נגישות · שימוש הוגן ב-AI · הסכמה לשימוש בדמות ובקול — כולם לאישור עורך דין לפני ההשקה; השירות מגיל 18.
-- **מיילים:** 26 תבניות React Email ב-RTL (בהירות עם כותרת כהה), דרך `sendEmail` ו-`email_messages`; ביניהן `welcome`, ‏`video_ready`, ‏`video_failed_refunded`, ‏`payment_receipt`, ‏`subscription_canceled`, ‏`refund_processed`, ‏`low_credits`. `low_credits` הוא הודעת שירות עובדתית בלי מחירים ובלי הצעת רכישה ⚖️.
+- **הדפים המשפטיים:** תנאי שימוש · פרטיות · עוגיות · ביטול והחזרים · הצהרת נגישות · שימוש הוגן ב-AI · הסכמה לשימוש בדמות ובקול — כולם לאישור עורך דין לפני ההשקה; השירות מגיל 18. מ-M10 נוסף הסכם עיבוד הנתונים (`/legal/dpa`), ולתנאי השימוש, למדיניות הפרטיות, לעוגיות ולמדיניות ה-AI נוספים סעיפים על Meta, לידים וטרנדים (חלק 02).
+- **מיילים:** 36 תבניות React Email (26 עד M7, ועוד 10 ב-M8–M11: `meta_campaign_live`, ‏`meta_ad_rejected`, ‏`meta_connection_lost`, ‏`lead_new`, ‏`weekly_results`, ‏`spend_cap_warning`, ‏`social_post_failed`, ‏`health_check_ready`, ‏`monthly_plan_ready`, וגם `trends_weekly`, שהוא מייל שיווקי ונשלח רק עם הסכמה לדיוור) ב-RTL (בהירות עם כותרת כהה), דרך `sendEmail` ו-`email_messages`; ביניהן `welcome`, ‏`video_ready`, ‏`video_failed_refunded`, ‏`payment_receipt`, ‏`subscription_canceled`, ‏`refund_processed`, ‏`low_credits`. `low_credits` הוא הודעת שירות עובדתית בלי מחירים ובלי הצעת רכישה ⚖️.
 - **White label:** עמוד האישור ומייל האישור קובעים White label בזמן הצגה (תוכנית הסוכנות הנוכחית), דרך `effective_white_label`; כך גם עמוד השיתוף `/v/[token]`.
+- **Meta, לידים וטרנדים (M8–M11) ⚖️:** אנחנו כלי; הלקוח הוא המפרסם ובעל החשבון ומקבל את תנאי מטא (ההסכמה `meta_ads_terms` נרשמת בשרת בחיבור הראשון, עם `source = meta_connect`); בלי הבטחת תוצאות; מודעות פוליטיות ומודעות על נושאים חברתיים לא נתמכות ונחסמות. העסק הוא בעל השליטה בלידים ואנחנו המעבד: לידים נשמרים 24 חודשים, לא משמשים לשיווק שלנו, לא מצטברים בין לקוחות ולא נכנסים לאף פרומפט. ניתוק מוחק את הטוקנים, ויש callback למחיקת נתונים עם עמוד סטטוס. נתונים חוצי לקוחות כבויים עד חוות דעת. לכל "דף העסק" נוצרת הודעת פרטיות של העסק (`/b/[slug]/privacy`). בטרנדים מעתיקים פורמט ולא ביטוי, בלי סקרייפינג, בלי הפנים, הקול, השם או הידית של יוצר הייחוס, בלי מוזיקה מוגנת (רק Lyria או ספרייה מורשית; תנאי Lyria לפרסום `[M0-verify]`), ובלי המלצות או ראיונות רחוב שנוצרו ב-AI.
 
 ---
 
@@ -581,7 +659,7 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 
 **מקור האמת:** `seed/*.json` (נבנים מ-`seed/scripts/build_seed.py`; לא עורכים JSON ידנית) ← `pnpm seed:sync` ← `pnpm db:seed`. הנספחים בפרומפט המלא: `prompt/A-niches.md` (נישות), ‏`prompt/B-hook-taxonomy.md` (משפחות, סוגים ועונות), ‏`prompt/C-hooks.md` (326 הוקים).
 
-**הכמויות:** 13 קטגוריות · 36 נישות (14 בעדיפות 1) · 8 משפחות הוקים · 27 סוגי הוקים · 25 מועדים בלוח השיווקי (כולל 2 ימי שקט) · 326 הוקים בעברית.
+**הכמויות:** 13 קטגוריות · 36 נישות (14 בעדיפות 1) · 8 משפחות הוקים · 27 סוגי הוקים · 25 מועדים בלוח השיווקי (כולל 2 ימי שקט) · 326 הוקים בעברית · ומ-M8 גם 12 תבניות טרנד (`seed/trend_templates.json`, נבנות ב-`seed/scripts/build_trends.py`; ראו §12).
 
 **קטגוריות ונישות לדוגמה:** נדל״ן ובית (`real-estate`, ‏`real-estate-developers`, ‏`renovation-contractors`, ‏`interior-design`…) · יופי וטיפוח (`aesthetic-clinics`, ‏`beauty-nails`, ‏`barbers-salons`) · בריאות, כושר וטיפול (`fitness-trainers`, ‏`yoga-pilates`, ‏`dentists`, ‏`therapists`…) · אוכל ומסעדנות (`restaurants`…) · אירועים ושמחות (`event-venues`…) · תיירות ופנאי · שירותים מקצועיים ופיננסים (`mortgage-advisors`, ‏`lawyers`, ‏`accountants`…) · מסחר (`ecommerce`…) · רכב (`car-dealers`…) · חינוך וילדים · חיות מחמד · הייטק ו-B2B · קהילה וציבור. **14 נישות העדיפות הראשונה:** `real-estate`, ‏`real-estate-developers`, ‏`renovation-contractors`, ‏`aesthetic-clinics`, ‏`beauty-nails`, ‏`barbers-salons`, ‏`fitness-trainers`, ‏`yoga-pilates`, ‏`dentists`, ‏`restaurants`, ‏`event-venues`, ‏`mortgage-advisors`, ‏`ecommerce`, ‏`car-dealers`. הנישה `local-politics` (`compliance_flag = 'political'`) לעולם לא נבנית ולא מקושרת. slugs אסורים לנישה: `types`, ‏`season`, ‏`platform`, ‏`h`, ‏`new`, ‏`search`.
 
@@ -603,17 +681,36 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 - **JSON-LD** (`lib/seo/jsonld.ts`): `Organization`, ‏`WebSite` + `SearchAction` (`/hooks?q=`), ‏`SoftwareApplication`, ‏`Product` + `AggregateOffer` (ILS, ‏`valueAddedTaxIncluded`), ‏`BreadcrumbList`, ‏`FAQPage`, ‏`ItemList`, ‏`VideoObject`, ‏`HowTo`, ‏`BlogPosting`. **בלי `aggregateRating` ובלי ביקורות.**
 - **תמונות OG** ב-`next/og` עם TTF סטטי של Heebo, תמיד בעיצוב הכהה, לבית, לנישות, לסוגי הוקים, להוקים ולבלוג; bidi תקין.
 - **ביצועים:** LCP < 2.5 שנ׳ (ה-H1), ‏CLS < 0.05, ‏INP < 200ms בנייד; JS בדף הבית ≤ 170KB; Remotion Player רק באשף ובעורך; עמודי השיווק לא קוראים cookies או סשן בצד השרת (מצב מחובר באיים בצד הלקוח); `revalidateTag` מכל שמירת אדמין.
+- **עמודי טרנד (M8):** `/trends/[slug]` עם JSON-LD של `VideoObject`, ‏`HowTo` ו-`BreadcrumbList`, רשומות ב-sitemap ותמונת OG; טרנד שפרש נשאר באוויר עם התג "הטרנד הזה כבר פחות חם" וקישור לטרנדים חדשים, בלי 404. `/b/[slug]` לא מאונדקס, אלא אם העסק בחר בכך.
 - **קישור פנימי:** נישה ↔ הוקים לנישה ↔ סוגי הוק ↔ עונות; פוטר עם 10 נישות מובילות ו-6 עמודי הוקים.
 
 ---
 
-## 12. אבני הדרך והגדרת "גמור"
+## 12. קמפיינים, פרסום רגיל וטרנדים — העיקר (M8–M11)
 
-### 12.1 M0–M7 בקצרה
+הפירוט המלא בחלק 07 (Meta) ובחלק 08 (טרנדים). כל נתיב מחזיר 404 כשהדגל שלו כבוי (`meta_connect`, ‏`meta_ads`, ‏`meta_lead_forms`, ‏`meta_auto_rules`, ‏`trends`, ‏`trends_public`, ‏`guided_filming`, ‏`landing_pages`, ‏`meta_health_check`, ‏`monthly_plan`, ‏`hook_score`; כולם כבויים ב-seed), וכל ספק רץ גם מול `mock`.
+
+**חיבור ואישורים.** אפליקציית Meta אחת מסוג Business; Facebook Login for Business בתצורה אחת (`config_id`) שמנפיקה טוקן system user לעסק של הלקוח; טוקנים מוצפנים (`encryptToken()`) ובשרת בלבד; `appsecret_proof` בכל קריאה; גרסה נעוצה `v26.0` עם runbook לשדרוג, כי גרסה של Marketing API חיה כ-12 חודשים. חיבור אחד לכל סביבה: עמוד פייסבוק, חשבון מודעות בשקלים, אינסטגרם מקצועי ומספר WhatsApp Business שמחובר לעמוד, עם `MetaConnectChecklist` ירוק ותיקון בעברית לכל כשל. לפני לקוח חיצוני ראשון צריך Business Verification, ‏App Review לכל הרשאה (סרטון הדגמה לכל שימוש), אימות Tech Provider (בלעדיו משתמש בלי תפקיד באפליקציה נכשל בשגיאה 100) ושכבת Full Access (500 קריאות ב-15 יום עם פחות מ-15% שגיאות).
+
+**קמפיינים (M10).** ארבע מטרות: "הודעות בוואטסאפ" · "לידים בטופס" · "כניסות לאתר" · "חשיפה לאזור". ארבעה צעדים: מטרה · מי ואיפה · תקציב (₪30 · ₪40 מומלץ · ₪70 · ₪100) · סקירה ופרסום, ו"הגדרות מתקדמות" מקופלות. הכול נוצר מושהה (`PAUSED`) ← תצוגות מקדימות של Meta ← "פרסום" עם אישור מפורש. ברירת המחדל היא בדיקת 3 הוקים (3 מודעות בקבוצה אחת), ו"הגבירו את המנצח" זמין רק אחרי מדגם מינימלי. עריכות: השהיה, חידוש, תקציב (עד 3 שינויים בשעה, מתחת למגבלה של Meta), סיום ושכפול; 5 כללים מוכנים כמתגים; וקידום של פוסט אורגני ("קדמו את הסרטון הזה"). הדשבורד מציג תמיד 4 מספרים: "כמה הוצאתם" · "כמה אנשים ראו" · "כמה פניות" · "כמה עלתה כל פנייה", לצד השוואת הוקים, "מה זה אומר?" בעברית בלי הבטחות ובלי ממוצעי ענף, וסיכום שבועי ביום ראשון.
+
+**לידים ופרסום רגיל.** טופס מיידי ב-`HE_IL`, ‏webhook ועוד גיבוי לילי, התראה מיידית ותזכורת אחרי 15 דקות, תיבת לידים עם "התקשרו" ו"וואטסאפ" וייצוא CSV. רילס לאינסטגרם (כולל Trial Reels) ולפייסבוק, עכשיו או בתזמון שלנו (לאינסטגרם אין תזמון ב-API), כיתוב עם עד 5 האשטגים, מדדים אורגניים כולל `reels_skip_rate`, ולוח תוכן עם עונות וימי שקט.
+
+**טרנדים (M8).** סרטון ייחוס נכנס רק דרך מנהל פלטפורמה עם בסיס זכויות מתועד, כקישור יוטיוב ציבורי או כקישור עם הערות; בלי סקרייפינג (CI נכשל על תלות כזו). `trendAnalyze`: ffmpeg גוזר את 0–6 השניות הראשונות ו-12–16 פריימים עם חותמות זמן, ‏Scribe מתמלל, ו-`llm.video` מחזיר `TrendAnalysisV1` (מכניקה מופשטת, ‏`do_not_copy`, דגלי סיכון), בכמה סנטים לניתוח. תבנית היא מתכון סצנות (פיתיון ← חיתוך ← תמורה ← הנעה לפעולה) עם 3 גרסאות הוק בקונספטים שונים, התאמות לנישות ותקציר מוזיקה, אף פעם לא שיר. ב-seed יש 12 תבניות, ובהן T1–T4 מסרטוני הייחוס של המייסד; T4 ("התראה מזויפת") מתאימה לפרסום רגיל בלבד. ללקוח: "צרו בקליק" (AI) או "צלמו בעצמכם" (רשימת צילומים, קווי מנחה במצלמה ועריכה אוטומטית); הפיד "טרנדים השבוע" מתעדכן ביום ראשון ב-08:00, ולכל טרנד יש עמוד ציבורי ב-`/trends/[slug]`.
+
+**התוספות שאושרו.** "ציון הוק" (M8) · "תוכנית 30 יום" (M9) · "דף העסק" (M10, בתשלום, 10 קרדיטים ליצירה) · "בדיקת דופק" (M10, חינם). אחרי M11, מאחורי דגלים כבויים ובלי בנייה עכשיו: בוט וואטסאפ ללידים, סרטון המלצה מביקורת אמיתית (רק עם הוכחת מקור והסכמה), ליווי אנושי לקמפיין (₪149), תוכנית שותפים, אפליקציה לנייד (PWA עם push) וערוצים נוספים.
+
+**מספרים לבדיקה אחרי M11:** 27 קודי שגיאה · 36 מפתחות מייל · 108 אירועי אנליטיקה · 24 דגלים (ועוד 4 דגלי מפת דרכים כבויים) · 30 הגדרות ב-`app_settings` · 21 נתיבי מודלים · 16 crons ב-Vercel · 14 משימות pg_cron.
+
+---
+
+## 13. אבני הדרך והגדרת "גמור"
+
+### 13.1 M0–M11 בקצרה
 
 | | משימות עיקריות | קריטריון סגירה מרכזי |
 |---|---|---|
-| **M0** | ריפו pnpm, ‏Next 16, ‏Tailwind 4.3 עם הטוקנים, ‏shadcn `radix-nova` ‏RTL, גופנים, next-intl, ‏`BRAND`, ‏`lib/env.ts`, ‏lint-ים, Vitest/Playwright/MSW, ‏Sentry, ‏CI; סביבות Vercel ו-Supabase; `docs/m0-verify.md`; 18 ספייקים (AI SDK, ‏`json_schema`, ‏`/videos` וחתימת webhook, ‏Scribe בעברית, ‏Eleven v4, ‏WDK hooks, ‏`@remotion/vercel` עם כתוביות עבריות, ‏`next/og`, ‏Grow ו-Morning, ‏CSP ועוד) | עמוד עברי RTL בשתי הערכות; MP4 מספייק עם כתוביות עבריות תקינות; כל `[M0-verify]` מתועד |
+| **M0** | ריפו pnpm, ‏Next 16, ‏Tailwind 4.3 עם הטוקנים, ‏shadcn `radix-nova` ‏RTL, גופנים, next-intl, ‏`BRAND`, ‏`lib/env.ts`, ‏lint-ים, Vitest/Playwright/MSW, ‏Sentry, ‏CI; סביבות Vercel ו-Supabase; `docs/m0-verify.md`; 24 ספייקים (AI SDK, ‏`json_schema`, ‏`/videos` וחתימת webhook, ‏Scribe בעברית, ‏Eleven v4, ‏WDK hooks, ‏`@remotion/vercel` עם כתוביות עבריות, ‏`next/og`, ‏Grow ו-Morning, ‏CSP ועוד; 19–24: טוקן BISU של Meta, העלאת וידאו, ‏JSON של קמפיין לוואטסאפ ותקציב מינימלי בשקלים, טופס לידים בעברית על מכשיר, פרסום רילס לאינסטגרם ולפייסבוק, ‏`video_url` ב-OpenRouter); מסלול הבעלים מול Meta (משימה 7) | עמוד עברי RTL בשתי הערכות; MP4 מספייק עם כתוביות עבריות תקינות; כל `[M0-verify]` מתועד |
 | **M1** | כל חלק 04: מיגרציות, ‏RLS, פונקציות, אחסון, Realtime, ‏pg_cron, ‏seed מנספחים A–C | `db reset && db:seed` פעמיים; בידוד מלא בבדיקות; קרדיטים עוברים מקביליות |
 | **M2** | אתר שיווקי, ספריית הוקים, באנר עוגיות, דפים משפטיים בטיוטה, תשתית מיילים | Lighthouse נייד ≥ 90/100/100; כל דפי הנישה וההוקים נבנים מה-seed; אין PostHog לפני הסכמה |
 | **M3** | התחברות, אונבורדינג, סביבות עבודה, ערכת מותג, חילוץ מותג עם `safeFetch`, ‏MFA לאדמינים, ייצוא ומחיקה | משתמש חדש מגיע לדף הראשי עם 70 קרדיטים תוך פחות מ-2 דקות |
@@ -621,8 +718,14 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 | **M5** | צנרת היצירה: תזמור, צעדים, webhook, כתוביות, מוזיקה, Remotion, ‏Sandbox, עורך, sweeper, מגן תקציב | סרטון סטנדרט 30 שנ׳ בשלושה פורמטים לשלוש נישות, p50 < 6 דק׳; קליפ שנהרג → סצנה מדורדרת עם החזר |
 | **M6** | חיוב (Grow + mock, ‏Morning + mock), חידושים, dunning, יחסיות, ביטול, החזרים, חשבוניות, סוכנות, אדמין מלא | רכישה מעניקה פעם אחת גם עם webhook כפול; חשבונית עם מע״מ 18%; ביטול עוצר חידושים מיד |
 | **M7** | אבטחה ובדיקת חדירות, CSP באכיפה, בדיקת עומס (20 עבודות), ביקורת נגישות ידנית, עורך דין ורו״ח, סקירת עברית ושמיעה, סרטוני דוגמה אמיתיים, PITR, ‏runbooks, ערכת Product Hunt | כל סעיפי "הגדרת גמור" מסומנים; אפס P0/P1 |
+| **M8** | `0014`, ‏Trend Studio, ‏`trendAnalyze`, 11 שכבות טרנד וגופנים, ‏`script.generate.v2` ו-`storyboard.generate.v2`, הפרומפטים של `trends.*` ו-`guided.*`, פיד ועמודי טרנד באפליקציה, ‏`/trends` הציבורי, צילום מודרך ו-`guidedAutocut`, 12 תבניות עם הדגמות, ‏`trends_weekly`, "ציון הוק" | ייחוס מורשה מנותח (12 פריימים מתוזמנים לפחות ורשימת חיתוכים) בפחות מ-2 דק׳ ובפחות מ-$0.10; T1 מרונדר ל-3 נישות עם עברית נכונה על השלט; T4 מסומן לפרסום רגיל בלבד; צילום מודרך של T2 (3 קליפים, אחד מהם webm) נערך אוטומטית; `/trends/[slug]` בלי מדיה של הייחוס ועם Lighthouse ≥ 90; תלות של סקרייפינג מכשילה CI |
+| **M9** | `0013`, ‏`lib/meta` (לקוח, ‏mock, טוקנים, ‏webhooks, ניתוק, מחיקת נתונים ועמוד סטטוס), חיבור, שלב באונבורדינג, הגדרות, בדיקה מקדימה, רילס לאינסטגרם ולפייסבוק עכשיו או בתזמון, מדדים אורגניים, לוח תוכן, תיוג AI, ‏`post.caption.v2`, "תוכנית 30 יום" | בודק עם תפקיד באפליקציה מתחבר ומקבל רשימה ירוקה; רילס עולה עכשיו לשתי הפלטפורמות, ורילס שתוזמן ל-30 דק׳ קדימה עולה בטווח של ±2 דק׳; מכסת אינסטגרם נקראת בזמן ריצה; טוקן שבוטל הופך ל"נדרש חיבור מחדש" בריצה אחת עם מייל אחד; אף טוקן לא מופיע בלוגים או ב-Sentry |
+| **M10** | בונה הקמפיינים, טקסטים, בדיקת מדיניות, הכנה, תצוגות מקדימות ופרסום, סטטוסים, שומר התקציב, בדיקת 3 הוקים, שני סוגי הקידום, כללים, דשבורד, הסברים, סיכום שבועי, תקרות, לידים, "דף העסק", "בדיקת דופק"; 500 קריאות נקיות ב-15 יום; הגשת App Review | קמפיין וואטסאפ עם 3 הוקים בחשבון שלנו עובר מושהה ← תצוגות ← פרסום ← `in_review` ← `active`; שינוי תקציב רביעי בשעה נדחה בעברית; T4 לא עולה כמודעה; ליד בדיקה מגיע לתיבה ולהתראה תוך 60 שנ׳; ההוצאה תואמת את מנהל המודעות של מטא ב-±1%; קמפיין הבדיקה בחינם נעצר ב-₪300; תקרה של 100% חוסמת השקות ולא משהה דבר |
+| **M11** | כל אישורי ההרשאות, ‏Tech Provider, ‏Full Access, ‏Data Use Checkup ביומן, בדיקת smoke שבועית מול Meta, תרגול runbooks R14–R19, סקירות אבטחה ומשפט, סקירת עברית לקופי החדש, בדיקת עומס, בטא של 10 עסקים, הפעלת השיווק מאחורי שער הטענות | משתמש בלי תפקיד באפליקציה מתחבר בלי שגיאה 100; כל פריט ⚖️ של Meta סגור; `check-content --launch` עובר עם טענות שנבדקו; אפס P0/P1 |
 
-### 12.2 שלושים בדיקות "גמור" מרכזיות (הרשימה המלאה: חלק 06 §25)
+M8–M11 באים אחרי M7, משוחררים מאחורי דגלים, וכל אחת נסגרת כמו M0–M7.
+
+### 13.2 שלושים וחמש בדיקות "גמור" מרכזיות (הרשימה המלאה: חלק 06 §25)
 
 1. בעל עסק נרשם מהטלפון (קישור קסם או Google) ומגיע לדף הראשי עם 70 קרדיטים בפחות מ-2 דקות.
 2. מ-`/hooks/[niche]` מגיעים לסרטון מוכן בפחות מ-10 דקות (p50), בלי ידע בעריכה.
@@ -653,16 +756,21 @@ RLS פעיל על **כל** טבלה ב-`public`; מדיניות רק `to authent
 27. כל הקריאות ל-AI דרך OpenRouter מהשרת בלבד, עם `data_collection: "deny"`; רישום המודלים לא מפעיל מודל לבד; כל פלט LLM עובר Zod.
 28. קליפ שנכשל הופך לתמונה בתנועה עם החזר; כל קריאה נרשמת ב-`ai_generations` עם עלות.
 29. לכל דף מאונדקס כותרת ≤ 60, תיאור ≤ 155, canonical ו-H1 עברי; JSON-LD תקין; פתיח נישה ייחודי שנבדק בידי אדם.
-30. אנליטיקה: בדיוק 63 האירועים של חלק 06 §14.2, אין PostHog לפני הסכמה ואין PII; `README.md`, ‏`DECISIONS.md` ו-`CHANGELOG.md` שלמים; סרטוני הדוגמה באתר הם רינדורים אמיתיים.
+30. אנליטיקה: בדיוק 108 האירועים של חלק 06 §14.2 (63 עד M7, ועוד 45 ב-M8–M11), אין PostHog לפני הסכמה ואין PII; `README.md`, ‏`DECISIONS.md` ו-`CHANGELOG.md` שלמים; סרטוני הדוגמה באתר הם רינדורים אמיתיים.
+31. ניהול Meta: הכול נוצר מושהה ומתפרסם רק אחרי "פרסום" עם אישור מפורש; 0% מהתקציב, ואין שום מסלול שבו אנחנו מחזיקים כסף של פרסום; תקרה של 100% אף פעם לא משהה מודעות של לקוח.
+32. טוקנים של Meta מוצפנים ובשרת בלבד: לא בלוגים, לא ב-Sentry, לא באנליטיקה ולא בפרומפטים; webhooks של Meta מאומתים (`X-Hub-Signature-256`, ‏`signed_request`) ואידמפוטנטיים; ניתוק ומחיקת נתונים עובדים מקצה לקצה, ו-`/legal/dpa` וסעיפי Meta בתנאי השימוש אושרו ⚖️.
+33. הדשבורד מציג תמיד את 4 המדדים בעברית; "מה זה אומר?" לא מבטיח תוצאות ולא מציג ממוצעי ענף; לידים לא נכנסים לאף פרומפט.
+34. תבנית `organic_only` (T4) וממשק מזויף לא עולים כמודעה; בתבניות אין מוזיקה מוגנת, פנים או קול של יוצר הייחוס, וגם לא טקסט שהועתק ממנו (בדיקת הדמיון חוסמת).
+35. "דף העסק" לא מתפרסם בתוכנית חינם, וכל יצירה שלו עולה 10 קרדיטים; "ציון הוק" מוצג תמיד עם "הערכה לפי כללי הוקים — לא הבטחה לתוצאות."; App Review, ‏Tech Provider ו-Full Access הושלמו לפני ההשקה הציבורית של יכולות Meta.
 
 ---
 
-## 13. הודעה ראשונה לבוני אפליקציות (Lovable, ‏Bolt, ‏v0, ‏Replit Agent)
+## 14. הודעה ראשונה לבוני אפליקציות (Lovable, ‏Bolt, ‏v0, ‏Replit Agent)
 
 הפלטפורמות האלה לא מריצות Vercel Workflows ולא Remotion על Vercel Sandbox, ולפעמים גם לא Next.js. שלב 1 בונה **שלד אמיתי עם אותם שמות ואותם חוזים**, ומחליף את התזמור, הרינדור, הסליקה והחשבוניות בספקי mock מאחורי אותם ממשקים — כך שהמעבר לבנייה המלאה הוא החלפת מימוש, לא שכתוב. מדביקים את ההודעה הבאה כמו שהיא (אחרי החלפת משתני `{{…}}`), ומצרפים את `seed/*.json` כשהפלטפורמה מאפשרת העלאת קבצים.
 
 ```text
-אתה בונה את שלב 1 של {{BRAND_NAME}} ({{BRAND_NAME_EN}}): SaaS בעברית, RTL מלא, שמייצר בעזרת AI סרטוני תדמית ורילס לעסקים קטנים בישראל לפי נישה, עם ספריית הוקים ציבורית בעברית. כל טקסט בממשק בעברית; קוד, מזהים והערות באנגלית. אל תשאל שאלות — החלט, ותעד כל החלטה בקובץ DECISIONS.md (תאריך, החלטה, חלופות, סיבה, השפעה).
+אתה בונה את שלב 1 של {{BRAND_NAME}} ({{BRAND_NAME_EN}}): SaaS בעברית, RTL מלא, שמייצר בעזרת AI סרטוני תדמית ורילס לעסקים קטנים בישראל לפי נישה, עם ספריית הוקים ציבורית בעברית. בהמשך (לא בשלב 1) המוצר גם מעלה את הסרטונים כקמפיין בפייסבוק ובאינסטגרם, מנהל לידים ומציע תבניות טרנד. אל תבנה את זה עכשיו, ואל תשתמש לשום דבר אחר בשמות ששמורים לזה: הטבלאות meta_*, ad_*, lead_forms, leads, social_*, trend_*, guided_shoots, landing_pages, content_plans, content_plan_items, ad_health_reports ו-managed_spend_monthly, והנתיבים /app/campaigns, /app/leads, /app/publish, /app/trends, /app/plan, /app/landing-pages, /trends, /campaigns ו-/b/[slug]. כל טקסט בממשק בעברית; קוד, מזהים והערות באנגלית. אל תשאל שאלות — החלט, ותעד כל החלטה בקובץ DECISIONS.md (תאריך, החלטה, חלופות, סיבה, השפעה).
 
 עקרונות שאסור להפר:
 1. <html lang="he" dir="rtl">. רק מחלקות לוגיות של Tailwind (ms/me/ps/pe, inset-s/inset-e, text-start/end, gap במקום space-x). מספרים, מחירים וטלפונים בתוך <bdi> עם tabular-nums. נגן וידאו וציר זמן נשארים LTR. אייקוני חצים מתהפכים, play/pause לא.
@@ -698,9 +806,11 @@ bg #08080C / #FAF7F2 · surface-1 #121219 / #FFFFFF · surface-2 #1A1A24 / #F1EC
 - תשלומים וחשבוניות: PaymentProvider ו-InvoiceProvider עם מימוש mock בלבד; קרדיטים מוענקים רק מ-webhook מדומה מאומת, לעולם לא מדף החזרה. אין חיבור ל-Grow או ל-Morning.
 - מיילים: EMAIL_PROVIDER=log.
 - חיוב קרדיטים בצנרת: create_job_and_reserve בהתחלה, capture_credits אחרי כל צעד שהצליח, refund_reservation בכישלון, settle_reservation בסוף — גם כשהצעדים מדומים.
-- מחוץ להיקף שלב 1: פאנל אדמין, סוכנות וסביבות לקוח, עורך הסטוריבורד המלא, dunning, החזרים, חשבוניות אמיתיות, בלוג.
+- מחוץ להיקף שלב 1: פאנל אדמין, סוכנות וסביבות לקוח, עורך הסטוריבורד המלא, dunning, החזרים, חשבוניות אמיתיות, בלוג, וכל M8–M11: Meta (חיבור, קמפיינים, לידים, פרסום רגיל ותזמון), טרנדים וצילום מודרך, דף העסק, בדיקת דופק, תוכנית 30 יום וציון הוק.
 
 סיום שלב 1: משתמש חדש נרשם, עובר אונבורדינג, יוצר פרויקט מהוק בספרייה, עובר את 9 שלבי האשף, מאשר עלות, רואה מסך התקדמות שמתקדם עד "הסרטון מוכן" עם סרטון דמו, והקרדיטים ביומן מאוזנים. הכול בעברית, RTL, בשתי הערכות, ונגיש במקלדת. בסוף: רשימה של כל ה-stubs, וכל החלטה ב-DECISIONS.md.
 ```
 
 **אחרי שלב 1:** כשעוברים לסביבה עם גישה לריפו (Cursor, ‏Claude Code, ‏Codex, ‏Replit עם git) — מתחילים את הבנייה המלאה מ-`PROMPT.md` ומ-M0, ומחליפים כל stub לפי החלק שבבעלותו: התזמור והרינדור לפי `prompt/05` §18–§20, החיוב לפי `prompt/06` §1–§10, והנתיבים, הטבלאות והפונקציות לפי `prompt/04`. כל חריגה זמנית משלב 1 (Vite במקום Next.js, ‏Edge Functions במקום Route Handlers, ‏`inline` במקום Vercel Workflows) נסגרת ונרשמת ב-`DECISIONS.md` לפני תחילת M1.
+
+**Meta וניתוח וידאו בבוני אפליקציות:** מי שממשיך בבונה אפליקציות גם ל-M8–M11 מריץ הכול מול mocks מאחורי אותם ממשקים: `META_PROVIDER=mock` (`lib/meta/mock/*` עם handlers של MSW, עמוד ההסכמה `/dev/mock-meta-login` ומדמה webhook של לידים), וניתוח טרנדים עם fixtures קבועים של `TrendAnalysisV1` במקום ffmpeg ו-`video_url` אמיתיים. חיבור אמיתי ל-Meta רק בסביבה עם גישה לריפו, ולקוחות חיצוניים רק אחרי Business Verification, ‏App Review ו-Tech Provider.

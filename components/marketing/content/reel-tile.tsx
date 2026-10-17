@@ -2,6 +2,7 @@ import * as React from "react";
 import type { LucideIcon } from "lucide-react";
 import { Heart, MessageCircle, Send, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CONTENT_UI } from "@/content/he/site";
 
 /**
  * Styled 9:16 video placeholder (no external media yet): gradient "footage", niche icon,
@@ -47,7 +48,7 @@ export function ReelTile({
   return (
     <div
       role="img"
-      aria-label={ariaLabel ?? `אריח הדגמה של סרטון אנכי${label ? ` לנישה ${label}` : ""}, עם ההוק: ${hook}`}
+      aria-label={ariaLabel ?? CONTENT_UI.tileAria(hook, label)}
       dir="ltr"
       className={cn("frame-tile relative aspect-reel select-none bg-black text-white", className)}
     >
@@ -83,7 +84,7 @@ export function ReelTile({
         ) : (
           <span />
         )}
-        {demo && <span className="shrink-0 rounded-xs bg-white/90 px-1.5 py-0.5 text-[0.65rem] font-bold text-black">הדגמה</span>}
+        {demo && <span className="shrink-0 rounded-xs bg-white/90 px-1.5 py-0.5 text-[0.65rem] font-bold text-black">{CONTENT_UI.demo}</span>}
       </div>
 
       {/* hook in the top safe zone */}

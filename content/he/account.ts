@@ -1108,6 +1108,6 @@ export const hooksCopy = {
   },
   favoritesEmpty: "עוד אין הוקים שמורים. לחיצה על הכוכב בכרטיס של הוק שומרת אותו כאן.",
   favoritesEmptyTitle: "עוד אין מועדפים",
-  season: "{seasonName}: {dateHint}. כדאי לפרסם {publishWindow}.",
+  season: "{seasonName}: {dateHint}. מתי לפרסם: {publishWindow}.",
   loadMore: "הצגת עוד הוקים",
 };

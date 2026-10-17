@@ -2,6 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import { BRAND } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { CONTENT_UI } from "@/content/he/site";
 import { LTR_VARS, PENDING_MARKER_HE, resolveOwnerVar } from "./owner-vars";
 
 /**
@@ -51,7 +52,7 @@ function renderLink(label: React.ReactNode, href: string, key: string) {
   return (
     <a key={key} href={href} target="_blank" rel="noopener nofollow" className={cls}>
       {label}
-      <span className="sr-only"> (נפתח בלשונית חדשה)</span>
+      <span className="sr-only"> {CONTENT_UI.newTab}</span>
     </a>
   );
 }

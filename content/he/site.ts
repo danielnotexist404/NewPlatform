@@ -28,6 +28,7 @@ export const CONTENT_UI = {
   breadcrumbsLabel: "פירורי לחם",
   newTab: "(נפתח בלשונית חדשה)",
   demo: "הדגמה",
+  tileAria: (hook: string, label?: string) => `אריח הדגמה של סרטון אנכי${label ? ` לנישה ${label}` : ""}, עם ההוק: ${hook}`,
   tocLegal: "תוכן העניינים",
   tocBlog: "בכתבה הזו",
   sectionLink: "קישור ישיר לסעיף",

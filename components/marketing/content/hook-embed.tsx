@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { CopyButton } from "./copy-button";
+import { CONTENT_UI } from "@/content/he/site";
 
 const NICHE_ICONS: Record<string, LucideIcon> = { House };
 
@@ -52,7 +53,7 @@ export function HookEmbed({ id }: { id: string }) {
             {hook.is_featured && (
               <Badge variant="neutral">
                 <Sparkles aria-hidden />
-                מומלץ
+                {CONTENT_UI.hook.featured}
               </Badge>
             )}
           </div>
@@ -60,19 +61,19 @@ export function HookEmbed({ id }: { id: string }) {
             &quot;<HookText text={hook.text_he} />&quot;
           </blockquote>
           <figcaption className="mt-2 text-small text-text-2">
-            <span className="font-semibold text-text">על המסך: </span>
+            <span className="font-semibold text-text">{CONTENT_UI.hook.onScreen}</span>
             {hook.visual_direction_he}
           </figcaption>
           {hook.compliance_note_he && (
-            <p className="mt-2 flex items-start gap-1.5 text-small text-text-2">
+            <p className="mb-0 mt-2 flex items-start gap-1.5 text-small text-text-2">
               <TriangleAlert aria-hidden className="mt-1 size-4 shrink-0 text-primary-text" />
               {hook.compliance_note_he}
             </p>
           )}
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <CopyButton text={hook.text_he} label="העתקת ההוק" />
+            <CopyButton text={hook.text_he} label={CONTENT_UI.hook.copy} copiedToast={CONTENT_UI.hook.copied} />
             <Link href={createHref} className={cn(buttonVariants({ size: "sm" }))}>
-              צרו סרטון מההוק
+              {CONTENT_UI.hook.create}
             </Link>
           </div>
         </div>
