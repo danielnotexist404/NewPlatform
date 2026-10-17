@@ -93,13 +93,13 @@ export const DASHBOARD_SAMPLE = {
   /** 280 ÷ 23, rounded to agorot */
   costPerResultIls: 12.17,
   daily: [
-    { day: "א׳", spend: 40, results: 2 },
-    { day: "ב׳", spend: 40, results: 3 },
+    { day: "א׳", spend: 38, results: 2 },
+    { day: "ב׳", spend: 41, results: 3 },
     { day: "ג׳", spend: 40, results: 3 },
-    { day: "ד׳", spend: 40, results: 4 },
-    { day: "ה׳", spend: 40, results: 3 },
-    { day: "ו׳", spend: 40, results: 5 },
-    { day: "ש׳", spend: 40, results: 3 },
+    { day: "ד׳", spend: 42, results: 4 },
+    { day: "ה׳", spend: 39, results: 3 },
+    { day: "ו׳", spend: 41, results: 5 },
+    { day: "ש׳", spend: 39, results: 3 },
   ],
   hooks: [
     { hookId: "barbers-salons-01", text: barberHook("barbers-salons-01").text_he, impressions: 5200, hookRatePct: 31, results: 13, spendIls: 120, winner: true },

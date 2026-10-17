@@ -55,7 +55,7 @@ export function HowItWorks() {
               }}
               className={cn(
                 "flex flex-col gap-5 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-opacity duration-[var(--duration-panel)]",
-                pinned && "min-h-[62vh] justify-center bg-transparent p-0 shadow-none",
+                pinned && "min-h-[52vh] justify-center bg-transparent p-0 shadow-none",
                 pinned && !on && "opacity-35",
               )}
             >
@@ -85,7 +85,7 @@ export function HowItWorks() {
             </li>
           );
         })}
-        <li className={cn("list-none", pinned ? "pb-[20vh]" : "pt-2")}>
+        <li className={cn("list-none", pinned ? "pb-[14vh]" : "pt-2")}>
           <Button variant="secondary" size="lg" onClick={focusHero} data-cta-location="how_it_works">
             {T.cta}
           </Button>

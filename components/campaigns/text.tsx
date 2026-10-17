@@ -57,6 +57,14 @@ export function axisDay(iso: string) {
   return `${Number(d)}.${Number(m)}`;
 }
 
+/** Plain-string price for toasts, logs and CSV: "₪1,200" (same rule as `Price`). */
+export function formatIls(n: number, decimals = false): string {
+  const v = decimals
+    ? new Intl.NumberFormat("he-IL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+    : nf.format(n);
+  return `₪${v}`;
+}
+
 /** Percent, bidi-isolated: "12%". */
 export function Pct({ value, digits = 0, className }: { value: number; digits?: number; className?: string }) {
   const v = new Intl.NumberFormat("he-IL", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(value);

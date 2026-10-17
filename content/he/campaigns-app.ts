@@ -490,6 +490,7 @@ export const detail = {
     source: "הסבר שכתב AI מתוך המספרים של הקמפיין הזה בלבד, בלי השוואה לעסקים אחרים.",
     s1: "{range} הוצאתם {spend} והגיעו {results}. כל תוצאה עלתה בממוצע {cpr}.",
     s1NoResults: "{range} הוצאתם {spend}, ועוד לא הגיעו תוצאות.",
+    s1Spend: "{range} הוצאתם {spend}.",
     s2Winner: "ההוק \"{hook}\" עוצר הכי הרבה אנשים: {rate} מהם צפו לפחות 3 שניות.",
     s3Winner: "הוא גם מביא תוצאה בפחות כסף משני האחרים, אז כדאי לתת לו את רוב התקציב.",
     s2Paused: "הקמפיין מושהה, ולכן כרגע הוא לא מוציא כסף ולא מביא לידים.",
@@ -530,6 +531,24 @@ export const detail = {
     empty: "עוד אין שינויים.",
   },
   quietDay: "היום יום שקט. כדאי לשקול להשהות את הקמפיין",
+  publishAsPost: "פרסום כפוסט רגיל",
+  logText: {
+    paused: "הקמפיין הושהה",
+    resumed: "הקמפיין חודש",
+    budget: "התקציב היומי שונה מ-{from} ל-{to}",
+    boost: "הגברת המנצח: הוק {key} נשאר פעיל, השאר הושהו",
+    ended: "הקמפיין הסתיים והמודעות הושהו במטא",
+    ruleOn: "הופעל הכלל \"{name}\"",
+    ruleOff: "כובה הכלל \"{name}\"",
+    owner: "בעל העסק",
+  },
+  resultForms: {
+    whatsapp_messages: { one: "פנייה אחת בוואטסאפ", two: "2 פניות בוואטסאפ", other: "# פניות בוואטסאפ" },
+    lead_form: { one: "ליד אחד", two: "2 לידים", other: "# לידים" },
+    website_traffic: { one: "כניסה אחת לאתר", two: "2 כניסות לאתר", other: "# כניסות לאתר" },
+    local_awareness: { one: "צפייה אחת", two: "2 צפיות", other: "# צפיות" },
+  } satisfies Record<CampaignGoal, { one: string; two: string; other: string }>,
+  peopleForms: { one: "אדם אחד", other: "# אנשים" },
 } as const;
 
 export const REVIEW_FEEDBACK_HE: Record<ReviewFeedbackKey, { title: string; fix: string; action: "edit_copy" | "new_video" | "contact_support" | "none" }> = {

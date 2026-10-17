@@ -5,7 +5,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/misc";
 import type { CaptionPreset, DemoFormat } from "@/lib/mock/landing";
 import { ReelArt } from "./reel-tile";
 import { LANDING } from "@/content/he/landing";
-import { cn } from "@/lib/utils";
 
 const T = LANDING.showcase;
 
@@ -50,7 +49,7 @@ export function ShowcaseGallery({ items }: { items: ShowcaseItem[] }) {
         ))}
       </ToggleGroup>
       <p className="sr-only" aria-live="polite">{announce}</p>
-      <ul className="columns-1 gap-4 sm:columns-2 lg:columns-3 [&>li]:mb-4">
+      <ul className="columns-2 gap-3 sm:gap-4 lg:columns-3 [&>li]:mb-3 sm:[&>li]:mb-4">
         {shown.map((item, i) => (
           <li key={item.id} className="break-inside-avoid">
             <Link
@@ -76,7 +75,7 @@ export function ShowcaseGallery({ items }: { items: ShowcaseItem[] }) {
                   <bdi className="num rounded-[6px] bg-black/60 px-1.5 py-0.5 text-micro text-white">{item.format}</bdi>
                 </span>
               </div>
-              <p className={cn("px-4 py-3 text-sm font-semibold text-text")}>{item.title}</p>
+              <p className="px-3 py-2.5 text-small font-semibold leading-snug text-text sm:px-4 sm:py-3 sm:text-sm">{item.title}</p>
             </Link>
           </li>
         ))}

@@ -40,7 +40,7 @@ export function Section({
   container?: boolean;
 }) {
   return (
-    <section id={id} aria-labelledby={labelledBy} className={cn("relative scroll-mt-20 py-20 md:py-28", className)}>
+    <section id={id} aria-labelledby={labelledBy} className={cn("relative scroll-mt-20 py-16 md:py-24", className)}>
       {container ? <div className="container-marketing">{children}</div> : children}
     </section>
   );

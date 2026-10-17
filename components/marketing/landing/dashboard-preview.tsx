@@ -83,7 +83,7 @@ export function DashboardPreview() {
           </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-5">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-5">
           {/* chart */}
           <div className="flex flex-col gap-3 rounded-md bg-surface-2/50 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] lg:col-span-2">
             <div className="flex items-center justify-between gap-2">
@@ -137,11 +137,11 @@ export function DashboardPreview() {
           <div className="flex flex-col gap-3 rounded-md bg-surface-2/50 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] lg:col-span-3">
             <h4 className="text-small font-bold text-text">{T.hooksTitle}</h4>
             <div className="-mx-1 overflow-x-auto px-1">
-              <table className="w-full min-w-[460px] text-small">
+              <table className="w-full text-small">
                 <thead>
                   <tr className="text-micro text-muted">
                     <th scope="col" className="pb-2 text-start font-semibold">{T.hookCols.hook}</th>
-                    <th scope="col" className="pb-2 text-start font-semibold">{T.hookCols.hookRate}</th>
+                    <th scope="col" className="hidden pb-2 text-start font-semibold sm:table-cell">{T.hookCols.hookRate}</th>
                     <th scope="col" className="pb-2 text-start font-semibold">{T.hookCols.results}</th>
                     <th scope="col" className="pb-2 text-start font-semibold">{T.hookCols.cpr}</th>
                   </tr>
@@ -149,7 +149,7 @@ export function DashboardPreview() {
                 <tbody>
                   {D.hooks.map((h) => (
                     <tr key={h.hookId} className="border-t border-border align-middle">
-                      <th scope="row" className="max-w-[16rem] py-2.5 pe-3 text-start font-semibold text-text">
+                      <th scope="row" className="py-2.5 pe-3 text-start font-semibold text-text sm:max-w-[16rem]">
                         <span className="line-clamp-2">{h.text}</span>
                         {h.winner && (
                           <span className="mt-1 inline-flex items-center gap-1 rounded-xs bg-primary px-1.5 py-0.5 text-micro text-on-primary">
@@ -158,7 +158,7 @@ export function DashboardPreview() {
                           </span>
                         )}
                       </th>
-                      <td className="py-2.5 pe-3">
+                      <td className="hidden py-2.5 pe-3 sm:table-cell">
                         <div className="flex items-center gap-2">
                           <span className="h-1.5 w-14 overflow-hidden rounded-full bg-surface-3" aria-hidden>
                             <span className="block h-full rounded-full bg-[var(--color-chart-1)]" style={{ width: `${h.hookRatePct * 2.6}%` }} />

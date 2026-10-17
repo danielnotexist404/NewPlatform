@@ -29,6 +29,7 @@ export function Hero() {
   return (
     <section id="hero" aria-labelledby="hero-title" className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-afterglow opacity-80" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-[linear-gradient(to_bottom,transparent,var(--color-bg))] max-md:hidden" aria-hidden />
       <div className="container-marketing grid grid-cols-[minmax(0,1fr)] gap-10 pb-16 pt-6 md:pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-12 lg:pt-4">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-7 lg:pb-6 lg:pt-4">
           <span className="inline-flex w-fit items-center gap-2 rounded-full bg-surface-2/80 px-3 py-1 text-micro text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">
