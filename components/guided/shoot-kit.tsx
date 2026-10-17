@@ -124,7 +124,7 @@ export function ShootKit({ trendSlug, nicheSlug, nicheIcon }: { trendSlug: strin
         <div className="flex flex-col gap-5">
           <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-success/15 px-3 py-1 text-micro text-success">
             <Check aria-hidden className="size-3.5" />
-            {GUIDED.states.done}
+            {GUIDED.autocut.doneBadge}
           </p>
           <h2 id="autocut-done" tabIndex={-1} className="text-h2">{GUIDED.autocut.done}</h2>
           <p className="text-body-lg text-text-2">{GUIDED.autocut.doneSub}</p>

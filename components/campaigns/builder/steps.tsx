@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 export function StepHeading({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-h2" tabIndex={-1} data-step-heading>
+      <h2 className="text-h2 outline-none" tabIndex={-1} data-step-heading>
         {title}
       </h2>
       <p className="max-w-xl text-body text-text-2">{sub}</p>
@@ -74,24 +74,20 @@ export function GoalStep({ d, patch }: { d: DraftState; patch: Patch }) {
                 <span className={cn("flex size-11 items-center justify-center rounded-full", selected ? "bg-primary text-on-primary" : "bg-surface-3 text-text")}>
                   <Icon className="size-5" />
                 </span>
-                {g === builderDraft.defaults.goal && (
-                  <span className="rounded-full bg-primary/12 px-2.5 py-1 text-micro text-primary-text">{B.goal.recommended}</span>
-                )}
+                <span className="flex items-center gap-2">
+                  {g === builderDraft.defaults.goal && (
+                    <span className="rounded-full bg-primary/12 px-2.5 py-1 text-micro text-primary-text">{B.goal.recommended}</span>
+                  )}
+                  <span aria-hidden className={cn("flex size-5 items-center justify-center rounded-full border-2", selected ? "border-primary bg-primary" : "border-border-strong")}>
+                    {selected && <span className="size-2 rounded-full bg-on-primary" />}
+                  </span>
+                </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-body-lg font-bold">{GOAL_COPY[g].label}</span>
                 <span className="text-small text-text-2">{GOAL_COPY[g].desc}</span>
               </div>
               {g === "website_traffic" && <span className="text-micro font-normal text-muted">{B.goal.noWebsite}</span>}
-              <span
-                aria-hidden
-                className={cn(
-                  "absolute top-4 inset-e-4 hidden size-5 items-center justify-center rounded-full border-2",
-                  selected ? "flex border-primary bg-primary" : "md:flex border-border-strong",
-                )}
-              >
-                {selected && <span className="size-2 rounded-full bg-on-primary" />}
-              </span>
             </label>
           );
         })}
@@ -398,7 +394,7 @@ export function BudgetStep({ d, patch }: { d: DraftState; patch: Patch }) {
         })}
       </div>
       <div className="flex flex-wrap items-end gap-3">
-        <Button variant={d.customBudget ? "secondary" : "ghost"} size="sm" onClick={() => patch({ customBudget: true })} aria-pressed={d.customBudget}>
+        <Button variant={d.customBudget ? "secondary" : "outline"} size="sm" onClick={() => patch({ customBudget: true })} aria-pressed={d.customBudget}>
           {B.budget.custom}
         </Button>
         {d.customBudget && (

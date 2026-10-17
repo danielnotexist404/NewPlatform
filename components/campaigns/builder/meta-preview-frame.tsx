@@ -43,7 +43,7 @@ export function MetaPreviewFrame({
       <div className="overflow-hidden rounded-[22px] bg-black p-1.5 elev-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">
         {platform === "reels" ? (
           <div className="relative overflow-hidden rounded-[16px]">
-            <VideoThumb hookText={hookText} tone={tone} size="lg" showPlay={false} className="w-full rounded-[16px]" />
+            <VideoThumb hookText={hookText} tone={tone} size="lg" showPlay={false} hideIcon className="w-full rounded-[16px]" />
             {/* action rail sits on the physical right (Part 01 §16.3 safe zones); inset-s = right in our RTL app */}
             <div aria-hidden className="absolute bottom-24 inset-s-2 flex flex-col items-center gap-3 text-white">
               <Heart className="size-5" />

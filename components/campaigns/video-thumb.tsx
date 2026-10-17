@@ -24,6 +24,7 @@ export function VideoThumb({
   className,
   showPlay = true,
   aspect = "reel",
+  hideIcon = false,
   children,
 }: {
   hookText?: string;
@@ -34,6 +35,7 @@ export function VideoThumb({
   className?: string;
   showPlay?: boolean;
   aspect?: "reel" | "feed" | "square";
+  hideIcon?: boolean;
   children?: React.ReactNode;
 }) {
   const showText = !!hookText && (size === "md" || size === "lg");
@@ -48,14 +50,14 @@ export function VideoThumb({
       {/* film light + vignette */}
       <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(115deg,transparent_35%,rgb(255_255_255/.08)_45%,transparent_55%)]" />
       <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(80%_60%_at_50%_120%,rgb(0_0_0/.55),transparent)]" />
-      <Icon
+      {!hideIcon && <Icon
         aria-hidden
         strokeWidth={1.25}
         className={cn(
           "absolute bottom-[14%] inset-s-1/2 opacity-30 ltr:-translate-x-1/2 rtl:translate-x-1/2",
           size === "xs" ? "size-5" : size === "sm" ? "size-8" : size === "md" ? "size-14" : "size-20",
         )}
-      />
+      />}
       {showText && (
         <p
           dir="rtl"

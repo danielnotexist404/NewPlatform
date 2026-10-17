@@ -92,11 +92,11 @@ export function ReelTile({
       </div>
 
       {/* hook in the top safe zone */}
-      <div dir="rtl" className="absolute inset-x-[10%] top-[22%] flex justify-center">
+      {hook && <div dir="rtl" className="absolute inset-x-[10%] top-[22%] flex justify-center">
         <p className={cn("rounded-[8px] bg-black/55 px-2.5 py-1.5 text-center font-extrabold leading-snug text-white shadow-[0_8px_24px_rgb(0_0_0/.35)] backdrop-blur-[2px]", text)}>
           {hook}
         </p>
-      </div>
+      </div>}
 
       {/* action column — physical right, like the platform UI */}
       <div aria-hidden className="absolute inset-e-2 bottom-[18%] flex flex-col items-center gap-3 text-white/85">

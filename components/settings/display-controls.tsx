@@ -4,7 +4,7 @@ import { Moon, Sun, MonitorSmartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/misc";
 import { settingsCopy } from "@/content/he/account";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 /**
  * Theme + motion controls. They write the same keys as the TopBar DisplaySettings and the blocking

@@ -1,7 +1,7 @@
 import { House, Clapperboard, Scissors, Sparkles, Smile } from "lucide-react";
 import { getHook } from "@/lib/data/seed";
 import { cn } from "@/lib/utils";
-import { COVER_ART, type BlogPost } from "@/content/he/blog";
+import { BLOG_COVER_ART, type BlogPost } from "@/content/he/blog";
 import { ReelTile } from "./reel-tile";
 
 /** Film-strip perforations (decorative). */
@@ -47,19 +47,19 @@ function Glow({ a, b }: { a: string; b: string }) {
 }
 
 function RealEstateArt({ sm }: { sm: boolean }) {
-  const [front, left, right] = COVER_ART.realEstate.hooks.map((id) => getHook(id)?.text_he ?? "");
+  const front = getHook(BLOG_COVER_ART.realEstate.hooks[0])?.text_he ?? "";
   return (
     <>
       <Glow a="--color-primary" b="--color-rose" />
       <div aria-hidden className="absolute inset-0 flex items-center justify-center" dir="ltr">
         <div className="absolute h-[70%] -translate-x-[62%] -rotate-[9deg] opacity-70">
-          <ReelTile hook={left} icon={House} tone="violet" size="sm" demo={false} className="h-full w-auto" decorative />
+          <ReelTile hook="" icon={House} tone="violet" size="sm" demo={false} className="h-full w-auto" decorative />
         </div>
         <div className="absolute h-[70%] translate-x-[62%] rotate-[9deg] opacity-70">
-          <ReelTile hook={right} icon={House} tone="rose" size="sm" demo={false} className="h-full w-auto" decorative />
+          <ReelTile hook="" icon={House} tone="rose" size="sm" demo={false} className="h-full w-auto" decorative />
         </div>
         <div className="relative h-[86%] drop-shadow-[0_24px_48px_rgb(0_0_0/.6)]">
-          <ReelTile hook={front} label={COVER_ART.realEstate.label} icon={House} tone="gold" size={sm ? "sm" : "md"} className="h-full w-auto" decorative />
+          <ReelTile hook={front} label={BLOG_COVER_ART.realEstate.label} icon={House} tone="gold" size={sm ? "sm" : "md"} className="h-full w-auto" decorative />
         </div>
       </div>
     </>
@@ -75,11 +75,11 @@ function CostArt({ sm }: { sm: boolean }) {
       <Perforations className="bottom-3" />
       <div aria-hidden className="absolute inset-0 flex flex-col items-center justify-center gap-[4cqw]">
         <div className="flex items-center gap-[3cqw]">
-          <span className="font-display text-[22cqw] leading-none text-gold-gradient">₪</span>
-          {!sm && <span className="max-w-[30cqw] text-[4.2cqw] font-extrabold leading-tight text-white">{COVER_ART.cost.title}</span>}
+          <span className="text-[19cqw] font-black leading-none text-gold-gradient">₪</span>
+          {!sm && <span className="max-w-[30cqw] text-[4.2cqw] font-extrabold leading-tight text-white">{BLOG_COVER_ART.cost.title}</span>}
         </div>
         <div className="flex gap-[2cqw]">
-          {COVER_ART.cost.cards.map((c, i) => {
+          {BLOG_COVER_ART.cost.cards.map((c, i) => {
             const I = icons[i];
             return (
               <span key={c} className={cn("flex items-center gap-[1cqw] rounded-full border border-white/15 bg-white/[0.06] px-[2.2cqw] py-[1cqw] text-[2.4cqw] font-semibold text-white/90 backdrop-blur", i === 2 && "border-primary/60 text-primary")}>
@@ -95,7 +95,7 @@ function CostArt({ sm }: { sm: boolean }) {
 }
 
 function ReelsArt({ sm }: { sm: boolean }) {
-  const a = COVER_ART.reels;
+  const a = BLOG_COVER_ART.reels;
   return (
     <>
       <Glow a="--color-violet" b="--color-primary" />

@@ -9,7 +9,7 @@ import { EmptyState, TableShell } from "@/components/settings/kit";
 import { billingCopy } from "@/content/he/account";
 import { MOCK_LEDGER, type LedgerKind } from "@/lib/mock/account";
 import { formatDateHe, formatInt, formatSigned } from "@/components/settings/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/settings/cn";
 
 const l = billingCopy.ledger;
 type Filter = "all" | "additions" | "generations" | "refunds" | "expirations";

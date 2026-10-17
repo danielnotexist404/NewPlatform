@@ -38,7 +38,7 @@ export function HookEmbed({ id }: { id: string }) {
   const createHref = `/login?next=${encodeURIComponent(`/app/create?hook=${hook.id}`)}`;
 
   return (
-    <figure className="not-prose relative my-8 overflow-hidden rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-6">
+    <figure className="not-prose relative my-8 [&_a]:no-underline overflow-hidden rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-6">
       <div aria-hidden className="pointer-events-none absolute -top-24 inset-e-[-6rem] size-64 rounded-full bg-primary/10 blur-3xl" />
       <div className="relative flex gap-4 md:gap-5">
         <div aria-hidden className="hidden w-16 shrink-0 flex-col items-center gap-2 xs:flex">

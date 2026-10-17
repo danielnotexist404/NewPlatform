@@ -12,7 +12,7 @@ import { Panel, Section, Note } from "./kit";
 import { settingsCopy } from "@/content/he/account";
 import { MOCK_FLAGS, MOCK_NOTIFICATION_PREFS, MOCK_CONSENTS, type NotificationKind } from "@/lib/mock/account";
 import { fill } from "./format";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 const c = settingsCopy.notifications;
 

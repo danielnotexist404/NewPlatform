@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Info, Music, ShieldCheck } from "lucide-react";
@@ -9,6 +10,7 @@ import { AdSafetyBadge, HookScoreBadge, ProductionBadge, TrendLifecycleBadge } f
 import { CreateTrendPanel, TrendFitBox, TrendHeroMedia } from "@/components/trends/trend-detail-client";
 import type { NicheOption } from "@/components/trends/niche-picker";
 import { DirIcon } from "@/components/a11y/dir-icon";
+import { PageSkeleton } from "@/components/trends/page-skeleton";
 import { Num } from "@/components/a11y/num";
 import { MUSIC_ENERGY_LABEL, TREND_DETAIL, TRENDS_META } from "@/content/he/trends-app";
 import { getHookType, getNiche, nicheShortName, niches } from "@/lib/data/seed";
@@ -26,7 +28,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return { title: m.title, description: m.description, robots: { index: false } };
 }
 
-export default async function TrendPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function TrendPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <TrendDetail params={params} />
+    </Suspense>
+  );
+}
+
+async function TrendDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const trend = getTrend(slug);
   if (!trend) notFound();

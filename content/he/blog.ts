@@ -66,8 +66,8 @@ export const BLOG_UI = {
 } as const;
 
 /** Text inside the cover illustrations (no photos yet — CSS art). */
-export const COVER_ART = {
-  realEstate: { label: "נדל״ן", hooks: ["real-estate-01", "real-estate-04", "real-estate-10"] },
+export const BLOG_COVER_ART = {
+  realEstate: { label: "נדל״ן", hooks: ["real-estate-01"] },
   cost: { title: "כמה עולה סרטון?", cards: ["הפקה מלאה", "עריכה בלבד", "סרטון ב-AI"] },
   reels: {
     hook: "אל תלבינו שיניים לפני שאתם יודעים את זה",
@@ -106,7 +106,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: AUTHOR,
     tags: ["hooks", "niches", "reels"],
     niches: ["real-estate"],
-    cover: { art: "real-estate", alt: "איור: אריח רילס אנכי עם ההוק \"3 דברים לבדוק לפני שחותמים על דירה\", לצד שני אריחים של הוקים נוספים לנדל״ן" },
+    cover: { art: "real-estate", alt: "איור: אריח רילס אנכי עם ההוק \"3 דברים לבדוק לפני שחותמים על דירה\", לצד שני אריחי סרטונים נוספים" },
     cta: { kind: "hooks", niche: "real-estate" },
     body: `
 רוב סרטוני הנדל״ן נפתחים באותה צורה: דלת נפתחת, מוזיקה אופטימית, ומשפט כמו "דירת 4 חדרים מהממת במיקום מעולה". הבעיה היא לא הדירה. הבעיה היא שהצופה כבר ראה את הפתיחה הזו מאה פעם, והאגודל שלו ממשיך לגלול.

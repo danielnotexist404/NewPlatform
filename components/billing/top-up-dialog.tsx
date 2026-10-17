@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { CreditCard, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Tag as Badge } from "@/components/settings/kit";
 import { RadioCards } from "@/components/settings/controls";
 import { BillingDisclosure } from "./billing-disclosure";
 import { billingCopy, accountCommon } from "@/content/he/account";

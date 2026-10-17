@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Camera } from "lucide-react";
 import { ShootKit } from "@/components/guided/shoot-kit";
 import { AdSafetyBadge, ProductionBadge } from "@/components/trends/trend-badges";
 import { DirIcon } from "@/components/a11y/dir-icon";
+import { PageSkeleton } from "@/components/trends/page-skeleton";
 import { GUIDED, TRENDS_META } from "@/content/he/trends-app";
 import { getNiche } from "@/lib/data/seed";
 import { getShootProject, MOCK_WORKSPACE, SHOOT_PROJECTS } from "@/lib/mock/trends-app";
@@ -21,7 +23,15 @@ export async function generateMetadata({ params }: { params: Promise<{ projectId
   return { title: m.title, description: m.description, robots: { index: false } };
 }
 
-export default async function ShootPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default function ShootPage({ params }: { params: Promise<{ projectId: string }> }) {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Shoot params={params} />
+    </Suspense>
+  );
+}
+
+async function Shoot({ params }: { params: Promise<{ projectId: string }> }) {
   const { projectId } = await params;
   const p = getShootProject(projectId);
   if (!p) notFound();

@@ -11,7 +11,6 @@ import { NichePicker, type NicheGroup, type NicheOption } from "./niche-picker";
 import { createHref, normalizeBusinessUrl, saveHeroDraft } from "./create-link";
 import { useCycle, useMotionAllowed } from "./use-motion";
 import { LANDING } from "@/content/he/landing";
-import { cn } from "@/lib/utils";
 
 const T = LANDING.heroCard;
 

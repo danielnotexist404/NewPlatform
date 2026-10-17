@@ -23,7 +23,7 @@ export function CtaBox({ kind, niche }: { kind: "create" | "hooks" | "pricing"; 
   return (
     <aside
       aria-label={title}
-      className="not-prose relative my-12 overflow-hidden rounded-xl bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-8"
+      className="not-prose relative my-12 [&_a]:no-underline overflow-hidden rounded-xl bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-8"
     >
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-afterglow opacity-90" />
       <div aria-hidden className="pointer-events-none absolute -top-20 inset-s-[-4rem] size-72 rounded-full bg-primary/15 blur-3xl" />

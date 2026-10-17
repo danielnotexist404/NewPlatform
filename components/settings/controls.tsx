@@ -3,7 +3,7 @@ import * as React from "react";
 import { Checkbox as Cb, RadioGroup as RG } from "radix-ui";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import { accountCommon } from "@/content/he/account";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 /* ---------------- Checkbox (never pre-checked for consents) ---------------- */
 export function Checkbox({

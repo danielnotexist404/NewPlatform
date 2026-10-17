@@ -115,7 +115,7 @@ async function BlogPostView({ params }: { params: Promise<{ slug: string }> }) {
               <Blocks blocks={lead && lead.t === "p" ? introRest : intro} mode="site" idPrefix="intro" />
               {sections.map((s) => (
                 <section key={s.id} aria-labelledby={s.id}>
-                  <h2 id={s.id} className="scroll-mt-[calc(var(--header-h)+24px)] text-h2">
+                  <h2 id={s.id} className="scroll-mt-[calc(var(--header-h)+24px)] text-h3">
                     {s.title}
                   </h2>
                   <Blocks blocks={s.blocks} mode="site" idPrefix={s.id} />

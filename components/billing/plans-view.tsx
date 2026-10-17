@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Check, Megaphone, Globe, Users, Activity, Sparkles, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Tag as Badge } from "@/components/settings/kit";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/misc";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Price } from "@/components/a11y/num";
@@ -17,7 +17,7 @@ import {
   MOCK_SUBSCRIPTION, MOCK_FLAGS, MOCK_MEMBERS, MOCK_BRAND_KITS, PLAN_EXTRA_LIMITS, MOCK_PLAN_CHANGE_QUOTES,
 } from "@/lib/mock/account";
 import { creditsText, fill, formatDateHe, formatIls, formatInt, plural } from "@/components/settings/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/settings/cn";
 
 const p = billingCopy.plans;
 const ch = billingCopy.change;

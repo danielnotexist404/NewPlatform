@@ -1,11 +1,12 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
-import { Camera, Images, Lock, Pause, Play, Upload, Volume2 } from "lucide-react";
+import { RadioGroup as RG } from "radix-ui";
+import { Camera, Check, Images, Lock, Pause, Play, Upload, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider, Switch, ToggleGroup, ToggleGroupItem } from "@/components/ui/misc";
 import { VideoTile } from "@/components/video/video-tile";
-import { fillText } from "@/components/projects/plural";
+import { fillText, plural } from "@/components/projects/plural";
 import { APP_CORE } from "@/content/he/app-core";
 import { QUALITY_LABEL, VISUAL_MIX_LABEL } from "@/lib/labels";
 import { formatDuration, type Quality, type SceneTone, type VisualMix, type VisualStyle } from "@/lib/mock/projects";
@@ -94,7 +95,7 @@ export function StyleStep() {
           {data.uploads.length === 0 && (
             <label className="flex items-start gap-2 text-start text-micro font-normal text-text-2">
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 size-4 accent-[var(--color-primary)]" />
-              מי שמופיע בצילומים נתן הסכמה לשימוש בהם בפרסום (ואם מופיעים ילדים — ההורים שלהם הסכימו בכתב).
+              {St.consent}
             </label>
           )}
           <div className="flex flex-wrap justify-center gap-2">
@@ -145,43 +146,55 @@ export function VoiceStep() {
         <ToggleGroupItem value="female">{V.female}</ToggleGroupItem>
         <ToggleGroupItem value="male">{V.male}</ToggleGroupItem>
       </ToggleGroup>
-      <RadioCards
-        label={V.title}
-        value={data.voiceId}
-        onValueChange={(v) => set({ voiceId: v })}
-        columns="grid-cols-1 sm:grid-cols-2"
-        items={[
-          ...voices.map((v) => ({
-            value: v.id,
-            title: v.name,
-            description: `${v.age} · ${v.tone}`,
-            badge: v.brand ? <span className="rounded-xs bg-lemon px-1.5 text-micro text-on-primary">{V.brandVoice}</span> : undefined,
-            media: (
-              <span className="flex items-center gap-2">
-                <span
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => { e.stopPropagation(); play(v.id); }}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); play(v.id); } }}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-3 px-3 text-micro hover:bg-primary hover:text-on-primary"
-                  aria-label={`${V.play}: ${v.name}`}
-                >
-                  {playing === v.id ? <Pause className="size-3.5" aria-hidden /> : <Play className="size-3.5" aria-hidden />}
-                  {playing === v.id ? V.playing : V.play}
+      <RG.Root value={data.voiceId} onValueChange={(v) => set({ voiceId: v })} aria-label={V.title} className="grid gap-3 sm:grid-cols-2">
+        {[...voices, null].map((v) => {
+          const value = v?.id ?? "none";
+          return (
+            <div
+              key={value}
+              className="relative flex flex-col gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-border)] transition-[box-shadow,background-color] has-[[data-state=checked]]:bg-surface-2 has-[[data-state=checked]]:shadow-[inset_0_0_0_2px_var(--color-primary)]"
+            >
+              <RG.Item
+                value={value}
+                aria-label={v ? `${v.name}, ${v.age}, ${v.tone}` : V.none.title}
+                className="peer absolute inset-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2"
+              />
+              <div className="pointer-events-none relative flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-1">
+                  <p className="flex flex-wrap items-center gap-2 font-bold">
+                    {v ? v.name : V.none.title}
+                    {v?.brand && <span className="rounded-xs bg-lemon px-1.5 text-micro text-on-primary">{V.brandVoice}</span>}
+                  </p>
+                  <p className="text-small text-text-2">{v ? `${v.age} · ${v.tone}` : V.none.body}</p>
+                </div>
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-border-strong peer-data-[state=checked]:border-primary">
+                  {data.voiceId === value && <Check className="size-3.5 text-primary-text" aria-hidden />}
                 </span>
-                {playing === v.id && <Wave />}
-              </span>
-            ),
-          })),
-          { value: "none", title: V.none.title, description: V.none.body },
-        ]}
-      />
+              </div>
+              {v && (
+                <div className="relative z-10 flex items-center gap-2 self-start">
+                  <button
+                    type="button"
+                    onClick={() => play(v.id)}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-3 px-3 text-micro hover:bg-primary hover:text-on-primary"
+                    aria-label={`${V.play}: ${v.name}`}
+                  >
+                    {playing === v.id ? <Pause className="size-3.5" aria-hidden /> : <Play className="size-3.5" aria-hidden />}
+                    {playing === v.id ? V.playing : V.play}
+                  </button>
+                  {playing === v.id && <Wave />}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </RG.Root>
       {data.voiceId === "none" && <p className="text-small text-text-2">{V.noneNote}</p>}
       {data.voiceId !== "none" && (
         <Group label={V.speed} help={fillText(V.duration, { seconds })}>
           <div dir="ltr" className="flex items-center gap-3">
             <span className="text-micro text-muted" dir="rtl">{V.speedLabels[2]}</span>
-            <Slider dir="rtl" min={0.85} max={1.15} step={0.05} value={[data.speed]} onValueChange={([s]) => set({ speed: s })} aria-label={V.speed} aria-valuetext={`מהירות ${Math.round(data.speed * 100)}%`} />
+            <Slider dir="rtl" min={0.85} max={1.15} step={0.05} value={[data.speed]} onValueChange={([s]) => set({ speed: s })} aria-label={V.speed} aria-valuetext={fillText(V.speedValue, { percent: `${Math.round(data.speed * 100)}%` })} />
             <span className="text-micro text-muted" dir="rtl">{V.speedLabels[0]}</span>
           </div>
         </Group>
@@ -190,7 +203,7 @@ export function VoiceStep() {
         <Panel className="flex flex-col gap-2">
           <h2 className="font-bold">{V.checkWords}</h2>
           <ul className="flex flex-wrap gap-2">{latin.map((w) => <li key={w} className="rounded-full bg-surface-2 px-3 py-1 text-small" dir="auto">{w}</li>)}</ul>
-          <Link href="/app/settings/pronunciation" className="text-small font-semibold text-link underline">מילון ההגייה של העסק</Link>
+          <Link href="/app/settings/pronunciation" className="text-small font-semibold text-link underline">{V.dictionary}</Link>
         </Panel>
       )}
     </>
@@ -223,7 +236,7 @@ export function MusicStep() {
         items={M.moods.map((m) => ({ value: m, label: m }))}
       />
       <ul className="flex flex-col gap-2">
-        {tracks.length === 0 && <li className="text-small text-text-2">עוד אין רצועות לאווירה הזו. נסו אווירה אחרת.</li>}
+        {tracks.length === 0 && <li className="text-small text-text-2">{M.empty}</li>}
         {tracks.map((t) => {
           const sel = data.musicMode === "library" && data.trackId === t.id;
           return (
@@ -242,7 +255,7 @@ export function MusicStep() {
               </div>
               <span className="hidden sm:block">{playing === t.id ? <Wave bars={24} /> : <span dir="ltr" aria-hidden className="flex h-6 items-center gap-[2px] opacity-40">{Array.from({ length: 24 }, (_, i) => <span key={i} className="w-[3px] rounded-full bg-text-2" style={{ height: `${30 + ((i * 37) % 70)}%` }} />)}</span>}</span>
               <Button size="sm" variant={sel ? "primary" : "secondary"} aria-pressed={sel} onClick={() => set({ musicMode: "library", trackId: t.id })}>
-                {sel ? "נבחרה" : "בחירה"}
+                {sel ? M.selected : M.select}
               </Button>
             </li>
           );
@@ -256,7 +269,7 @@ export function MusicStep() {
           onClick={() => set({ musicMode: "generate" })}
           className={cn("flex flex-col gap-1 rounded-md bg-surface-1 p-4 text-start shadow-[inset_0_0_0_1px_var(--color-border)] disabled:cursor-not-allowed", data.musicMode === "generate" && "shadow-[inset_0_0_0_2px_var(--color-primary)]")}
         >
-          <span className="flex items-center gap-2 font-bold">{originalLocked && <Lock className="size-3.5 text-primary-text" aria-hidden />}{M.original} · 5 קרדיטים</span>
+          <span className="flex items-center gap-2 font-bold">{originalLocked && <Lock className="size-3.5 text-primary-text" aria-hidden />}{M.original} · {plural(5, APP_CORE.counts.credits)}</span>
           <span className="text-micro font-normal text-text-2">{originalLocked ? M.originalLocked : M.originalBody}</span>
         </button>
         <button

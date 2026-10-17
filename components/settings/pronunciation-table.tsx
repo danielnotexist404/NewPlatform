@@ -19,7 +19,6 @@ export function PronunciationTable() {
   const [sayAs, setSayAs] = React.useState("");
   const [note, setNote] = React.useState("");
   const [errors, setErrors] = React.useState<{ term?: string; sayAs?: string }>({});
-  const termRef = React.useRef<HTMLInputElement>(null);
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +34,7 @@ export function PronunciationTable() {
     setRows((r) => [{ id: `pr-${r.length + 10}-${t}`, term: t, sayAs: sayAs.trim(), note: note.trim() }, ...r]);
     setTerm(""); setSayAs(""); setNote("");
     save.touch();
-    termRef.current?.focus();
+    document.getElementById("pr-term")?.focus();
   };
 
   return (
@@ -44,7 +43,7 @@ export function PronunciationTable() {
         <form onSubmit={add} noValidate className="grid gap-3 rounded-md bg-surface-2 p-4 md:grid-cols-[1fr_1.4fr_1.2fr_auto] md:items-start">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="pr-term" className="text-sm font-semibold">{c.columns.term}</label>
-            <Input ref={termRef} id="pr-term" dir="rtl" maxLength={60} placeholder={`${c.placeholders.term} · ${c.placeholders.term2}`} value={term} onChange={(e) => setTerm(e.target.value)} aria-invalid={!!errors.term} aria-describedby={errors.term ? "pr-term-error" : undefined} />
+            <Input id="pr-term" dir="rtl" maxLength={60} placeholder={`${c.placeholders.term} · ${c.placeholders.term2}`} value={term} onChange={(e) => setTerm(e.target.value)} aria-invalid={!!errors.term} aria-describedby={errors.term ? "pr-term-error" : undefined} />
             {errors.term && <p id="pr-term-error" role="alert" className="text-small text-danger">{errors.term}</p>}
           </div>
           <div className="flex flex-col gap-1.5">

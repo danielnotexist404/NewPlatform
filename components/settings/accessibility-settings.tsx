@@ -8,7 +8,7 @@ import { MotionSwitch, ThemeSegmented } from "./display-controls";
 import { SavedIndicator, useAutosave } from "./controls";
 import { settingsCopy } from "@/content/he/account";
 import { MOCK_PROFILE } from "@/lib/mock/account";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 const c = settingsCopy.accessibility;
 

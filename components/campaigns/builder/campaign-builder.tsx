@@ -29,7 +29,7 @@ export function CampaignBuilder() {
   const [done, setDone] = React.useState(false);
   const calm = useCalmMotion();
   const panelRef = React.useRef<HTMLDivElement>(null);
-  const firstRender = React.useRef(true);
+  const lastStep = React.useRef(0);
   const timers = React.useRef<number[]>([]);
 
   React.useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
@@ -41,10 +41,8 @@ export function CampaignBuilder() {
   }, []);
 
   React.useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (lastStep.current === step && !done) return;
+    lastStep.current = step;
     const h = panelRef.current?.querySelector<HTMLElement>("[data-step-heading]");
     h?.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
@@ -221,7 +219,7 @@ function BuilderSuccess() {
           <BadgeCheck className="size-10" aria-hidden />
         </span>
         <div className="relative flex flex-col gap-2">
-          <h1 className="text-h2" tabIndex={-1} data-step-heading>{B.success.title}</h1>
+          <h1 className="text-h2 outline-none" tabIndex={-1} data-step-heading>{B.success.title}</h1>
           <p className="text-body-lg text-text-2">{B.success.body}</p>
         </div>
         <CampaignStatusTimeline

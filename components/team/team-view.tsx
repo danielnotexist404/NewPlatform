@@ -3,7 +3,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Crown, MailPlus, RotateCw, Trash2, UserMinus, X, Shield, PenLine, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Tag as Badge } from "@/components/settings/kit";
 import { LtrInput } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, Progress } from "@/components/ui/misc";

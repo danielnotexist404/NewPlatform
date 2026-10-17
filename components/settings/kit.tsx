@@ -4,11 +4,10 @@ import {
   Briefcase, Clapperboard, Coins, Film, ImageUp, LayoutGrid, Palette, ReceiptText, SearchX, Star, Users,
   CircleCheck, Check, Circle, Clock, TriangleAlert, CircleAlert, BookOpen, Info, Lock,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { accountCommon } from "@/content/he/account";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 /* ---------------- Page header ---------------- */
 export function PageHeader({
@@ -43,12 +42,29 @@ export function PageHeader({
   );
 }
 
+/**
+ * Tag = Badge look-alike that keeps its `text-micro` size (the shared Badge loses it through tailwind-merge,
+ * because the custom type scale is not registered there — reported to the lead).
+ */
+const TAG = {
+  neutral: "bg-surface-3 text-text-2",
+  primary: "bg-primary text-on-primary",
+  lemon: "bg-lemon text-on-primary",
+  violet: "bg-violet/15 text-violet",
+  success: "bg-success/15 text-success",
+  danger: "bg-danger/15 text-danger",
+  outline: "shadow-[inset_0_0_0_1px_var(--color-border-strong)] text-text-2",
+} as const;
+export function Tag({ variant = "neutral", className, ...props }: React.HTMLAttributes<HTMLSpanElement> & { variant?: keyof typeof TAG }) {
+  return <span className={cn("inline-flex items-center gap-1 rounded-xs px-2 py-0.5 text-micro whitespace-nowrap [&_svg]:size-3.5", TAG[variant], className)} {...props} />;
+}
+
 export function DemoBadge({ className }: { className?: string }) {
   return (
-    <Badge variant="outline" className={cn("gap-1.5", className)} title={accountCommon.demoBadgeHint}>
+    <Tag variant="outline" className={cn("gap-1.5", className)} title={accountCommon.demoBadgeHint}>
       <span className="size-1.5 rounded-full bg-primary" aria-hidden />
       {accountCommon.demoBadge}
-    </Badge>
+    </Tag>
   );
 }
 

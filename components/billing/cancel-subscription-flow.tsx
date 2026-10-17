@@ -16,7 +16,7 @@ import { isFilled } from "@/lib/hebrew/text";
 import { PLANS } from "@/lib/data/plans";
 import { CANCEL_FEE_CAP_ILS, MOCK_CANCEL_QUOTE, MOCK_PROFILE, MOCK_SUBSCRIPTION, MOCK_MEMBERS } from "@/lib/mock/account";
 import { creditsText, fill, formatDateHe, formatIls, plural } from "@/components/settings/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/settings/cn";
 
 const c = billingCopy.cancel;
 type Reason = keyof typeof c.reasons;

@@ -459,6 +459,7 @@ export const APP_CORE = {
       mediaLibrary: "מהספרייה",
       mediaTypes: "JPG, PNG, WEBP, HEIC, MP4, MOV · עד 20 קבצים",
       guided: "הצילומים שלכם לפי רשימת צילומים",
+      consent: "מי שמופיע בצילומים נתן הסכמה לשימוש בהם בפרסום (ואם מופיעים ילדים — ההורים שלהם הסכימו בכתב).",
       continue: "המשך לקריינות",
     },
     voice: {
@@ -477,6 +478,8 @@ export const APP_CORE = {
       checkWords: "מילים שכדאי לבדוק",
       listen: "השמעה",
       fixPron: "תיקון הגייה",
+      dictionary: "מילון ההגייה של העסק",
+      speedValue: "מהירות {percent}",
       continue: "המשך למוזיקה",
     },
     music: {
@@ -490,6 +493,9 @@ export const APP_CORE = {
       volume: "עוצמת המוזיקה",
       volumes: ["נמוכה", "רגילה", "גבוהה"],
       ducking: "הנמכה אוטומטית בזמן הקריינות",
+      empty: "עוד אין רצועות לאווירה הזו. נסו אווירה אחרת.",
+      select: "בחירה",
+      selected: "נבחרה",
       play: "ניגון",
       pause: "השהיה",
       continue: "המשך לתצוגה המקדימה",
@@ -528,6 +534,10 @@ export const APP_CORE = {
       allApproved: "כל הנתונים אושרו",
       variantTab: "גרסה {letter}",
       variantMain: "גרסה א׳ (ראשית)",
+      scene: "סצנה {n}",
+      tooLong: "הטקסט ארוך מדי לשתי שורות בפורמט {format}. כדאי לקצר.",
+      watermark: "בתוכנית החינמית יופיעו סימן מים קטן וכרטיס \"נוצר בקדימון\" עד התשלום הראשון.",
+      captionSample: ["אש", "על", "גחלים"],
     },
     confirm: {
       title: "ליצור את הסרטון?",

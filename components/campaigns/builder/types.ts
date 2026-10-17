@@ -46,7 +46,7 @@ export function initialDraft(): DraftState {
     budget: d.dailyBudgetIls,
     customBudget: false,
     duration: "date",
-    endDate: addDays(MOCK_TODAY, builderDraft.firstCampaignDays),
+    endDate: addDays(MOCK_TODAY, builderDraft.firstCampaignDays - 1),
     userCapOn: true,
     userCap: 2000,
     variants: builderDraft.variants.map((v) => ({ primaryText: v.primaryText, headline: v.headline })),

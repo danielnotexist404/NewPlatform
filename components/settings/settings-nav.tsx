@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, Building2, Accessibility, ShieldCheck, Mic, Plug, UserRound } from "lucide-react";
 import { settingsCopy } from "@/content/he/account";
-import { cn } from "@/lib/utils";
+import { cn } from "./cn";
 
 const ITEMS = [
   { href: "/app/settings", label: settingsCopy.nav.profile, icon: UserRound, exact: true },

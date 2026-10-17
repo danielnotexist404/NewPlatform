@@ -13,7 +13,7 @@ const MAP = {
   Umbrella, UtensilsCrossed, Wrench,
 } as const;
 
-export function NicheIcon({ name, ...props }: Omit<LucideProps, "ref"> & { name: string | null | undefined }) {
+export function NicheIcon({ name, ...props }: Omit<LucideProps, "ref" | "name"> & { name: string | null | undefined }) {
   const I = (name && (MAP as Record<string, typeof Store>)[name]) || Store;
   return <I aria-hidden {...props} />;
 }
