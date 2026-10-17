@@ -133,6 +133,8 @@ export const kpi = {
 } as const;
 
 export const RANGE_LABEL = { "7d": "7 ימים", "14d": "14 יום", "30d": "30 יום", month: "החודש", all: "כל התקופה" } as const;
+/** Range as an adverbial phrase at the start of a sentence. */
+export const RANGE_IN = { "7d": "ב-7 הימים האחרונים", "14d": "ב-14 הימים האחרונים", "30d": "ב-30 הימים האחרונים", month: "החודש", all: "מתחילת הקמפיין" } as const;
 
 /* ---------- Dashboard (/app/campaigns) ---------- */
 export const dashboard = {
@@ -141,9 +143,8 @@ export const dashboard = {
   sub: "כמה הוצאתם, כמה אנשים ראו וכמה פניות הגיעו. בעברית פשוטה, בלי מנהל המודעות של מטא.",
   newCampaign: "קמפיין חדש",
   rangeLabel: "תקופה",
-  summary: "ב-{range} הגיעו {results}, {delta}. ההוק \"{hook}\" מביא את הפניות הכי זולות.",
-  summaryNoWinner: "ב-{range} הגיעו {results}, {delta}.",
-  summaryRange: { "7d": "7 הימים האחרונים", "14d": "14 הימים האחרונים", "30d": "30 הימים האחרונים", month: "החודש" },
+  summary: "{range} הגיעו {results}, {delta}. ההוק \"{hook}\" מביא את הפניות הכי זולות.",
+  summaryNoWinner: "{range} הגיעו {results}, {delta}.",
   summaryUp: "יותר מהתקופה הקודמת",
   summaryDown: "פחות מהתקופה הקודמת",
   summarySame: "כמו בתקופה הקודמת",
@@ -476,8 +477,8 @@ export const detail = {
     title: "מה זה אומר?",
     badge: "הערכה, לא הבטחה",
     source: "הסבר שכתב AI מתוך המספרים של הקמפיין הזה בלבד, בלי השוואה לעסקים אחרים.",
-    s1: "ב-{range} הוצאתם {spend} והגיעו {results}. כל תוצאה עלתה בממוצע {cpr}.",
-    s1NoResults: "ב-{range} הוצאתם {spend}, ועוד לא הגיעו תוצאות.",
+    s1: "{range} הוצאתם {spend} והגיעו {results}. כל תוצאה עלתה בממוצע {cpr}.",
+    s1NoResults: "{range} הוצאתם {spend}, ועוד לא הגיעו תוצאות.",
     s2Winner: "ההוק \"{hook}\" עוצר הכי הרבה אנשים: {rate} מהם צפו לפחות 3 שניות.",
     s3Winner: "הוא גם מביא תוצאה בפחות כסף משני האחרים, אז כדאי לתת לו את רוב התקציב.",
     s2Paused: "הקמפיין מושהה, ולכן כרגע הוא לא מוציא כסף ולא מביא לידים.",

@@ -58,7 +58,7 @@ function Sparkline({ points, className }: { points: number[]; className?: string
   const d = coords.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
   const [lx, ly] = coords[coords.length - 1];
   return (
-    <svg dir="ltr" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={cn("h-7 w-full overflow-visible", className)} aria-hidden>
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={cn("h-7 w-full overflow-visible", className)} aria-hidden>
       <path d={`${d} L${w},${h} L0,${h} Z`} fill="var(--color-primary)" opacity={0.08} />
       <path d={d} fill="none" stroke="var(--color-border-strong)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
       <circle cx={lx} cy={ly} r={3} fill="var(--color-primary)" stroke="var(--color-surface-1)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
