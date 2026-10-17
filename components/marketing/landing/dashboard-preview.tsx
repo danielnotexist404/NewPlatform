@@ -181,7 +181,6 @@ export function DashboardPreview() {
           {T.actions.map((a, i) => (
             <span
               key={a}
-              aria-disabled
               className={cn(
                 "inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold",
                 i === 2 ? "bg-primary text-on-primary" : "bg-surface-2 text-text shadow-[inset_0_0_0_1px_var(--color-border-strong)]",

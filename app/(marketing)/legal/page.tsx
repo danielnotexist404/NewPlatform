@@ -48,7 +48,7 @@ export default function LegalHubPage() {
                     </span>
                     <span className="inline-flex items-center gap-1 font-semibold text-primary-text">
                       {LEGAL_UI.hub.open}
-                      <DirIcon name="forward" className="size-3.5 transition-transform group-hover:-translate-x-0.5" />
+                      <DirIcon name="forward" className="size-3.5 transition-transform rtl:group-hover:-translate-x-0.5 ltr:group-hover:translate-x-0.5" />
                     </span>
                   </span>
                 </Link>

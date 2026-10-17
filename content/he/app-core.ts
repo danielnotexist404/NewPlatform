@@ -514,6 +514,7 @@ export const APP_CORE = {
       generate: "צרו את הסרטון",
       missingFacts: "נשאר למלא {n} נתונים",
       missingFact: "נשאר למלא נתון אחד",
+      needAttest: "צריך לסמן אישור שהמחיר נכון ומעודכן",
       allApproved: "כל הנתונים אושרו",
       variantTab: "גרסה {letter}",
       variantMain: "גרסה א׳ (ראשית)",
