@@ -178,7 +178,8 @@ export function estimateSampleCredits({ durationSec, quality, visualMix, withVoi
   withVoice?: boolean;
 }): number {
   const images = IMAGES_BY_DURATION[durationSec] ?? Math.round(durationSec / 5);
-  const clipSec = visualMix === `images" ? 0 : visualMix === "full" ? Math.round(durationSec * 0.8) : (SMART_CLIP_SEC[durationSec] ?? Math.round(durationSec / 2));`
+  const clipSec =
+    visualMix === "images" ? 0 : visualMix === "full" ? Math.round(durationSec * 0.8) : (SMART_CLIP_SEC[durationSec] ?? Math.round(durationSec / 2));
   const tts = withVoice ? Math.ceil(durationSec / 15) * COST.ttsPer15s : 0;
   return COST.script + COST.storyboard + images * COST.image[quality] + clipSec * COST.clipPerSec[quality] + tts + COST.renderBase(durationSec);
 }
