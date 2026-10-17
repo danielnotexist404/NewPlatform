@@ -74,6 +74,18 @@ export function CreditsMeter({ credits = 400 }: { credits?: number }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
+  const pathname = usePathname();
+  // Onboarding is a focused full-screen flow without the sidebar (Part 03 §4).
+  if (pathname.startsWith("/app/onboarding")) {
+    return (
+      <div data-shell="app" className="min-h-dvh bg-bg">
+        <SkipLink />
+        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[960px] px-4 py-8 outline-none md:px-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
   return (
     <div data-shell="app" className="min-h-dvh bg-bg">
       <SkipLink />
