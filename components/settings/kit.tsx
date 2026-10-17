@@ -244,7 +244,7 @@ export function DlRow({ term, children }: { term: string; children: React.ReactN
 /** Table shell with horizontal scroll on small screens. */
 export function TableShell({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("-mx-5 overflow-x-auto md:mx-0", className)}>
+    <div className={cn("relative -mx-5 overflow-x-auto md:mx-0", className)}>
       <table className="w-full min-w-[640px] border-collapse text-start text-small [&_td]:px-4 [&_td]:py-3 [&_td]:align-middle [&_th]:px-4 [&_th]:text-start [&_thead_th]:py-2.5 [&_thead_th]:text-micro [&_thead_th]:font-semibold [&_thead_th]:text-muted [&_tbody_th]:py-3 [&_tbody_th]:font-semibold [&_thead_tr]:border-b [&_thead_tr]:border-border [&_tbody_tr]:border-b [&_tbody_tr]:border-border [&_tbody_tr:last-child]:border-b-0">
         {children}
       </table>

@@ -148,12 +148,15 @@ export function CancelSubscriptionFlow() {
       <Panel>
         <fieldset className="flex flex-col gap-4">
           <legend className="mb-4 text-body-lg font-bold">{c.reasonLegend}</legend>
-          <RG.Root value={reason} onValueChange={(v) => setReason(v as Reason)} className="grid gap-2 sm:grid-cols-2" aria-label={c.reasonLegend}>
+          {/* Radix renders hidden form inputs shifted off-box; the wrapper keeps them from widening the page */}
+          <div className="-m-1 overflow-hidden p-1 pb-1.5">
+          <RG.Root
+            value={reason} onValueChange={(v) => setReason(v as Reason)} className="relative grid gap-2 sm:grid-cols-2" aria-label={c.reasonLegend}>
             {(Object.keys(c.reasons) as Reason[]).map((r) => (
               <RG.Item
                 key={r}
                 value={r}
-                className="group flex items-center gap-2.5 rounded-sm bg-surface-2 px-3.5 py-3 text-start text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-border)] hover:bg-surface-3 data-[state=checked]:shadow-[inset_0_0_0_2px_var(--color-text-2)]"
+                className="group relative flex items-center gap-2.5 rounded-sm bg-surface-2 px-3.5 py-3 text-start text-sm font-semibold shadow-[inset_0_0_0_1px_var(--color-border)] hover:bg-surface-3 data-[state=checked]:shadow-[inset_0_0_0_2px_var(--color-text-2)]"
               >
                 <span aria-hidden className="flex size-4 shrink-0 items-center justify-center rounded-full border border-border-strong">
                   <span className="size-2 scale-0 rounded-full bg-text transition-transform group-data-[state=checked]:scale-100" />
@@ -162,6 +165,7 @@ export function CancelSubscriptionFlow() {
               </RG.Item>
             ))}
           </RG.Root>
+          </div>
           {reason && (
             <button type="button" onClick={() => setReason("")} className="w-fit text-sm font-semibold text-link underline-offset-4 hover:underline">{c.clearReason}</button>
           )}

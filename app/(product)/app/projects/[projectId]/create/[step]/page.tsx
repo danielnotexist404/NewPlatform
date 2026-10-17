@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { WizardStepView } from "@/components/wizard/steps/step-view";
+import { WizardSkeleton } from "@/components/wizard/wizard-root";
 import { APP_CORE } from "@/content/he/app-core";
 import { ALL_PROJECTS, WIZARD_STEPS } from "@/lib/mock/projects";
 
@@ -14,5 +16,9 @@ export const metadata: Metadata = {
 
 /** The step is read on the client (useParams) so navigation between steps stays instant; state lives in the layout. */
 export default function WizardStepPage() {
-  return <WizardStepView />;
+  return (
+    <Suspense fallback={<WizardSkeleton />}>
+      <WizardStepView />
+    </Suspense>
+  );
 }
