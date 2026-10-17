@@ -173,7 +173,7 @@ export function ContentCalendar() {
         </div>
       </div>
 
-      <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-micro font-normal text-text-2" aria-label="מקרא">
+      <ul className="flex flex-wrap gap-x-4 gap-y-1.5 text-micro font-normal text-text-2" aria-label={P.calendar.legendLabel}>
         <li className="inline-flex items-center gap-1.5"><span aria-hidden className="size-2 rounded-full bg-primary" />{P.calendar.legend.scheduled}</li>
         <li className="inline-flex items-center gap-1.5"><span aria-hidden className="size-2 rounded-full bg-success" />{P.calendar.legend.published}</li>
         <li className="inline-flex items-center gap-1.5"><span aria-hidden className="size-2 rounded-full bg-danger" />{P.calendar.legend.failed}</li>
@@ -315,7 +315,7 @@ function Chip({ item: it, full = false }: { item: CalItem; full?: boolean }) {
       return (
         <span className={cn(base, it.status === "published" ? "bg-success/15 text-success" : it.status === "failed" ? "bg-danger/15 text-danger" : "bg-primary/15 text-primary-text")}>
           <bdi className="num shrink-0">{it.time}</bdi>
-          <span className="truncate">{P.platform[it.platform]} · {it.label}</span>
+          <span className="truncate">{full ? `${P.platform[it.platform]} · ${it.label}` : it.label}</span>
           {full && <span className="shrink-0 font-normal">· {P.status[it.status]}</span>}
         </span>
       );

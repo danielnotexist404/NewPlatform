@@ -6,7 +6,7 @@ import { APP_CORE } from "@/content/he/app-core";
 import { getNiche } from "@/lib/data/seed";
 import { formatDuration, type Aspect, type WizardStep } from "@/lib/mock/projects";
 import { MOCK_BUSINESS, MOCK_CREDITS } from "@/lib/mock/workspace";
-import { fill } from "@/components/projects/plural";
+import { fill, fillText } from "@/components/projects/plural";
 import { costOf, formatsOf, useWizard, withHook } from "./wizard-state";
 import { CostBadge } from "./cost-badge";
 import { cn } from "@/lib/utils";
@@ -18,11 +18,9 @@ const LETTERS = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳"];
 export function LivePreview({ step, compact }: { step: WizardStep; compact?: boolean }) {
   const { data } = useWizard();
   const formats = formatsOf(data);
-  const [aspect, setAspect] = React.useState<Aspect>(data.primaryAspect);
+  const [chosen, setAspect] = React.useState<Aspect>(data.primaryAspect);
   const [variant, setVariant] = React.useState(0);
-  React.useEffect(() => {
-    if (!formats.includes(aspect)) setAspect(data.primaryAspect);
-  }, [formats, aspect, data.primaryAspect]);
+  const aspect = formats.includes(chosen) ? chosen : data.primaryAspect;
 
   const niche = getNiche(data.nicheSlug ?? "");
   const brandScene: PreviewScene = {
@@ -56,7 +54,7 @@ export function LivePreview({ step, compact }: { step: WizardStep; compact?: boo
               onClick={() => setVariant(i)}
               className={cn("rounded-full px-3 py-1 text-small font-semibold text-text-2", variant === i && "bg-surface-3 text-text")}
             >
-              {i === 0 ? W.preview.variantMain : `גרסה ${LETTERS[i]}`}
+              {i === 0 ? W.preview.variantMain : fillText(W.preview.variantTab, { letter: LETTERS[i] })}
             </button>
           ))}
         </div>
@@ -75,7 +73,7 @@ export function LivePreview({ step, compact }: { step: WizardStep; compact?: boo
                 headline: data.endCard.headline,
                 name: MOCK_BUSINESS.name,
                 logoLetter: MOCK_BUSINESS.logoLetter,
-                lines: [data.endCard.whatsapp ? `וואטסאפ ${MOCK_BUSINESS.whatsapp}` : "", data.endCard.address ? MOCK_BUSINESS.city : ""].filter(Boolean),
+                lines: [data.endCard.whatsapp ? fillText(APP_CORE.player.endWhatsapp, { phone: MOCK_BUSINESS.whatsapp }) : "", data.endCard.address ? MOCK_BUSINESS.city : ""].filter(Boolean),
               }
             : null
         }

@@ -20,6 +20,7 @@ python3 -I seed/scripts/build_seed.py --check  # בדיקות בלבד, על ה�
 | `seasons.json` | 25 מועדים בלוח השיווקי, כולל 2 ימי שקט (תוספת) | `seasons`, או קבוע בקוד | `slug` | `niche_slugs[]` ← `niches.slug` |
 | `hooks.json` | 326 הוקים: 298 לפי נישה, 18 עונתיים ו-10 אוניברסליים | `hooks` | `id` | `niche_slug` ← `niches.slug` (או null); `hook_type_slug` ← `hook_types.slug`; `season_slug` ← `seasons.slug` (או null) |
 | `niche_extras.json` | 36 שורות, אחת לכל נישה: ערכי ההשקה של עמודות שקיימות רק במסד (תוספת) | `niches` (עמודות DB-only, מצב `fill_if_null`) | `slug` | `slug` ← `niches.slug`, אותה רשימה ובאותו סדר |
+| `trend_templates.json` | 12 תבניות טרנד: T1–T4 ממחקר 15 ו-8 פורמטים קבועים ממחקר 13. נבנה בסקריפט נפרד, `seed/scripts/build_trends.py` (גם `--check`), ונבדק מול כללי `TrendTemplateV1` של חלק 08 §5.6 (קודים TT01–TT27, כולל HE026 ו-HE027) | `trend_templates` (`insert_missing`, ‏`status = 'draft'`) | `slug` | `hook_type_slug` ← `hook_types.slug`; ‏`niches[]` ו-`niche_adaptations[].niche_slug` ← `niches.slug` |
 
 שמות השדות בארבעת הקבצים הקנוניים (`niche_categories`, `niches`, `hook_types`, `hooks`) זהים בדיוק לסכמה המוסכמת, ובאותו סדר. `hook_families.json` ו-`seasons.json` הם תוספות: הם מגדירים את הערכים של `family_slug` ושל `season_slug`. אם לא רוצים טבלה בשבילם, אפשר לטעון אותם כקבועים בקוד.
 

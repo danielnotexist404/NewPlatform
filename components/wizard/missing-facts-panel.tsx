@@ -47,8 +47,8 @@ export function MissingFactsPanel({
   const open = items.filter((it) => !it.slot.resolvedFrom);
   const resolvedCount = items.filter((it) => it.slot.resolvedFrom || isResolved(answers[it.key])).length;
   const allDone = resolvedCount === items.length;
-  const [expanded, setExpanded] = React.useState(!allDone);
-  React.useEffect(() => { if (!allDone) setExpanded(true); }, [allDone]);
+  const [expandedState, setExpanded] = React.useState(!allDone);
+  const expanded = expandedState || !allDone;
   if (items.length === 0) return null;
 
   if (allDone && !expanded) {

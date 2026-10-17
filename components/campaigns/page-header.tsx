@@ -63,11 +63,12 @@ export function SampleNote({ text, action, className }: { text: string; action?:
   );
 }
 
-export function SectionTitle({ title, sub, action, id, className }: { title: string; sub?: React.ReactNode; action?: React.ReactNode; id?: string; className?: string }) {
+export function SectionTitle({ title, sub, action, id, className, level = 2 }: { title: string; sub?: React.ReactNode; action?: React.ReactNode; id?: string; className?: string; level?: 2 | 3 }) {
+  const H = level === 3 ? "h3" : "h2";
   return (
     <div className={cn("flex flex-wrap items-end justify-between gap-x-4 gap-y-2", className)}>
       <div className="flex min-w-0 flex-col gap-1">
-        <h2 id={id} className="text-h3">{title}</h2>
+        <H id={id} className={level === 3 ? "text-body-lg font-bold" : "text-h3"}>{title}</H>
         {sub && <p className="text-small text-text-2">{sub}</p>}
       </div>
       {action}

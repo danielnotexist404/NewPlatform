@@ -2,7 +2,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { BadgeCheck, Check, ShieldCheck, X } from "lucide-react";
+import { BadgeCheck, Check, Info, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Price } from "@/components/a11y/num";
@@ -19,8 +19,8 @@ import { areaSummary, ReviewStep, type Phase } from "./review-step";
 import { initialDraft, type DraftState } from "./types";
 import { cn } from "@/lib/utils";
 
-export function CampaignBuilder() {
-  const [d, setD] = React.useState<DraftState>(initialDraft);
+export function CampaignBuilder({ initial, entryNote }: { initial?: Partial<DraftState>; entryNote?: string | null }) {
+  const [d, setD] = React.useState<DraftState>(() => ({ ...initialDraft(), ...initial }));
   const [step, setStep] = React.useState(0);
   const [maxStep, setMaxStep] = React.useState(0);
   const [phase, setPhase] = React.useState<Phase>("draft");
@@ -122,6 +122,12 @@ export function CampaignBuilder() {
         </Button>
       </div>
 
+      {entryNote && (
+        <p className="flex items-start gap-2 rounded-sm bg-violet/10 px-3 py-2.5 text-small text-text">
+          <Info className="mt-0.5 size-4 shrink-0 text-violet" aria-hidden />
+          {entryNote}
+        </p>
+      )}
       <nav aria-label={B.stepsLabel}>
         <ol className="grid grid-cols-4 gap-2">
           {B.steps.map((label, i) => {

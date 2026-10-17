@@ -1,7 +1,7 @@
 /**
  * SAMPLE workspace data ("דוגמה") for the app core until Supabase is connected.
  * The business is the fictional grill bar from Appendix D §3 ("גחלת – גריל בר שכונתי, פתח תקווה (בדיוני)").
- * Every screen that shows these values labels them as sample data.
+ * Every screen that shows these values labels them as sample data ("נתוני דוגמה").
  */
 import type { PlanId } from "@/lib/data/plans";
 import { getHook, hooksForNiche, type Hook } from "@/lib/data/seed";

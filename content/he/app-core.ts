@@ -622,6 +622,7 @@ export const APP_CORE = {
     },
     lateLine: "העדכונים מגיעים באיחור קל. הכול ממשיך לעבוד.",
     demoSpeed: "בהדגמה היצירה מואצת: מה שלוקח כמה דקות קורה כאן בחצי דקה.",
+    readyToast: "הסרטון \"{title}\" מוכן",
   },
 
   // ---------- Projects list (Part 03 §10) ----------
@@ -655,6 +656,7 @@ export const APP_CORE = {
     undo: "ביטול",
     deleted: "הפרויקט נמחק",
     duplicated: "יצרנו עותק של הפרויקט",
+    restoredToast: "פתחנו גרסה חדשה לעריכה (גרסה {n}). הקודמת נשמרת כמו שהיא.",
     menu: {
       label: "פעולות לפרויקט {title}",
       open: "פתיחה", edit: "עריכה", duplicate: "שכפול", download: "הורדה", share: "שיתוף", archive: "העברה לארכיון", delete: "מחיקה",
@@ -667,6 +669,7 @@ export const APP_CORE = {
   // ---------- Project page (Part 03 §8.1 + spec 07–08 §L.3, §S.4) ----------
   project: {
     metaTitleFallback: "פרויקט",
+    metaDescription: "צפייה, הורדה בכל פורמט, שיתוף, ציון הוק, והעלאה לקמפיין או לפרסום רגיל.",
     meta: "{type} · {duration} שנ׳ · נוצר על ידי {creator} · {date}",
     actions: {
       campaign: "העלו לקמפיין",
@@ -748,6 +751,7 @@ export const APP_CORE = {
       hookLink: "לספריית ההוקים",
     },
     failedPrev: "הגרסה הקודמת",
+    formatLocked: "בתוכנית החינמית יוצא פורמט אחד (9:16). שלושה פורמטים בכל יצירה — מתוכנית בסיס.",
   },
 
   hookScore: {
@@ -774,6 +778,8 @@ export const APP_CORE = {
       safe: "הטקסט בתוך האזורים הבטוחים",
     },
     allGood: "אין הצעות לשיפור כרגע. ההוק עומד בכל הכללים שבדקנו.",
+    pass: "עומד בכלל",
+    fail: "לא עומד בכלל",
   },
 
   shareDialog: {
@@ -835,6 +841,7 @@ export const APP_CORE = {
     zoneButtons: "כפתורי הרשת",
     aiLabel: "נוצר באמצעות AI",
     sample: "תצוגה מקדימה · גרפיקה בצבעי המותג",
+    endWhatsapp: "וואטסאפ {phone}",
   },
 
   status: {

@@ -204,14 +204,13 @@ export function PhonePreview({
     };
   }, [autoPlay, reduced, total]);
 
-  // external seek (scene list click)
-  React.useEffect(() => {
-    if (!seekScene) return;
-    const start = effScenes.slice(0, seekScene.index).reduce((a, s) => a + s.durationSec, 0);
-    setT(start + 0.01);
+  // external seek (scene list click): adjust state while rendering, keyed by the nonce
+  const [seekNonce, setSeekNonce] = React.useState<number | null>(null);
+  if (seekScene && seekScene.nonce !== seekNonce) {
+    setSeekNonce(seekScene.nonce);
+    setT(effScenes.slice(0, seekScene.index).reduce((a, s) => a + s.durationSec, 0) + 0.01);
     setStarted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seekScene?.nonce]);
+  }
 
   let acc = 0;
   let idx = -1;

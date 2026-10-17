@@ -265,6 +265,11 @@ export const builder = {
   steps: ["מטרה", "מי ואיפה", "תקציב", "סקירה ופרסום"],
   stepOf: "שלב {n} מתוך 4",
   stepsLabel: "שלבי הקמפיין",
+  entry: {
+    duplicate: "שכפול של \"{name}\": ההגדרות הועתקו, ואפשר לשנות כל דבר.",
+    season: "קמפיין עונתי: {name}. הטקסטים והתאריכים מותאמים לעונה.",
+    post: "קידום הסרטון \"{name}\" שכבר פורסם. לפני הפרסום נבדוק במטא שהוא מתאים לקידום.",
+  },
   summaryLabel: "סיכום הקמפיין",
   next: "המשך",
   back: "חזרה",
@@ -641,7 +646,9 @@ export const leadsCopy = {
 
 /* ---------- Publishing (/app/publish, §I) ---------- */
 export const publishCopy = {
+  eyebrow: "רילס לאינסטגרם ולפייסבוק",
   title: "פרסום ותזמון",
+  planLink: { title: "התוכנית שלי · 30 יום", sub: "כל פריט בתוכנית מופיע בלוח כמתוכנן, ונפתח בקליק." },
   sub: "מפרסמים רילס לאינסטגרם ולפייסבוק עכשיו או בתזמון, ורואים הכול בלוח אחד עם החגים והמועדים.",
   newPost: "פרסום חדש",
   platform: { instagram: "אינסטגרם", facebook: "פייסבוק" },
@@ -674,6 +681,7 @@ export const publishCopy = {
     next: "הבא",
     today: "היום",
     weekOf: "{from} – {to}",
+    legendLabel: "מקרא",
     legend: { scheduled: "פוסט מתוזמן", published: "פורסם", failed: "נכשל", campaign: "קמפיין", season: "מועד", quiet: "יום שקט", planned: "מתוכנן" },
     quiet: "יום שקט: לא מתזמנים פוסטים חדשים",
     election: "יום הבחירות: בלי שום תוכן פוליטי",
@@ -737,6 +745,7 @@ export const publishCopy = {
 
 /* ---------- "התוכנית שלי" (S.3) ---------- */
 export const planCopy = {
+  eyebrow: "תוכנית 30 יום",
   title: "התוכנית שלי",
   sub: "30 יום של תוכן וקמפיינים לפי הנישה, העונה והמטרה שלכם. כל פריט נפתח בקליק.",
   range: "{from} – {to}",
@@ -769,6 +778,7 @@ export const planCopy = {
 
 /* ---------- Settings → Integrations (L.3) ---------- */
 export const integrationsCopy = {
+  back: "הגדרות",
   title: "אינטגרציות",
   sub: "החיבורים של העסק לשירותים אחרים. כרגע: פייסבוק ואינסטגרם.",
   metaTitle: "פייסבוק ואינסטגרם",

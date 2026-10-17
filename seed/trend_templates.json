@@ -1,0 +1,3889 @@
+[
+  {
+    "slug": "bait-and-sign",
+    "name_he": "פיתיון ושלט",
+    "tagline_he": "שלוש שניות של מתח, ואז שלט שאומר בדיוק מה רוצים",
+    "description_he": "הסרטון נפתח ברגע מותח שאין לו שום קשר לעסק, ואז חיתוך חד לאדם שעומד מול המצלמה בפנים רציניות ומחזיק שלט בכתב יד. השלט הוא ההזמנה, והוא גם הפאנץ׳. הכול נוצר ב-AI, והטקסט על השלט נכתב אצלנו בעברית מדויקת.",
+    "why_it_works_he": "הרגע המותח עוצר את הגלילה, והמעבר הפתאומי לשלט יבש מצחיק כי לא ציפו לו. ההזמנה לעסק היא הבדיחה עצמה, ולכן צופים עד הסוף ושולחים לחברים.",
+    "hook_type_slug": "pattern-interrupt",
+    "lifecycle": "format",
+    "production_mode": "ai",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "bait",
+          "role": "bait",
+          "duration_ms": 2500,
+          "purpose_he": "רגע מותח בלי קשר לעסק: עוד שנייה משהו קורה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Handheld smartphone-style shot of {bait_en}, bright natural daylight, candid everyday setting",
+          "motion_prompt_en": "the moment builds for two and a half seconds and stays unresolved, slight handheld shake, natural motion",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 24,
+            "example_he": "נכנס או לא נכנס?"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cut1",
+          "role": "cut",
+          "duration_ms": 0,
+          "purpose_he": "חיתוך חד, בלי מעבר",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": "cut",
+          "sfx": "impact",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "sign",
+          "role": "payoff",
+          "duration_ms": 7000,
+          "purpose_he": "אדם רציני מחזיק שלט בכתב יד עם ההזמנה לעסק",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Static frontal medium shot of {subject_en} standing against a plain wall in {setting_en}, holding a blank white sheet of paper flat at chest height with both hands, the sheet faces the camera and is fully visible, deadpan neutral expression, soft even light",
+          "motion_prompt_en": "almost still, a slow blink, the sheet stays perfectly flat",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": "impact",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "sign_text",
+            "max_chars": 40,
+            "example_he": "בואו לאכול אצלנו. אנחנו ב{עיר}"
+          },
+          "vo_slot": null,
+          "overlay": {
+            "kind": "sign",
+            "textHe": "$onscreen",
+            "quad": null,
+            "quadSource": "preset",
+            "presetQuad": {
+              "tl": {
+                "x": 0.2,
+                "y": 0.24
+              },
+              "tr": {
+                "x": 0.8,
+                "y": 0.24
+              },
+              "br": {
+                "x": 0.8,
+                "y": 0.5
+              },
+              "bl": {
+                "x": 0.2,
+                "y": 0.5
+              }
+            },
+            "ink": "auto",
+            "reveal": "words",
+            "fromMs": 300,
+            "toMs": null,
+            "position": "auto"
+          },
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 5500,
+          "purpose_he": "המקום או המוצר האמיתי, עם הנעה לפעולה קצרה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Close-up of {product_en} in {setting_en}, warm inviting light, shallow depth of field",
+          "motion_prompt_en": "slow push in toward the subject",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו וואטסאפ ושמרו שולחן"
+          },
+          "vo_slot": null,
+          "overlay": {
+            "kind": "sticker",
+            "stickers": [
+              {
+                "emoji": "🫶",
+                "atMs": 700,
+                "anchor": {
+                  "x": 0.7,
+                  "y": 0.42
+                },
+                "sizePx": 180
+              }
+            ],
+            "fromMs": 0,
+            "toMs": null,
+            "position": "auto"
+          },
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "a basketball rolling around the rim of a hoop again and again, about to drop in or out",
+        "hook_line_he_pattern": "נכנס או לא נכנס?",
+        "why_he": "שאלה פתוחה כבר בשנייה הראשונה, והצופה נשאר לראות את התשובה."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a long row of colourful dominoes on a café table starting to tip toward a full cup of coffee",
+        "hook_line_he_pattern": "עוד שנייה זה נופל",
+        "why_he": "תחושה שמשהו עומד להשתבש, בלי שום סכנה אמיתית."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "milk poured into a coffee cup that is already full, the foam rising right to the rim",
+        "hook_line_he_pattern": "רק לא לשפוך",
+        "why_he": "מתח קטן ומוכר מהיומיום, שכל אחד מזדהה איתו."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "a chef in a plain dark apron, around 35",
+        "setting_en": "the dining room of a small neighbourhood restaurant",
+        "product_en": "a plate of freshly grilled food on a wooden table",
+        "onscreen_examples_he": {
+          "hook_line": "נכנס או לא נכנס?",
+          "sign_text": "בואו לאכול אצלנו. אנחנו ב{עיר}",
+          "cta_line": "שלחו וואטסאפ ושמרו שולחן"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "אפשר לכתוב על השלט את שם המנה הכי מבוקשת במקום ההזמנה הכללית."
+      },
+      {
+        "niche_slug": "fitness-trainers",
+        "subject_en": "a fitness trainer in a plain t-shirt, around 30",
+        "setting_en": "a small bright training studio",
+        "product_en": "a clean training mat with a pair of dumbbells",
+        "onscreen_examples_he": {
+          "hook_line": "עוד שנייה זה נופל",
+          "sign_text": "בואו להתאמן. התירוצים נשארים בחוץ",
+          "cta_line": "שלחו הודעה ונתאם אימון"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "dentists",
+        "subject_en": "a dentist in a white coat, around 40",
+        "setting_en": "a calm modern dental clinic",
+        "product_en": "an empty treatment chair by a bright window",
+        "onscreen_examples_he": {
+          "hook_line": "רק לא לשפוך",
+          "sign_text": "בואו לבדיקה לפני שזה קורה לשיניים",
+          "cta_line": "קבעו תור לבדיקה"
+        },
+        "vo_example_he": null,
+        "cta_type": "booking",
+        "notes_he": "בלי הבטחות רפואיות ובלי \"בלי כאב\". השלט מזמין לבדיקה, ולא מבטיח תוצאה."
+      },
+      {
+        "niche_slug": "real-estate",
+        "subject_en": "a real estate agent in a casual blazer, around 40",
+        "setting_en": "a bright empty apartment living room",
+        "product_en": "a sunny balcony with a city view",
+        "onscreen_examples_he": {
+          "hook_line": "נכנס או לא נכנס?",
+          "sign_text": "מחפשים דירה? אני מכיר כמה",
+          "cta_line": "שלחו וואטסאפ ונקבע סיור"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "גוף ראשון לפי מי שמחזיק את השלט: \"אני מכיר\" או \"אני מכירה\"."
+      }
+    ],
+    "music_brief": {
+      "mood": "funny",
+      "bpm_min": 96,
+      "bpm_max": 118,
+      "drop_at_ms": 2500,
+      "energy_curve": "drop",
+      "sfx_cues": [
+        {
+          "beat_key": "sign",
+          "kind": "impact"
+        }
+      ]
+    },
+    "required_overlays": [
+      "sign",
+      "sticker"
+    ],
+    "shot_list": null,
+    "compliance_notes_he": [
+      "רגע הפיתיון נוצר ב-AI ולא מראה פגיעה באף אחד.",
+      "מי שמחזיק את השלט הוא דמות AI כללית. אפשר להחליף לתמונה של בעלי העסק, עם הסכמה בכתב.",
+      "הטקסט על השלט חייב להיות נכון: עיר, שירות ומחיר כמו שהם באמת."
+    ],
+    "do_not_copy": [
+      "the reference sign text 'Hãy đến tham quan bảo tàng' and its translation 'Come visit the museum' (also in Hebrew: 'בואו לבקר במוזיאון')",
+      "the pole-vault crash footage and any pole-vault bait",
+      "the man in sunglasses lying on the floor, his look and his poses",
+      "the finger-heart pose sequence as performed in the reference",
+      "the reference audio track"
+    ],
+    "platform_tone": {
+      "reels": "קצר וחד: בלי הסבר, השלט עושה את העבודה",
+      "facebook": "אפשר שורת פתיחה אחת מעל הסרטון, בלי לגלות את הסוף"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "awareness",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "ugc",
+    "default_music_mood": "funny",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "none",
+    "recommended_ad_goal": "local_awareness",
+    "niches": [
+      "restaurants",
+      "fitness-trainers",
+      "dentists",
+      "real-estate",
+      "barbers-salons",
+      "beauty-nails",
+      "home-services",
+      "retail-stores"
+    ],
+    "first_seen_at": "2026-10-17",
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד פיתיון ושלט: רילס מצחיק לעסקים",
+    "seo_description_he": "רגע מותח, חיתוך חד ושלט בכתב יד עם ההזמנה שלכם. ככה עושים את הטרנד לעסק, עם דוגמאות לפי תחום ומוזיקה שמותרת לפרסום.",
+    "is_featured": true,
+    "sort_order": 10
+  },
+  {
+    "slug": "behind-the-viral",
+    "name_he": "מאחורי הקלעים",
+    "tagline_he": "הבלגן של ההכנות הוא ההוק, והתוצאה מגיעה בסוף",
+    "description_he": "צילום רחב וקבוע של הצוות באמצע ההכנות לסרטון, עם התווית \"מאחורי הקלעים\". הצופים לא מבינים מה קורה ונשארים לראות, ובסוף מגיעה התוצאה. אתם מצלמים לפי רשימת צילומים קצרה, ואנחנו עורכים: תווית, כתוביות, האצה, מוזיקה וכרטיס סיום.",
+    "why_it_works_he": "סקרנות נקייה: אי אפשר להבין מה הם עושים עד שרואים את התוצאה. אנשים אמיתיים מהעסק בונים אמון, והסרטון מפנה גם לסרטון התוצאה.",
+    "hook_type_slug": "behind-the-scenes",
+    "lifecycle": "format",
+    "production_mode": "guided",
+    "ad_safety": "needs_consent",
+    "extra_gates": [],
+    "requires_real_footage": true,
+    "requires_people_consent": true,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "bts",
+          "role": "label",
+          "duration_ms": 0,
+          "purpose_he": "תווית קבועה מעל צילומי ההכנות",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": null,
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": {
+            "kind": "bts_label",
+            "textHe": "מאחורי הקלעים",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": null,
+          "spans": [
+            "chaos",
+            "chaos_more",
+            "detail"
+          ]
+        },
+        {
+          "key": "chaos",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "צילום רחב של כל הצוות באמצע ההכנות, בלי הסבר",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": 1.25,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 40,
+            "example_he": "הסרטון הכי מטורף שצילמנו במסעדה"
+          },
+          "vo_slot": {
+            "key": "chaos_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": "wide_chaos",
+          "spans": null
+        },
+        {
+          "key": "chaos_more",
+          "role": "payoff",
+          "duration_ms": 7000,
+          "purpose_he": "הבלגן ממשיך, מואץ, וכולם רציניים לגמרי",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": 1.5,
+          "onscreen_slot": null,
+          "vo_slot": {
+            "key": "chaos_more_vo",
+            "max_words": 15
+          },
+          "overlay": null,
+          "guided_shot_key": "wide_chaos",
+          "spans": null
+        },
+        {
+          "key": "detail",
+          "role": "payoff",
+          "duration_ms": 6000,
+          "purpose_he": "רגע אחד מקרוב: הכי מצחיק או הכי מוזר",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "detail_line",
+            "max_chars": 30,
+            "example_he": "כן, זה בכוונה"
+          },
+          "vo_slot": {
+            "key": "detail_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": "detail_moment",
+          "spans": null
+        },
+        {
+          "key": "result",
+          "role": "reveal",
+          "duration_ms": 7500,
+          "purpose_he": "התוצאה הגמורה: למה כל הבלגן היה שווה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "whip",
+          "sfx": "whoosh",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "result_line",
+            "max_chars": 30,
+            "example_he": "וזה מה שיצא"
+          },
+          "vo_slot": {
+            "key": "result_vo",
+            "max_words": 16
+          },
+          "overlay": null,
+          "guided_shot_key": "final_result",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 6000,
+          "purpose_he": "הצוות מזמין, בלי מילים",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "בואו לראות את זה מקרוב"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": "team_wave",
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "open on the most absurd wide moment of the preparation, everyone in the middle of an action",
+        "hook_line_he_pattern": "הסרטון הכי מטורף שצילמנו אצלנו",
+        "why_he": "רואים בבת אחת את כל הבלגן, ולא מבינים מה הולך לצאת ממנו."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "open on the moment someone covers the camera lens with a sheet of paper, then reveal the room",
+        "hook_line_he_pattern": "מה קורה מאחורי הדף הזה?",
+        "why_he": "המסך המכוסה יוצר שאלה, והחשיפה עונה עליה."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "open on one team member keeping a completely straight face in the middle of the chaos",
+        "hook_line_he_pattern": "מה עשינו עם {מספר} עובדים ודף נייר?",
+        "why_he": "פרצוף רציני באמצע הבלגן מצחיק עוד לפני שמבינים למה."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "the restaurant floor team in work aprons",
+        "setting_en": "a busy restaurant bar area",
+        "product_en": "a signature dish served at the bar",
+        "onscreen_examples_he": {
+          "hook_line": "הסרטון הכי מטורף שצילמנו במסעדה",
+          "detail_line": "כן, זה בכוונה",
+          "result_line": "וזה מה שיצא",
+          "cta_line": "בואו לראות את זה מקרוב"
+        },
+        "vo_example_he": "ככה נראות ההכנות לסרטון קצר אחד. ועכשיו התוצאה.",
+        "cta_type": "whatsapp",
+        "notes_he": "כל מי שמופיע בצילום, גם עובדים, צריך לאשר בכתב לפני הפרסום."
+      },
+      {
+        "niche_slug": "event-photographers",
+        "subject_en": "a photographer and an assistant with lights and a backdrop",
+        "setting_en": "a small photo studio",
+        "product_en": "a finished portrait on a camera screen",
+        "onscreen_examples_he": {
+          "hook_line": "ככה נראה יום צילומים אצלנו בסטודיו",
+          "detail_line": "התאורה לקחה יותר זמן מהצילום",
+          "result_line": "וזו התמונה שיצאה",
+          "cta_line": "שלחו וואטסאפ וקבעו צילומים"
+        },
+        "vo_example_he": "רוב העבודה קורית לפני שלוחצים על הכפתור.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "beauty-nails",
+        "subject_en": "a nail technician and a client at the work table",
+        "setting_en": "a calm nail studio with soft lighting",
+        "product_en": "a finished set of nails in close-up",
+        "onscreen_examples_he": {
+          "hook_line": "ככה נראה יום צילומים אצלנו בסטודיו",
+          "detail_line": "רגע לפני שזה מושלם",
+          "result_line": "וזו התוצאה",
+          "cta_line": "קבעו תור אונליין"
+        },
+        "vo_example_he": "לפני כל סרטון יפה יש בלגן קטן. זה שלנו.",
+        "cta_type": "booking",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "fitness-trainers",
+        "subject_en": "a trainer and two clients",
+        "setting_en": "a training studio during a busy hour",
+        "product_en": "the trainer giving a high five after a set",
+        "onscreen_examples_he": {
+          "hook_line": "ככה צילמנו את אימון הבוקר",
+          "detail_line": "אף אחד לא הבין מה אנחנו עושים",
+          "result_line": "וזה הסרטון שיצא",
+          "cta_line": "שלחו הודעה ונתאם אימון"
+        },
+        "vo_example_he": "ככה נראה צילום של סרטון קצר, מאחורי הקלעים.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "energetic",
+      "bpm_min": 110,
+      "bpm_max": 128,
+      "drop_at_ms": 23500,
+      "energy_curve": "build",
+      "sfx_cues": [
+        {
+          "beat_key": "result",
+          "kind": "whoosh"
+        }
+      ]
+    },
+    "required_overlays": [
+      "bts_label"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "ארבעה שוטים קצרים, בערך עשר דקות של צילום. אנחנו עורכים, מוסיפים כתוביות ומוזיקה.",
+      "estimated_minutes": 10,
+      "shots": [
+        {
+          "key": "wide_chaos",
+          "title_he": "הבלגן מזווית רחבה",
+          "instruction_he": "שימו את הטלפון לאורך על חצובה או על מדף, וצלמו את כל הצוות באמצע ההכנות. לא עוצרים באמצע.",
+          "framing": "wide",
+          "min_sec": 10,
+          "max_sec": 40,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "האור מגיע מאחורי הטלפון, לא מולו",
+            "כולם בתוך המסגרת, גם מי שמחזיק את הדף",
+            "בקשו מכל מי שמצטלם אישור לפני שמתחילים"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "detail_moment",
+          "title_he": "רגע אחד מקרוב",
+          "instruction_he": "צלמו מקרוב את הרגע הכי מצחיק: דף שמכסה את המצלמה, צלחת שעוברת מיד ליד או פרצוף רציני.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "מתקרבים עם הרגליים, לא עם הזום",
+            "מחזיקים את הטלפון בשתי ידיים"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "final_result",
+          "title_he": "התוצאה",
+          "instruction_he": "צלמו את התוצאה הגמורה: המנה על הבר, הצוות בעמדות, או הסרטון שיצא מההכנות.",
+          "framing": "medium",
+          "min_sec": 5,
+          "max_sec": 25,
+          "ghost": "product_center",
+          "tips_he": [
+            "צילום אחד יציב, בלי לזוז",
+            "התוצאה במרכז המסגרת"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "team_wave",
+          "title_he": "הצוות מזמין",
+          "instruction_he": "כל הצוות מול המצלמה, מחייך ומנופף. בלי לדבר, רק תנועה.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "face_center",
+          "tips_he": [
+            "כולם בגובה העיניים של המצלמה",
+            "בקשו מכל מי שמצטלם אישור לפני שמתחילים"
+          ],
+          "people_on_camera": true
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "כל מי שמופיע בצילום צריך לתת הסכמה בכתב, גם עובדים.",
+      "בלי ילדים בצילום.",
+      "התוצאה בסוף צריכה להיות אמיתית: מה שהעסק עשה באמת."
+    ],
+    "do_not_copy": [
+      "the reference restaurant, its bar and its staff",
+      "the exact plate-passing choreography and staff positions of the reference",
+      "the English 'behind the scenes' caption styling of the reference",
+      "the reference music"
+    ],
+    "platform_tone": {
+      "reels": "אנרגטי ואמיתי, כמו צילום מהטלפון של הצוות",
+      "facebook": "כדאי שורה שמסבירה שזה מאחורי הקלעים של סרטון אחר"
+    },
+    "default_duration_sec": 30,
+    "default_goal": "engagement",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "ugc",
+    "default_music_mood": "energetic",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "optional",
+    "recommended_ad_goal": "local_awareness",
+    "niches": [
+      "restaurants",
+      "event-photographers",
+      "beauty-nails",
+      "fitness-trainers",
+      "catering-chefs",
+      "event-venues"
+    ],
+    "first_seen_at": "2026-10-17",
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד מאחורי הקלעים: איך מצלמים את זה בעסק",
+    "seo_description_he": "צילום רחב של הצוות באמצע ההכנות, ותוצאה בסוף. ככה עושים את טרנד מאחורי הקלעים לעסק, עם רשימת צילומים קצרה ועריכה אוטומטית.",
+    "is_featured": false,
+    "sort_order": 20
+  },
+  {
+    "slug": "almost-got-me-reveal",
+    "name_he": "כמעט נפגעתי",
+    "tagline_he": "קופסאות עפות ישר למצלמה, ובתוך אחת מהן המוצר שלכם",
+    "description_he": "צילום מנקודת המבט של הצופה: ערימה של קופסאות עפה ישר לעבר המצלמה, בפיזיקה שברור שהיא לא אמיתית. חיתוך, קופסה אחת נפתחת, ובפנים המוצר שלכם. הכול נוצר ב-AI, עם התווית \"נוצר באמצעות AI\".",
+    "why_it_works_he": "כמעט-תאונה מנקודת מבט ראשונה מפעילה תגובה אינסטינקטיבית, והפיזיקה הבלתי אפשרית גורמת לצפות שוב. הקופסה הופכת את המחזה למוצר.",
+    "hook_type_slug": "pattern-interrupt",
+    "lifecycle": "format",
+    "production_mode": "ai",
+    "ad_safety": "needs_ai_label",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "bait",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "כמעט-תאונה: קופסאות עפות ישר אל המצלמה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "First-person POV shot, {bait_en}, the objects tumble straight toward the lens, motion blur, bright daylight, playful and clearly impossible physics, nobody is in harm's way",
+          "motion_prompt_en": "the objects fly toward the camera and stop just before the lens, quick and exaggerated",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 40,
+            "example_he": "המשלוח הגיע. כמעט דרך המצלמה"
+          },
+          "vo_slot": null,
+          "overlay": {
+            "kind": "meme_caption",
+            "textHe": "$onscreen",
+            "emoji": "💀",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cut1",
+          "role": "cut",
+          "duration_ms": 0,
+          "purpose_he": "חיתוך חד, בלי מעבר",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": "cut",
+          "sfx": "impact",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "reveal",
+          "role": "reveal",
+          "duration_ms": 6000,
+          "purpose_he": "קופסה אחת נוחתת ונפתחת, ובפנים המוצר",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Close-up of hands opening a single cardboard box on a sidewalk, revealing {product_en} inside, soft daylight",
+          "motion_prompt_en": "the flaps open and the product is lifted slowly toward the camera",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": "impact",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "reveal_line",
+            "max_chars": 30,
+            "example_he": "וזה מה שהיה בקופסה"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 5500,
+          "purpose_he": "המוצר במלוא הדרו, עם הנעה לפעולה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "{product_en} displayed in {setting_en}, clean bright light, simple composition",
+          "motion_prompt_en": "slow orbit around the product",
+          "camera": "orbit",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "כל הפרטים באתר"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "a delivery van hits a bump in a narrow street and a tall stack of {subject_en} flies off its roof rack",
+        "hook_line_he_pattern": "המשלוח הגיע. כמעט דרך המצלמה",
+        "why_he": "רגע של בהלה שהופך מיד לצחוק, ואז לשאלה מה יש בקופסה."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a tower of {subject_en} on a high warehouse shelf tips over and cascades down",
+        "hook_line_he_pattern": "רגע, זה נופל עליי?",
+        "why_he": "השאלה של הצופה כתובה על המסך, בדיוק ברגע הנכון."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "{subject_en} bounce one after another down a long outdoor staircase",
+        "hook_line_he_pattern": "כל הקופסאות האלה בדרך אליי",
+        "why_he": "קצב של נפילות חוזרות יוצר מתח עד הקופסה האחרונה."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "ecommerce",
+        "subject_en": "cardboard shipping boxes",
+        "setting_en": "a clean, bright product corner with a light background",
+        "product_en": "the store's best-selling product, neatly folded",
+        "onscreen_examples_he": {
+          "hook_line": "ההזמנה בדרך אליכם. ממש בדרך",
+          "reveal_line": "וזה מה שהיה בקופסה",
+          "cta_line": "כל הפרטים באתר"
+        },
+        "vo_example_he": null,
+        "cta_type": "visit_site",
+        "notes_he": "המוצר בקופסה הוא המוצר האמיתי, באותם צבעים ובאותה אריזה."
+      },
+      {
+        "niche_slug": "movers-storage",
+        "subject_en": "moving boxes",
+        "setting_en": "a tidy new living room with boxes stacked neatly",
+        "product_en": "a neat stack of intact moving boxes next to a moving truck",
+        "onscreen_examples_he": {
+          "hook_line": "ככה נראית הובלה בלי תכנון",
+          "reveal_line": "המשאית שלנו לא מאבדת אף ארגז",
+          "cta_line": "שלחו וואטסאפ להצעת מחיר"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "הקופסאות עפות בצחוק ונוחתות שלמות. לא מראים נזק לרכוש של לקוחות."
+      },
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "pizza boxes",
+        "setting_en": "a warm pizzeria counter",
+        "product_en": "a fresh hot pizza with melted cheese",
+        "onscreen_examples_he": {
+          "hook_line": "הפיצה הגיעה. מהר מדי",
+          "reveal_line": "ובקופסה? פיצה חמה",
+          "cta_line": "הזמינו בוואטסאפ"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "retail-stores",
+        "subject_en": "paper-wrapped flower bouquets",
+        "setting_en": "a bright flower shop counter",
+        "product_en": "a fresh, colourful bouquet in kraft paper",
+        "onscreen_examples_he": {
+          "hook_line": "משלוח פרחים, גרסת האקשן",
+          "reveal_line": "וזה מה שהגיע",
+          "cta_line": "שלחו וואטסאפ והזמינו זר"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "לחנות פרחים: הזרים עפים ונוחתים שלמים."
+      }
+    ],
+    "music_brief": {
+      "mood": "energetic",
+      "bpm_min": 120,
+      "bpm_max": 140,
+      "drop_at_ms": 3500,
+      "energy_curve": "drop",
+      "sfx_cues": [
+        {
+          "beat_key": "reveal",
+          "kind": "impact"
+        }
+      ]
+    },
+    "required_overlays": [
+      "meme_caption"
+    ],
+    "shot_list": null,
+    "compliance_notes_he": [
+      "סכנה שנראית אמיתית ונוצרה ב-AI מקבלת את התווית \"נוצר באמצעות AI\", גם בפרסום רגיל וגם במודעה.",
+      "אף אדם לא נפגע בסרטון, וגם לא נראה כאילו נפגע.",
+      "המוצר בסוף הוא המוצר האמיתי של העסק, בלי שיפורים שאין בו."
+    ],
+    "do_not_copy": [
+      "the reference caption 'The truck almost got me smh' and its Hebrew translation 'המשאית כמעט תפסה אותי'",
+      "the highway footbridge shot and the truck hitting the bridge",
+      "the hoodie, its printed slogan and the brand handle of the reference",
+      "the follow card and the explainer segment of the reference",
+      "the reference audio"
+    ],
+    "platform_tone": {
+      "reels": "מהיר ומוגזם, כמו מם",
+      "facebook": "כדאי שהמוצר יופיע כבר בתמונה המקדימה"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "sales",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "cinematic",
+    "default_music_mood": "energetic",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "none",
+    "recommended_ad_goal": "website_traffic",
+    "niches": [
+      "ecommerce",
+      "movers-storage",
+      "restaurants",
+      "retail-stores"
+    ],
+    "first_seen_at": "2026-10-17",
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד כמעט נפגעתי: חשיפת מוצר מתוך קופסה",
+    "seo_description_he": "קופסאות עפות אל המצלמה, חיתוך, והמוצר שלכם יוצא מהקופסה. ככה עושים את הטרנד ב-AI, עם תווית מתאימה ומוזיקה שמותרת לפרסום.",
+    "is_featured": false,
+    "sort_order": 30
+  },
+  {
+    "slug": "fake-system-popup",
+    "name_he": "התראה מזויפת",
+    "tagline_he": "התראה מצחיקה קופצת מעל האוכל, והעיניים נשארות על המנה",
+    "description_he": "צילום מנקודת המבט של מי שיושב לשולחן: המנה מגיעה, ובדיוק אז קופצת על המסך התראה שנראית כמו הודעת מערכת. הצופים מנסים לסגור אותה ונשארים להסתכל על האוכל. ההתראה נבנית אצלנו בעברית, בלי לוגו ובלי עיצוב של מערכת מסוימת. מתאים רק לפרסום רגיל.",
+    "why_it_works_he": "התראה בזמן הלא נכון היא רפלקס: עוצרים, מנסים ללחוץ וצופים שוב. בכל הזמן הזה המנה נמצאת במרכז המסך.",
+    "hook_type_slug": "pattern-interrupt",
+    "lifecycle": "format",
+    "production_mode": "hybrid",
+    "ad_safety": "organic_only",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "bait",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "המנה מוגשת, ומעליה קופצת התראה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "First-person POV at a wooden table in {setting_en}, the viewer's hand resting on the table, a server places {product_en} right in front of the camera, warm appetizing light",
+          "motion_prompt_en": "the plate slides into frame and settles, steam rising, the hand stays still",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 70,
+            "example_he": "סוללה חלשה\nכדאי לחבר למטען"
+          },
+          "vo_slot": null,
+          "overlay": {
+            "kind": "fake_ui",
+            "variant": "low_battery",
+            "titleHe": "$onscreen",
+            "bodyHe": "$onscreen",
+            "buttonsHe": [
+              "סגירה"
+            ],
+            "theme": "light",
+            "tapAtMs": 3050,
+            "fromMs": 1200,
+            "toMs": 3300,
+            "position": "center"
+          },
+          "guided_shot_key": "pov_table",
+          "spans": null
+        },
+        {
+          "key": "cut1",
+          "role": "cut",
+          "duration_ms": 0,
+          "purpose_he": "חיתוך חד, בלי מעבר",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": "cut",
+          "sfx": "click",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "closeup",
+          "role": "reveal",
+          "duration_ms": 6000,
+          "purpose_he": "תקריב של המנה, בלי שום הפרעה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Extreme close-up of {product_en}, steam rising, rich textures, warm light",
+          "motion_prompt_en": "slow push in across the food",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": "click",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "payoff_line",
+            "max_chars": 30,
+            "example_he": "ניסיתם לסגור, נכון?"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "food_closeup",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 5500,
+          "purpose_he": "המקום עצמו, עם הזמנה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "{setting_en} seen from the entrance, inviting evening light, tables set",
+          "motion_prompt_en": "slow push in through the entrance",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שמרו מקום בוואטסאפ"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "place_wide",
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "a low-battery style alert pops up over the food the moment the plate lands",
+        "hook_line_he_pattern": "סוללה חלשה\nכדאי לחבר למטען",
+        "why_he": "התראה מוכרת בזמן הכי לא נוח, והאוכל ממש מאחוריה."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a new-message style alert from mom pops up while the camera tilts toward the plate",
+        "hook_line_he_pattern": "הודעה חדשה מאמא\nאכלתם כבר?",
+        "why_he": "הודעה שכולם מכירים, וחיוך עוד לפני שמבינים שזה חלק מהסרטון."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "an order-arrived style alert pops up exactly as the server sets the tray down from above",
+        "hook_line_he_pattern": "ההזמנה הגיעה\nבתיאבון",
+        "why_he": "ההתראה מתארת בדיוק את מה שקורה בתמונה, וזה מה שמצחיק."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "a server in a black apron",
+        "setting_en": "a cozy restaurant with wooden tables",
+        "product_en": "a plate of grilled skewers with a fresh salad",
+        "onscreen_examples_he": {
+          "hook_line": "סוללה חלשה\nכדאי לחבר למטען",
+          "payoff_line": "ניסיתם לסגור, נכון?",
+          "cta_line": "שמרו מקום בוואטסאפ"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "\"נשארו 2 מנות\" רק כשזה נכון באותו יום, עם אישור."
+      },
+      {
+        "niche_slug": "catering-chefs",
+        "subject_en": "a private chef in a white jacket",
+        "setting_en": "a home dining table set for guests",
+        "product_en": "a plated tasting dish with sauce",
+        "onscreen_examples_he": {
+          "hook_line": "הודעה חדשה מאמא\nאכלתם כבר?",
+          "payoff_line": "אל תדאגו, אכלנו",
+          "cta_line": "שלחו וואטסאפ לתפריט לאירוע"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "zimmers-boutique-hotels",
+        "subject_en": "a host carrying a breakfast tray",
+        "setting_en": "a sunny cabin deck with a mountain view",
+        "product_en": "a rich Israeli breakfast tray with shakshuka",
+        "onscreen_examples_he": {
+          "hook_line": "ההזמנה הגיעה\nבתיאבון",
+          "payoff_line": "ככה מתחיל בוקר אצלנו",
+          "cta_line": "בדקו תאריכים בוואטסאפ"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "funny",
+      "bpm_min": 90,
+      "bpm_max": 110,
+      "drop_at_ms": null,
+      "energy_curve": "loop",
+      "sfx_cues": [
+        {
+          "beat_key": "closeup",
+          "kind": "click"
+        }
+      ]
+    },
+    "required_overlays": [
+      "fake_ui"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "אפשר להפיק הכול ב-AI, או לצלם שלושה שוטים קצרים בטלפון. את ההתראה בונים אצלנו בכל מקרה.",
+      "estimated_minutes": 6,
+      "shots": [
+        {
+          "key": "pov_table",
+          "title_he": "המנה מגיעה לשולחן",
+          "instruction_he": "שימו את הטלפון לאורך בגובה העיניים של מי שיושב, יד אחת על השולחן, וצלמו את רגע ההגשה.",
+          "framing": "pov",
+          "min_sec": 4,
+          "max_sec": 12,
+          "ghost": "hands_table",
+          "tips_he": [
+            "מקום ריק במרכז המסגרת: שם תופיע ההתראה",
+            "בקשו מהמלצר אישור לפני שמצלמים"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "food_closeup",
+          "title_he": "תקריב של המנה",
+          "instruction_he": "מתקרבים לאט למנה, מלמעלה או מהצד. אדים או רוטב שנוזל הם בונוס.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 10,
+          "ghost": "product_center",
+          "tips_he": [
+            "אור מהחלון, בלי פלאש",
+            "מנגבים את שולי הצלחת לפני הצילום"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "place_wide",
+          "title_he": "המקום",
+          "instruction_he": "צלמו את המקום מהכניסה, בתנועה איטית פנימה.",
+          "framing": "wide",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "בשעה שיש אורחים, אבל בלי פנים מזוהות"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "הפורמט הזה מתאים רק לפרסום רגיל. מטא לא מאשרת מודעות שמחקות הודעות מערכת או כפתורים מזויפים.",
+      "ההתראה כללית: בלי לוגו, בלי אייקונים ובלי עיצוב של מערכת הפעלה מסוימת.",
+      "\"נשארו 2 מנות\" או כל הגבלה אחרת מופיעים רק כשהם נכונים באותו רגע."
+    ],
+    "do_not_copy": [
+      "the iPhone-style 'Low Battery' dialog layout, system fonts, icons and the 'Low Power Mode' option",
+      "the reference fried-chicken and fries tray composition",
+      "the reference restaurant name, logo and staff",
+      "the creator explainer and the view counts quoted in it",
+      "the reference audio"
+    ],
+    "platform_tone": {
+      "reels": "מצחיק ושקט: ההתראה עושה את הרעש",
+      "facebook": "פוסט רגיל בלבד, בלי קידום כמודעה"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "engagement",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "ugc",
+    "default_music_mood": "funny",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "none",
+    "recommended_ad_goal": null,
+    "niches": [
+      "restaurants",
+      "catering-chefs",
+      "zimmers-boutique-hotels"
+    ],
+    "first_seen_at": "2026-10-17",
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד ההתראה המזויפת: רילס למסעדות ולאוכל",
+    "seo_description_he": "התראה מצחיקה קופצת מעל המנה, והצופים נשארים להסתכל על האוכל. ככה עושים את הטרנד לפרסום רגיל, בלי לוגו ובלי עיצוב של מערכת.",
+    "is_featured": false,
+    "sort_order": 40
+  },
+  {
+    "slug": "pov-deadpan",
+    "name_he": "POV",
+    "tagline_he": "משפט אחד שכל לקוח מכיר, ותפנית בסוף",
+    "description_he": "שורת POV למעלה, סיטואציה שכל לקוח בתחום מזהה, ותפנית שמראה איך זה נראה אצלכם. הומור דוגרי, בלי להעליב אף אחד. אפשר להפיק ב-AI או לצלם שני שוטים בטלפון.",
+    "why_it_works_he": "שורת POV מכניסה את הצופה לנעליים של הלקוח בשנייה אחת. ההזדהות מחזיקה אותו, והתפנית מראה במה אתם שונים.",
+    "hook_type_slug": "pov",
+    "lifecycle": "evergreen",
+    "production_mode": "hybrid",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "pov",
+          "role": "label",
+          "duration_ms": 0,
+          "purpose_he": "שורת POV קבועה מעל הסיטואציה",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": null,
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": {
+            "kind": "pov_label",
+            "prefix": "POV:",
+            "textHe": "$hook",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": null,
+          "spans": [
+            "situation",
+            "reaction"
+          ]
+        },
+        {
+          "key": "situation",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "הסיטואציה המוכרת: מבט יבש למצלמה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Medium shot of {subject_en} in {setting_en}, looking straight at the camera with a tired, deadpan expression, an everyday moment, natural light",
+          "motion_prompt_en": "a slow silent stare, then a small sigh",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 40,
+            "example_he": "הבטיחו לכם שזה ייקח רק שבוע"
+          },
+          "vo_slot": {
+            "key": "situation_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": "situation_shot",
+          "spans": null
+        },
+        {
+          "key": "reaction",
+          "role": "payoff",
+          "duration_ms": 4000,
+          "purpose_he": "המבט נמשך, והשתיקה אומרת הכול",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Close-up of {subject_en} in {setting_en}, raising one eyebrow at the camera, deadpan, natural light",
+          "motion_prompt_en": "slow push in on the face",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": {
+            "key": "reaction_vo",
+            "max_words": 8
+          },
+          "overlay": null,
+          "guided_shot_key": "situation_shot",
+          "spans": null
+        },
+        {
+          "key": "twist",
+          "role": "reveal",
+          "duration_ms": 4000,
+          "purpose_he": "התפנית: ככה זה אצלכם",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "{subject_en} in {setting_en} confidently presenting {product_en}, a small satisfied smile, bright clean light",
+          "motion_prompt_en": "a quick confident turn toward the camera and a nod",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": "pop",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "twist_line",
+            "max_chars": 40,
+            "example_he": "אצלנו לוח זמנים כתוב, ומעדכנים כל יום"
+          },
+          "vo_slot": {
+            "key": "twist_vo",
+            "max_words": 8
+          },
+          "overlay": null,
+          "guided_shot_key": "twist_shot",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 3500,
+          "purpose_he": "הזמנה קצרה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "{product_en} in {setting_en}, tidy and inviting, soft light",
+          "motion_prompt_en": "slow push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו וואטסאפ לתיאום"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "{subject_en} staring silently at the camera, then slowly glancing at a wall calendar",
+        "hook_line_he_pattern": "הבטיחו לכם שזה ייקח רק שבוע",
+        "why_he": "כל לקוח שמע את המשפט הזה, והמבט היבש אומר את השאר."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a close-up of a person listening on the phone, eyes rolling, then a slow turn to the camera",
+        "hook_line_he_pattern": "שאלתם כמה זה עולה וקיבלתם \"תלוי\"",
+        "why_he": "תשובה מתחמקת שכולם מכירים, והצופה מחכה לראות מי עונה אחרת."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "a wide shot of an empty waiting area in {setting_en}, one person checking the time again and again",
+        "hook_line_he_pattern": "הגעתם בזמן, ואף אחד לא מחכה לכם",
+        "why_he": "תסכול קטן ומוכר, שהתפנית פותרת."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "renovation-contractors",
+        "subject_en": "a renovation contractor in work clothes, around 45",
+        "setting_en": "a half-finished bathroom renovation",
+        "product_en": "a finished modern bathroom",
+        "onscreen_examples_he": {
+          "hook_line": "הקבלן אמר שזה ייגמר עד החג",
+          "twist_line": "אצלנו לוח זמנים כתוב, ומעדכנים כל יום",
+          "cta_line": "שלחו וואטסאפ לתיאום מדידה"
+        },
+        "vo_example_he": "ואז מגיעים אלינו, ומקבלים לוח זמנים בכתב.",
+        "cta_type": "whatsapp",
+        "notes_he": "לוח הזמנים והעדכונים צריכים להיות אמיתיים."
+      },
+      {
+        "niche_slug": "dentists",
+        "subject_en": "a dentist in a white coat, around 40",
+        "setting_en": "a bright dental clinic reception",
+        "product_en": "a calm, tidy treatment room",
+        "onscreen_examples_he": {
+          "hook_line": "אמרו לכם שזה \"רק משהו קטן\"",
+          "twist_line": "אצלנו מסבירים כל שלב לפני שמתחילים",
+          "cta_line": "קבעו תור לבדיקה"
+        },
+        "vo_example_he": "אצלנו מסבירים מה עושים ולמה, לפני שמתחילים.",
+        "cta_type": "booking",
+        "notes_he": "בלי הבטחה לתוצאה ובלי \"בלי כאב\"."
+      },
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "a waiter in a black apron, around 30",
+        "setting_en": "a busy neighbourhood café",
+        "product_en": "a full table of shared dishes",
+        "onscreen_examples_he": {
+          "hook_line": "אמרתם \"רק קפה\" ונשארתם לארוחה",
+          "twist_line": "זה קורה פה הרבה. ובצדק.",
+          "cta_line": "שמרו מקום בוואטסאפ"
+        },
+        "vo_example_he": "זה קורה פה כל יום, ואנחנו לא מתלוננים.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "funny",
+      "bpm_min": 85,
+      "bpm_max": 105,
+      "drop_at_ms": 7500,
+      "energy_curve": "drop",
+      "sfx_cues": [
+        {
+          "beat_key": "twist",
+          "kind": "pop"
+        }
+      ]
+    },
+    "required_overlays": [
+      "pov_label"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "אפשר הכול ב-AI. מי שרוצה להופיע בעצמו מצלם שני שוטים קצרים, בערך חמש דקות.",
+      "estimated_minutes": 5,
+      "shots": [
+        {
+          "key": "situation_shot",
+          "title_he": "המבט היבש",
+          "instruction_he": "עמדו מול המצלמה במקום העבודה, הסתכלו ישר לעדשה בלי לחייך, וספרו בלב עד חמש.",
+          "framing": "medium",
+          "min_sec": 4,
+          "max_sec": 12,
+          "ghost": "face_center",
+          "tips_he": [
+            "הטלפון בגובה העיניים, על משטח יציב",
+            "בלי לדבר: הטקסט יופיע למעלה"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "twist_shot",
+          "title_he": "התפנית",
+          "instruction_he": "הראו את מה שעושים אחרת: לוח הזמנים, החדר המוכן, המנה. תנועה אחת בטוחה לעבר המצלמה.",
+          "framing": "medium",
+          "min_sec": 4,
+          "max_sec": 10,
+          "ghost": "product_center",
+          "tips_he": [
+            "חיוך קטן מספיק",
+            "מה שמראים חייב להיות אמיתי"
+          ],
+          "people_on_camera": true
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "ההומור על הסיטואציה בתחום, אף פעם לא על לקוחות או על מתחרים בשמם.",
+      "מה שמוצג בתפנית חייב להיות נכון: לוח זמנים, מחיר או שירות שקיימים באמת.",
+      "דמות AI לא מדברת למצלמה. קריינות מגיעה מקריין, וכשרוצים דיבור מול המצלמה מצלמים את בעלי העסק."
+    ],
+    "do_not_copy": [
+      "names, faces, voices or handles of creators who made POV skits popular",
+      "copyrighted trending sounds used in POV videos",
+      "any competitor's name, logo or premises"
+    ],
+    "platform_tone": {
+      "reels": "יבש וקצר, הפאנץ׳ בתפנית",
+      "facebook": "אפשר להוסיף שורה אחת על השירות מעל הסרטון"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "engagement",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "ugc",
+    "default_music_mood": "funny",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "optional",
+    "recommended_ad_goal": "whatsapp_messages",
+    "niches": [
+      "renovation-contractors",
+      "dentists",
+      "restaurants",
+      "home-services",
+      "auto-services",
+      "accountants",
+      "lawyers"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד POV לעסקים: ככה עושים רילס דוגרי",
+    "seo_description_he": "שורת POV, סיטואציה שכל לקוח מכיר ותפנית שמראה איך זה אצלכם. ככה עושים את הפורמט לעסק, ב-AI או בצילום של שני שוטים.",
+    "is_featured": false,
+    "sort_order": 50
+  },
+  {
+    "slug": "before-after-snap",
+    "name_he": "לפני ואחרי",
+    "tagline_he": "רגע של לפני, חיתוך על הקצב, והתוצאה האמיתית",
+    "description_he": "שתי שניות מהירות של המצב לפני, חיתוך חד על הקצב, והתוצאה. בסוף מסך מפוצל שמראה את שני המצבים זה לצד זה. מצלמים רק עבודה אמיתית של העסק, לפי רשימת צילומים, ואנחנו עורכים.",
+    "why_it_works_he": "מהפך ויזואלי מבטיח תמורה כבר בשנייה הראשונה. החיתוך על הקצב מספק, והמסך המפוצל משאיר את ההוכחה מול העיניים.",
+    "hook_type_slug": "before-after",
+    "lifecycle": "evergreen",
+    "production_mode": "guided",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": true,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "before",
+          "role": "bait",
+          "duration_ms": 2000,
+          "purpose_he": "המצב לפני, מהר",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": 1.5,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 36,
+            "example_he": "ככה זה הגיע אלינו"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "before_shot",
+          "spans": null
+        },
+        {
+          "key": "cut1",
+          "role": "cut",
+          "duration_ms": 0,
+          "purpose_he": "חיתוך חד על הקצב, כמו כף יד שמכסה את העדשה",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": "cut",
+          "sfx": "whoosh",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "after",
+          "role": "reveal",
+          "duration_ms": 5000,
+          "purpose_he": "התוצאה, מאותה זווית",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": "whoosh",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "after_shot",
+          "spans": null
+        },
+        {
+          "key": "split",
+          "role": "payoff",
+          "duration_ms": 4500,
+          "purpose_he": "לפני ואחרי זה לצד זה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "result_line",
+            "max_chars": 36,
+            "example_he": "{זמן} עבודה, בלי קיצורי דרך"
+          },
+          "vo_slot": null,
+          "overlay": {
+            "kind": "split_reveal",
+            "before": {
+              "beatKey": "before",
+              "sceneIndex": null
+            },
+            "beforeSource": null,
+            "labelBeforeHe": "לפני",
+            "labelAfterHe": "אחרי",
+            "dividerFromMs": 300,
+            "dividerToMs": 800,
+            "fromMs": 0,
+            "toMs": null,
+            "position": "auto"
+          },
+          "guided_shot_key": "after_shot",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 3500,
+          "purpose_he": "איך מזמינים",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו תמונה וקבלו הצעת מחיר"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "open on an extreme close-up of the worst detail of the before state",
+        "hook_line_he_pattern": "ככה זה הגיע אלינו",
+        "why_he": "הפרט הכי גרוע בשנייה הראשונה, והצופה כבר רוצה לראות את התיקון."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "open on a wide before shot as a hand covers the lens for the transition",
+        "hook_line_he_pattern": "רגע לפני שנגענו בזה",
+        "why_he": "היד שמכסה את העדשה מבטיחה שינוי, והצופה מחכה לראות מה מתחת."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "open on half a second of the finished result, then jump back to the before state",
+        "hook_line_he_pattern": "ניחשתם איך זה נראה קודם?",
+        "why_he": "קודם התוצאה, ואז שאלה שמחזירה אחורה: שני הוקים בשנייה אחת."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "barbers-salons",
+        "subject_en": "a client in the barber chair, seen from behind",
+        "setting_en": "a modern barbershop",
+        "product_en": "a fresh skin fade haircut",
+        "onscreen_examples_he": {
+          "hook_line": "ככה הוא נכנס אלינו",
+          "result_line": "{זמן} בכיסא. זה ההבדל",
+          "cta_line": "קבעו תור אונליין"
+        },
+        "vo_example_he": null,
+        "cta_type": "booking",
+        "notes_he": "הלקוח שמופיע צריך לאשר בכתב."
+      },
+      {
+        "niche_slug": "home-services",
+        "subject_en": "an air conditioner indoor unit with a dusty filter",
+        "setting_en": "a living room wall",
+        "product_en": "the same unit with a clean filter",
+        "onscreen_examples_he": {
+          "hook_line": "ככה נראה מזגן שלא נוקה הרבה זמן",
+          "result_line": "ניקוי יסודי, בלי בלגן בבית",
+          "cta_line": "התקשרו ונתאם ביקור"
+        },
+        "vo_example_he": null,
+        "cta_type": "call",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "auto-services",
+        "subject_en": "a dirty car interior with crumbs and stains",
+        "setting_en": "a detailing bay",
+        "product_en": "the same interior, spotless",
+        "onscreen_examples_he": {
+          "hook_line": "ככה האוטו הגיע אלינו",
+          "result_line": "דיטיילינג פנים מלא",
+          "cta_line": "שלחו וואטסאפ וקבעו תור"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "renovation-contractors",
+        "subject_en": "an old, worn bathroom",
+        "setting_en": "a small apartment bathroom",
+        "product_en": "the same bathroom after renovation",
+        "onscreen_examples_he": {
+          "hook_line": "האמבטיה הזאת חיכתה לנו הרבה זמן",
+          "result_line": "{זמן} עבודה, מהפירוק ועד הסיליקון",
+          "cta_line": "שלחו תמונה וקבלו הצעת מחיר"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "vets-dog-grooming",
+        "subject_en": "a fluffy, matted dog on a grooming table",
+        "setting_en": "a bright grooming salon",
+        "product_en": "the same dog after a neat grooming",
+        "onscreen_examples_he": {
+          "hook_line": "ככה הוא הגיע לטיפוח",
+          "result_line": "רחצה, סירוק ותספורת. והוא מרוצה",
+          "cta_line": "קבעו תור לטיפוח"
+        },
+        "vo_example_he": null,
+        "cta_type": "booking",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "energetic",
+      "bpm_min": 115,
+      "bpm_max": 135,
+      "drop_at_ms": 2000,
+      "energy_curve": "drop",
+      "sfx_cues": [
+        {
+          "beat_key": "after",
+          "kind": "whoosh"
+        }
+      ]
+    },
+    "required_overlays": [
+      "split_reveal"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "שני שוטים מאותה זווית: לפני שמתחילים ואחרי שמסיימים. כדאי לסמן על הרצפה איפה עמד הטלפון.",
+      "estimated_minutes": 5,
+      "shots": [
+        {
+          "key": "before_shot",
+          "title_he": "לפני",
+          "instruction_he": "צלמו את המצב לפני שמתחילים, לאורך, מאותה זווית שבה תצלמו בסוף. שלוש שניות מספיקות.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "product_center",
+          "tips_he": [
+            "מסמנים בנייר דבק איפה עמדתם",
+            "אותה תאורה גם בצילום של אחרי"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "after_shot",
+          "title_he": "אחרי",
+          "instruction_he": "בדיוק מאותה זווית ובאותו אור, צלמו את התוצאה. תנו לה חמש שניות לפחות.",
+          "framing": "medium",
+          "min_sec": 5,
+          "max_sec": 15,
+          "ghost": "product_center",
+          "tips_he": [
+            "לא מזיזים את הטלפון בין שני הצילומים",
+            "בלי פילטרים: התוצאה צריכה להיות אמיתית"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "רק תוצאות אמיתיות של העסק. אסור לייצר ב-AI את התוצאה.",
+      "לקוח שמופיע בצילום צריך לתת הסכמה בכתב.",
+      "בקליניקות אסתטיקה ובמרפאות הפורמט לא זמין, בגלל הכללים על לפני ואחרי ברפואה.",
+      "משך עבודה או מחיר שמופיעים בסרטון צריכים להיות נכונים."
+    ],
+    "do_not_copy": [
+      "names, faces or handles of creators known for before-and-after transitions",
+      "copyrighted trending sounds used for the transition beat",
+      "before or after images that are not the business's own work"
+    ],
+    "platform_tone": {
+      "reels": "קצב מהיר, החיתוך בדיוק על הביט",
+      "facebook": "כדאי לכתוב במשפט אחד מה נעשה"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "trust",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "before_after",
+    "default_music_mood": "energetic",
+    "default_caption_preset": "bold-pop",
+    "vo_mode": "none",
+    "recommended_ad_goal": "whatsapp_messages",
+    "niches": [
+      "barbers-salons",
+      "home-services",
+      "auto-services",
+      "renovation-contractors",
+      "vets-dog-grooming",
+      "beauty-nails"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד לפני ואחרי: חיתוך על הקצב לרילס של עסק",
+    "seo_description_he": "רגע של לפני, חיתוך על הקצב והתוצאה האמיתית. ככה מצלמים את הטרנד בשני שוטים, ואנחנו עורכים עם מסך מפוצל ומוזיקה מותרת.",
+    "is_featured": false,
+    "sort_order": 60
+  },
+  {
+    "slug": "day-in-the-life",
+    "name_he": "יום בחיים של…",
+    "tagline_he": "יום שלם בעסק, בשישה רגעים קצרים עם שעון",
+    "description_he": "שישה שוטים קצרים לאורך היום, כל אחד עם השעה על המסך: פתיחה, הכנות, הלקוח הראשון, העבודה עצמה, השעה העמוסה והסגירה. בסוף משפט אחד שלכם. אנשים אוהבים לראות איך עסק נראה באמת.",
+    "why_it_works_he": "תוכן אמיתי ולא מלוטש בונה אמון, והשעון יוצר קצב שקל לעקוב אחריו. צופים נשארים כדי לראות איך היום נגמר.",
+    "hook_type_slug": "day-in-life",
+    "lifecycle": "evergreen",
+    "production_mode": "guided",
+    "ad_safety": "needs_consent",
+    "extra_gates": [],
+    "requires_real_footage": true,
+    "requires_people_consent": true,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "open",
+          "role": "bait",
+          "duration_ms": 2500,
+          "purpose_he": "פתיחת היום: מפתח בדלת, אור ראשון",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 36,
+            "example_he": "יום שלם אצלנו, ב-30 שניות"
+          },
+          "vo_slot": {
+            "key": "open_vo",
+            "max_words": 5
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "07:00",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "open",
+          "spans": null
+        },
+        {
+          "key": "prep",
+          "role": "reveal",
+          "duration_ms": 2500,
+          "purpose_he": "ההכנות",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "prep_line",
+            "max_chars": 30,
+            "example_he": "מכינים הכול"
+          },
+          "vo_slot": {
+            "key": "prep_vo",
+            "max_words": 5
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "08:30",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "prep",
+          "spans": null
+        },
+        {
+          "key": "first_customer",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "הלקוח הראשון",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "first_customer_line",
+            "max_chars": 30,
+            "example_he": "הלקוח הראשון"
+          },
+          "vo_slot": {
+            "key": "first_customer_vo",
+            "max_words": 6
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "10:00",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "first_customer",
+          "spans": null
+        },
+        {
+          "key": "craft",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "העבודה עצמה, מקרוב",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "craft_line",
+            "max_chars": 30,
+            "example_he": "החלק שהכי אוהבים"
+          },
+          "vo_slot": {
+            "key": "craft_vo",
+            "max_words": 6
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "12:30",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "craft",
+          "spans": null
+        },
+        {
+          "key": "busy",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "השעה הכי עמוסה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "busy_line",
+            "max_chars": 30,
+            "example_he": "השעה הכי עמוסה"
+          },
+          "vo_slot": {
+            "key": "busy_vo",
+            "max_words": 6
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "14:00",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "busy",
+          "spans": null
+        },
+        {
+          "key": "closing",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "סוגרים את היום",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "handheld",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "closing_line",
+            "max_chars": 30,
+            "example_he": "סוגרים את היום"
+          },
+          "vo_slot": {
+            "key": "closing_vo",
+            "max_words": 6
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "19:00",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "closing",
+          "spans": null
+        },
+        {
+          "key": "reflection",
+          "role": "payoff",
+          "duration_ms": 7000,
+          "purpose_he": "משפט אחד שלכם על למה אתם עושים את זה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "reflection_line",
+            "max_chars": 40,
+            "example_he": "בשביל הרגע הזה אנחנו פה"
+          },
+          "vo_slot": {
+            "key": "reflection_vo",
+            "max_words": 15
+          },
+          "overlay": null,
+          "guided_shot_key": "owner_reflection",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 6000,
+          "purpose_he": "הזמנה להכיר",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "בואו להכיר אותנו"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "open on keys turning in the front door at first light",
+        "hook_line_he_pattern": "יום שלם אצלנו, ב-30 שניות",
+        "why_he": "פתיחה של יום מבטיחה סיפור קצר, עם התחלה וסוף."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "open on the busiest moment of the day, then jump back to the morning",
+        "hook_line_he_pattern": "ככה נראית השעה הכי עמוסה אצלנו",
+        "why_he": "מתחילים בשיא, ואז חוזרים אחורה כדי לראות איך הגענו לשם."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "open on the owner's tired smile at closing time, then jump back to the morning",
+        "hook_line_he_pattern": "מה קורה פה מהבוקר עד הסגירה?",
+        "why_he": "סוף היום בהתחלה יוצר סקרנות לגבי כל מה שקרה באמצע."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "the cook and the floor team",
+        "setting_en": "a neighbourhood bistro kitchen and dining room",
+        "product_en": "the first plates going out of the kitchen",
+        "onscreen_examples_he": {
+          "hook_line": "יום שלם במטבח שלנו, ב-30 שניות",
+          "prep_line": "ירקות, רטבים, אש",
+          "first_customer_line": "ההזמנה הראשונה",
+          "craft_line": "המנה שהכי כיף להכין",
+          "busy_line": "שעת הצהריים",
+          "closing_line": "מנקים ונועלים",
+          "reflection_line": "בשביל הצלחות שחוזרות ריקות",
+          "cta_line": "בואו לאכול אצלנו"
+        },
+        "vo_example_he": "אנחנו כאן מהבוקר, כדי שבצהריים הכול יהיה מוכן.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "fitness-trainers",
+        "subject_en": "a personal trainer and clients",
+        "setting_en": "a small training studio",
+        "product_en": "a client finishing a set",
+        "onscreen_examples_he": {
+          "hook_line": "יום שלם בסטודיו, ב-30 שניות",
+          "prep_line": "מסדרים את הציוד",
+          "first_customer_line": "אימון הבוקר הראשון",
+          "craft_line": "התרגיל שכולם אוהבים לשנוא",
+          "busy_line": "שעת השיא",
+          "closing_line": "מכבים את האורות",
+          "reflection_line": "בשביל ההתקדמות של כל מתאמן",
+          "cta_line": "שלחו הודעה ונתאם אימון"
+        },
+        "vo_example_he": "כל יום מתחיל מוקדם, ונגמר כשהמתאמן האחרון יוצא.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "beauty-nails",
+        "subject_en": "a nail technician",
+        "setting_en": "a calm nail studio",
+        "product_en": "a finished manicure in close-up",
+        "onscreen_examples_he": {
+          "hook_line": "יום שלם בסטודיו, ב-30 שניות",
+          "prep_line": "מסדרים צבעים",
+          "first_customer_line": "התור הראשון",
+          "craft_line": "הפרט הקטן שעושה את ההבדל",
+          "busy_line": "תור אחרי תור",
+          "closing_line": "מנקים את השולחן",
+          "reflection_line": "בשביל החיוך בסוף כל תור",
+          "cta_line": "קבעו תור אונליין"
+        },
+        "vo_example_he": "כל יום פה מתחיל בסידור צבעים, ונגמר בידיים מטופחות.",
+        "cta_type": "booking",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "event-venues",
+        "subject_en": "the venue staff",
+        "setting_en": "an event hall being set up",
+        "product_en": "the hall ready with tables and lights",
+        "onscreen_examples_he": {
+          "hook_line": "יום אירוע אצלנו, ב-30 שניות",
+          "prep_line": "פורשים מפות",
+          "first_customer_line": "הספקים מגיעים",
+          "craft_line": "התאורה נדלקת",
+          "busy_line": "האורחים בפנים",
+          "closing_line": "מקפלים כיסאות",
+          "reflection_line": "בשביל הרגע שהזוג נכנס",
+          "cta_line": "שלחו וואטסאפ לתאריך פנוי"
+        },
+        "vo_example_he": "מאחורי כל אירוע יש יום שלם של הכנות.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "warm",
+      "bpm_min": 90,
+      "bpm_max": 110,
+      "drop_at_ms": null,
+      "energy_curve": "build",
+      "sfx_cues": []
+    },
+    "required_overlays": [
+      "clock"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "שבעה שוטים קצרים לאורך יום אחד. כל שוט לוקח כמה שניות, ובסוף משפט אחד שלכם למצלמה.",
+      "estimated_minutes": 12,
+      "shots": [
+        {
+          "key": "open",
+          "title_he": "פתיחת היום",
+          "instruction_he": "צלמו את רגע הפתיחה: מפתח בדלת, תריס שעולה או האור הראשון שנדלק.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "לאורך, ביד יציבה",
+            "אם יש שלט לעסק, כדאי שייראה"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "prep",
+          "title_he": "ההכנות",
+          "instruction_he": "רגע של הכנה: סידור, ניקוי, חומרים על השולחן.",
+          "framing": "closeup",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "hands_table",
+          "tips_he": [
+            "מקרוב, על הידיים והחומרים"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "first_customer",
+          "title_he": "הלקוח הראשון",
+          "instruction_he": "הרגע שהלקוח הראשון מגיע או שההזמנה הראשונה יוצאת. בלי לצלם פנים בלי אישור.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "אפשר לצלם מאחור או רק ידיים",
+            "בקשו אישור מכל מי שמופיע"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "craft",
+          "title_he": "העבודה עצמה",
+          "instruction_he": "תקריב של החלק שאתם הכי אוהבים בעבודה.",
+          "framing": "closeup",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "hands_table",
+          "tips_he": [
+            "אור טוב על הידיים",
+            "תנועה אחת ברורה"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "busy",
+          "title_he": "השעה העמוסה",
+          "instruction_he": "צילום רחב בשעה הכי עמוסה של היום.",
+          "framing": "wide",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "הטלפון על משטח, לא ביד",
+            "בקשו אישור מכל מי שמופיע"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "closing",
+          "title_he": "סוגרים",
+          "instruction_he": "סוף היום: מכבים אור, מנקים, נועלים.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "tripod_wide",
+          "tips_he": [
+            "אותה זווית כמו בפתיחה, אם אפשר"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "owner_reflection",
+          "title_he": "משפט אחד שלכם",
+          "instruction_he": "עמדו מול המצלמה ותגידו משפט אחד על למה אתם עושים את זה. אפשר כמה ניסיונות, אנחנו נבחר את הטוב.",
+          "framing": "medium",
+          "min_sec": 5,
+          "max_sec": 20,
+          "ghost": "face_center",
+          "tips_he": [
+            "הטלפון בגובה העיניים",
+            "מדברים לאט, כמו לחבר"
+          ],
+          "people_on_camera": true
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "כל מי שמופיע בצילום צריך לתת הסכמה בכתב, גם עובדים וגם לקוחות.",
+      "בלי ילדים בצילום.",
+      "הכול אמיתי: השעות, המקום והאנשים של העסק."
+    ],
+    "do_not_copy": [
+      "names, faces or handles of creators known for day-in-the-life vlogs",
+      "copyrighted trending sounds used in vlog edits",
+      "time stamps or routines copied from a specific creator's video"
+    ],
+    "platform_tone": {
+      "reels": "אמיתי וחם, קצב קבוע",
+      "facebook": "מתאים גם לגרסה ארוכה יותר"
+    },
+    "default_duration_sec": 30,
+    "default_goal": "trust",
+    "default_video_type": "brand_promo",
+    "default_visual_style": "day_in_business",
+    "default_music_mood": "warm",
+    "default_caption_preset": "soft",
+    "vo_mode": "optional",
+    "recommended_ad_goal": "local_awareness",
+    "niches": [
+      "restaurants",
+      "fitness-trainers",
+      "beauty-nails",
+      "event-venues",
+      "barbers-salons",
+      "catering-chefs",
+      "vets-dog-grooming"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד יום בחיים של עסק: רילס עם שעון",
+    "seo_description_he": "שישה רגעים קצרים לאורך היום, כל אחד עם השעה על המסך, ומשפט אחד שלכם בסוף. ככה מצלמים את הטרנד, ואנחנו עורכים.",
+    "is_featured": false,
+    "sort_order": 70
+  },
+  {
+    "slug": "asmr-process",
+    "name_he": "תהליך מספק",
+    "tagline_he": "מחומר גלם למוצר מוגמר, בלי מילה אחת",
+    "description_he": "תקריבים של התהליך, מחומר הגלם ועד התוצאה, בלי דיבור. הצליל עושה את העבודה: אנחנו מוסיפים אפקטים עדינים ומוזיקה רגועה. עובד מצוין גם בלי סאונד.",
+    "why_it_works_he": "תהליך שמתקדם מול העיניים מספק ומרגיע, וצופים נשארים עד שהוא נגמר. בלי דיבור הסרטון מובן לכולם, גם בשקט.",
+    "hook_type_slug": "satisfying-visual",
+    "lifecycle": "evergreen",
+    "production_mode": "guided",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": true,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "raw",
+          "role": "bait",
+          "duration_ms": 3000,
+          "purpose_he": "חומר הגלם בתקריב, בשקט",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 24,
+            "example_he": "תעלו את הסאונד"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "raw_material",
+          "spans": null
+        },
+        {
+          "key": "process1",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "התהליך: התנועה הראשונה",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": 1.5,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "process_close_1",
+          "spans": null
+        },
+        {
+          "key": "process2",
+          "role": "reveal",
+          "duration_ms": 3000,
+          "purpose_he": "התהליך: הרגע הכי מספק",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": 1.25,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "process_close_2",
+          "spans": null
+        },
+        {
+          "key": "finished",
+          "role": "payoff",
+          "duration_ms": 3000,
+          "purpose_he": "התוצאה המוגמרת",
+          "visual_source": "user_media",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "finished_line",
+            "max_chars": 24,
+            "example_he": "וזה מוכן"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": "finished_result",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 3000,
+          "purpose_he": "איך מזמינים",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו וואטסאפ והזמינו"
+          },
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "open on the raw material in an extreme, perfectly still close-up",
+        "hook_line_he_pattern": "תעלו את הסאונד",
+        "why_he": "שקט מוחלט ותקריב חד מבקשים מהצופה לעצור."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "open in the middle of the process, on the single most satisfying motion",
+        "hook_line_he_pattern": "עוד שנייה זה מושלם",
+        "why_he": "נכנסים באמצע התנועה, והצופה רוצה לראות אותה נגמרת."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "open on half a second of the finished result, then cut back to the raw material",
+        "hook_line_he_pattern": "מאיפה זה התחיל?",
+        "why_he": "התוצאה קודם, והתהליך עונה על השאלה."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "catering-chefs",
+        "subject_en": "a chef's hands",
+        "setting_en": "a clean professional kitchen counter",
+        "product_en": "a beautifully plated dish",
+        "onscreen_examples_he": {
+          "hook_line": "תעלו את הסאונד",
+          "finished_line": "וזה מוכן לאירוע",
+          "cta_line": "שלחו וואטסאפ לתפריט"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "beauty-nails",
+        "subject_en": "a nail technician's hands",
+        "setting_en": "a calm nail station with soft light",
+        "product_en": "a glossy finished manicure",
+        "onscreen_examples_he": {
+          "hook_line": "רגע של שקט",
+          "finished_line": "וזה מוכן",
+          "cta_line": "קבעו תור אונליין"
+        },
+        "vo_example_he": null,
+        "cta_type": "booking",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "auto-services",
+        "subject_en": "a detailer's gloved hands",
+        "setting_en": "a detailing bay",
+        "product_en": "a mirror-shine car hood",
+        "onscreen_examples_he": {
+          "hook_line": "תעלו את הסאונד",
+          "finished_line": "וככה הוא יוצא",
+          "cta_line": "שלחו וואטסאפ וקבעו תור"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "retail-stores",
+        "subject_en": "hands packing an order",
+        "setting_en": "a tidy packing table in a small shop",
+        "product_en": "a wrapped gift box with a ribbon",
+        "onscreen_examples_he": {
+          "hook_line": "אורזים לכם הזמנה",
+          "finished_line": "מוכן למשלוח",
+          "cta_line": "הזמינו בוואטסאפ"
+        },
+        "vo_example_he": null,
+        "cta_type": "whatsapp",
+        "notes_he": "\"מוכן למשלוח\" רק כשיש לחנות משלוחים."
+      }
+    ],
+    "music_brief": {
+      "mood": "calm",
+      "bpm_min": 70,
+      "bpm_max": 90,
+      "drop_at_ms": null,
+      "energy_curve": "flat",
+      "sfx_cues": []
+    },
+    "required_overlays": [],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "ארבעה תקריבים של תהליך אחד, מההתחלה ועד הסוף. בלי לדבר, רק ידיים וחומרים.",
+      "estimated_minutes": 8,
+      "shots": [
+        {
+          "key": "raw_material",
+          "title_he": "חומר הגלם",
+          "instruction_he": "צלמו מקרוב את החומר לפני שמתחילים, בלי לזוז, חמש שניות.",
+          "framing": "closeup",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "product_center",
+          "tips_he": [
+            "הטלפון על משטח יציב",
+            "רקע נקי ופשוט"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "process_close_1",
+          "title_he": "התחלת התהליך",
+          "instruction_he": "התנועה הראשונה, מקרוב: חיתוך, מריחה או קיפול.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "תנועות איטיות ורציפות",
+            "אור מהצד מבליט מרקם"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "process_close_2",
+          "title_he": "הרגע המספק",
+          "instruction_he": "הרגע הכי מספק בתהליך, מקרוב, מתחילתו ועד סופו.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "לא חותכים באמצע תנועה"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "finished_result",
+          "title_he": "התוצאה",
+          "instruction_he": "התוצאה הגמורה, מקרוב ואז קצת יותר רחוק.",
+          "framing": "closeup",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "product_center",
+          "tips_he": [
+            "סיבוב קטן של המוצר מול המצלמה"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "התהליך והתוצאה של העסק עצמו, בלי עריכה שמשפרת את התוצאה.",
+      "הסאונד שלנו הוא אפקטים ומוזיקה ברישיון. לא משתמשים בשיר מטרנד."
+    ],
+    "do_not_copy": [
+      "names, faces or handles of ASMR creators",
+      "copyrighted ASMR or trending audio",
+      "process footage that is not the business's own"
+    ],
+    "platform_tone": {
+      "reels": "רגוע ומדויק, בלי טקסט מיותר",
+      "facebook": "שורה אחת שמסבירה מה מכינים"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "awareness",
+    "default_video_type": "reel_hook",
+    "default_visual_style": "product",
+    "default_music_mood": "calm",
+    "default_caption_preset": "soft",
+    "vo_mode": "none",
+    "recommended_ad_goal": "local_awareness",
+    "niches": [
+      "catering-chefs",
+      "beauty-nails",
+      "auto-services",
+      "retail-stores",
+      "restaurants",
+      "barbers-salons"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד ASMR לעסקים: תהליך מספק בלי מילים",
+    "seo_description_he": "תקריבים של התהליך, מחומר הגלם ועד התוצאה, בלי דיבור. ככה מצלמים את הטרנד בארבעה שוטים, עם אפקטים ומוזיקה רגועה שמותרת לפרסום.",
+    "is_featured": false,
+    "sort_order": 80
+  },
+  {
+    "slug": "myth-vs-fact",
+    "name_he": "מיתוס מול עובדה",
+    "tagline_he": "משפט שכולם מאמינים בו, חותמת \"לא נכון\" והסבר קצר",
+    "description_he": "פותחים במיתוס נפוץ בתחום, חותמת \"לא נכון\" קופצת, ואז הסבר קצר וטיפ אחד שאפשר ליישם. הקריינות מסבירה, והחותמות עושות את הדרמה. מתאים לבעלי מקצוע שרוצים להראות ידע בלי להטיף.",
+    "why_it_works_he": "מיתוס מוכר יוצר התנגדות מיידית, והחותמת נותנת סיפוק. הצופה יוצא עם משהו שימושי, ומקשר את הידע לעסק.",
+    "hook_type_slug": "myth-busting",
+    "lifecycle": "evergreen",
+    "production_mode": "hybrid",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "myth",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "המיתוס, כמו שכולם אומרים אותו",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Medium shot of {subject_en} in {setting_en}, one eyebrow raised in mild disbelief, looking at the camera, clean natural light",
+          "motion_prompt_en": "a subtle head tilt, otherwise still",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 40,
+            "example_he": "מיתוס: רואה חשבון צריך רק באפריל"
+          },
+          "vo_slot": {
+            "key": "myth_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": "talking_head",
+          "spans": null
+        },
+        {
+          "key": "cut1",
+          "role": "cut",
+          "duration_ms": 0,
+          "purpose_he": "חיתוך חד, בלי מעבר",
+          "visual_source": null,
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": null,
+          "transition_in": "cut",
+          "sfx": "pop",
+          "speed": null,
+          "onscreen_slot": null,
+          "vo_slot": null,
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "verdict",
+          "role": "payoff",
+          "duration_ms": 6500,
+          "purpose_he": "חותמת \"לא נכון\", והעובדה במשפט אחד",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Close-up of {product_en} on a desk in {setting_en}, tidy and well lit",
+          "motion_prompt_en": "slow push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": "pop",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "fact_line",
+            "max_chars": 40,
+            "example_he": "תכנון מס עושים לאורך כל השנה"
+          },
+          "vo_slot": {
+            "key": "verdict_vo",
+            "max_words": 14
+          },
+          "overlay": {
+            "kind": "rating",
+            "mode": "verdict",
+            "scoreText": null,
+            "verdict": "false",
+            "labelHe": "לא נכון",
+            "fromMs": 0,
+            "toMs": 2500,
+            "position": "auto"
+          },
+          "guided_shot_key": "explain_closeup",
+          "spans": null
+        },
+        {
+          "key": "why",
+          "role": "reveal",
+          "duration_ms": 8000,
+          "purpose_he": "למה, בשני משפטים",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Hands of {subject_en} arranging {product_en} on a desk in {setting_en}, calm and organised",
+          "motion_prompt_en": "the hands move items into neat piles, slow and deliberate",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "why_line",
+            "max_chars": 40,
+            "example_he": "מי שמתכנן מוקדם, מופתע פחות"
+          },
+          "vo_slot": {
+            "key": "why_vo",
+            "max_words": 17
+          },
+          "overlay": null,
+          "guided_shot_key": "explain_closeup",
+          "spans": null
+        },
+        {
+          "key": "tip",
+          "role": "reveal",
+          "duration_ms": 6000,
+          "purpose_he": "טיפ אחד שאפשר לעשות היום",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Top-down shot of {product_en} neatly organised on a desk in {setting_en}",
+          "motion_prompt_en": "slow top-down push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "tip_line",
+            "max_chars": 40,
+            "example_he": "שמרו קבלות כבר מינואר, בתיקייה אחת"
+          },
+          "vo_slot": {
+            "key": "tip_vo",
+            "max_words": 12
+          },
+          "overlay": {
+            "kind": "rating",
+            "mode": "verdict",
+            "scoreText": null,
+            "verdict": "true",
+            "labelHe": "ככה עושים נכון",
+            "fromMs": 200,
+            "toMs": 2200,
+            "position": "auto"
+          },
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 6000,
+          "purpose_he": "הזמנה לשאול",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו וואטסאפ עם השאלה שלכם"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "a deadpan, slightly sceptical look straight at the camera",
+        "hook_line_he_pattern": "מיתוס שכל לקוח שלנו שמע",
+        "why_he": "מבט ספקני ושורת מיתוס מזמינים את הצופה לבדוק אם גם הוא האמין בזה."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a red cross stamp slamming onto a blank card in the first second",
+        "hook_line_he_pattern": "את זה אומרים כולם. וזה לא נכון",
+        "why_he": "החותמת בשנייה הראשונה מבטיחה תיקון, והצופה רוצה לדעת מה."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "a raised index finger and a quick questioning gesture toward the camera",
+        "hook_line_he_pattern": "גם אתם חשבתם ככה?",
+        "why_he": "שאלה ישירה שמכניסה את הצופה לשיחה."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "accountants",
+        "subject_en": "an accountant in a smart casual shirt, around 45",
+        "setting_en": "a tidy accounting office",
+        "product_en": "a neat folder of receipts and a calculator",
+        "onscreen_examples_he": {
+          "hook_line": "מיתוס: רואה חשבון צריך רק באפריל",
+          "fact_line": "תכנון מס עושים לאורך כל השנה",
+          "why_line": "מי שמתכנן מוקדם, מופתע פחות",
+          "tip_line": "שמרו קבלות כבר מינואר, בתיקייה אחת",
+          "cta_line": "שלחו וואטסאפ עם השאלה שלכם"
+        },
+        "vo_example_he": "מי שמגיע אלינו רק באפריל, כבר מאוחר לתכנן את השנה שעברה.",
+        "cta_type": "whatsapp",
+        "notes_he": "בלי הבטחה לחיסכון במס. מסבירים עיקרון, לא מבטיחים סכום."
+      },
+      {
+        "niche_slug": "dentists",
+        "subject_en": "a dentist in a white coat",
+        "setting_en": "a bright dental clinic",
+        "product_en": "a dental mirror and a toothbrush on a clean tray",
+        "onscreen_examples_he": {
+          "hook_line": "מיתוס: אם לא כואב, אין מה לבדוק",
+          "fact_line": "הרבה בעיות מתחילות בשקט",
+          "why_line": "בבדיקה רואים מה שעוד לא מרגישים",
+          "tip_line": "קבעו בדיקה תקופתית, גם כשהכול בסדר",
+          "cta_line": "קבעו תור לבדיקה"
+        },
+        "vo_example_he": "הרבה בעיות בשיניים מתחילות בשקט, ולכן בדיקה תקופתית חשובה גם כשהכול נראה בסדר.",
+        "cta_type": "booking",
+        "notes_he": "מידע כללי בלבד, בלי הבטחה לתוצאה. ההסתייגות הרפואית נוספת אוטומטית."
+      },
+      {
+        "niche_slug": "fitness-trainers",
+        "subject_en": "a fitness trainer in a plain t-shirt",
+        "setting_en": "a training studio",
+        "product_en": "a pair of dumbbells and a training mat",
+        "onscreen_examples_he": {
+          "hook_line": "מיתוס: מספיק לעשות רק קרדיו",
+          "fact_line": "אימוני כוח הם חלק חשוב מהתוכנית",
+          "why_line": "גוף חזק יותר עושה כל אימון קל יותר",
+          "tip_line": "שלבו כוח וקרדיו באותו שבוע",
+          "cta_line": "שלחו הודעה ונבנה לכם תוכנית"
+        },
+        "vo_example_he": "קרדיו זה טוב, אבל בלי אימוני כוח התוכנית לא שלמה.",
+        "cta_type": "whatsapp",
+        "notes_he": "בלי הבטחות לשינוי בגוף ובלי לפני ואחרי של גוף."
+      },
+      {
+        "niche_slug": "mortgage-advisors",
+        "subject_en": "a mortgage advisor in a blazer, around 45",
+        "setting_en": "a calm office with a large table",
+        "product_en": "printed mortgage offers side by side on a table",
+        "onscreen_examples_he": {
+          "hook_line": "מיתוס: הבנק תמיד נותן את ההצעה הכי טובה",
+          "fact_line": "את ההצעה אפשר לבדוק ולהשוות",
+          "why_line": "תמהיל אחר יכול לשנות את ההחזר החודשי",
+          "tip_line": "לפני שחותמים, משווים כמה הצעות",
+          "cta_line": "השאירו פרטים לשיחת ייעוץ"
+        },
+        "vo_example_he": "ההצעה הראשונה מהבנק היא נקודת פתיחה, לא סוף פסוק.",
+        "cta_type": "lead_form",
+        "notes_he": "בלי הבטחה לחיסכון או לריבית. ההסתייגות הפיננסית נוספת אוטומטית."
+      }
+    ],
+    "music_brief": {
+      "mood": "inspiring",
+      "bpm_min": 95,
+      "bpm_max": 115,
+      "drop_at_ms": null,
+      "energy_curve": "flat",
+      "sfx_cues": [
+        {
+          "beat_key": "verdict",
+          "kind": "pop"
+        }
+      ]
+    },
+    "required_overlays": [
+      "rating"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "אפשר הכול ב-AI. מי שרוצה להופיע בעצמו מצלם שני שוטים: משפט למצלמה ותקריב של העבודה.",
+      "estimated_minutes": 5,
+      "shots": [
+        {
+          "key": "talking_head",
+          "title_he": "המשפט למצלמה",
+          "instruction_he": "עמדו מול המצלמה ואמרו את המיתוס בטון קצת ספקני, כאילו שמעתם אותו כבר מאה פעם.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 10,
+          "ghost": "face_center",
+          "tips_he": [
+            "הטלפון בגובה העיניים",
+            "חיוך קטן בסוף המשפט"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "explain_closeup",
+          "title_he": "תקריב של העבודה",
+          "instruction_he": "תקריב של הידיים בעבודה: מסמכים, כלים או ציוד, לפי התחום.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "בלי מסמכים עם פרטים אישיים בפריים"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "כל עובדה בסרטון צריכה להיות נכונה ומקובלת בתחום. בספק, מנסחים בזהירות.",
+      "בלי הבטחה לתוצאה, לחיסכון או לריפוי.",
+      "ברפואה, במשפט ובפיננסים ההסתייגות המתאימה נוספת לכרטיס הסיום."
+    ],
+    "do_not_copy": [
+      "names, faces or handles of creators known for myth-busting videos",
+      "myths and wording copied from a specific creator's video",
+      "copyrighted trending sounds"
+    ],
+    "platform_tone": {
+      "reels": "ענייני וקליל, מהר לעניין",
+      "facebook": "מתאים לטקסט ארוך יותר מתחת לסרטון"
+    },
+    "default_duration_sec": 30,
+    "default_goal": "trust",
+    "default_video_type": "explainer",
+    "default_visual_style": "ugc",
+    "default_music_mood": "inspiring",
+    "default_caption_preset": "clean-box",
+    "vo_mode": "required",
+    "recommended_ad_goal": "lead_form",
+    "niches": [
+      "accountants",
+      "dentists",
+      "fitness-trainers",
+      "mortgage-advisors",
+      "lawyers",
+      "insurance-agents",
+      "physio-nutrition"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד מיתוס מול עובדה: רילס לבעלי מקצוע",
+    "seo_description_he": "מיתוס נפוץ בתחום, חותמת לא נכון, הסבר קצר וטיפ אחד. ככה עושים את הפורמט לעסק, ב-AI או בצילום, עם קריינות בעברית.",
+    "is_featured": false,
+    "sort_order": 90
+  },
+  {
+    "slug": "reply-to-comment",
+    "name_he": "עונים לתגובה",
+    "tagline_he": "שאלה של לקוח על המסך, ותשובה קצרה וברורה",
+    "description_he": "כרטיס תגובה עם שאלה שלקוחות שואלים באמת, ואחריו תשובה קצרה: מה נכון, דוגמה וטיפ. מתאים לשאלות על מחיר, על זמן ועל התנגדויות. משתמשים בשאלה אמיתית באישור, או בשאלה כללית בלי שם.",
+    "why_it_works_he": "שאלה שהצופה כבר חשב עליה מושכת אותו פנימה, והתשובה בונה אמון. כך עונים על התנגדויות עוד לפני שהן מגיעות לשיחה.",
+    "hook_type_slug": "question",
+    "lifecycle": "evergreen",
+    "production_mode": "hybrid",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "comment",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "כרטיס התגובה עם השאלה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Medium shot of {subject_en} in {setting_en} looking up from a phone with a blank screen toward the camera, thoughtful expression, natural light",
+          "motion_prompt_en": "a slow look up from the phone",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 60,
+            "example_he": "כמה זמן לוקח לסדר צוואה?"
+          },
+          "vo_slot": {
+            "key": "comment_vo",
+            "max_words": 7
+          },
+          "overlay": {
+            "kind": "comment_bubble",
+            "leadHe": "לקוח שאל:",
+            "textHe": "$onscreen",
+            "source": "generic",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "talking_head",
+          "spans": null
+        },
+        {
+          "key": "answer",
+          "role": "payoff",
+          "duration_ms": 8000,
+          "purpose_he": "התשובה הקצרה",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Hands of {subject_en} pointing at {product_en} on a desk in {setting_en}, calm explanatory gesture",
+          "motion_prompt_en": "the hand moves slowly across the desk, pointing at details",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "answer_line",
+            "max_chars": 40,
+            "example_he": "פחות מסובך ממה שחושבים"
+          },
+          "vo_slot": {
+            "key": "answer_vo",
+            "max_words": 17
+          },
+          "overlay": null,
+          "guided_shot_key": "explain_closeup",
+          "spans": null
+        },
+        {
+          "key": "example",
+          "role": "reveal",
+          "duration_ms": 7500,
+          "purpose_he": "דוגמה מהשטח",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "{product_en} in {setting_en}, tidy, in focus, soft light",
+          "motion_prompt_en": "slow push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "example_line",
+            "max_chars": 40,
+            "example_he": "שיחה מסודרת, ומסמך חתום"
+          },
+          "vo_slot": {
+            "key": "example_vo",
+            "max_words": 16
+          },
+          "overlay": null,
+          "guided_shot_key": "explain_closeup",
+          "spans": null
+        },
+        {
+          "key": "tip",
+          "role": "reveal",
+          "duration_ms": 6000,
+          "purpose_he": "טיפ אחד",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "tip_line",
+            "max_chars": 40,
+            "example_he": "הכינו מראש רשימה של כל מה שיש"
+          },
+          "vo_slot": {
+            "key": "tip_vo",
+            "max_words": 12
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 5000,
+          "purpose_he": "הזמנה לשאול עוד",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שאלה? שלחו לנו וואטסאפ"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 10
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "the comment card pops up over a calm shot of the workplace",
+        "hook_line_he_pattern": "כמה זמן זה לוקח באמת?",
+        "why_he": "שאלה על זמן היא הדבר הראשון שלקוחות רוצים לדעת."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "the comment card appears while {subject_en} smiles and slightly shakes their head",
+        "hook_line_he_pattern": "זה באמת שווה את הכסף?",
+        "why_he": "התנגדות מוכרת על המסך, והצופה מחכה לראות איך עונים עליה."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "the comment card slides in over a close-up of tools or documents on a desk",
+        "hook_line_he_pattern": "אפשר לעשות את זה לבד, לא?",
+        "why_he": "שאלה קצת מתגרה פותחת תשובה מקצועית בלי להתנשא."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "lawyers",
+        "subject_en": "a lawyer in a blazer, around 45",
+        "setting_en": "a calm law office with bookshelves",
+        "product_en": "a signed document in a folder on the desk",
+        "onscreen_examples_he": {
+          "hook_line": "כמה זמן לוקח לסדר צוואה?",
+          "answer_line": "פחות מסובך ממה שחושבים",
+          "example_line": "שיחה מסודרת, ומסמך חתום",
+          "tip_line": "הכינו רשימה של הנכסים ושל היורשים",
+          "cta_line": "שאלה? שלחו לנו וואטסאפ"
+        },
+        "vo_example_he": "זה תלוי במצב המשפחתי, אבל ברוב המקרים זה פחות מסובך ממה שחושבים.",
+        "cta_type": "whatsapp",
+        "notes_he": "מידע כללי, לא ייעוץ משפטי. ההסתייגות המשפטית נוספת אוטומטית."
+      },
+      {
+        "niche_slug": "insurance-agents",
+        "subject_en": "an insurance agent in smart casual clothes",
+        "setting_en": "a bright small office",
+        "product_en": "an insurance policy folder on a desk",
+        "onscreen_examples_he": {
+          "hook_line": "ביטוח דירה זה לא מיותר?",
+          "answer_line": "תלוי מה יש בדירה ומה כבר מכוסה",
+          "example_line": "בודקים מה כבר מכוסה, ורק אז מוסיפים",
+          "tip_line": "צלמו את תכולת הדירה פעם בשנה",
+          "cta_line": "השאירו פרטים לבדיקה"
+        },
+        "vo_example_he": "לפני שמחליטים, בודקים מה כבר מכוסה בפוליסות הקיימות.",
+        "cta_type": "lead_form",
+        "notes_he": "בלי הבטחה לחיסכון ובלי השוואה לחברה מסוימת."
+      },
+      {
+        "niche_slug": "interior-design",
+        "subject_en": "an interior designer",
+        "setting_en": "a small bright apartment living room",
+        "product_en": "a cosy redesigned living room corner",
+        "onscreen_examples_he": {
+          "hook_line": "אפשר לעצב דירה קטנה בלי לשבור קירות?",
+          "answer_line": "כן. אור, צבע ורהיטים עושים הרבה",
+          "example_line": "אותו סלון, בלי פטיש אחד",
+          "tip_line": "מתחילים מהתאורה, לפני הרהיטים",
+          "cta_line": "שלחו תמונה של החדר בוואטסאפ"
+        },
+        "vo_example_he": "ברוב הדירות אפשר לשנות המון בלי לשבור אף קיר.",
+        "cta_type": "whatsapp",
+        "notes_he": "דוגמה רק מפרויקט אמיתי של העסק."
+      },
+      {
+        "niche_slug": "renovation-contractors",
+        "subject_en": "a renovation contractor",
+        "setting_en": "a kitchen under renovation",
+        "product_en": "a refreshed kitchen with new fronts and lighting",
+        "onscreen_examples_he": {
+          "hook_line": "אפשר לשפץ מטבח בלי לפרק הכול?",
+          "answer_line": "לפעמים כן: חזיתות, משטח ותאורה",
+          "example_line": "אותו מטבח, בלי לפרק את הארונות",
+          "tip_line": "בודקים את מצב הארונות לפני שמחליטים",
+          "cta_line": "שלחו תמונה וקבלו הצעה"
+        },
+        "vo_example_he": "כשהארונות במצב טוב, מחליפים חזיתות, משטח ותאורה, ומדלגים על הפירוק.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "warm",
+      "bpm_min": 85,
+      "bpm_max": 100,
+      "drop_at_ms": null,
+      "energy_curve": "flat",
+      "sfx_cues": []
+    },
+    "required_overlays": [
+      "comment_bubble"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "אפשר הכול ב-AI. מי שרוצה לענות בעצמו מצלם שני שוטים קצרים.",
+      "estimated_minutes": 5,
+      "shots": [
+        {
+          "key": "talking_head",
+          "title_he": "קוראים את השאלה",
+          "instruction_he": "החזיקו טלפון ביד, הרימו מבט למצלמה ותנו רגע של מחשבה, כאילו קראתם עכשיו את השאלה.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "face_center",
+          "tips_he": [
+            "בלי לדבר בשוט הזה",
+            "הטלפון שמצלם בגובה העיניים"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "explain_closeup",
+          "title_he": "התשובה מקרוב",
+          "instruction_he": "תקריב של מה שמסביר את התשובה: מסמך, חומר או דוגמה מהעבודה.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "בלי פרטים אישיים של לקוחות בפריים"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "השאלה אמיתית ובאישור, או כללית לגמרי: בלי שם, בלי תמונה ובלי עיצוב של רשת מסוימת.",
+      "התשובה מדויקת ולא מבטיחה תוצאה.",
+      "במשפט, בביטוח ובפיננסים ההסתייגות המתאימה נוספת לכרטיס הסיום."
+    ],
+    "do_not_copy": [
+      "real comments, usernames or avatars taken from social networks without permission",
+      "the comment design of any specific platform",
+      "copyrighted trending sounds"
+    ],
+    "platform_tone": {
+      "reels": "שיחה קצרה וחמה, כמו תשובה בהודעה",
+      "facebook": "מתאים לשאלה בטקסט מעל הסרטון"
+    },
+    "default_duration_sec": 30,
+    "default_goal": "leads",
+    "default_video_type": "explainer",
+    "default_visual_style": "ugc",
+    "default_music_mood": "warm",
+    "default_caption_preset": "clean-box",
+    "vo_mode": "required",
+    "recommended_ad_goal": "whatsapp_messages",
+    "niches": [
+      "lawyers",
+      "insurance-agents",
+      "interior-design",
+      "renovation-contractors",
+      "accountants",
+      "mortgage-advisors",
+      "home-services"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד עונים לתגובה: רילס של שאלה ותשובה",
+    "seo_description_he": "שאלה של לקוח על המסך ותשובה קצרה וברורה. ככה עושים את הפורמט לעסק, עם שאלה אמיתית באישור או שאלה כללית, וקריינות בעברית.",
+    "is_featured": false,
+    "sort_order": 100
+  },
+  {
+    "slug": "price-reveal",
+    "name_he": "כמה זה עולה באמת",
+    "tagline_he": "מספר גדול בשנייה הראשונה, ואז מה מקבלים בדיוק",
+    "description_he": "המחיר מופיע גדול על המסך בשנייה הראשונה, ואחריו פירוט קצר של מה כלול והצעה אחת. רק מחיר אמיתי ועדכני של העסק. הכול נוצר ב-AI, והמספר נבנה אצלנו בעברית ובפורמט של ערכת המותג.",
+    "why_it_works_he": "מחיר הוא מה שכולם רוצים לדעת, ומעט עסקים מראים אותו. שקיפות עוצרת את הגלילה, והפירוט מסביר למה המחיר הוגן.",
+    "hook_type_slug": "price-reveal",
+    "lifecycle": "evergreen",
+    "production_mode": "ai",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "number",
+          "role": "bait",
+          "duration_ms": 3000,
+          "purpose_he": "המחיר, גדול, בשנייה הראשונה",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "Hero product shot in {setting_en}: {bait_en}, {product_en} in sharp focus, dramatic but warm light, empty space in the upper half of the frame",
+          "motion_prompt_en": "a slow dramatic push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": "cash",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 36,
+            "example_he": "{מחיר} ₪. וזה מה שמקבלים"
+          },
+          "vo_slot": {
+            "key": "number_vo",
+            "max_words": 6
+          },
+          "overlay": {
+            "kind": "price",
+            "amountHe": "$onscreen",
+            "labelHe": "$onscreen",
+            "strikeAmountHe": null,
+            "fromMs": 800,
+            "toMs": null,
+            "position": "center"
+          },
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "breakdown",
+          "role": "reveal",
+          "duration_ms": 5000,
+          "purpose_he": "מה כלול, בפירוט קצר",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Slow close-up pan across the details of {product_en} in {setting_en}",
+          "motion_prompt_en": "a smooth lateral pan revealing one detail after another",
+          "camera": "pan_left",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "breakdown_line",
+            "max_chars": 40,
+            "example_he": "מנה ראשונה, עיקרית ושתייה"
+          },
+          "vo_slot": {
+            "key": "breakdown_vo",
+            "max_words": 10
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "offer",
+          "role": "payoff",
+          "duration_ms": 3500,
+          "purpose_he": "ההצעה, רק אם היא אמיתית",
+          "visual_source": "ai_image_kenburns",
+          "visual_prompt_en": "{product_en} served and ready in {setting_en}, inviting",
+          "motion_prompt_en": "slow push in",
+          "camera": "push_in",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "offer_line",
+            "max_chars": 40,
+            "example_he": "בלי תוספות שמגלים בסוף"
+          },
+          "vo_slot": {
+            "key": "offer_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 3500,
+          "purpose_he": "איך מזמינים",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "שלחו וואטסאפ ושמרו מקום"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 7
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "a dramatic slow push-in on the hero product",
+        "hook_line_he_pattern": "{מחיר} ₪. וזה מה שמקבלים",
+        "why_he": "המספר לפני הכול: הצופה רוצה לדעת אם זה זול או יקר."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a hand slides a small blank card across the table toward the camera",
+        "hook_line_he_pattern": "כמה זה עולה באמת? {מחיר} ₪",
+        "why_he": "שאלה ותשובה באותה שורה, בלי לחכות."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "a quick top-down reveal as a cover is lifted off the product",
+        "hook_line_he_pattern": "{מחיר} ₪ ל{שירות}. בלי הפתעות",
+        "why_he": "חשיפה של המוצר יחד עם המחיר, והבטחה לשקיפות."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "restaurants",
+        "subject_en": "a chef",
+        "setting_en": "a cosy restaurant table",
+        "product_en": "a business-lunch meal with a starter, a main and a drink",
+        "onscreen_examples_he": {
+          "hook_line": "{מחיר} ₪. וזה מה שמקבלים",
+          "breakdown_line": "מנה ראשונה, עיקרית ושתייה",
+          "offer_line": "בצהריים, בימים א׳ עד ה׳",
+          "cta_line": "שלחו וואטסאפ ושמרו מקום"
+        },
+        "vo_example_he": "ארוחה מלאה: מנה ראשונה, עיקרית ושתייה.",
+        "cta_type": "whatsapp",
+        "notes_he": "המחיר מהתפריט של היום, כולל מע״מ."
+      },
+      {
+        "niche_slug": "home-services",
+        "subject_en": "an air conditioning technician in uniform",
+        "setting_en": "a bright living room with a wall-mounted AC unit",
+        "product_en": "an AC service kit laid out next to the unit",
+        "onscreen_examples_he": {
+          "hook_line": "{מחיר} ₪ לניקוי מזגן בבית",
+          "breakdown_line": "פילטרים, מאייד והסבר מה מצאנו",
+          "offer_line": "מחיר סגור לפני שמתחילים",
+          "cta_line": "התקשרו ונתאם ביקור"
+        },
+        "vo_example_he": "ניקוי מלא של המזגן, ובסוף הסבר קצר מה מצאנו.",
+        "cta_type": "call",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "real-estate",
+        "subject_en": "a real estate agent",
+        "setting_en": "a bright apartment for sale",
+        "product_en": "a sunny four-room apartment living room",
+        "onscreen_examples_he": {
+          "hook_line": "{מחיר} ₪ לדירת {מספר} חדרים ב{עיר}",
+          "breakdown_line": "מרפסת, חניה ומעלית",
+          "offer_line": "סיור בדירה בלי התחייבות",
+          "cta_line": "שלחו וואטסאפ ונקבע סיור"
+        },
+        "vo_example_he": "מחיר מבוקש אמיתי, ומה מקבלים בו.",
+        "cta_type": "whatsapp",
+        "notes_he": "רק מחיר מבוקש עדכני של נכס אמיתי."
+      },
+      {
+        "niche_slug": "beauty-nails",
+        "subject_en": "a nail technician",
+        "setting_en": "a nail studio table",
+        "product_en": "a gel manicure with neat cuticles",
+        "onscreen_examples_he": {
+          "hook_line": "{מחיר} ₪ לבנייה בג׳ל",
+          "breakdown_line": "הסרה, בנייה, עיצוב וציפוי",
+          "offer_line": "מחיר אחד, בלי תוספות",
+          "cta_line": "קבעו תור אונליין"
+        },
+        "vo_example_he": "בנייה בג׳ל מההתחלה ועד הסוף, במחיר אחד.",
+        "cta_type": "booking",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "energetic",
+      "bpm_min": 105,
+      "bpm_max": 125,
+      "drop_at_ms": 800,
+      "energy_curve": "drop",
+      "sfx_cues": [
+        {
+          "beat_key": "number",
+          "kind": "cash"
+        }
+      ]
+    },
+    "required_overlays": [
+      "price"
+    ],
+    "shot_list": null,
+    "compliance_notes_he": [
+      "המחיר אמיתי, עדכני וכולל מע״מ, כמו שהוא מופיע אצלכם.",
+      "כל מה שכתוב שכלול, כלול באמת. הגבלות ותנאים כתובים במלואם.",
+      "משפטים כמו \"בלי תוספות\" כותבים רק כשזה נכון."
+    ],
+    "do_not_copy": [
+      "prices, menus or offers of other businesses",
+      "names, faces or handles of creators known for price-reveal videos",
+      "copyrighted trending sounds"
+    ],
+    "platform_tone": {
+      "reels": "ישיר ושקוף, המספר בגדול",
+      "facebook": "כדאי לכתוב את המחיר גם בטקסט של הפוסט"
+    },
+    "default_duration_sec": 15,
+    "default_goal": "sales",
+    "default_video_type": "offer",
+    "default_visual_style": "product",
+    "default_music_mood": "energetic",
+    "default_caption_preset": "poster",
+    "vo_mode": "optional",
+    "recommended_ad_goal": "whatsapp_messages",
+    "niches": [
+      "restaurants",
+      "home-services",
+      "real-estate",
+      "beauty-nails",
+      "barbers-salons",
+      "auto-services"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד חשיפת מחיר: כמה זה עולה באמת",
+    "seo_description_he": "המחיר בגדול בשנייה הראשונה, ואז מה כלול והצעה אחת. ככה עושים את הטרנד ב-AI, עם מחיר אמיתי של העסק ומוזיקה שמותרת לפרסום.",
+    "is_featured": false,
+    "sort_order": 110
+  },
+  {
+    "slug": "quick-how-to",
+    "name_he": "מדריך מהיר",
+    "tagline_he": "שלושה טיפים קצרים, וכל אחד אפשר ליישם היום",
+    "description_he": "הבטחה קצרה בשנייה הראשונה, שלושה טיפים מעשיים עם קריינות, והזמנה לפנות. טיימר על המסך שומר על קצב. מתאים לכל תחום שיש בו ידע מקצועי.",
+    "why_it_works_he": "הבטחה לערך מוגדר בזמן קצר מורידה את המחיר של הצפייה. טיפ שימושי נשמר ונשלח הלאה, והצופה זוכר מי נתן אותו.",
+    "hook_type_slug": "how-to",
+    "lifecycle": "evergreen",
+    "production_mode": "hybrid",
+    "ad_safety": "ad_safe",
+    "extra_gates": [],
+    "requires_real_footage": false,
+    "requires_people_consent": false,
+    "recipe": {
+      "version": 1,
+      "beats": [
+        {
+          "key": "promise",
+          "role": "bait",
+          "duration_ms": 3500,
+          "purpose_he": "ההבטחה: שלושה טיפים, בזמן קצר",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Hands of {subject_en} placing three objects in a row on a table in {setting_en}, clean natural light",
+          "motion_prompt_en": "three quick placements, one after another, in rhythm",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "hook_line",
+            "max_chars": 30,
+            "example_he": "3 טיפים ב-20 שניות"
+          },
+          "vo_slot": {
+            "key": "promise_vo",
+            "max_words": 7
+          },
+          "overlay": {
+            "kind": "clock",
+            "time": "00:20",
+            "fromMs": 0,
+            "toMs": null,
+            "position": "top"
+          },
+          "guided_shot_key": "talking_head",
+          "spans": null
+        },
+        {
+          "key": "tip1",
+          "role": "reveal",
+          "duration_ms": 7000,
+          "purpose_he": "טיפ ראשון",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Close-up of hands demonstrating the first step with {product_en} in {setting_en}",
+          "motion_prompt_en": "one clear demonstrative motion, steady framing",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": "pop",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "tip1_line",
+            "max_chars": 40,
+            "example_he": "1. מנקים את הפילטר"
+          },
+          "vo_slot": {
+            "key": "tip1_vo",
+            "max_words": 15
+          },
+          "overlay": null,
+          "guided_shot_key": "demo_1",
+          "spans": null
+        },
+        {
+          "key": "tip2",
+          "role": "reveal",
+          "duration_ms": 7000,
+          "purpose_he": "טיפ שני",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Close-up of hands demonstrating the second step with {product_en} in {setting_en}",
+          "motion_prompt_en": "one clear demonstrative motion, steady framing",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "tip2_line",
+            "max_chars": 40,
+            "example_he": "2. בודקים שאין נזילה מתחת ליחידה"
+          },
+          "vo_slot": {
+            "key": "tip2_vo",
+            "max_words": 15
+          },
+          "overlay": null,
+          "guided_shot_key": "demo_2",
+          "spans": null
+        },
+        {
+          "key": "tip3",
+          "role": "reveal",
+          "duration_ms": 7000,
+          "purpose_he": "טיפ שלישי",
+          "visual_source": "ai_clip",
+          "visual_prompt_en": "Close-up of hands demonstrating the third step with {product_en} in {setting_en}, ending on the result",
+          "motion_prompt_en": "one clear demonstrative motion, steady framing",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": "pop",
+          "speed": null,
+          "onscreen_slot": {
+            "key": "tip3_line",
+            "max_chars": 40,
+            "example_he": "3. סוגרים חלונות כשהמזגן עובד"
+          },
+          "vo_slot": {
+            "key": "tip3_vo",
+            "max_words": 15
+          },
+          "overlay": null,
+          "guided_shot_key": "demo_3",
+          "spans": null
+        },
+        {
+          "key": "cta",
+          "role": "cta",
+          "duration_ms": 5500,
+          "purpose_he": "למי שרוצה שנעשה את זה בשבילו",
+          "visual_source": "brand_card",
+          "visual_prompt_en": "",
+          "motion_prompt_en": "",
+          "camera": "static",
+          "transition_in": "cut",
+          "sfx": null,
+          "speed": null,
+          "onscreen_slot": {
+            "key": "cta_line",
+            "max_chars": 30,
+            "example_he": "רוצים שנבדוק? התקשרו"
+          },
+          "vo_slot": {
+            "key": "cta_vo",
+            "max_words": 11
+          },
+          "overlay": null,
+          "guided_shot_key": null,
+          "spans": null
+        }
+      ]
+    },
+    "hook_variants": [
+      {
+        "key": "A",
+        "bait_concept_en": "three objects placed in a row in a quick rhythm",
+        "hook_line_he_pattern": "3 טיפים ב-20 שניות",
+        "why_he": "מספר וזמן מוגדרים: הצופה יודע בדיוק כמה זה ייקח."
+      },
+      {
+        "key": "B",
+        "bait_concept_en": "a slow push-in on a professional's tool laid out on a clean table",
+        "hook_line_he_pattern": "שלושה דברים שאנחנו בודקים תמיד",
+        "why_he": "סוד מקצועי קטן שהצופה רוצה לקחת לעצמו."
+      },
+      {
+        "key": "C",
+        "bait_concept_en": "a close-up of the most common mistake, frozen for a moment",
+        "hook_line_he_pattern": "הטעות שכולם עושים, ואיך מתקנים",
+        "why_he": "טעות מוכרת יוצרת הזדהות, והתיקון נותן ערך מיד."
+      }
+    ],
+    "niche_adaptations": [
+      {
+        "niche_slug": "home-services",
+        "subject_en": "an air conditioning technician",
+        "setting_en": "a living room with a wall-mounted AC unit",
+        "product_en": "an AC filter and a soft brush",
+        "onscreen_examples_he": {
+          "hook_line": "3 טיפים למזגן לפני הקיץ",
+          "tip1_line": "1. מנקים את הפילטר",
+          "tip2_line": "2. בודקים שאין נזילה מתחת ליחידה",
+          "tip3_line": "3. סוגרים חלונות כשהמזגן עובד",
+          "cta_line": "רוצים שנבדוק? התקשרו"
+        },
+        "vo_example_he": "פילטר נקי, בלי נזילות וחלונות סגורים: שלושה דברים פשוטים לפני הקיץ.",
+        "cta_type": "call",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "physio-nutrition",
+        "subject_en": "a physiotherapist",
+        "setting_en": "a bright treatment room",
+        "product_en": "a yoga mat and a resistance band",
+        "onscreen_examples_he": {
+          "hook_line": "3 תרגילים קלים לגב, ליד המחשב",
+          "tip1_line": "1. מותחים את הכתפיים לאחור",
+          "tip2_line": "2. קמים ללכת כל שעה",
+          "tip3_line": "3. המסך בגובה העיניים",
+          "cta_line": "קבעו תור להערכה"
+        },
+        "vo_example_he": "שלושה הרגלים קטנים שאפשר להתחיל כבר היום, ליד השולחן.",
+        "cta_type": "booking",
+        "notes_he": "מידע כללי, לא מחליף בדיקה אישית. בלי הבטחה לריפוי."
+      },
+      {
+        "niche_slug": "vets-dog-grooming",
+        "subject_en": "a dog groomer with a calm dog",
+        "setting_en": "a bright grooming salon",
+        "product_en": "a soft brush, a towel and a dog treat",
+        "onscreen_examples_he": {
+          "hook_line": "3 טיפים לרחצה רגועה של הכלב",
+          "tip1_line": "1. מסרקים לפני הרחצה",
+          "tip2_line": "2. מים פושרים, לא חמים",
+          "tip3_line": "3. מייבשים היטב בין האצבעות",
+          "cta_line": "קבעו תור לטיפוח"
+        },
+        "vo_example_he": "סירוק, מים פושרים וייבוש טוב. ככה הרחצה נגמרת בלי דרמה.",
+        "cta_type": "booking",
+        "notes_he": null
+      },
+      {
+        "niche_slug": "accountants",
+        "subject_en": "an accountant",
+        "setting_en": "a tidy office desk",
+        "product_en": "a folder of documents and a laptop with a blank screen",
+        "onscreen_examples_he": {
+          "hook_line": "3 דברים לסגור לפני סוף השנה",
+          "tip1_line": "1. מסדרים את כל הקבלות",
+          "tip2_line": "2. בודקים הוצאות שמותר לדווח",
+          "tip3_line": "3. קובעים פגישה לפני דצמבר",
+          "cta_line": "שלחו וואטסאפ וקבעו פגישה"
+        },
+        "vo_example_he": "שלושה דברים פשוטים שעושים את סוף השנה הרבה יותר רגוע.",
+        "cta_type": "whatsapp",
+        "notes_he": null
+      }
+    ],
+    "music_brief": {
+      "mood": "inspiring",
+      "bpm_min": 95,
+      "bpm_max": 115,
+      "drop_at_ms": null,
+      "energy_curve": "loop",
+      "sfx_cues": [
+        {
+          "beat_key": "tip1",
+          "kind": "pop"
+        },
+        {
+          "beat_key": "tip3",
+          "kind": "pop"
+        }
+      ]
+    },
+    "required_overlays": [
+      "clock"
+    ],
+    "shot_list": {
+      "version": 1,
+      "intro_he": "אפשר הכול ב-AI. מי שרוצה להדגים בעצמו מצלם משפט אחד ושלוש הדגמות קצרות.",
+      "estimated_minutes": 8,
+      "shots": [
+        {
+          "key": "talking_head",
+          "title_he": "ההבטחה",
+          "instruction_he": "עמדו מול המצלמה, הרימו שלוש אצבעות ואמרו מה יהיה בסרטון.",
+          "framing": "medium",
+          "min_sec": 3,
+          "max_sec": 8,
+          "ghost": "face_center",
+          "tips_he": [
+            "הטלפון בגובה העיניים",
+            "משפט אחד קצר"
+          ],
+          "people_on_camera": true
+        },
+        {
+          "key": "demo_1",
+          "title_he": "הטיפ הראשון",
+          "instruction_he": "הדגימו את הטיפ הראשון בידיים, מקרוב.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "תנועה אחת ברורה"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "demo_2",
+          "title_he": "הטיפ השני",
+          "instruction_he": "הדגימו את הטיפ השני, מאותה זווית.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "אותו אור כמו בשוט הקודם"
+          ],
+          "people_on_camera": false
+        },
+        {
+          "key": "demo_3",
+          "title_he": "הטיפ השלישי",
+          "instruction_he": "הדגימו את הטיפ השלישי, ובסוף הראו את התוצאה.",
+          "framing": "closeup",
+          "min_sec": 4,
+          "max_sec": 15,
+          "ghost": "hands_table",
+          "tips_he": [
+            "משאירים שנייה על התוצאה"
+          ],
+          "people_on_camera": false
+        }
+      ]
+    },
+    "compliance_notes_he": [
+      "כל טיפ נכון ומקובל בתחום, ולא מבטיח תוצאה.",
+      "בבריאות ובפיננסים ההסתייגות המתאימה נוספת לכרטיס הסיום.",
+      "בלי מוצרים או מותגים של אחרים בפריים."
+    ],
+    "do_not_copy": [
+      "tips and wording copied from a specific creator's video",
+      "names, faces or handles of creators known for quick tutorials",
+      "copyrighted trending sounds"
+    ],
+    "platform_tone": {
+      "reels": "מהיר ומעשי, טיפ כל כמה שניות",
+      "facebook": "כדאי לכתוב את שלושת הטיפים גם בטקסט"
+    },
+    "default_duration_sec": 30,
+    "default_goal": "trust",
+    "default_video_type": "explainer",
+    "default_visual_style": "ugc",
+    "default_music_mood": "inspiring",
+    "default_caption_preset": "clean-box",
+    "vo_mode": "required",
+    "recommended_ad_goal": "local_awareness",
+    "niches": [
+      "home-services",
+      "physio-nutrition",
+      "vets-dog-grooming",
+      "accountants",
+      "fitness-trainers",
+      "beauty-nails"
+    ],
+    "first_seen_at": null,
+    "peak_expected_at": null,
+    "expires_at": null,
+    "seo_title_he": "טרנד מדריך מהיר: שלושה טיפים ברילס אחד",
+    "seo_description_he": "הבטחה קצרה, שלושה טיפים מעשיים והזמנה לפנות. ככה עושים את הפורמט לעסק, ב-AI או בהדגמה שלכם, עם קריינות בעברית.",
+    "is_featured": false,
+    "sort_order": 120
+  }
+]

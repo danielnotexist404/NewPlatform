@@ -68,7 +68,7 @@ export function CampaignsDashboard() {
             <div className="relative lg:col-span-2" aria-hidden>
               <p className="mb-3 text-small font-semibold text-text-2">{C.ghostTitle}</p>
               <div className="pointer-events-none select-none opacity-45 [mask-image:linear-gradient(to_bottom,black_40%,transparent)]">
-                <KpiRow set={workspaceKpis("7d")} goal="workspace" range="7d" />
+                <KpiRow set={workspaceKpis("7d")} goal="workspace" range="7d" className="xl:grid-cols-2" />
               </div>
             </div>
             <HealthTeaserCard connected={false} />
