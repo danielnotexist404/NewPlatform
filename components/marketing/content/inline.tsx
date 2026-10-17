@@ -14,7 +14,7 @@ import { LTR_VARS, PENDING_MARKER_HE, resolveOwnerVar } from "./owner-vars";
 export type InlineMode = "legal" | "site";
 
 const TOKEN =
-  /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)\s]+)\)|\{\{([A-Z0-9_]+)\}\}|<ltr>(.+?)<\/ltr>|`([^`]+)`|([A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})/g;
+  /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)\s]+)\)|\{\{([A-Z0-9_]+)\}\}|<ltr>(.+?)<\/ltr>|`([^`]+)`|([A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})/g;
 
 /** "hello@{{DOMAIN}}" becomes a real address before tokenizing, so it is detected as an e-mail. */
 function preSubstitute(text: string) {

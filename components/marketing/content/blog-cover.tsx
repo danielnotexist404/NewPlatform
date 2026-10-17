@@ -3,6 +3,7 @@ import { getHook } from "@/lib/data/seed";
 import { cn } from "@/lib/utils";
 import { BLOG_COVER_ART, type BlogPost } from "@/content/he/blog";
 import { ReelTile } from "./reel-tile";
+import { renderInline } from "./inline";
 
 /** Film-strip perforations (decorative). */
 function Perforations({ className }: { className?: string }) {
@@ -116,7 +117,7 @@ function ReelsArt({ sm }: { sm: boolean }) {
             <span className="h-[1.1cqw] w-[22%] rounded-full bg-primary shadow-[0_0_12px_var(--color-primary)]" />
             <span className="h-[1.1cqw] flex-1 rounded-full bg-white/20" />
           </div>
-          {!sm && <span className="text-[2cqw] font-semibold text-primary">{a.firstSeconds}</span>}
+          {!sm && <span className="text-[2cqw] font-semibold text-primary">{renderInline(a.firstSeconds, "site", "fs")}</span>}
         </div>
       </div>
     </>

@@ -46,6 +46,8 @@ export const BRAND = {
     coordinatorPhone: "{{A11Y_COORDINATOR_PHONE}}",
     coordinatorEmail: "accessibility@kdimon.co.il",
     statementDate: "{{A11Y_STATEMENT_DATE}}",
+    auditDate: "{{A11Y_AUDIT_DATE}}",
+    auditor: "{{A11Y_AUDITOR}}",
   },
 } as const;
 

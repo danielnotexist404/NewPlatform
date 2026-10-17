@@ -1,12 +1,15 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { WhatsAppButton } from "./whatsapp-button";
 import { SIGNUP_HREF } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export function MobileStickyCta() {
+  const pathname = usePathname();
+  const hiddenRoute = pathname.startsWith("/legal") || pathname.startsWith("/contact");
   const [show, setShow] = React.useState(false);
   React.useEffect(() => {
     const hero = document.getElementById("hero");
@@ -25,6 +28,7 @@ export function MobileStickyCta() {
     update();
     return () => io.disconnect();
   }, []);
+  if (hiddenRoute) return null;
   return (
     <div
       className={cn(
