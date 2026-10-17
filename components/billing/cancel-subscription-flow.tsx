@@ -185,8 +185,8 @@ export function CancelSubscriptionFlow() {
             <caption className="sr-only">{c.refundTable.caption}</caption>
             <tbody className="[&_td]:py-2 [&_th]:py-2 [&_tr]:border-b [&_tr]:border-border">
               <tr><th scope="row" className="text-start font-normal text-text-2">{c.refundTable.paid}</th><td className="text-end"><Price ils={q.paidIls} decimals /></td></tr>
-              <tr><th scope="row" className="text-start font-normal text-text-2">{fill(c.refundTable.consumed, { usedCredits: creditsText(q.usedCredits) })}</th><td className="text-end"><bdi className="num">−</bdi><Price ils={q.consumedValueIls} decimals /></td></tr>
-              <tr><th scope="row" className="text-start font-normal text-text-2">{fill(c.refundTable.fee, { feeCap: formatIls(CANCEL_FEE_CAP_ILS) })}</th><td className="text-end"><bdi className="num">−</bdi><Price ils={q.feeIls} decimals /></td></tr>
+              <tr><th scope="row" className="text-start font-normal text-text-2">{fill(c.refundTable.consumed, { usedCredits: creditsText(q.usedCredits) })}</th><td className="text-end"><bdi dir="ltr" className="num">{formatIls(-q.consumedValueIls, "always")}</bdi></td></tr>
+              <tr><th scope="row" className="text-start font-normal text-text-2">{fill(c.refundTable.fee, { feeCap: formatIls(CANCEL_FEE_CAP_ILS) })}</th><td className="text-end"><bdi dir="ltr" className="num">{formatIls(-q.feeIls, "always")}</bdi></td></tr>
               <tr className="border-b-0!"><th scope="row" className="text-start text-body font-bold">{c.refundTable.refund}</th><td className="text-end text-body-lg font-bold text-primary-text"><Price ils={q.refundIls} decimals /></td></tr>
             </tbody>
           </table>

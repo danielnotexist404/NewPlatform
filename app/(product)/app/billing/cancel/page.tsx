@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function BillingCancelPage() {
   return (
-    <>
+    <div className="max-w-2xl">
       <PageHeader
         title={billingCopy.cancel.title}
         back={{ href: "/app/billing", label: billingCopy.plans.back }}
@@ -26,6 +26,6 @@ export default function BillingCancelPage() {
       <Suspense>
         <CancelSubscriptionFlow />
       </Suspense>
-    </>
+    </div>
   );
 }

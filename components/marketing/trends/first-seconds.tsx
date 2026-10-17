@@ -27,14 +27,15 @@ export function FirstSeconds({ items }: { items: TrendExplainerV1["first_seconds
               <div key={i} className="absolute" style={{ insetInlineStart: `${left * 100}%` }}>
                 <span className="absolute top-[64px] block size-4 -translate-x-1/2 rounded-full border-[3px] border-bg bg-primary shadow-[0_0_0_2px_var(--color-primary)]" />
                 <div
-                  dir="rtl"
                   className={cn(
                     "absolute w-48 rounded-sm bg-surface-2 px-3 py-2 text-small leading-snug text-text shadow-[inset_0_0_0_1px_var(--color-frame)]",
                     up ? "bottom-[calc(100%-56px)]" : "top-[106px]",
                     left > 0.8 ? "inset-e-0 translate-x-3" : left < 0.15 ? "inset-s-0 -translate-x-3" : "-translate-x-1/2",
                   )}
                 >
-                  {it.text_he}
+                  <span dir="rtl" className="block text-start">
+                    {it.text_he}
+                  </span>
                 </div>
               </div>
             );

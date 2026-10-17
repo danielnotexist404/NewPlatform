@@ -563,6 +563,10 @@ export const LANDING = {
     honest:
       "ההשוואה היא של מחיר בלבד. סוכנות טובה נותנת גם ליווי אישי ואסטרטגיה, ואם זה מה שהעסק שלכם צריך, היא יכולה להיות בחירה נכונה.",
     footnotesTitle: "מקורות",
+    sourceRef: (n: number) => `מקור ${n}`,
+    newWindow: " (נפתח בחלון חדש)",
+    checked: (when: string) => `נבדק לאחרונה: ${when}.`,
+    accessedHe: "אוקטובר 2026",
   },
 
   /* §3.12 PricingCards + CreditCostTable */

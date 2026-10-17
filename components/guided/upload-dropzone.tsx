@@ -91,7 +91,7 @@ export function UploadDropzone({ onUploaded, disabled }: { onUploaded: (f: Picke
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2 text-small">
               <bdi dir="ltr" className="truncate">{file.name}</bdi>
-              <span className="num shrink-0 text-muted">{fmtSize(file.size)}</span>
+              <bdi dir="ltr" className="num shrink-0 text-muted">{fmtSize(file.size)}</bdi>
             </div>
             <Progress value={progress} aria-label={GUIDED.upload.uploading} />
             <span className="text-micro text-muted">{uploading ? GUIDED.upload.uploading : GUIDED.upload.done}</span>

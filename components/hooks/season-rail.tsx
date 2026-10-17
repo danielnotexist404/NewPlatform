@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useToday } from "./stores";
 import { upcomingSeasons } from "./calendar";
 import { shortDateHe } from "./text";
+import { SmartText } from "./hook-text";
 
 /**
  * "העונות הקרובות" (Part 02 §5.5 item 7): the next seasons by date. Quiet days are grey, without a link,
@@ -31,9 +32,9 @@ export function SeasonRail({ title = HOOKS_COPY.seasonRail.title, nicheSlug, lim
                 <span>{now ? HOOKS_COPY.seasonRail.now : shortDateHe(start)}</span>
                 {now && <span aria-hidden className="size-1.5 animate-pulse-dot rounded-full bg-success" />}
               </span>
-              <span className="mt-1 block text-body font-bold leading-snug">{season.name_he}</span>
+              <span className="mt-1 block text-body font-bold leading-snug"><SmartText text={season.name_he} /></span>
               <span className="mt-1 block text-small text-text-2">
-                {season.is_quiet_day ? HOOKS_COPY.seasonRail.quiet : season.publish_window_he}
+                {season.is_quiet_day ? HOOKS_COPY.seasonRail.quiet : <SmartText text={season.publish_window_he} />}
               </span>
             </>
           );

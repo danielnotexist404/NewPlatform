@@ -203,7 +203,7 @@ export function ShootKit({ trendSlug, nicheSlug, nicheIcon }: { trendSlug: strin
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr] xl:grid-cols-[minmax(0,1fr)_380px] xl:gap-x-10">
         {/* instruction */}
         <section aria-labelledby="shot-title" className="flex flex-col gap-4 lg:col-start-1 lg:row-start-1">
           <p className="text-micro text-primary-text">{GUIDED.shot(active + 1)} · {GUIDED.framing[shot.framing]}</p>

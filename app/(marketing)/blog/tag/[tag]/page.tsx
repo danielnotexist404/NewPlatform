@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { ContentSkeleton } from "@/components/marketing/content/content-skeleton";
 import { PageHero } from "@/components/marketing/content/page-hero";
 import { BlogCard } from "@/components/marketing/content/blog-card";
 import { TagChips } from "@/components/marketing/content/tag-chips";
@@ -22,7 +24,15 @@ export async function generateMetadata({ params }: { params: Promise<{ tag: stri
   };
 }
 
-export default async function BlogTagPage({ params }: { params: Promise<{ tag: string }> }) {
+export default function BlogTagPage({ params }: { params: Promise<{ tag: string }> }) {
+  return (
+    <Suspense fallback={<ContentSkeleton />}>
+      <BlogTagView params={params} />
+    </Suspense>
+  );
+}
+
+async function BlogTagView({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = await params;
   if (!isTag(tag)) notFound();
   const posts = postsForTag(tag);

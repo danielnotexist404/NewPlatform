@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { ContentSkeleton } from "@/components/marketing/content/content-skeleton";
 import { LegalPage } from "@/components/marketing/content/legal-page";
 import { LEGAL_DOCS, getLegalDoc } from "@/content/he/legal";
 
@@ -19,7 +21,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function LegalDocPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function LegalDocPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense fallback={<ContentSkeleton />}>
+      <LegalDoc params={params} />
+    </Suspense>
+  );
+}
+
+async function LegalDoc({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const doc = getLegalDoc(slug);
   if (!doc) notFound();

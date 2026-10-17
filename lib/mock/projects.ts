@@ -360,3 +360,12 @@ export function relativeFromNow(iso: string, nowIso: string = MOCK_NOW): string 
 }
 
 export const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+
+/** Sample results of the free per-beat rewrite (scene.rewrite, Part 03 §6.5) for the grill script. */
+export const SCRIPT_REWRITES: Record<string, { short: string; energetic: string; formal: string }> = {
+  s2: { short: "צלחת ענקית, מנה קטנה?", energetic: "צלחת ענקית ומנה קטנטנה? לא אצלנו.", formal: "מכירים את הצלחת הגדולה עם המנה הקטנה במרכז?" },
+  s3: { short: "אצלנו הכול נצלה על גחלים, מול העיניים.", energetic: "גחלים פתוחות, אש אמיתית, והכול מול העיניים שלכם.", formal: "אצלנו כל המנות נצלות על גחלים, מול הסועדים." },
+  s4: { short: "ארוחה זוגית מלאה: סלטים, פיתות ושיפודים.", energetic: "סלטים, פיתות מהטאבון ושיפודים לבחירה. יוצאים מפוצצים.", formal: "ארוחה זוגית מלאה הכוללת סלטים, פיתות מהטאבון ושיפודים לבחירה." },
+  s5: { short: "4.8 בגוגל, מ-1,240 ביקורות.", energetic: "4.8 בגוגל. 1,240 ביקורות. זה לא רק אנחנו.", formal: "הדירוג שלנו בגוגל הוא 4.8, מתוך 1,240 ביקורות." },
+  s6: { short: "שולחן להערב? שלחו וואטסאפ.", energetic: "רוצים שולחן הערב? שלחו וואטסאפ עכשיו.", formal: "להזמנת שולחן, שלחו לנו הודעה בוואטסאפ." },
+};

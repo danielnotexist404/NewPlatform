@@ -453,7 +453,7 @@ export const CITY_SUGGESTIONS = [
   "כפר סבא", "ירושלים", "חיפה", "באר שבע", "נתניה", "אשדוד", "מודיעין", "רחובות", "קריית אונו", "אור יהודה",
 ];
 
-/* ---------- Builder draft (F.2, F.5 `ads.copy.v1` output) — SAMPLE ---------- */
+/* ---------- Builder draft (F.2; F.5 `ads.copy.v1` output) — SAMPLE ---------- */
 export const builderDraft = {
   projectTitle: "3 שאלות לפני תספורת",
   durationSec: 30,

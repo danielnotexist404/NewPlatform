@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { ContentSkeleton } from "@/components/marketing/content/content-skeleton";
 import { BRAND } from "@/lib/constants";
 import { Breadcrumbs } from "@/components/marketing/content/breadcrumbs";
 import { BlogCover } from "@/components/marketing/content/blog-cover";
@@ -31,7 +33,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense fallback={<ContentSkeleton />}>
+      <BlogPostView params={params} />
+    </Suspense>
+  );
+}
+
+async function BlogPostView({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) notFound();

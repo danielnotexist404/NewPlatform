@@ -95,23 +95,16 @@ export default function HooksHubPage() {
 
         <section aria-labelledby="by-niche" className="container-marketing mt-20">
           <SectionTitle id="by-niche" title={H.sections.byNiche} sub={H.sections.byNicheSub} />
-          <div className="flex flex-col gap-8">
-            {groups.map(({ category, niches: list }) => (
-              <div key={category.slug}>
-                <h3 className="mb-3 text-micro text-muted">{category.name_he}</h3>
-                <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                  {list.map((n) => (
-                    <li key={n.slug}>
-                      <NicheCard
-                        compact
-                        n={{ slug: n.slug, name: n.name_he, short: nicheShortName(n), icon: n.icon, description: n.description_he, category: n.category_slug, hookCount: nicheHookCount(n.slug), compliance: n.compliance_flag !== "none" }}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            {groups.flatMap(({ niches: list }) => list).map((n) => (
+              <li key={n.slug}>
+                <NicheCard
+                  compact
+                  n={{ slug: n.slug, name: n.name_he, short: nicheShortName(n), icon: n.icon, description: n.description_he, category: n.category_slug, hookCount: nicheHookCount(n.slug), compliance: n.compliance_flag !== "none" }}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         <section aria-labelledby="by-type" className="container-marketing mt-20">

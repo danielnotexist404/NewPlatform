@@ -811,6 +811,7 @@ export const teamCopy = {
   rolesTitle: "מה כל תפקיד יכול לעשות",
   pendingTitle: "הזמנות ממתינות",
   pending: "ממתינה",
+  justNow: "עכשיו",
   sentLine: "נשלחה {relative} · בתוקף עד {date}",
   resend: "שליחה מחדש",
   resent: "ההזמנה נשלחה שוב ל-{email}",
