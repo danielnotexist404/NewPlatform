@@ -222,7 +222,7 @@ function PlanCard({ plan: p, cycle, excl }: { plan: Plan; cycle: Cycle; excl: bo
         <p className="mt-1 text-small text-text-2">{p.taglineHe}</p>
       </div>
 
-      <div className="min-h-[104px]">
+      <div className="min-h-[112px]">
         {strike !== null && (
           <p className="text-body text-muted">
             <s aria-hidden className="num">
@@ -237,15 +237,17 @@ function PlanCard({ plan: p, cycle, excl }: { plan: Plan; cycle: Cycle; excl: bo
         <p className="mt-2 text-small text-text-2">{sub}</p>
       </div>
 
-      <p className="inline-flex w-fit items-center rounded-full bg-surface-3 px-3 py-1 text-small font-semibold">
-        {free ? PLAN_CARD.freeVideos : PLAN_CARD.approxVideos(p.approxVideos)}
-      </p>
+      <div className="flex min-h-[3.25rem] items-start">
+        <p className="inline-flex w-fit items-center rounded-sm bg-surface-3 px-3 py-1 text-small font-semibold">
+          {free ? PLAN_CARD.freeVideos : PLAN_CARD.approxVideos(p.approxVideos)}
+        </p>
+      </div>
 
       <Link href={planHref(p, cycle)} className={cn(buttonVariants({ variant: highlighted ? "primary" : "secondary", size: "lg" }), "w-full")}>
         {PLAN_CARD.cta[p.id]}
       </Link>
 
-      <p className="flex items-center gap-2 rounded-sm bg-violet/10 px-3 py-2 text-small text-text">
+      <p className="flex min-h-[3.75rem] items-center gap-2 rounded-sm bg-violet/10 px-3 py-2 text-small text-text">
         <Megaphone aria-hidden className="size-4 shrink-0 text-violet" />
         {free ? "קמפיין ניסיון אחד, עד ₪300" : PLAN_CARD.metaLine}
       </p>

@@ -23,7 +23,8 @@ function BeforeArt() {
           />
         </div>
       ))}
-      <div dir="rtl" className="absolute bottom-[6%] inset-e-[6%] w-[50%] rounded-lg rounded-be-[4px] bg-surface-1 p-3 text-[11px] leading-relaxed text-text shadow-[var(--shadow-2)]">
+      <div className="absolute bottom-[6%] inset-e-[6%] w-[50%] rounded-lg rounded-be-[4px] bg-surface-1 p-3 text-[11px] leading-relaxed text-text shadow-[var(--shadow-2)]">
+        <div dir="rtl">
         <p className="mb-1 inline-flex items-center gap-1 font-bold text-success">
           <MessageCircle className="size-3" aria-hidden />
           {S.whatsappTitle}
@@ -33,6 +34,7 @@ function BeforeArt() {
             <li key={l}>{l}</li>
           ))}
         </ul>
+        </div>
       </div>
     </div>
   );
@@ -44,7 +46,7 @@ function BeforeArt() {
  * Pointer down anywhere on the frame jumps the handle there (WCAG 2.5.7 alternative to dragging).
  */
 export function BeforeAfterSlider() {
-  const [after, setAfter] = React.useState(50); // % of the frame (from the left edge) that shows "after"
+  const [after, setAfter] = React.useState(58); // % of the frame (from the left edge) that shows "after"
   const frame = React.useRef<HTMLDivElement>(null);
   const dragging = React.useRef(false);
 
@@ -94,9 +96,9 @@ export function BeforeAfterSlider() {
           <BeforeArt />
         </div>
         {/* labels */}
-        <span dir="rtl" className="absolute inset-e-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-micro text-white" aria-hidden>{S.before}</span>
-        <span dir="rtl" className="absolute inset-s-3 top-3 max-w-[45%] rounded-full bg-black/60 px-2.5 py-1 text-micro text-white" aria-hidden>{S.after}</span>
-        <span dir="rtl" className="absolute bottom-3 inset-s-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-micro text-white/90" aria-hidden>{S.demo}</span>
+        <span className="absolute inset-e-3 top-3 max-w-[45%] rounded-full bg-black/60 px-2.5 py-1 text-micro text-white" aria-hidden><span dir="rtl">{S.before}</span></span>
+        <span className="absolute inset-s-3 top-3 max-w-[45%] rounded-full bg-black/60 px-2.5 py-1 text-micro text-white" aria-hidden><span dir="rtl">{S.after}</span></span>
+        <span className="absolute bottom-3 inset-s-3 rounded-[6px] bg-black/60 px-2 py-0.5 text-micro text-white/90" aria-hidden>{S.demo}</span>
         {/* handle */}
         <div className="absolute inset-y-0 w-0.5 bg-white/90 shadow-[0_0_12px_var(--color-black)]" style={{ insetInlineStart: `${after}%` }} aria-hidden />
         <div

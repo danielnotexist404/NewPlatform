@@ -76,7 +76,7 @@ export function PlanComparisonTable() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-small text-muted md:hidden">{COMPARE.scrollHint}</p>
-      <div className="-mx-4 overflow-x-auto px-4 lg:mx-0 lg:overflow-visible lg:px-0" tabIndex={0} role="region" aria-label={COMPARE.caption}>
+      <div className="relative -mx-4 overflow-x-auto px-4 lg:mx-0 lg:overflow-visible lg:px-0" tabIndex={0} role="region" aria-label={COMPARE.caption}>
         <table className="w-full min-w-[760px] border-separate border-spacing-0 text-small" aria-describedby="seats-footnote">
           <caption className="sr-only">{COMPARE.caption}</caption>
           <thead>

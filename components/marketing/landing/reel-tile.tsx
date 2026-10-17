@@ -98,7 +98,8 @@ export function ReelArt({
       {/* vignette */}
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_45%,transparent_55%,var(--color-black)_100%)] opacity-70" />
 
-      <div className={cn("absolute", capPos)}>
+      {/* captions keep clear of the network action column on the physical right (Part 01 §10.6) */}
+      <div className={cn("absolute", capPos)} style={chrome && aspect === "reel" && preset === "news" ? { right: "17%" } : undefined}>
         <CaptionText text={text} preset={preset} />
       </div>
 

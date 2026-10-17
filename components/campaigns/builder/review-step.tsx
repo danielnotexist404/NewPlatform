@@ -219,7 +219,7 @@ export function ReviewStep({ d, patch, phase, confirm, setConfirm, showConfirmHi
           </div>
         </div>
         <label className="flex cursor-pointer items-start gap-3 rounded-sm bg-surface-1 p-3">
-          <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]" aria-describedby={showConfirmHint ? "confirm-hint" : undefined} />
+          <input id="confirm-budget" type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="mt-1 size-5 shrink-0 accent-[var(--color-primary)]" aria-describedby={showConfirmHint ? "confirm-hint" : undefined} />
           <span className="text-small">{B.review.confirm}</span>
         </label>
         {showConfirmHint && !confirm && (

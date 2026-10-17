@@ -69,6 +69,9 @@ export function CampaignBuilder() {
   function publish() {
     if (!confirm) {
       setConfirmHint(true);
+      const box = document.getElementById("confirm-budget");
+      box?.scrollIntoView({ block: "center", behavior: calm ? "auto" : "smooth" });
+      box?.focus({ preventScroll: true });
       return;
     }
     setPhase("publishing");

@@ -5,7 +5,7 @@ import { TagChips } from "@/components/marketing/content/tag-chips";
 import { BLOG_UI, postsByDate } from "@/content/he/blog";
 
 export const metadata: Metadata = {
-  title: BLOG_UI.meta.title,
+  title: { absolute: BLOG_UI.meta.title },
   description: BLOG_UI.meta.description,
   alternates: { canonical: "/blog" },
 };
