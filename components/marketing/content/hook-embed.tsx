@@ -10,6 +10,11 @@ import { CONTENT_UI } from "@/content/he/site";
 
 const NICHE_ICONS: Record<string, LucideIcon> = { House };
 
+function NicheGlyph({ name }: { name?: string }) {
+  const Glyph = (name && NICHE_ICONS[name]) || Clapperboard;
+  return <Glyph className="size-6 text-white/80" strokeWidth={1.5} />;
+}
+
 /** "{עיר}" placeholders in hook text render as chips (PlaceholderChip, Part 02 §1.4). */
 export function HookText({ text }: { text: string }) {
   const parts = text.split(/(\{[^}]+\})/g);
@@ -34,7 +39,6 @@ export function HookEmbed({ id }: { id: string }) {
   if (!hook) throw new Error(`HookEmbed: unknown hook id "${id}"`);
   const type = getHookType(hook.hook_type_slug);
   const niche = hook.niche_slug ? getNiche(hook.niche_slug) : undefined;
-  const Icon = (niche && NICHE_ICONS[niche.icon]) || Clapperboard;
   const createHref = `/login?next=${encodeURIComponent(`/app/create?hook=${hook.id}`)}`;
 
   return (
@@ -43,7 +47,7 @@ export function HookEmbed({ id }: { id: string }) {
       <div className="relative flex gap-4 md:gap-5">
         <div aria-hidden className="hidden w-16 shrink-0 flex-col items-center gap-2 xs:flex">
           <div className="flex aspect-reel w-full items-center justify-center rounded-sm bg-black shadow-[inset_0_0_0_1px_var(--color-frame)]" style={{ backgroundImage: "radial-gradient(120% 80% at 80% 0%, color-mix(in oklab, var(--color-primary) 45%, transparent), transparent 65%)" }}>
-            <Icon className="size-6 text-white/80" strokeWidth={1.5} />
+            <NicheGlyph name={niche?.icon} />
           </div>
         </div>
         <div className="min-w-0 flex-1">

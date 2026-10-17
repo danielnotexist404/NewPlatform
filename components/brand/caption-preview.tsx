@@ -22,21 +22,6 @@ export function captionContrast(preset: CaptionPresetId, c: CaptionColors): numb
   }
 }
 
-/** Whether the user prefers reduced motion (OS or the in-app toggle). */
-export function useReducedMotion() {
-  const [reduce, setReduce] = React.useState(false);
-  React.useEffect(() => {
-    const mq = matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduce(mq.matches || document.documentElement.dataset.motion === "reduce");
-    update();
-    mq.addEventListener("change", update);
-    const obs = new MutationObserver(update);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-motion"] });
-    return () => { mq.removeEventListener("change", update); obs.disconnect(); };
-  }, []);
-  return reduce;
-}
-
 /** Word-by-word active index (350 ms per word, words only — never letters). */
 export function useActiveWord(count: number, play: boolean) {
   const [i, setI] = React.useState(1);

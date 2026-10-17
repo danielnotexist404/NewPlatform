@@ -26,6 +26,7 @@ ROOT = HERE.parents[1]
 SEED = ROOT / "seed"
 OUT = SEED / "trend_templates.json"
 
+sys.dont_write_bytecode = True          # no seed/scripts/__pycache__ in the repo
 sys.path.insert(0, str(HERE))
 from build_seed import _hebrew_text_issues  # noqa: E402  (BANNED_PHRASES of Appendix E §5.2 + typography: one source)
 

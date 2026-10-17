@@ -245,6 +245,7 @@ export const brandCopy = {
     endCard: {
       cta: "הנעה לפעולה",
       recommended: "מומלץ לנישה",
+      keywordDefault: "פרטים",
       headline: "כותרת",
       headlineHelp: "עד 6 מילים (30 תווים)",
       whatsappNumber: "מספר וואטסאפ",
@@ -287,6 +288,7 @@ export const brandCopy = {
       title: "תצוגה מקדימה",
       scenes: { hook: "הוק", scene: "סצנה", end: "כרטיס סיום" },
       sampleNote: "אנימטיק לדוגמה עם הוק מהנישה שלכם",
+      sceneCaption: "ככה זה נראה אצלנו, בלי פילטרים",
       replay: "ניגון מההתחלה",
       pause: "עצירת התנועה",
       play: "הפעלת התנועה",

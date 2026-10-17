@@ -82,7 +82,7 @@ export function renderInline(text: string, mode: InlineMode = "legal", keyPrefix
         out.push(value);
       }
     } else if (ltr !== undefined) {
-      out.push(<bdi key={key} dir="ltr">{ltr}</bdi>);
+      out.push(<bdi key={key} dir="ltr" className="whitespace-nowrap">{ltr}</bdi>);
     } else if (code !== undefined) {
       out.push(<code key={key}>{code}</code>);
     } else if (email !== undefined) {
