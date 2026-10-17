@@ -581,6 +581,8 @@ export const health = {
   burnTitle: "איפה הכסף נשרף",
   burnSub: "{amount} מתוך {total} הלכו על דברים שלא הביאו פניות.",
   burnLegendWorking: "עבד",
+  burnAria: "{amount} מתוך {total} נשרפו",
+  of100: "מתוך 100",
   fixesTitle: "מה לתקן, לפי הסדר",
   fixesSub: "מהחשוב לפחות חשוב. רוב התיקונים בלחיצה אחת.",
   severity: { high: "חשוב", medium: "כדאי", low: "שיפור קטן" },
@@ -598,6 +600,7 @@ export const health = {
 
 /* ---------- Leads (/app/leads, §H) ---------- */
 export const leadsCopy = {
+  eyebrow: "תיבת הלידים",
   title: "לידים",
   sub: "כל הפניות מהקמפיינים, מוואטסאפ ומדף העסק, במקום אחד. חוזרים מהר וסוגרים.",
   status: { new: "חדש", in_progress: "בטיפול", closed: "נסגר" } satisfies Record<LeadStatus, string>,

@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { NicheIcon } from "./niche-icon";
 import { useMediaQuery } from "./use-motion";
+import { searchKey } from "./create-link";
 import { LANDING } from "@/content/he/landing";
 
 export interface NicheOption { slug: string; label: string; icon: string; search: string }
@@ -16,7 +17,7 @@ const T = LANDING.heroCard.picker;
 function PickerBody({ groups, selected, onSelect }: { groups: NicheGroup[]; selected: string | null; onSelect: (slug: string | null) => void }) {
   const [q, setQ] = React.useState("");
   const id = React.useId();
-  const needle = q.trim().toLowerCase();
+  const needle = searchKey(q.trim());
   const filtered = needle
     ? groups.map((g) => ({ ...g, items: g.items.filter((n) => n.search.includes(needle)) })).filter((g) => g.items.length > 0)
     : groups;

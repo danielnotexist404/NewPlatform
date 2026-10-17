@@ -40,3 +40,7 @@ export function saveHeroDraft(d: HeroDraft) {
     /* storage may be blocked — continue without the draft */
   }
 }
+
+/** Hebrew-aware search key: final letters fold to their regular forms (מוסך ≈ מוסכים), geresh/gershayim dropped. */
+const FINALS: Record<string, string> = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+export const searchKey = (s: string) => s.toLowerCase().replace(/[ךםןףץ]/g, (c) => FINALS[c]).replace(/[״׳"']/g, "");

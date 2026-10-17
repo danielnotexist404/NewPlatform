@@ -44,9 +44,9 @@ export function VideoWall({ columns, mobile }: { columns: ResolvedTile[][]; mobi
         <div className="pointer-events-none absolute -inset-10 -z-10 bg-[radial-gradient(55%_45%_at_50%_30%,color-mix(in_oklab,var(--color-primary)_22%,transparent),transparent_70%)] light:hidden" />
 
         {/* md+ : vertical columns */}
-        <div className="hidden h-full grid-cols-2 gap-3 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)] md:grid xl:grid-cols-3">
+        <div className="hidden h-full grid-cols-2 gap-3 overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,black_12%,black_88%,transparent)] md:grid md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
           {columns.map((col, ci) => (
-            <div key={ci} className={cn("relative min-w-0", ci === 2 && "hidden xl:block", ci === 1 && "mt-16")}>
+            <div key={ci} className={cn("relative min-w-0", ci === 2 && "lg:hidden xl:block", ci === 1 && "mt-16")}>
               <div
                 className="flex animate-marquee-y flex-col gap-3 will-change-transform"
                 style={

@@ -77,7 +77,7 @@ export function HookComparisonTable({ campaign, statuses, winner }: { campaign: 
                   <th scope="row" className="py-3 pe-3 text-start font-normal">
                     <div className="flex items-center gap-3">
                       <VideoThumb size="sm" tone={v.tone} className="w-10" showPlay={false} />
-                      <div className="min-w-0 max-w-64">
+                      <div className="min-w-56 max-w-80">
                         <p className="flex items-center gap-2 text-micro text-primary-text">
                           {fmt(B.review.hook, { key: HOOK_KEY_HE[v.key] })} · <span className="font-normal text-muted">{v.hookTypeHe}</span>
                         </p>

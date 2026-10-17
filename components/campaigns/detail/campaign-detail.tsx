@@ -37,7 +37,6 @@ import { KpiRow } from "../kpi-row";
 import { PageHeader, SampleNote, SectionTitle } from "../page-header";
 import { RangePicker, useStoredRange } from "../range-picker";
 import { CampaignStatusTimeline, type TimelineStep } from "../status-timeline";
-import { VideoThumb } from "../video-thumb";
 import { dateDayMonth, dateLong, fill, fmt, formatIls, Pct, plural, timeOf } from "../text";
 import { DailyChart } from "./daily-chart";
 import { HookComparisonTable } from "./hook-comparison-table";
@@ -331,58 +330,54 @@ export function CampaignDetail({ campaign: c }: { campaign: Campaign }) {
         </div>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <section aria-labelledby="hooks-title" className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5" id="boost">
-            <SectionTitle id="hooks-title" title={D.hooks.title} sub={D.hooks.sub} />
-            {winner && status === "active" && !boosted && (
-              <div className="flex flex-col gap-3 rounded-sm bg-primary/8 p-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-primary)_35%,transparent)] sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <Trophy className="mt-0.5 size-5 shrink-0 text-primary-text" aria-hidden />
-                  <div>
-                    <p className="font-bold">{D.boost.title}</p>
-                    <p className="text-small text-text-2">
-                      {fill(D.boost.body, {
-                        key: HOOK_KEY_HE[winner.key],
-                        cpr: <Price ils={winnerCpr ?? 0} decimals className="font-bold text-text" />,
-                        other: otherCpr ? <Price ils={otherCpr} decimals /> : "—",
-                      })}
-                    </p>
-                  </div>
-                </div>
-                <Button onClick={() => setBoostOpen(true)} className="shrink-0 glow-primary">
-                  {D.boost.cta}
-                </Button>
-              </div>
-            )}
-            {winner && boosted && (
-              <div className="flex flex-col gap-3 rounded-sm bg-success/10 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="flex items-center gap-2 text-small"><CircleCheck className="size-4 shrink-0 text-success" aria-hidden />{fmt(D.boost.done, { key: HOOK_KEY_HE[winner.key] })}</p>
-                <Button asChild variant="secondary" size="sm">
-                  <Link href={`/app/create?hook=${winner.hookId}`}>{D.boost.moreVariants}<DirIcon name="forward" /></Link>
-                </Button>
-              </div>
-            )}
-            <HookComparisonTable campaign={c} statuses={adStatus} winner={winner} />
-          </section>
-
-          {c.daily.length > 0 && (
-            <section aria-labelledby="chart-title" className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5">
+      <div className={c.daily.length > 0 ? "grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)]" : "grid gap-6"}>
+        <InsightCard sentences={sentences} actions={actions} onAction={onAction} hrefFor={hrefFor} />
+        {c.daily.length > 0 && (
+          <section aria-labelledby="chart-title" className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5">
               <SectionTitle id="chart-title" title={D.chart.title} />
               <DailyChart data={set.series} resultLabel={goal.resultPerDay} />
               <p className="text-micro font-normal text-muted">{DB.restatement}</p>
             </section>
           )}
-        </div>
+      </div>
 
-        <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--header-h)+24px)]">
-          <InsightCard sentences={sentences} actions={actions} onAction={onAction} hrefFor={hrefFor} />
-          <div className="hidden lg:block">
-            <VideoThumb hookText={(winner ?? lead).hookText} tone={(winner ?? lead).tone} size="lg" durationSec={15} className="mx-auto w-48" />
+      <section aria-labelledby="hooks-title" className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5" id="boost">
+        <SectionTitle id="hooks-title" title={D.hooks.title} sub={D.hooks.sub} />
+        {winner && status === "active" && !boosted && (
+          <div className="flex flex-col gap-3 rounded-sm bg-primary/8 p-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-primary)_35%,transparent)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <Trophy className="mt-0.5 size-5 shrink-0 text-primary-text" aria-hidden />
+              <div>
+                <p className="font-bold">{D.boost.title}</p>
+                <p className="text-small text-text-2">
+                  {fill(D.boost.body, {
+                    key: HOOK_KEY_HE[winner.key],
+                    cpr: <Price ils={winnerCpr ?? 0} decimals className="font-bold text-text" />,
+                    other: otherCpr ? <Price ils={otherCpr} decimals /> : "—",
+                  })}
+                </p>
+              </div>
+            </div>
+            <Button onClick={() => setBoostOpen(true)} className="shrink-0 glow-primary">
+              {D.boost.cta}
+            </Button>
           </div>
-          <AutoRules rules={rules} onChange={toggleRule} />
-          <ChangeLog entries={log} />
-        </div>
+        )}
+        {winner && boosted && (
+          <div className="flex flex-col gap-3 rounded-sm bg-success/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="flex items-center gap-2 text-small"><CircleCheck className="size-4 shrink-0 text-success" aria-hidden />{fmt(D.boost.done, { key: HOOK_KEY_HE[winner.key] })}</p>
+            <Button asChild variant="secondary" size="sm">
+              <Link href={`/app/create?hook=${winner.hookId}`}>{D.boost.moreVariants}<DirIcon name="forward" /></Link>
+            </Button>
+          </div>
+        )}
+        <HookComparisonTable campaign={c} statuses={adStatus} winner={winner} />
+      </section>
+
+
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <AutoRules rules={rules} onChange={toggleRule} />
+        <ChangeLog entries={log} />
       </div>
 
       <BudgetDialog open={budgetOpen} onOpenChange={setBudgetOpen} current={budget} changesLeft={Math.max(0, 3 - changes)} initial={budgetInitial} onSave={saveBudget} />

@@ -105,8 +105,8 @@ export function DashboardPreview() {
                     contentStyle={{ background: "var(--color-surface-3)", border: "none", borderRadius: 8, color: "var(--color-text)", direction: "rtl" }}
                     formatter={(v, name) => [name === "spend" ? `₪${v}` : String(v), name === "spend" ? T.chartSpend : T.chartResults]}
                   />
-                  <Bar yAxisId="s" dataKey="spend" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} maxBarSize={22} fillOpacity={0.85} />
-                  <Line yAxisId="r" dataKey="results" stroke="var(--color-chart-2)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--color-chart-2)" }} type="monotone" />
+                  <Bar yAxisId="s" dataKey="spend" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} maxBarSize={22} fillOpacity={0.85} isAnimationActive={false} />
+                  <Line yAxisId="r" dataKey="results" stroke="var(--color-chart-2)" strokeWidth={2.5} dot={{ r: 3, fill: "var(--color-chart-2)" }} type="monotone" isAnimationActive={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

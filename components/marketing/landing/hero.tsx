@@ -3,6 +3,7 @@ import { launchNiches, nicheCategories, niches, nicheShortName } from "@/lib/dat
 import { WALL_TILES, resolveWallTile, type ResolvedTile } from "@/lib/mock/landing";
 import { HeroPromptCard } from "./hero-prompt-card";
 import type { NicheGroup, NicheOption } from "./niche-picker";
+import { searchKey } from "./create-link";
 import { TrustRow } from "./trust-row";
 import { VideoWall } from "./video-wall";
 import { LANDING } from "@/content/he/landing";
@@ -13,7 +14,7 @@ const toOption = (n: (typeof niches)[number]): NicheOption => ({
   slug: n.slug,
   label: nicheShortName(n),
   icon: n.icon,
-  search: `${n.name_he} ${nicheShortName(n)} ${n.name_en}`.toLowerCase(),
+  search: searchKey(`${n.name_he} ${nicheShortName(n)} ${n.name_en}`),
 });
 
 export function Hero() {
@@ -28,8 +29,7 @@ export function Hero() {
 
   return (
     <section id="hero" aria-labelledby="hero-title" className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-afterglow opacity-80" aria-hidden />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-24 bg-[linear-gradient(to_bottom,transparent,var(--color-bg))] max-md:hidden" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-afterglow opacity-80 [mask-image:linear-gradient(to_bottom,black_60%,transparent)]" aria-hidden />
       <div className="container-marketing grid grid-cols-[minmax(0,1fr)] gap-10 pb-16 pt-6 md:pt-10 lg:grid-cols-12 lg:gap-10 lg:pb-12 lg:pt-4">
         <div className="flex min-w-0 flex-col gap-5 lg:col-span-7 lg:pb-6 lg:pt-4">
           <span className="inline-flex w-fit items-center gap-2 rounded-full bg-surface-2/80 px-3 py-1 text-micro text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">

@@ -43,12 +43,12 @@ export function DailyChart({ data, resultLabel }: { data: DayPoint[]; resultLabe
           <span aria-hidden className="size-2.5 rounded-xs" style={{ background: "var(--color-chart-1)" }} />
           {D.chart.spend}
         </figcaption>
-        <div dir="ltr" className="h-40 w-full" aria-hidden>
+        <div dir="ltr" className="h-44 w-full" aria-hidden>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }} barCategoryGap="22%">
               <CartesianGrid vertical={false} stroke="var(--color-border)" />
               <XAxis dataKey="date" tickFormatter={axisDay} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--color-border)" }} ticks={ticks} interval={ticks ? 0 : "preserveStartEnd"} />
-              <YAxis width={44} tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v: number) => `₪${nf.format(v)}`} allowDecimals={false} />
+              <YAxis width={48} tick={AXIS} tickLine={false} axisLine={false} tickFormatter={(v: number) => `₪${nf.format(v)}`} allowDecimals={false} tickCount={4} />
               <Tooltip cursor={{ fill: "var(--color-surface-2)" }} content={<TipBox kind="spend" resultLabel={resultLabel} />} />
               <Bar dataKey="spendIls" fill="var(--color-chart-1)" radius={[4, 4, 0, 0]} maxBarSize={24} isAnimationActive={false} />
             </BarChart>
@@ -60,15 +60,15 @@ export function DailyChart({ data, resultLabel }: { data: DayPoint[]; resultLabe
           <span aria-hidden className="h-0.5 w-3 rounded-full" style={{ background: "var(--color-chart-2)" }} />
           {resultLabel}
         </figcaption>
-        <div dir="ltr" className="h-36 w-full" aria-hidden>
+        <div dir="ltr" className="h-40 w-full" aria-hidden>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke="var(--color-border)" />
               <XAxis dataKey="date" tickFormatter={axisDay} tick={AXIS} tickLine={false} axisLine={{ stroke: "var(--color-border)" }} ticks={ticks} interval={ticks ? 0 : "preserveStartEnd"} />
-              <YAxis width={44} tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} />
+              <YAxis width={48} tick={AXIS} tickLine={false} axisLine={false} allowDecimals={false} tickCount={4} />
               <Tooltip cursor={{ stroke: "var(--color-border-strong)" }} content={<TipBox kind="results" resultLabel={resultLabel} />} />
               <Area
-                type="monotone"
+                type="linear"
                 dataKey="results"
                 stroke="var(--color-chart-2)"
                 strokeWidth={2}
