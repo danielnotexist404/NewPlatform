@@ -1,5 +1,7 @@
 /* app/globals.css — design tokens & base styles.
-   Dark ("Premiere") is the default theme; light overrides live under :root[data-theme="light"]. */
+   Token defaults below are the dark ("Premiere") values used by the app shell; the marketing shell
+   renders light by default (see components/a11y/theme-script.tsx). Light overrides live under
+   :root[data-theme="light"]. */
 @import "tailwindcss";
 
 /* ---------- Variants ---------- */
@@ -37,6 +39,23 @@
   --color-glass: rgb(18 18 25 / 0.6);
   --color-overlay: rgb(4 4 8 / 0.72);
   --color-frame: rgb(255 255 255 / 0.08);
+
+  /* Signature "projector" accent: amber → coral. Fills/glows only; text uses --color-primary-text. */
+  --color-coral: #FF5E3A;
+  --color-accent-2: #FF5E3A;
+  --color-ink: #0E0E12;             /* theme-independent ink (dark bands, CTA text on light accents) */
+  --color-paper: #FFFFFF;
+
+  /* Scene palette for CSS "video" art (theme-independent: a reel looks the same in both themes) */
+  --color-scene-night: #101528;
+  --color-scene-navy: #1C2A4A;
+  --color-scene-teal: #0E4F4C;
+  --color-scene-mint: #8FE0C3;
+  --color-scene-sky: #9CCBFF;
+  --color-scene-sand: #EBCB9E;
+  --color-scene-blush: #FFB4A2;
+  --color-scene-wine: #5B1D2C;
+  --color-scene-cocoa: #3A2315;
 }
 
 /* ---------- shadcn/ui bridge + fonts + aspect (resolved at use site) ---------- */
@@ -99,6 +118,8 @@
   --text-lg: 1.1875rem;  --text-lg--line-height: 1.7;
 
   /* Brand type scale */
+  --text-hero: clamp(2.6rem, 1.15rem + 5.4vw, 5.75rem);  --text-hero--line-height: 1.04;    --text-hero--font-weight: 900;
+  --text-title: clamp(2rem, 1.35rem + 2.5vw, 3.5rem);    --text-title--line-height: 1.1;    --text-title--font-weight: 800;
   --text-display: clamp(3.25rem, 2rem + 6vw, 7.5rem);   --text-display--line-height: 0.98; --text-display--font-weight: 700;
   --text-h1: clamp(2.25rem, 1.6rem + 3vw, 4.25rem);     --text-h1--line-height: 1.08;      --text-h1--font-weight: 800;
   --text-h2: clamp(1.75rem, 1.3rem + 2vw, 3rem);        --text-h2--line-height: 1.15;      --text-h2--font-weight: 700;
@@ -123,12 +144,16 @@
   --animate-shimmer: shimmer 1.6s linear infinite;
   --animate-sweep: projector-sweep 6s var(--ease-in-out) infinite;
   --animate-pulse-dot: pulse-dot 1.4s var(--ease-in-out) infinite;
+  --animate-float: float 7s var(--ease-in-out) infinite;
+  --animate-caret: caret 1s steps(1) infinite;
 
   @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(var(--marquee-shift)); } }
   @keyframes marquee-y { from { transform: translateY(0); } to { transform: translateY(calc(-50% - var(--marquee-gap, 16px) / 2)); } }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
   @keyframes projector-sweep { 0%, 82% { background-position: 150% 0; } 100% { background-position: -50% 0; } }
   @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -10px; } }
+  @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 }
 
 /* ---------- Raw variables (non-Tailwind) + light theme ----------
@@ -170,36 +195,37 @@
   /* ---------- Light theme (same layer, higher specificity => wins) ---------- */
   :root[data-theme="light"] {
     color-scheme: light;
-    --color-bg: #FAF7F2;
+    /* Warm-white "paper" look (marketing default). Contrast notes are against #FFFFFF. */
+    --color-bg: #FFFFFF;
     --color-surface-1: #FFFFFF;
-    --color-surface-2: #F1ECE4;
-    --color-surface-3: #E9E2D7;
-    --color-border: #E4DDD1;
-    --color-border-strong: #8C8577;
-    --color-text: #16140F;
-    --color-text-2: #5A554C;
-    --color-muted: #6F6A60;          /* allowed on bg / surface-1 / surface-2 only (4.18:1 on surface-3) */
-    --color-primary: #FFB547;        /* fill only, always with ink text */
-    --color-primary-hover: #FFC56B;
-    --color-on-primary: #0A0A0F;
-    --color-primary-text: #9A5B00;   /* 5.08:1 on paper */
-    --color-focus: #1F3DFF;          /* ultramarine ring, 6.20:1 on paper */
+    --color-surface-2: #FAFAF7;
+    --color-surface-3: #F2F1EC;
+    --color-border: #ECEAE4;
+    --color-border-strong: #8A877F;  /* 3.6:1 */
+    --color-text: #0E0E12;
+    --color-text-2: #4A4A55;         /* 8.7:1 */
+    --color-muted: #6B6B76;          /* 5.3:1 on white, 4.7:1 on surface-3 */
+    --color-primary: #FFB547;        /* fill only, always with ink text (11:1) */
+    --color-primary-hover: #FFA733;
+    --color-on-primary: #0E0E12;
+    --color-primary-text: #C2410C;   /* burnt coral, 5.2:1 */
+    --color-focus: #C2410C;
     --color-rose: #C2185B;
-    --color-violet: #5B47E0;
-    --color-link: #5B47E0;
+    --color-violet: #3157D5;         /* cool secondary (no purple) */
+    --color-link: #C2410C;
     --color-success: #0B7A53;
     --color-danger: #C62F1D;
     --color-on-danger: #FFFFFF;
     --color-lemon: #FFE14D;
     --color-glass: rgb(255 255 255 / 0.72);
-    --color-overlay: rgb(22 20 15 / 0.42);
-    --color-frame: rgb(22 20 15 / 0.08);
+    --color-overlay: rgb(14 14 18 / 0.38);
+    --color-frame: rgb(14 14 18 / 0.07);
 
-    --shadow-1: 0 1px 2px rgb(22 20 15 / .06);
-    --shadow-2: 0 6px 20px rgb(22 20 15 / .08);
-    --shadow-3: 0 20px 50px rgb(22 20 15 / .12);
-    --glow-primary: 0 6px 20px rgb(22 20 15 / .10);
-    --glow-ai: 0 0 0 1px rgb(91 71 224 / .35);
+    --shadow-1: 0 1px 2px rgb(14 14 18 / .05), 0 0 0 1px rgb(14 14 18 / .04);
+    --shadow-2: 0 1px 2px rgb(14 14 18 / .04), 0 10px 28px -8px rgb(14 14 18 / .10);
+    --shadow-3: 0 2px 6px rgb(14 14 18 / .04), 0 28px 64px -16px rgb(14 14 18 / .18);
+    --glow-primary: 0 10px 28px -8px rgb(255 94 58 / .45), 0 2px 6px rgb(255 140 60 / .25);
+    --glow-ai: 0 0 0 1px rgb(49 87 213 / .30);
   }
 
   @media (prefers-contrast: more) {
@@ -249,7 +275,7 @@
 /* Light-theme overrides of custom utilities live INSIDE the utility (utilities layer beats components layer) */
 @utility bg-projector {
   background-image: radial-gradient(60% 50% at var(--beam-x) 0%, rgb(255 181 71 / .18), transparent 70%);
-  [data-theme="light"] & { background-image: none; }            /* light: no projector beam */
+  [data-theme="light"] & { background-image: radial-gradient(50% 520px at 50% 0%, rgb(255 181 71 / .10), transparent 75%); }
 }
 @utility bg-afterglow {
   background-image: radial-gradient(40% 40% at 20% 80%, rgb(255 79 123 / .14), transparent), radial-gradient(35% 35% at 85% 70%, rgb(142 123 255 / .12), transparent);
@@ -259,10 +285,23 @@
   background-image: linear-gradient(180deg, #FFD58A, #FFB547 60%, #E8902A);
   -webkit-background-clip: text; background-clip: text; color: transparent;
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
-  [data-theme="light"] & {                                         /* light: lemon highlighter instead of gold text */
-    background-image: linear-gradient(transparent 62%, var(--color-lemon) 62%);
-    -webkit-background-clip: border-box; background-clip: border-box; color: var(--color-text);
-  }
+  [data-theme="light"] & { background-image: linear-gradient(90deg, #E5431F, #E2700A); } /* deep stops: >= 3.2:1 on white */
+}
+/* Signature gradient (fill). Pair with text-ink / text-on-primary: ink on coral end is 6.3:1, white fails. */
+@utility bg-accent-gradient { background-image: linear-gradient(135deg, var(--color-primary) 0%, #FF8A3D 48%, var(--color-coral) 100%); }
+/* Gradient headline text; light theme uses deeper stops so large text stays >= 3:1 */
+@utility text-accent-gradient {
+  background-image: linear-gradient(90deg, #FF5E3A, #FFB547);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  [data-theme="light"] & { background-image: linear-gradient(90deg, #E5431F, #E2700A); }
+  @media (forced-colors: active) { background: none; color: CanvasText; }
+}
+@utility ring-hairline { box-shadow: inset 0 0 0 1px var(--color-frame); }
+@utility mask-fade-x { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+@utility bg-dots {
+  background-image: radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-text) 14%, transparent) 1px, transparent 0);
+  background-size: 22px 22px;
 }
 @utility shimmer-ai {
   background-image: linear-gradient(90deg, var(--color-surface-2) 0%, color-mix(in oklab, var(--color-violet) 22%, var(--color-surface-2)) 50%, var(--color-surface-2) 100%);
@@ -271,6 +310,29 @@
 }
 
 @layer components {
+  /* Ink scope: re-maps the theme tokens to dark values inside one element (footer, dark bands),
+     so every token utility inside keeps working regardless of the page theme. */
+  .theme-ink {
+    color-scheme: dark;
+    --color-bg: #0E0E12;
+    --color-surface-1: #16161C;
+    --color-surface-2: #1E1E26;
+    --color-surface-3: #282832;
+    --color-border: rgb(255 255 255 / .09);
+    --color-border-strong: #6E6E7E;
+    --color-text: #F6F5F2;
+    --color-text-2: #B9B9C4;
+    --color-muted: #9A9AA8;          /* 7:1 on ink */
+    --color-primary-text: #FFB547;
+    --color-focus: #FFB547;
+    --color-link: #FFB547;
+    --color-frame: rgb(255 255 255 / .08);
+    --color-glass: rgb(22 22 28 / .6);
+    --shadow-1: 0 1px 0 rgb(255 255 255 / .04) inset, 0 1px 2px rgb(0 0 0 / .6);
+    --shadow-2: 0 8px 24px rgb(0 0 0 / .45), 0 1px 0 rgb(255 255 255 / .05) inset;
+    color: var(--color-text);
+  }
+
   /* Film grain — marketing shell only */
   .film-grain { position: relative; isolation: isolate; }
   .film-grain::after {

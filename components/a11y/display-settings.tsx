@@ -23,7 +23,8 @@ export function DisplaySettings() {
   const [reduce, setReduce] = React.useState(false);
   React.useEffect(() => {
     const t = read("theme");
-    if (t === "light" || t === "dark" || t === "system") setTheme(t);
+    // No stored choice: reflect the shell default currently applied (marketing light, app dark).
+    setTheme(t === "light" || t === "dark" || t === "system" ? t : document.documentElement.dataset.theme === "light" ? "light" : "dark");
     setReduce(read("motion") === "reduce");
   }, []);
   return (
