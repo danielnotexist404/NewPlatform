@@ -1,17 +1,17 @@
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarHeart, Check, Clapperboard, Film } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { DirIcon } from "@/components/a11y/dir-icon";
-import { Breadcrumbs, JsonLd, breadcrumbJsonLd, faqJsonLd } from "@/components/marketing/niches/breadcrumbs";
-import { Section, SectionHeading } from "@/components/marketing/niches/section";
+import { CalendarHeart } from "lucide-react";
+import { JsonLd, breadcrumbJsonLd, faqJsonLd } from "@/components/marketing/niches/breadcrumbs";
 import { NicheIcon } from "@/components/marketing/niches/niche-icon";
-import { PhoneFrame, ReelTile } from "@/components/marketing/niches/reel-tile";
 import { SampleScripts } from "@/components/marketing/niches/sample-scripts";
-import { ComplianceBox, CostBlock, FaqList, FinalCtaBand, RealAssetsBox } from "@/components/marketing/niches/blocks";
+import { ComplianceBox, CostBlock, RealAssetsBox } from "@/components/marketing/niches/blocks";
+import { FaqList, FinalCta } from "@/components/marketing/landing/faq-final";
+import { ReelCard } from "@/components/marketing/media/reel-card";
+import { isReel, reelFromHook } from "@/components/marketing/media/reel-data";
+import { nicheVisualAt } from "@/components/marketing/media/props";
+import { Band, Chip, Disclosure, HeroActions, MoreLink, PageHero } from "@/components/marketing/page/kit";
 import { NicheCard } from "@/components/marketing/niches/niche-grid";
 import { disclaimersFor, nicheContent } from "@/components/marketing/niches/niche-content";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
@@ -24,7 +24,6 @@ import { plural } from "@/components/hooks/text";
 import { getNiche, nicheCategories, niches, nicheShortName } from "@/lib/data/seed";
 import { PLANS } from "@/lib/data/plans";
 import { NICHES_COPY, REAL_ASSETS_NICHES } from "@/content/he/niches";
-import { cn } from "@/lib/utils";
 
 const P = NICHES_COPY.page;
 const TRIAL = PLANS.find((p) => p.id === "free")?.oneTimeCredits ?? 70;
@@ -78,166 +77,102 @@ async function NichePageView({ params }: Props) {
     { label: short, href: `/niches/${slug}` },
   ];
 
+  const reels = hooks.slice(0, 4).map((h, i) => reelFromHook(h.id, { ...nicheVisualAt(slug, i), caption: (["box", "shadow", "accent", "box"] as const)[i], viewsK: 18 + i * 13.4, highlight: 1 + i })).filter(isReel);
+  const heroReel = heroHook ? reelFromHook(heroHook.id, { caption: "box", viewsK: 42.6, sponsored: true, highlight: 2 }) : null;
+
   return (
     <HooksProvider>
       <JsonLd data={[breadcrumbJsonLd(crumbs), faqJsonLd(faq)]} />
 
-      {/* 1–2 Hero */}
-      <section id="hero" className="container-marketing pt-8 pb-12 md:pt-12 md:pb-20">
-        <Breadcrumbs items={crumbs} />
-        <div className="mt-10 grid items-center gap-12 lg:grid-cols-[1.35fr_1fr]">
-          <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">
-              <NicheIcon name={n.icon} className="size-3.5" />
-              {category?.name_he}
-            </p>
-            <h1 className="text-h1">
-              סרטון תדמית <span className="text-gold-gradient">ל{short}</span>
-            </h1>
-            <p className="mt-6 max-w-2xl text-body-lg text-text-2">{lead}</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={createHref} className={cn(buttonVariants({ size: "xl" }))}>
-                <Clapperboard aria-hidden />
-                {P.primary(short)}
-              </Link>
-              <Link href={`/hooks/${slug}`} className={cn(buttonVariants({ variant: "secondary", size: "xl" }))}>
-                {P.secondary(short)}
-                <DirIcon name="forward" />
-              </Link>
-            </div>
-            <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-small text-text-2" aria-label="מה מקבלים">
-              {P.trust.map((t) => (
-                <li key={t} className="inline-flex items-center gap-1.5">
-                  <Check className="size-4 text-success" aria-hidden />
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-          {heroHook && (
-            <PhoneFrame label={P.phoneLabel(short)} className="max-w-[260px] md:max-w-[300px] lg:me-0">
-              <ReelTile
-                icon={n.icon}
-                category={n.category_slug}
-                hookText={heroHook.text}
-                caption={n.video_types_he[0]}
-                handle={short}
-                badge={P.sampleBadge}
-              />
-            </PhoneFrame>
-          )}
-        </div>
-      </section>
+      <PageHero
+        align="split"
+        eyebrow={<Chip><NicheIcon name={n.icon} className="size-4" />{category?.name_he}</Chip>}
+        title="סרטון תדמית"
+        accent={`ל${short}`}
+        sub="הוקים, תסריט, קריינות וכתוביות בעברית. מוכן תוך דקות."
+        actions={<HeroActions primary={P.primary(short)} primaryHref={createHref} secondary={P.secondary(short)} secondaryHref={`/hooks/${slug}`} />}
+      >
+        {heroReel && <ReelCard reel={heroReel} frame="phone" className="mx-auto w-full max-w-[290px]" label={P.phoneLabel(short)} />}
+      </PageHero>
 
-      {/* 3 What to publish */}
-      <Section labelledBy="videos-title" className="pt-0">
-        <SectionHeading id="videos-title" title={P.videosTitle(short)} subtitle={P.videosNote} />
-        <ol className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-          {n.video_types_he.map((v, i) => (
-            <li key={v} className="flex flex-col gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:gap-4 md:p-5">
-              <span className="flex items-center justify-between text-muted">
-                <Film className="size-5 text-primary-text" aria-hidden />
-                <span className="num text-[1.5rem] font-extrabold leading-none text-text-2/50">{String(i + 1).padStart(2, "0")}</span>
-              </span>
-              <span className="font-bold leading-snug md:text-body-lg">{v}</span>
-            </li>
-          ))}
-        </ol>
-      </Section>
-
-      {/* 4 Continuation */}
-      {rest.length > 0 && (
-        <Section labelledBy="more-title" className="pt-0">
-          <div className="grid gap-10 lg:grid-cols-[1fr_2fr]">
-            <h2 id="more-title" className="text-h2">{P.moreTitle(short)}</h2>
-            <div className="prose-he max-w-none text-text-2 [&_p]:text-body-lg">
-              {rest.map((p) => (
-                <p key={p.slice(0, 32)}>{p}</p>
-              ))}
-            </div>
-          </div>
-          {REAL_ASSETS_NICHES.includes(slug) && (
-            <div className="mt-8">
-              <RealAssetsBox text={NICHES_COPY.realAssets} extra={slug === "real-estate-developers" ? NICHES_COPY.realAssetsDevelopers : undefined} />
-            </div>
-          )}
-        </Section>
+      {reels.length > 0 && (
+        <Band id="videos" title={`סרטונים ל${short}`} sub="כל אחד מהם נוצר באשף, בעברית.">
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
+            {reels.map((r, i) => (
+              <li key={r.key} className="flex flex-col gap-3">
+                <ReelCard reel={r} offset={i * 1.6} lite />
+                {n.video_types_he[i] && <p className="px-1 text-body font-bold text-text">{n.video_types_he[i]}</p>}
+              </li>
+            ))}
+          </ul>
+        </Band>
       )}
 
-      {/* 5 Sample scripts */}
-      {content.sample_scripts.length > 0 && (
-        <Section labelledBy="scripts-title">
-          <SectionHeading id="scripts-title" title={P.scriptsTitle(short)} subtitle={P.scriptsNote} />
-          <SampleScripts scripts={content.sample_scripts} hrefFor={(s) => createForNicheHref(slug, "niche_page", s.hook_id ?? undefined)} />
-        </Section>
-      )}
-
-      {/* 6 Hooks */}
       {hooks.length > 0 && (
-        <Section labelledBy="hooks-title">
-          <SectionHeading
-            id="hooks-title"
-            title={P.hooksTitle(short)}
-            action={
-              <Link href={`/hooks/${slug}`} className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-                {plural(hooks.length, P.hooksAll)}
-                <DirIcon name="forward" />
-              </Link>
-            }
-          />
-          <ul className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {hooks.slice(0, 6).map((h) => (
+        <Band id="hooks" title={P.hooksTitle(short)}>
+          <ul className="grid items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {hooks.slice(0, 3).map((h) => (
               <li key={h.id} className="contents">
                 <HookCard hook={h} showNiche={false} location="niche_page" />
               </li>
             ))}
           </ul>
-        </Section>
+          <div className="mt-10 flex justify-center">
+            <MoreLink href={`/hooks/${slug}`}>{plural(hooks.length, P.hooksAll)}</MoreLink>
+          </div>
+        </Band>
       )}
 
-      {/* 7 Seasons */}
-      <Section labelledBy="seasons-title">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
-          <div>
-            <h2 id="seasons-title" className="text-h2">{P.seasonsTitle(short)}</h2>
-            <ul className="mt-6 flex flex-col gap-3">
+      <Band id="details" title="כל הפרטים" tight>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4">
+          {rest.length > 0 && (
+            <Disclosure summary={P.moreTitle(short)}>
+              <div className="prose-he max-w-none text-text-2">
+                {[lead, ...rest].map((p) => (
+                  <p key={p.slice(0, 32)}>{p}</p>
+                ))}
+              </div>
+              {REAL_ASSETS_NICHES.includes(slug) && (
+                <div className="mt-6">
+                  <RealAssetsBox text={NICHES_COPY.realAssets} extra={slug === "real-estate-developers" ? NICHES_COPY.realAssetsDevelopers : undefined} />
+                </div>
+              )}
+            </Disclosure>
+          )}
+          {content.sample_scripts.length > 0 && (
+            <Disclosure summary={P.scriptsTitle(short)}>
+              <SampleScripts scripts={content.sample_scripts} hrefFor={(sc) => createForNicheHref(slug, "niche_page", sc.hook_id ?? undefined)} />
+            </Disclosure>
+          )}
+          <Disclosure summary={P.seasonsTitle(short)}>
+            <ul className="flex flex-col gap-3">
               {n.seasonal_angles_he.map((a) => (
-                <li key={a} className="flex items-start gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-                  <CalendarHeart className="mt-0.5 size-5 shrink-0 text-rose" aria-hidden />
-                  <span className="font-semibold">{a}</span>
+                <li key={a} className="flex items-start gap-3 text-body">
+                  <CalendarHeart className="mt-1 size-5 shrink-0 text-rose" aria-hidden />
+                  <span>{a}</span>
                 </li>
               ))}
             </ul>
-          </div>
-          <SeasonRail title={P.seasonsRail} nicheSlug={slug} limit={4} headingLevel="h3" className="lg:pt-2 [&_ul]:md:grid-cols-2" />
+            <SeasonRail title={P.seasonsRail} nicheSlug={slug} limit={4} headingLevel="h3" className="mt-8 [&_ul]:md:grid-cols-2" />
+          </Disclosure>
+          {n.compliance_note_he && (
+            <Disclosure summary="כללי פרסום בתחום">
+              <ComplianceBox headingId="rules-title" note={n.compliance_note_he} disclaimers={disclaimersFor(n)} />
+            </Disclosure>
+          )}
+          <Disclosure summary={P.costTitle(short)}>
+            <CostBlock headingId="cost-title" title={P.costTitle(short)} />
+          </Disclosure>
         </div>
-      </Section>
+      </Band>
 
-      {/* 8 Compliance */}
-      {n.compliance_note_he && (
-        <Section labelledBy="rules-title">
-          <ComplianceBox headingId="rules-title" note={n.compliance_note_he} disclaimers={disclaimersFor(n)} />
-        </Section>
-      )}
+      <Band id="faq" title="שאלות נפוצות">
+        <FaqList items={faq.slice(0, 4).map((f, i) => ({ id: `${slug}-${i}`, q: f.q, a: f.a }))} className="mx-auto max-w-3xl" />
+      </Band>
 
-      {/* 9 Cost */}
-      <Section labelledBy="cost-title">
-        <CostBlock headingId="cost-title" title={P.costTitle(short)} />
-      </Section>
-
-      {/* 10 FAQ */}
-      <Section labelledBy="faq-title">
-        <div className="grid gap-10 lg:grid-cols-[1fr_2fr]">
-          <h2 id="faq-title" className="text-h2">{P.faqTitle(short)}</h2>
-          <FaqList items={faq} idPrefix={slug} />
-        </div>
-      </Section>
-
-      {/* 11 Related */}
       {related.length > 0 && (
-        <Section labelledBy="related-title">
-          <SectionHeading id="related-title" title={P.relatedTitle} />
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Band id="related" title={P.relatedTitle}>
+          <ul className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
             {related.map((r) => (
               <li key={r.slug}>
                 <NicheCard
@@ -255,11 +190,10 @@ async function NichePageView({ params }: Props) {
               </li>
             ))}
           </ul>
-        </Section>
+        </Band>
       )}
 
-      {/* 12 Final CTA */}
-      <FinalCtaBand title={P.finalTitle} sub={P.finalSub(short)} href={createHref} cta={P.finalCta} />
+      <FinalCta title={P.finalTitle} subtitle={P.finalSub(short)} href={createHref} cta={P.finalCta} />
     </HooksProvider>
   );
 }

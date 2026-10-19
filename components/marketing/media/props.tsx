@@ -375,3 +375,22 @@ export function nicheVisual(slug: string | null | undefined): { scene: SceneName
   const v = (slug && NICHE_VISUALS[slug]) || (["dusk", "bag"] as [SceneName, PropName]);
   return { scene: v[0], prop: v[1] };
 }
+
+const ALT_PROP: Record<PropName, PropName> = {
+  house: "sofa", building: "house", plate: "cup", cup: "plate", bottle: "dropper", dropper: "bottle", scissors: "bottle",
+  dumbbell: "heart", tooth: "dropper", car: "doc", cabin: "camera", bag: "balloons", sofa: "house", camera: "balloons",
+  vinyl: "balloons", books: "doc", paw: "heart", doc: "building", toolbox: "house", heart: "dropper", balloons: "camera",
+};
+const SCENE_ORDER: SceneName[] = ["amber", "teal", "dusk", "blush", "sky", "night", "sand", "mint"];
+
+/** Variation i of a niche's visual (alternating product + shifted scene), so a row of reels never repeats. */
+export function nicheVisualAt(slug: string | null | undefined, i: number): { scene: SceneName; prop: PropName } {
+  if (!slug || !NICHE_VISUALS[slug]) {
+    const props: PropName[] = ["bag", "house", "cup", "camera", "sofa", "bottle", "car", "plate", "balloons", "dumbbell"];
+    return { scene: SCENE_ORDER[(i * 3) % SCENE_ORDER.length], prop: props[i % props.length] };
+  }
+  const v = nicheVisual(slug);
+  if (i === 0) return v;
+  const scene = SCENE_ORDER[(SCENE_ORDER.indexOf(v.scene) + i * 3) % SCENE_ORDER.length];
+  return { scene, prop: i % 2 ? ALT_PROP[v.prop] : v.prop };
+}

@@ -3,21 +3,22 @@ import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cacheLife } from "next/cache";
-import { Breadcrumbs, JsonLd, absUrl, breadcrumbJsonLd, faqJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import Link from "next/link";
+import { JsonLd, absUrl, breadcrumbJsonLd, faqJsonLd } from "@/components/marketing/niches/breadcrumbs";
 import { NicheIcon } from "@/components/marketing/niches/niche-icon";
-import { NicheCard } from "@/components/marketing/niches/niche-grid";
 import { SampleScripts } from "@/components/marketing/niches/sample-scripts";
-import { ComplianceBox, FaqList } from "@/components/marketing/niches/blocks";
+import { ComplianceBox } from "@/components/marketing/niches/blocks";
+import { FaqList, FinalCta } from "@/components/marketing/landing/faq-final";
+import { Band, Chip, Disclosure, PageHero } from "@/components/marketing/page/kit";
 import { disclaimersFor, nicheContent } from "@/components/marketing/niches/niche-content";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
-import { HookExplorer, WriteHooksCta } from "@/components/hooks/hook-explorer";
+import { HookExplorer } from "@/components/hooks/hook-explorer";
 import { HookCard } from "@/components/hooks/hook-card";
-import { ExpandableIntro } from "@/components/hooks/expandable-intro";
-import { ALL_HOOKS, hooksOfNiche, nicheHookCount, placeholdersIn, relatedNiches, universalHooks, byPopular } from "@/components/hooks/hook-data";
+import { hooksOfNiche, nicheHookCount, placeholdersIn, relatedNiches, universalHooks } from "@/components/hooks/hook-data";
 import { createForNicheHref } from "@/components/hooks/links";
 import { pageMeta } from "@/components/hooks/seo";
 import { plural, todayIL } from "@/components/hooks/text";
-import { getNiche, niches, nicheShortName, seasons } from "@/lib/data/seed";
+import { getNiche, niches, nicheShortName } from "@/lib/data/seed";
 import { BRAND } from "@/lib/constants";
 import { HOOKS_COPY } from "@/content/he/hooks";
 
@@ -72,14 +73,8 @@ async function HooksNichePageView({ params }: Props) {
   const short = nicheShortName(n);
   const year = await yearIL();
   const hooks = hooksOfNiche(slug);
-  const seasonSlugs = seasons.filter((s) => s.niche_slugs.includes(slug) && !s.is_quiet_day).map((s) => s.slug);
-  const seasonal = [
-    ...hooks.filter((h) => h.seasonSlug),
-    ...ALL_HOOKS.filter((h) => h.nicheSlug === null && h.seasonSlug && seasonSlugs.includes(h.seasonSlug)),
-  ].sort(byPopular);
-  const universal = universalHooks().slice(0, 4);
   const related = relatedNiches(n, 6);
-  const fields = placeholdersIn([...hooks, ...seasonal, ...universal]);
+  const fields = placeholdersIn(hooks);
   const crumbs = [
     { label: HOOKS_COPY.crumbs.home, href: "/" },
     { label: HOOKS_COPY.crumbs.hooks, href: "/hooks" },
@@ -101,26 +96,21 @@ async function HooksNichePageView({ params }: Props) {
           faqJsonLd(faq),
         ]}
       />
-      <section id="hero" className="container-marketing pt-8 pb-8 md:pt-12">
-        <Breadcrumbs items={crumbs} />
-        <div className="mt-10 max-w-5xl">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">
-            <NicheIcon name={n.icon} className="size-3.5" />
-            {n.name_he}
-          </p>
-          <h1 className="text-h1">{N.h1(short, plural(hooks.length, N.sentences), year)}</h1>
-          <ExpandableIntro paragraphs={content.seo_intro_he} more={N.readMore} less={N.readLess} className="mt-6" />
-        </div>
-      </section>
+      <PageHero
+        eyebrow={<Chip><NicheIcon name={n.icon} className="size-4" />{n.name_he}</Chip>}
+        title={N.h1(short, plural(hooks.length, N.sentences), year)}
+        sub="מעתיקים, מתאימים לעסק, והופכים לסרטון בלחיצה."
+        className="pb-4 md:pb-8"
+      />
 
       <div className="container-marketing">
         {isEmpty ? (
           <div className="flex flex-col gap-6">
-            <div className="rounded-lg bg-surface-1 p-8 shadow-[inset_0_0_0_1px_var(--color-frame)]">
+            <div className="rounded-[28px] bg-surface-1 p-8 ring-hairline">
               <h2 className="text-h3">{HOOKS_COPY.empty.nicheNoHooks.title}</h2>
               <p className="mt-2 text-text-2">{HOOKS_COPY.empty.nicheNoHooks.body}</p>
             </div>
-            <ul className="grid items-start gap-4 md:grid-cols-2">
+            <ul className="grid items-start gap-5 md:grid-cols-2">
               {universalHooks().map((h) => (
                 <li key={h.id} className="contents"><HookCard hook={h} location="hook_niche_page" /></li>
               ))}
@@ -140,65 +130,48 @@ async function HooksNichePageView({ params }: Props) {
         )}
       </div>
 
-      {content.sample_scripts.length > 0 && (
-        <section aria-labelledby="scripts-title" className="container-marketing mt-20">
-          <h2 id="scripts-title" className="mb-6 text-h2">{N.scripts(short)}</h2>
-          <SampleScripts scripts={content.sample_scripts} hrefFor={(s) => createForNicheHref(slug, "hooks", s.hook_id ?? undefined)} />
-        </section>
-      )}
-
-      {seasonal.length >= 2 && (
-        <section aria-labelledby="seasonal-title" className="container-marketing mt-20">
-          <h2 id="seasonal-title" className="mb-6 text-h2">{N.seasonal(short)}</h2>
-          <ul className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {seasonal.slice(0, 6).map((h) => (
-              <li key={h.id} className="contents"><HookCard hook={h} showNiche={h.nicheSlug !== slug} location="hook_niche_page" /></li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section aria-labelledby="universal-title" className="container-marketing mt-20">
-        <h2 id="universal-title" className="mb-6 text-h2">{N.universal(short)}</h2>
-        <ul className="grid items-start gap-4 md:grid-cols-2">
-          {universal.map((h) => (
-            <li key={h.id} className="contents"><HookCard hook={h} location="hook_niche_page" /></li>
-          ))}
-        </ul>
-      </section>
-
-      {n.compliance_note_he && (
-        <section aria-labelledby="rules-title" className="container-marketing mt-20">
-          <ComplianceBox headingId="rules-title" note={n.compliance_note_he} disclaimers={disclaimersFor(n)} />
-        </section>
-      )}
-
-      <section aria-labelledby="faq-title" className="container-marketing mt-20">
-        <div className="grid gap-10 lg:grid-cols-[1fr_2fr]">
-          <h2 id="faq-title" className="text-h2">{N.faqTitle(short)}</h2>
-          <FaqList items={faq} idPrefix={`hooks-${slug}`} />
+      <Band id="details" title="עוד לפני שמתחילים" tight className="mt-10">
+        <div className="mx-auto flex max-w-4xl flex-col gap-4">
+          <Disclosure summary={`על הוקים ל${short}`}>
+            <div className="prose-he max-w-none text-text-2">
+              {content.seo_intro_he.map((p) => (
+                <p key={p.slice(0, 32)}>{p}</p>
+              ))}
+            </div>
+          </Disclosure>
+          {content.sample_scripts.length > 0 && (
+            <Disclosure summary={N.scripts(short)}>
+              <SampleScripts scripts={content.sample_scripts} hrefFor={(sc) => createForNicheHref(slug, "hooks", sc.hook_id ?? undefined)} />
+            </Disclosure>
+          )}
+          {n.compliance_note_he && (
+            <Disclosure summary="כללי פרסום בתחום">
+              <ComplianceBox headingId="rules-title" note={n.compliance_note_he} disclaimers={disclaimersFor(n)} />
+            </Disclosure>
+          )}
         </div>
-      </section>
+      </Band>
+
+      <Band id="faq" title="שאלות נפוצות">
+        <FaqList items={faq.slice(0, 4).map((f, i) => ({ id: `hooks-${slug}-${i}`, q: f.q, a: f.a }))} className="mx-auto max-w-3xl" />
+      </Band>
 
       {related.length > 0 && (
-        <section aria-labelledby="related-title" className="container-marketing mt-20">
-          <h2 id="related-title" className="mb-6 text-h2">{N.related}</h2>
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Band id="related" title={N.related} tight>
+          <ul className="flex flex-wrap justify-center gap-2.5">
             {related.map((r) => (
               <li key={r.slug}>
-                <NicheCard
-                  compact
-                  n={{ slug: r.slug, name: r.name_he, short: nicheShortName(r), icon: r.icon, description: r.description_he, category: r.category_slug, hookCount: nicheHookCount(r.slug), compliance: r.compliance_flag !== "none" }}
-                />
+                <Link href={`/hooks/${r.slug}`} className="inline-flex h-12 items-center gap-2 rounded-full bg-surface-1 px-5 text-body font-semibold text-text ring-hairline hover:bg-surface-2">
+                  <NicheIcon name={r.icon} className="size-4 text-primary-text" />
+                  {nicheShortName(r)}
+                </Link>
               </li>
             ))}
           </ul>
-        </section>
+        </Band>
       )}
 
-      <section className="container-marketing mt-20">
-        <WriteHooksCta title={N.cta.title} body={N.cta.body} button={N.cta.button} niche={slug} secondary={{ href: `/niches/${slug}`, label: N.cta.nicheLink(short) }} />
-      </section>
+      <FinalCta title={N.cta.title} subtitle={N.cta.body} href={createForNicheHref(slug)} />
     </HooksProvider>
   );
 }

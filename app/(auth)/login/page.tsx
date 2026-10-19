@@ -35,7 +35,7 @@ export default function LoginPage() {
           </Suspense>
         </div>
       </div>
-      <aside className="relative hidden overflow-hidden border-s border-border bg-surface-1 lg:block">
+      <aside className="relative hidden overflow-hidden bg-surface-2 lg:block">
         <LoginArt />
       </aside>
     </div>

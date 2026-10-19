@@ -1,12 +1,15 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Coins } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import { DirIcon } from "@/components/a11y/dir-icon";
 import { Num } from "@/components/a11y/num";
-import { Breadcrumbs, JsonLd, SampleTag, breadcrumbLd } from "@/components/marketing/gallery/kit";
-import { ReelArt, ArtChip, DurationChip, nicheIcon, toneFor } from "@/components/marketing/gallery/reel-art";
+import { JsonLd, breadcrumbLd } from "@/components/marketing/gallery/kit";
+import { FinalCta } from "@/components/marketing/landing/faq-final";
+import { MediaTile } from "@/components/marketing/media/media-tile";
+import { reelFromText } from "@/components/marketing/media/reel-data";
+import { HeroActions, MoreLink, PageHero, h2Class } from "@/components/marketing/page/kit";
 import { TemplateCard, templateStartHref } from "@/components/marketing/gallery/template-card";
 import { toCardData } from "@/components/marketing/gallery/template-data";
 import {
@@ -44,12 +47,19 @@ const ROLE_TONE: Record<string, string> = {
   offer: "bg-rose/15 text-rose",
 };
 
-export default async function TemplatePage({ params }: { params: Promise<{ slug: string }> }) {
+export default function TemplatePage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>
+      <TemplatePageView params={params} />
+    </Suspense>
+  );
+}
+
+async function TemplatePageView({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const t = getTemplate(slug);
   if (!t || !t.is_public) notFound();
 
-  const niche = t.niche_slug ? getNiche(t.niche_slug) : undefined;
   const hookType = getHookType(t.default_hook_type_slug);
   const typeHooks = hooksForType(t.default_hook_type_slug).filter((h) => h.placeholders.length === 0 && !h.text_he.includes("{"));
   const hooks = [...typeHooks.filter((h) => h.niche_slug === t.niche_slug), ...typeHooks.filter((h) => h.niche_slug !== t.niche_slug)].slice(0, 4);
@@ -62,6 +72,7 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
     { label: TEMPLATES_PAGE.breadcrumb, href: "/templates" },
     { label: t.name_he, href: `/templates/${t.slug}` },
   ];
+  const reel = reelFromText(t.slug, t.sample_hook_he, t.niche_slug, { caption: "box", highlight: 1 });
   const facts = [
     { k: P.facts.type, v: VIDEO_TYPE_LABEL[t.video_type] },
     { k: P.facts.duration, v: P.durationValue(t.duration_sec) },
@@ -76,58 +87,37 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
   return (
     <>
       <JsonLd data={[breadcrumbLd(crumbs, BRAND.domain)]} />
-      <section id="hero" className="container-marketing grid gap-10 pb-14 pt-8 md:pt-12 lg:grid-cols-[1.3fr_1fr] lg:items-start lg:gap-16">
-        <div className="flex flex-col gap-5">
-          <Breadcrumbs items={crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label } : c))} />
-          <h1 className="text-h1">{t.name_he}</h1>
-          <p className="text-body-lg max-w-2xl text-text-2">{t.description_he}</p>
-          <div className="flex flex-wrap items-center gap-4">
-            <Link href={templateStartHref(t.id)} className={buttonVariants({ size: "lg" })} data-cta-location="template_page">
-              {P.cta}
-            </Link>
+      <PageHero
+        align="split"
+        title={t.name_he}
+        sub={t.description_he}
+        actions={
+          <>
+            <HeroActions primary={P.cta} primaryHref={templateStartHref(t.id)} />
             <span className="inline-flex items-center gap-1.5 text-small font-semibold text-primary-text">
               <Coins aria-hidden className="size-4" />
               {TEMPLATES_PAGE.fromCredits(costs[0].credits)}
             </span>
-          </div>
-          <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-md bg-border md:grid-cols-4">
-            {facts.map((f) => (
-              <div key={f.k} className="bg-surface-1 px-4 py-3">
-                <dt className="text-micro text-muted">{f.k}</dt>
-                <dd className="mt-0.5 text-small font-semibold">{f.v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <figure className={cn("mx-auto w-full", t.aspect_ratio === "16:9" ? "max-w-[560px]" : "max-w-[320px]")}>
-          <div className="rounded-[28px] bg-surface-2 p-2.5 elev-3 glow-primary">
-            <ReelArt
-              aspect={t.aspect_ratio}
-              tone={toneFor(t.slug)}
-              icon={nicheIcon(niche?.icon)}
-              hook={t.sample_hook_he}
-              hookPosition={t.aspect_ratio === "16:9" ? "center" : "top"}
-              size="lg"
-              className="rounded-[20px]"
-              topEnd={<SampleTag>{P.previewTag}</SampleTag>}
-              topStart={<ArtChip>{niche ? nicheShortName(niche) : TEMPLATES_PAGE.forAll}</ArtChip>}
-              bottomEnd={<DurationChip sec={t.duration_sec} />}
-              label={`${t.name_he}: ${t.sample_hook_he}`}
-            />
-          </div>
-          <figcaption className="mt-3 text-center text-small text-muted">{P.previewNote}</figcaption>
+          </>
+        }
+      >
+        <figure className={cn("mx-auto w-full", t.aspect_ratio === "16:9" ? "max-w-[620px]" : "max-w-[300px]")}>
+          <MediaTile reel={reel} aspect={t.aspect_ratio} label={`${t.name_he}: ${t.sample_hook_he}`} rounded="rounded-[28px]">
+            <span className="absolute top-[4%] inset-e-[4%] z-10 rounded-full bg-paper/90 px-2.5 py-1 text-micro text-ink">{P.previewTag}</span>
+          </MediaTile>
+          <figcaption className="mt-4 text-center text-small text-muted">{facts.slice(0, 4).map((f) => f.v).join(" · ")}</figcaption>
         </figure>
-      </section>
+      </PageHero>
 
-      <section aria-labelledby="structure" className="container-marketing py-12">
-        <h2 id="structure" className="text-h2">
+      <section aria-labelledby="structure" className="container-marketing py-16 md:py-24">
+        <h2 id="structure" className={cn(h2Class, "text-center")}>
           {P.structureTitle}
         </h2>
-        <p className="mt-2 text-text-2">{STRUCTURE_LABEL[t.structure]}</p>
+        <p className="mt-3 text-center text-body-lg text-text-2">{STRUCTURE_LABEL[t.structure]}</p>
         {/* desktop: horizontal LTR timeline with Hebrew labels */}
         <div dir="ltr" className="mt-8 hidden gap-2 md:flex" aria-hidden>
           {t.beat_plan.map((b, i) => (
-            <div key={i} className={cn("flex min-w-0 flex-col gap-2 rounded-md p-4", ROLE_TONE[b.role] ?? "bg-surface-2 text-text")} style={{ flexGrow: b.est_duration_sec, flexBasis: 0 }}>
+            <div key={i} className={cn("flex min-w-0 flex-col gap-2 rounded-[18px] p-5", ROLE_TONE[b.role] ?? "bg-surface-2 text-text")} style={{ flexGrow: b.est_duration_sec, flexBasis: 0 }}>
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-micro opacity-80">{b.est_duration_sec}s</span>
                 <span dir="rtl" className="truncate text-small font-bold">
@@ -158,9 +148,9 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         </ol>
       </section>
 
-      <section aria-labelledby="hooks" className="container-marketing py-12">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 id="hooks" className="text-h2">
+      <section aria-labelledby="hooks" className="container-marketing py-16 md:py-24">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <h2 id="hooks" className={h2Class}>
             {P.hooksTitle}
           </h2>
           <Link href={`/hooks/types/${t.default_hook_type_slug}`} className="inline-flex items-center gap-1 font-semibold text-primary-text underline-offset-4 hover:underline">
@@ -169,17 +159,17 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
             <DirIcon name="forward" className="size-4" />
           </Link>
         </div>
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-          {hooks.map((h) => {
+        <ul className="mt-10 grid gap-5 md:grid-cols-3">
+          {hooks.slice(0, 3).map((h) => {
             const hn = h.niche_slug ? getNiche(h.niche_slug) : undefined;
             return (
               <li key={h.id}>
-                <Link href={`/hooks/h/${h.id}`} className="flex h-full flex-col gap-2 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-2">
+                <Link href={`/hooks/h/${h.id}`} className="flex h-full flex-col gap-3 rounded-[24px] bg-surface-1 p-6 ring-hairline transition-[translate,box-shadow] duration-300 hover:-translate-y-0.5 hover:elev-2">
                   <span className="flex flex-wrap gap-1.5 text-micro">
                     {hookType && <span className="rounded-xs bg-primary/15 px-2 py-0.5 text-primary-text">{hookType.name_he}</span>}
                     <span className="rounded-xs bg-surface-3 px-2 py-0.5 text-text-2">{hn ? nicheShortName(hn) : TEMPLATES_PAGE.forAll}</span>
                   </span>
-                  <span className="text-body-lg font-bold">{h.text_he}</span>
+                  <span className="text-h3 font-bold leading-snug">{h.text_he}</span>
                 </Link>
               </li>
             );
@@ -187,14 +177,14 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
         </ul>
       </section>
 
-      <section aria-labelledby="cost" className="container-marketing py-12">
-        <div className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-8">
-          <h2 id="cost" className="text-h2">
+      <section aria-labelledby="cost" className="container-marketing py-8">
+        <div className="mx-auto max-w-4xl rounded-[32px] bg-surface-1 p-7 text-center ring-hairline md:p-12">
+          <h2 id="cost" className={h2Class}>
             {P.costTitle}
           </h2>
-          <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+          <dl className="mt-8 grid gap-3 sm:grid-cols-3">
             {costs.map((c) => (
-              <div key={c.q} className="rounded-md bg-surface-2 p-4">
+              <div key={c.q} className="rounded-[20px] bg-surface-2 p-5">
                 <dt className="text-small text-text-2">{QUALITY_LABEL[c.q]}</dt>
                 <dd className="mt-1 text-h3 font-extrabold">
                   <span className="sr-only">{P.costRow(c.credits)}</span>
@@ -206,29 +196,25 @@ export default async function TemplatePage({ params }: { params: Promise<{ slug:
             ))}
           </dl>
           <p className="mt-4 text-small text-muted">{P.costNote}</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={templateStartHref(t.id)} className={buttonVariants({ size: "lg" })} data-cta-location="template_page">
-              {P.cta}
-            </Link>
-            <Link href="/pricing#credit-costs" className={buttonVariants({ size: "lg", variant: "ghost" })}>
-              כמה עולה סרטון
-            </Link>
+          <div className="mt-6 flex justify-center">
+            <MoreLink href="/pricing#details">כמה עולה סרטון</MoreLink>
           </div>
         </div>
       </section>
 
-      <section aria-labelledby="more" className="container-marketing py-12">
-        <h2 id="more" className="text-h2">
+      <section aria-labelledby="more" className="container-marketing py-16 md:py-24">
+        <h2 id="more" className={cn(h2Class, "mb-4 text-center")}>
           {P.moreTitle}
         </h2>
-        <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3">
-          {more.map((m) => (
+        <ul className="mt-10 grid grid-cols-2 items-end gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-3">
+          {more.map((m, i) => (
             <li key={m.slug}>
-              <TemplateCard t={m} />
+              <TemplateCard t={m} index={i + 1} />
             </li>
           ))}
         </ul>
       </section>
+      <FinalCta />
     </>
   );
 }

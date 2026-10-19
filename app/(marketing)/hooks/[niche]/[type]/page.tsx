@@ -4,7 +4,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DirIcon } from "@/components/a11y/dir-icon";
-import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { FinalCta } from "@/components/marketing/landing/faq-final";
+import { Chip, PageHero, h2Class } from "@/components/marketing/page/kit";
+import { cn } from "@/lib/utils";
 import { NicheIcon } from "@/components/marketing/niches/niche-icon";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
 import { HookCard } from "@/components/hooks/hook-card";
@@ -87,19 +90,12 @@ async function NicheTypePageView({ params }: Props) {
   return (
     <HooksProvider>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
-      <section className="container-marketing pt-8 pb-8 md:pt-12">
-        <Breadcrumbs items={crumbs} />
-        <div className="mt-10 max-w-4xl">
-          <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">
-            <NicheIcon name={n.icon} className="size-3.5" />
-            {short}
-          </p>
-          <h1 className="text-h1">{X.h1(t.name_he, short)}</h1>
-          <p className="mt-6 text-body-lg text-text-2">
-            <SmartText text={t.description_he} /> {X.introTail(short)}
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow={<Chip><NicheIcon name={n.icon} className="size-4" />{short}</Chip>}
+        title={X.h1(t.name_he, short)}
+        sub={<SmartText text={t.description_he} />}
+        className="pb-4 md:pb-8"
+      />
 
       <div className="container-marketing flex flex-col gap-8">
         {placeholdersIn(hooks).length > 0 && <HookPersonalizer fields={placeholdersIn(hooks)} />}
@@ -119,15 +115,16 @@ async function NicheTypePageView({ params }: Props) {
       </div>
 
       {otherByNiche.length > 0 && (
-        <section aria-labelledby="others-title" className="container-marketing mt-20">
-          <h2 id="others-title" className="mb-6 text-h2">{X.other(t.name_he)}</h2>
+        <section aria-labelledby="others-title" className="container-marketing py-16 md:py-24">
+          <h2 id="others-title" className={cn(h2Class, "mb-10 text-center")}>{X.other(t.name_he)}</h2>
           <ul className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {otherByNiche.map((h) => (
+            {otherByNiche.slice(0, 3).map((h) => (
               <li key={h.id} className="contents"><HookCard hook={h} variant="compact" location="hook_niche_type_page" /></li>
             ))}
           </ul>
         </section>
       )}
+      <FinalCta />
     </HooksProvider>
   );
 }

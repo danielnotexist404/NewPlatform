@@ -14,10 +14,10 @@ import { accentCta } from "./cta-styles";
 
 export const NAV = [
   { href: "/#how-it-works", label: "איך זה עובד" },
+  { href: "/campaigns", label: "קמפיינים" },
   { href: "/examples", label: "דוגמאות" },
   { href: "/trends", label: "טרנדים" },
   { href: "/pricing", label: "מחירים" },
-  { href: "/faq", label: "שאלות" },
 ] as const;
 
 export function MarketingHeader() {

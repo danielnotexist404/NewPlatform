@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
-import { DirIcon } from "@/components/a11y/dir-icon";
-import { PageHero } from "@/components/marketing/content/page-hero";
+import { PageHero } from "@/components/marketing/page/kit";
+import { FinalCta } from "@/components/marketing/landing/faq-final";
 import { FaqBrowser } from "@/components/marketing/content/faq-browser";
 import { JsonLd } from "@/components/marketing/content/json-ld";
 import { plainText } from "@/components/marketing/content/inline";
-import { cn } from "@/lib/utils";
 import { FAQ, FAQ_CATEGORIES } from "@/content/he/site";
 
 export const metadata: Metadata = {
@@ -17,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function FaqPage() {
   return (
-    <div className="pb-8">
+    <div>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -28,21 +25,12 @@ export default function FaqPage() {
           ),
         }}
       />
-      <PageHero crumbs={[{ label: FAQ.crumb }]} eyebrow={FAQ.eyebrow} title={FAQ.h1} lede={FAQ.lede} />
-      <div className="container-marketing">
-        <FaqBrowser categories={FAQ_CATEGORIES} />
-        <section aria-labelledby="faq-cta" className="relative mt-20 overflow-hidden rounded-xl bg-surface-1 p-8 text-center shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-12">
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-afterglow" />
-          <div className="relative flex flex-col items-center gap-4">
-            <h2 id="faq-cta" className="text-h2">{FAQ.ctaTitle}</h2>
-            <p className="max-w-xl text-text-2">{FAQ.ctaBody}</p>
-            <Link href="/contact" className={cn(buttonVariants({ size: "lg" }))}>
-              {FAQ.cta}
-              <DirIcon name="forward" />
-            </Link>
-          </div>
-        </section>
-      </div>
+      <PageHero title={FAQ.h1} sub="תשובות קצרות. ואם חסר משהו, כתבו לנו." className="pb-6">
+        <div className="text-start">
+          <FaqBrowser categories={FAQ_CATEGORIES} />
+        </div>
+      </PageHero>
+      <FinalCta title={FAQ.ctaTitle} subtitle={FAQ.ctaBody} href="/contact" cta={FAQ.cta} />
     </div>
   );
 }

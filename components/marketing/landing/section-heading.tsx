@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/marketing/media/reveal";
 
 /** Eyebrow chip: tiny gradient dot + label. */
 export function Eyebrow({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -28,12 +29,12 @@ export function SectionHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={cn("reveal flex flex-col gap-4", align === "center" ? "items-center text-center" : "items-start text-start", className)}>
+    <div className={cn(reveal, "flex flex-col gap-4", align === "center" ? "items-center text-center" : "items-start text-start", className)}>
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 id={id} className="max-w-[18ch] text-title text-text">
+      <h2 id={id} className="max-w-[18ch] text-[clamp(2.25rem,1.4rem+3.2vw,4.25rem)] font-black leading-[1.06] text-text">
         {title}
       </h2>
-      {subtitle && <p className={cn("max-w-xl text-body-lg text-text-2", align === "center" && "mx-auto")}>{subtitle}</p>}
+      {subtitle && <p className={cn("max-w-xl text-[clamp(1.125rem,1rem+0.4vw,1.3125rem)] text-text-2", align === "center" && "mx-auto")}>{subtitle}</p>}
       {children}
     </div>
   );
@@ -50,7 +51,7 @@ export function Section({
   container?: boolean;
 }) {
   return (
-    <section id={id} aria-labelledby={labelledBy} className={cn("relative scroll-mt-20 py-20 md:py-24", className)}>
+    <section id={id} aria-labelledby={labelledBy} className={cn("relative scroll-mt-20 py-20 md:py-32", className)}>
       {container ? <div className="container-marketing">{children}</div> : children}
     </section>
   );

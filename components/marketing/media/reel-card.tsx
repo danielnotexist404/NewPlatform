@@ -14,15 +14,16 @@ const MAX_WORDS = 13;
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
 /** The animated "footage": Ken Burns scene, drifting light, a floating product shot, light sweep and grain. */
-export function ReelFootage({ reel, uid, offset = 0, propClassName }: { reel: Pick<ReelData, "scene" | "prop">; uid: string; offset?: number; propClassName?: string }) {
+export function ReelFootage({ reel, uid, offset = 0, propClassName, still = false }: { reel: Pick<ReelData, "scene" | "prop">; uid: string; offset?: number; propClassName?: string; still?: boolean }) {
   const sc = SCENES[reel.scene];
+  const a = (cls: string | undefined) => (still ? undefined : cls);
   const off = { "--off": `${-offset}s` } as Vars;
   return (
     <div aria-hidden className="absolute inset-0 overflow-hidden" style={off}>
-      <div className={cn("absolute -inset-[4%]", s.kenburns)}>
+      <div className={cn("absolute -inset-[4%]", a(s.kenburns))}>
         <div className="absolute inset-0" style={{ backgroundImage: sc.base }} />
-        <span className={cn("absolute top-[8%] inset-s-[-10%] aspect-square w-[70%] rounded-full blur-[14cqw]", s.driftA)} style={{ background: sc.blobs[0] }} />
-        <span className={cn("absolute top-[34%] inset-e-[-14%] aspect-square w-[60%] rounded-full blur-[12cqw]", s.driftB)} style={{ background: sc.blobs[1] }} />
+        <span className={cn("absolute top-[8%] inset-s-[-10%] aspect-square w-[70%] rounded-full blur-[14cqw]", a(s.driftA))} style={{ background: sc.blobs[0] }} />
+        <span className={cn("absolute top-[34%] inset-e-[-14%] aspect-square w-[60%] rounded-full blur-[12cqw]", a(s.driftB))} style={{ background: sc.blobs[1] }} />
         {/* floor plane */}
         <div
           className="absolute inset-x-0 bottom-0 h-[36%]"
@@ -31,15 +32,15 @@ export function ReelFootage({ reel, uid, offset = 0, propClassName }: { reel: Pi
         {/* product shot */}
         <div className={cn("absolute inset-x-0 bottom-[17%] mx-auto w-[64%]", propClassName)}>
           <span
-            className={cn("absolute inset-x-[8%] bottom-[2%] h-[9%] rounded-[50%] blur-[2.4cqw]", s.propShadow)}
+            className={cn("absolute inset-x-[8%] bottom-[2%] h-[9%] rounded-[50%] blur-[2.4cqw]", a(s.propShadow))}
             style={{ background: tint("ink", 70) }}
           />
           <div className="absolute inset-[-12%] rounded-full blur-[10cqw] opacity-60" style={{ background: `radial-gradient(closest-side, ${sc.rim}, transparent)` }} />
-          <PropArt name={reel.prop} uid={uid} className={cn("relative block h-auto w-full drop-shadow-[0_4cqw_5cqw_rgb(0_0_0/.35)]", s.prop)} />
+          <PropArt name={reel.prop} uid={uid} className={cn("relative block h-auto w-full drop-shadow-[0_4cqw_5cqw_rgb(0_0_0/.35)]", a(s.prop))} />
         </div>
       </div>
       <span
-        className={cn("absolute -inset-y-[20%] inset-s-0 w-[45%] opacity-50", s.sweep)}
+        className={cn("absolute -inset-y-[20%] inset-s-0 w-[45%] opacity-50", still ? "hidden" : s.sweep)}
         style={{ background: `linear-gradient(90deg, transparent, ${tint("paper", 26)}, transparent)` }}
       />
       <span className="absolute inset-0 opacity-[.16] mix-blend-overlay" style={{ backgroundImage: GRAIN }} />
@@ -57,8 +58,8 @@ export function ReelWords({ text, style, highlight, loop, offset = 0, className 
   return (
     <p
       className={cn(
-        "flex flex-wrap content-center gap-x-[1.4cqw] gap-y-[1.2cqw]",
-        style === "shadow" ? "text-[8.4cqw] leading-[1.12]" : "text-[6.8cqw] leading-[1.2]",
+        "flex flex-wrap content-center gap-x-[1.8cqw] gap-y-[0.6cqw]",
+        "text-[8cqw] leading-[1.18]",
         "font-black",
         className,
       )}
@@ -72,9 +73,10 @@ export function ReelWords({ text, style, highlight, loop, offset = 0, className 
             className={cn(
               s.word,
               isHl && s.pop,
-              style === "shadow" && cn("text-paper [text-shadow:0_0.6cqw_3cqw_rgb(0_0_0/.55)]", isHl && "text-lemon"),
-              style === "box" && cn("rounded-[1.6cqw] px-[2cqw] py-[0.7cqw]", isHl ? "bg-accent-gradient text-ink" : "bg-paper text-ink"),
-              style === "accent" && cn("rounded-[1.6cqw] px-[2cqw] py-[0.7cqw] text-ink", isHl ? "bg-paper" : "bg-accent-gradient"),
+              "text-paper [text-shadow:0_0.5cqw_2.6cqw_rgb(0_0_0/.6)]",
+              isHl && style === "shadow" && "text-lemon",
+              isHl && style === "box" && "rounded-[1.4cqw] bg-accent-gradient px-[1.6cqw] text-ink [text-shadow:none]",
+              isHl && style === "accent" && "rounded-[1.4cqw] bg-paper px-[1.6cqw] text-ink [text-shadow:none]",
             )}
             style={{ "--i": i } as Vars}
           >
@@ -83,6 +85,19 @@ export function ReelWords({ text, style, highlight, loop, offset = 0, className 
         );
       })}
     </p>
+  );
+}
+
+/** Story progress bars only (for tiles in other formats). */
+export function ReelChromeBar({ loop, offset = 0 }: { loop: number; offset?: number }) {
+  return (
+    <div className="absolute inset-x-[5cqw] top-[5cqw] flex gap-[1.2cqw]" dir="ltr" style={{ "--loop": `${loop}s`, "--off": `${-offset}s` } as Vars}>
+      <span className="h-[0.9cqw] flex-1 rounded-full bg-paper" />
+      <span className="h-[0.9cqw] flex-1 overflow-hidden rounded-full bg-paper/30">
+        <span className={cn("block h-full w-full rounded-full bg-paper", s.progress)} />
+      </span>
+      <span className="h-[0.9cqw] flex-1 rounded-full bg-paper/30" />
+    </div>
   );
 }
 

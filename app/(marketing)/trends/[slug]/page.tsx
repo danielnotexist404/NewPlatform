@@ -1,31 +1,41 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, Ban, Camera, CheckCircle2, Megaphone, Music2, Wand2 } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { DirIcon } from "@/components/a11y/dir-icon";
-import { Breadcrumbs, CtaBand, Eyebrow, JsonLd, SampleTag, breadcrumbLd, faqLd } from "@/components/marketing/gallery/kit";
-import { FaqList } from "@/components/marketing/gallery/faq-list";
-import { TrendArt } from "@/components/marketing/trends/trend-art";
+import { Camera, CheckCircle2, Wand2 } from "lucide-react";
+import { JsonLd, breadcrumbLd, faqLd } from "@/components/marketing/gallery/kit";
+import { FaqList, FinalCta } from "@/components/marketing/landing/faq-final";
+import { ReelCard } from "@/components/marketing/media/reel-card";
 import { TrendCard } from "@/components/marketing/trends/trend-card";
-import { AdSafetyBadge, ProductionBadge, TrendLifecycleBadge } from "@/components/marketing/trends/trend-badges";
+import { trendReel } from "@/components/marketing/trends/trend-reel";
+import { AdSafetyBadge, ProductionBadge } from "@/components/marketing/trends/trend-badges";
 import { FirstSeconds, RecipeStrip } from "@/components/marketing/trends/first-seconds";
-import { AD_SAFETY, LIFECYCLE_LABEL, PRODUCTION_LABEL, TREND_PAGE } from "@/content/he/trends";
-import { getTrend, publishedTrends, TREND_MUSIC_NOTE_HE, type AdGoal } from "@/lib/mock/trends";
-import { getHookType, getNiche, nicheShortName } from "@/lib/data/seed";
-import { CAMPAIGN_GOAL_LABEL } from "@/lib/labels";
+import { Band, Disclosure, MoreLink, PageHero } from "@/components/marketing/page/kit";
+import { accentCta, ctaArrow, quietCta } from "@/components/layout/cta-styles";
+import { DirIcon } from "@/components/a11y/dir-icon";
+import { AD_SAFETY, TREND_PAGE } from "@/content/he/trends";
+import { getTrend, publishedTrends, TREND_MUSIC_NOTE_HE } from "@/lib/mock/trends";
+import { getNiche, nicheShortName } from "@/lib/data/seed";
 import { BRAND } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const GOAL_KEY: Record<AdGoal, keyof typeof CAMPAIGN_GOAL_LABEL> = {
-  whatsapp_messages: "whatsapp",
-  lead_form: "lead_form",
-  website_traffic: "traffic",
-  local_awareness: "awareness",
-};
-
 const createHref = (slug: string, mode?: "guided") =>
   `/login?next=${encodeURIComponent(`/app/create?trend=${slug}&src=trend${mode ? `&mode=${mode}` : ""}`)}`;
+
+/** Renders "{placeholder}" slots as soft chips. */
+function Pattern({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\{[^}]+\})/).map((part, i) =>
+        part.startsWith("{") ? (
+          <span key={i} className="mx-0.5 rounded-[8px] bg-primary/15 px-1.5 py-0.5 text-primary-text">{part.slice(1, -1)}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
 
 export function generateStaticParams() {
   return publishedTrends().map((t) => ({ slug: t.slug }));
@@ -43,14 +53,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function TrendPage({ params }: { params: Promise<{ slug: string }> }) {
+export default function TrendPage({ params }: { params: Promise<{ slug: string }> }) {
+  return (
+    <Suspense fallback={<div className="min-h-dvh" aria-busy="true" />}>
+      <TrendPageView params={params} />
+    </Suspense>
+  );
+}
+
+async function TrendPageView({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const t = getTrend(slug);
   if (!t || t.status !== "published") notFound();
 
-  const hookType = getHookType(t.hook_type_slug);
   const safety = AD_SAFETY[t.ad_safety];
-  const organic = t.ad_safety === "organic_only";
   const offersGuided = t.production_mode !== "ai";
   const offersAi = t.production_mode !== "guided";
   const more = publishedTrends()
@@ -80,267 +96,126 @@ export default async function TrendPage({ params }: { params: Promise<{ slug: st
         ]}
       />
 
-      {/* ---------- Hero ---------- */}
-      <section id="hero" className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-afterglow" />
-        <div className="container-marketing relative grid gap-10 pb-14 pt-8 md:pt-12 lg:grid-cols-[1.25fr_1fr] lg:items-center lg:gap-16">
-          <div className="flex flex-col gap-5">
-            <Breadcrumbs items={crumbs.map((c, i) => (i === crumbs.length - 1 ? { label: c.label } : c))} />
-            <div className="flex flex-wrap gap-2">
-              <TrendLifecycleBadge stage={t.mock_stage} />
-              <AdSafetyBadge safety={t.ad_safety} />
-              <ProductionBadge mode={t.production_mode} />
-            </div>
-            <h1 className="font-display text-display leading-[0.95]">{t.name_he}</h1>
-            <p className="text-h3 max-w-2xl font-semibold text-text">{t.tagline_he}</p>
-            <p className="text-body-lg max-w-2xl text-text-2">{t.description_he}</p>
-            <div className="flex flex-wrap gap-3 pt-1">
-              {offersAi && (
-                <Link href={createHref(t.slug)} className={buttonVariants({ size: "lg" })}>
-                  <Wand2 aria-hidden />
-                  {TREND_PAGE.ctaAi}
-                </Link>
-              )}
-              {offersGuided && (
-                <Link href={createHref(t.slug, "guided")} className={buttonVariants({ size: "lg", variant: offersAi ? "secondary" : "primary" })}>
-                  <Camera aria-hidden />
-                  {TREND_PAGE.ctaGuided}
-                </Link>
-              )}
-            </div>
-            <p className="text-small text-muted">{TREND_PAGE.ctaNote}</p>
+      <PageHero
+        align="split"
+        eyebrow={<div className="flex flex-wrap gap-2"><AdSafetyBadge safety={t.ad_safety} /><ProductionBadge mode={t.production_mode} /></div>}
+        title={t.name_he}
+        sub={t.tagline_he}
+        actions={
+          <>
+            {offersAi && (
+              <Link href={createHref(t.slug)} className={cn(accentCta, "h-14 w-full px-8 text-lg sm:w-auto")}>
+                <Wand2 aria-hidden className="size-5" />
+                {TREND_PAGE.ctaAi}
+                <DirIcon name="forward" className={ctaArrow} />
+              </Link>
+            )}
+            {offersGuided && (
+              <Link href={createHref(t.slug, "guided")} className={cn(quietCta, "h-14 px-6 text-base ring-hairline")}>
+                <Camera aria-hidden className="size-5" />
+                {TREND_PAGE.ctaGuided}
+              </Link>
+            )}
+          </>
+        }
+      >
+        <figure className="mx-auto w-full max-w-[300px]">
+          <ReelCard reel={trendReel(t)} frame="phone" label={`${TREND_PAGE.demoTag}: ${t.name_he}`} />
+          <figcaption className="mt-4 text-center text-small text-muted">{TREND_PAGE.demoNote}</figcaption>
+        </figure>
+      </PageHero>
 
-            <dl className="mt-2 grid grid-cols-2 gap-px overflow-hidden rounded-md bg-border sm:grid-cols-4">
-              {[
-                { k: TREND_PAGE.facts.hookType, v: hookType?.name_he ?? t.hook_type_slug },
-                { k: TREND_PAGE.facts.duration, v: TREND_PAGE.facts.seconds(t.default_duration_sec) },
-                { k: TREND_PAGE.facts.production, v: PRODUCTION_LABEL[t.production_mode] },
-                { k: TREND_PAGE.facts.goal, v: t.recommended_ad_goal ? CAMPAIGN_GOAL_LABEL[GOAL_KEY[t.recommended_ad_goal]] : TREND_PAGE.facts.noGoal },
-              ].map((f) => (
-                <div key={f.k} className="bg-surface-1 px-4 py-3">
-                  <dt className="text-micro text-muted">{f.k}</dt>
-                  <dd className="mt-0.5 font-semibold">{f.v}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          <figure className="mx-auto w-full max-w-[340px]">
-            <div className="rounded-[34px] bg-surface-2 p-2.5 elev-3 shadow-[inset_0_0_0_1px_var(--color-frame)] glow-primary">
-              <TrendArt trend={t} size="lg" className="rounded-[26px]" tag={<SampleTag>{TREND_PAGE.demoTag}</SampleTag>} />
-            </div>
-            <figcaption className="mt-3 text-center text-small text-muted">{TREND_PAGE.demoNote}</figcaption>
-          </figure>
+      <Band id="first3" title={TREND_PAGE.firstSecondsTitle}>
+        <div className="mx-auto max-w-5xl">
+          <FirstSeconds items={t.explainer.first_seconds_he} />
         </div>
-      </section>
+      </Band>
 
-      {/* ---------- First 3 seconds ---------- */}
-      <section aria-labelledby="first3" className="container-marketing py-14">
-        <div className="rounded-xl bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-10">
-          <Eyebrow>{TREND_PAGE.breakdownEyebrow}</Eyebrow>
-          <h2 id="first3" className="text-h2 mt-4">
-            {TREND_PAGE.firstSecondsTitle}
-          </h2>
-          <div className="mt-8">
-            <FirstSeconds items={t.explainer.first_seconds_he} />
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- Why + ad safety ---------- */}
-      <section aria-labelledby="why" className="container-marketing grid gap-6 py-6 lg:grid-cols-[1.4fr_1fr]">
-        <div>
-          <h2 id="why" className="text-h2">
-            {TREND_PAGE.whyTitle}
-          </h2>
-          <p className="text-body-lg mt-4 max-w-2xl text-text-2">{t.why_it_works_he}</p>
-          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-            {t.explainer.why_it_works_he.map((w) => (
-              <li key={w} className="flex gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-                <CheckCircle2 aria-hidden className="mt-0.5 size-5 shrink-0 text-primary-text" />
-                <span>{w}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <aside
-          aria-labelledby="ad-safety"
-          className={cn(
-            "flex flex-col gap-3 self-start rounded-lg p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]",
-            organic ? "bg-danger/10" : "bg-success/10",
-          )}
-        >
-          <span className={cn("flex size-11 items-center justify-center rounded-full", organic ? "bg-danger/15 text-danger" : "bg-success/15 text-success")}>
-            {organic ? <Ban aria-hidden className="size-5" /> : <Megaphone aria-hidden className="size-5" />}
-          </span>
-          <h2 id="ad-safety" className="text-h3">
-            {safety.title}
-          </h2>
-          <p className="text-text-2">{safety.body}</p>
-        </aside>
-      </section>
-
-      {/* ---------- Recipe ---------- */}
-      <section aria-labelledby="recipe" className="container-marketing py-14">
-        <h2 id="recipe" className="text-h2">
-          {TREND_PAGE.recipeTitle}
-        </h2>
-        <div className="mt-6">
-          <RecipeStrip beats={t.recipe.beats} />
-        </div>
-      </section>
-
-      {/* ---------- How to ---------- */}
-      <section aria-labelledby="howto" className="container-marketing py-6">
-        <h2 id="howto" className="text-h2">
-          {TREND_PAGE.howTitle}
-        </h2>
-        <ol className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {t.explainer.how_to_he.map((s, i) => (
-            <li key={s.title_he} className="relative flex flex-col gap-2 rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-              <span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-on-primary num">{i + 1}</span>
-              <h3 className="text-body-lg font-bold">{s.title_he}</h3>
-              <p className="text-text-2">{s.body_he}</p>
-            </li>
-          ))}
-        </ol>
-
-        {t.shot_list && offersGuided && (
-          <div className="mt-8 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-8">
-            <div className="flex items-center gap-3">
-              <Camera aria-hidden className="size-5 text-primary-text" />
-              <h3 className="text-h3">{TREND_PAGE.shotListTitle}</h3>
-            </div>
-            <p className="mt-2 max-w-2xl text-text-2">{TREND_PAGE.shotListBody}</p>
-            <ol className="mt-5 grid gap-3 md:grid-cols-3">
-              {t.shot_list.shots.map((s, i) => (
-                <li key={s.key} className="rounded-md bg-surface-2 p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold">
-                      <span className="text-muted num">{i + 1}. </span>
-                      {s.title_he}
-                    </span>
-                    <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 text-micro text-text-2">{TREND_PAGE.shotSeconds(s.min_sec, s.max_sec)}</span>
-                  </div>
-                  <p className="mt-2 text-small text-text-2">{s.instruction_he}</p>
-                  {s.tips_he.length > 0 && (
-                    <ul className="mt-2 flex flex-col gap-1 text-small text-muted">
-                      {s.tips_he.map((tip) => (
-                        <li key={tip}>· {tip}</li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-      </section>
-
-      {/* ---------- Hook variants ---------- */}
-      <section aria-labelledby="hooks" className="container-marketing py-14">
-        <h2 id="hooks" className="text-h2">
-          {TREND_PAGE.hooksTitle}
-        </h2>
-        <p className="text-body-lg mt-3 max-w-2xl text-text-2">{TREND_PAGE.hooksBody}</p>
-        <ul className="mt-6 grid gap-4 md:grid-cols-3">
-          {t.hook_variants.map((h) => (
-            <li key={h.key} className="flex flex-col gap-3 rounded-lg bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-              <span className="font-display text-[56px] leading-none text-primary-text">{h.key}</span>
-              <p className="text-body-lg font-bold">{h.hook_line_he_pattern}</p>
-              <p className="text-small text-text-2">{h.why_he}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ---------- Niche examples ---------- */}
-      <section aria-labelledby="niches" className="container-marketing py-6">
-        <h2 id="niches" className="text-h2">
-          {TREND_PAGE.nichesTitle}
-        </h2>
-        <ul className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-          {t.niche_adaptations.map((a) => {
+      <Band id="niches" title={TREND_PAGE.nichesTitle} className="overflow-x-clip">
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
+          {t.niche_adaptations.slice(0, 4).map((a, i) => {
             const n = getNiche(a.niche_slug);
             return (
               <li key={a.niche_slug} className="flex flex-col gap-3">
-                <TrendArt trend={t} nicheSlug={a.niche_slug} size="sm" tag={<SampleTag>{TREND_PAGE.demoTag}</SampleTag>} />
-                <div>
-                  <h3 className="font-bold">{n ? nicheShortName(n) : a.niche_slug}</h3>
-                  <p className="text-small text-text-2">{Object.values(a.onscreen_examples_he)[0]}</p>
-                  {a.notes_he && <p className="mt-1 text-micro text-muted">{a.notes_he}</p>}
-                </div>
+                <ReelCard reel={trendReel(t, a.niche_slug, i)} offset={i * 1.4} lite />
+                <p className="px-1 text-body font-bold text-text">{n ? nicheShortName(n) : a.niche_slug}</p>
               </li>
             );
           })}
         </ul>
-      </section>
+      </Band>
 
-      {/* ---------- Music + compliance ---------- */}
-      <section className="container-marketing grid gap-4 py-14 md:grid-cols-2">
-        <div className="flex gap-4 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-          <Music2 aria-hidden className="size-6 shrink-0 text-violet" />
-          <div>
-            <h2 className="text-h3">{TREND_PAGE.musicTitle}</h2>
-            <p className="mt-2 text-text-2">{TREND_MUSIC_NOTE_HE}</p>
-            <p className="mt-2 text-small text-muted">
-              {LIFECYCLE_LABEL[t.lifecycle]} · <bdi dir="ltr" className="num">{t.music_brief.bpm_min}–{t.music_brief.bpm_max} BPM</bdi>
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-4 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-          <AlertTriangle aria-hidden className="size-6 shrink-0 text-primary-text" />
-          <div>
-            <h2 className="text-h3">{TREND_PAGE.complianceTitle}</h2>
-            <ul className="mt-2 flex flex-col gap-2 text-text-2">
-              {t.compliance_notes_he.map((c) => (
-                <li key={c}>{c}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* ---------- FAQ ---------- */}
-      <section aria-labelledby="faq" className="container-marketing py-6">
-        <h2 id="faq" className="text-h2 mb-6">
-          {TREND_PAGE.faqTitle}
-        </h2>
-        <FaqList items={t.explainer.faq_he.map((f, i) => ({ id: `${t.slug}-${i}`, ...f }))} />
-      </section>
-
-      <CtaBand title={TREND_PAGE.ctaAi} body={t.tagline_he}>
-        {offersAi && (
-          <Link href={createHref(t.slug)} className={buttonVariants({ size: "xl" })}>
-            {TREND_PAGE.ctaAi}
-          </Link>
-        )}
-        {offersGuided && (
-          <Link href={createHref(t.slug, "guided")} className={buttonVariants({ size: "xl", variant: offersAi ? "secondary" : "primary" })}>
-            {TREND_PAGE.ctaGuided}
-          </Link>
-        )}
-      </CtaBand>
-
-      {/* ---------- More ---------- */}
-      <section aria-labelledby="more" className="container-marketing pb-8">
-        <div className="flex items-end justify-between gap-4">
-          <h2 id="more" className="text-h2">
-            {TREND_PAGE.moreTitle}
-          </h2>
-          <Link href="/trends" className="inline-flex items-center gap-1 font-semibold text-primary-text hover:underline underline-offset-4">
-            {TREND_PAGE.moreLink}
-            <DirIcon name="forward" className="size-4" />
-          </Link>
-        </div>
-        <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
-          {more.map((m) => (
-            <li key={m.slug} className="flex">
-              <TrendCard trend={m} className="w-full" />
+      <Band id="hooks" title={TREND_PAGE.hooksTitle} sub="מעלים את שלושתן לקמפיין אחד, ורואים איזו עובדת.">
+        <ul className="grid gap-5 md:grid-cols-3">
+          {t.hook_variants.map((h) => (
+            <li key={h.key} className="flex flex-col gap-4 rounded-[28px] bg-surface-1 p-7 ring-hairline">
+              <span className="inline-flex size-12 items-center justify-center rounded-full bg-accent-gradient text-h3 font-black text-ink">{h.key}</span>
+              <p className="text-h3 font-bold leading-[1.6] text-text"><Pattern text={h.hook_line_he_pattern} /></p>
             </li>
           ))}
         </ul>
-      </section>
+      </Band>
+
+      <Band id="details" title="כל הפרטים" tight>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4">
+          <Disclosure summary={TREND_PAGE.whyTitle}>
+            <p className="text-body-lg text-text-2">{t.why_it_works_he}</p>
+            <ul className="mt-5 flex flex-col gap-3">
+              {t.explainer.why_it_works_he.map((w) => (
+                <li key={w} className="flex gap-3 text-body">
+                  <CheckCircle2 aria-hidden className="mt-1 size-5 shrink-0 text-primary-text" />
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
+          <Disclosure summary={TREND_PAGE.recipeTitle}>
+            <RecipeStrip beats={t.recipe.beats} />
+          </Disclosure>
+          {t.shot_list && offersGuided && (
+            <Disclosure summary={TREND_PAGE.shotListTitle}>
+              <p className="mb-5 text-body text-text-2">{TREND_PAGE.shotListBody}</p>
+              <ol className="grid gap-3 md:grid-cols-3">
+                {t.shot_list.shots.map((sh, i) => (
+                  <li key={sh.key} className="rounded-[18px] bg-surface-2 p-4">
+                    <p className="font-bold"><span className="num text-muted">{i + 1}. </span>{sh.title_he}</p>
+                    <p className="mt-1 text-small text-text-2">{sh.instruction_he}</p>
+                    <p className="mt-2 text-micro text-muted">{TREND_PAGE.shotSeconds(sh.min_sec, sh.max_sec)}</p>
+                  </li>
+                ))}
+              </ol>
+            </Disclosure>
+          )}
+          <Disclosure summary={TREND_PAGE.complianceTitle}>
+            <div className="flex flex-col gap-4 text-body text-text-2">
+              <p><strong className="text-text">{safety.title}.</strong> {safety.body}</p>
+              <p><strong className="text-text">{TREND_PAGE.musicTitle}.</strong> {TREND_MUSIC_NOTE_HE}</p>
+              <ul className="flex list-disc flex-col gap-2 ps-5">
+                {t.compliance_notes_he.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+            </div>
+          </Disclosure>
+        </div>
+      </Band>
+
+      <Band id="faq" title={TREND_PAGE.faqTitle}>
+        <FaqList items={t.explainer.faq_he.slice(0, 4).map((f, i) => ({ id: `${t.slug}-${i}`, q: f.q_he, a: f.a_he }))} className="mx-auto max-w-3xl" />
+      </Band>
+
+      <Band id="more" title={TREND_PAGE.moreTitle}>
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:grid-cols-4">
+          {more.map((m, i) => (
+            <li key={m.slug} className="flex">
+              <TrendCard trend={m} index={i + 1} className="w-full" />
+            </li>
+          ))}
+        </ul>
+        <div className="mt-10 flex justify-center"><MoreLink href="/trends">{TREND_PAGE.moreLink}</MoreLink></div>
+      </Band>
+
+      <FinalCta title={TREND_PAGE.ctaAi} subtitle={TREND_PAGE.ctaNote} />
     </>
   );
 }

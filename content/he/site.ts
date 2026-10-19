@@ -62,6 +62,15 @@ export const ABOUT = {
     { hook: "restaurants-01", tone: "gold" },
     { hook: "zimmers-boutique-hotels-01", tone: "rose" },
   ],
+  sub: "אתם מספרים מה העסק עושה, ומקבלים סרטון בעברית טבעית.",
+  valuesShort: [
+    { icon: "languages", title: "עברית כשפת אם", text: "נכתב בעברית מלכתחילה, לא מתורגם." },
+    { icon: "clapperboard", title: "תוצאה, לא עוד כלי", text: "סרטון מוכן לפרסום, לא ערימת הגדרות." },
+    { icon: "badge", title: "אמת בפרסום", text: "בלי מספרים, ביקורות או לוגואים מומצאים." },
+    { icon: "receipt", title: "מחיר שקוף", text: "שקלים, כולל מע״מ, וביטול בכל רגע." },
+    { icon: "a11y", title: "נגישות מהיסוד", text: "WCAG 2.2 AA, וכתוביות לכל סרטון." },
+    { icon: "lock", title: "פרטיות", text: "לא משמש לאימון מודלים. מוחקים בכל רגע." },
+  ] as const,
   valuesTitle: "מה חשוב לנו",
   values: [
     { icon: "languages", title: "עברית כשפת אם", text: "כל משפט נכתב בעברית מלכתחילה, לא מתורגם. פנייה נכונה, מספרים שנשמעים נכון בקריינות, וכתוביות שלא מתהפכות כשיש בהן מחיר או מילה באנגלית." },

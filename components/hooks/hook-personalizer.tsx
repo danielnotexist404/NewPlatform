@@ -17,6 +17,7 @@ const P = HOOKS_COPY.personalizer;
 export function HookPersonalizer({ fields = [], only, className }: { fields?: string[]; only?: string[]; className?: string }) {
   const values = usePersonalization();
   const [open, setOpen] = React.useState(false);
+  const [expandedState, setExpanded] = React.useState(false);
   const order = (list: string[]) => HOOK_PLACEHOLDERS.filter((p) => list.includes(p));
   const base: string[] = only ? order(only) : [...PERSONALIZER_BASE];
   const extra = only ? [] : order(fields).filter((f) => !base.includes(f));
@@ -24,25 +25,36 @@ export function HookPersonalizer({ fields = [], only, className }: { fields?: st
   const filledCount = Object.values(values).filter((v) => v && v.trim()).length;
 
   if (only && only.length === 0) return null;
+  /** Collapsed to one line by default on library pages (clean redesign); always open on a single hook page or once filled. */
+  const expanded = !!only || expandedState || filledCount > 0;
 
   return (
     <section
       aria-labelledby="personalizer-title"
-      className={cn("glass relative overflow-hidden rounded-lg p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-6", className)}
+      className={cn("relative overflow-hidden rounded-[24px] bg-surface-1 p-5 ring-hairline md:p-6", className)}
     >
-      <div aria-hidden className="pointer-events-none absolute -top-24 inset-e-0 size-64 rounded-full bg-violet/10 blur-3xl" />
       <div className="relative flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-violet/15 text-violet">
-            <Wand className="size-4.5" aria-hidden />
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="personalizer-fields"
+          disabled={!!only}
+          onClick={() => setExpanded((e) => !e)}
+          className="flex flex-1 items-center gap-3 text-start disabled:cursor-default"
+        >
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary-text">
+            <Wand className="size-5" aria-hidden />
           </span>
-          <div>
+          <span className="flex flex-col">
             <h2 id="personalizer-title" className="text-body-lg font-bold">{P.title}</h2>
-            <p className="text-small text-text-2">{P.sub}</p>
-          </div>
-        </div>
-        <p className="num text-micro text-muted" aria-live="polite">{plural(filledCount, P.filled)}</p>
+            {expanded && <span className="text-small text-text-2">{P.sub}</span>}
+          </span>
+          {!only && <ChevronDown className={cn("ms-auto size-5 text-muted transition-transform", expanded && "rotate-180")} aria-hidden />}
+        </button>
+        {expanded && <p className="num text-micro text-muted" aria-live="polite">{plural(filledCount, P.filled)}</p>}
       </div>
+      {expanded && (
+      <div id="personalizer-fields">
 
       <div className={cn("relative mt-4 grid gap-3", shown.length > 1 && "md:grid-cols-3")}>
         {shown.map((name) => {
@@ -86,6 +98,8 @@ export function HookPersonalizer({ fields = [], only, className }: { fields?: st
           {P.clear}
         </Button>
       </div>
+      </div>
+      )}
     </section>
   );
 }

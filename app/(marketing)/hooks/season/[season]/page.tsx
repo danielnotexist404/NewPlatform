@@ -5,7 +5,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, Megaphone, MoonStar, StickyNote } from "lucide-react";
 import { DirIcon } from "@/components/a11y/dir-icon";
-import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { cn } from "@/lib/utils";
+import { HeroGlow, PageHero, h2Class } from "@/components/marketing/page/kit";
 import { NicheIcon } from "@/components/marketing/niches/niche-icon";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
 import { HookCard } from "@/components/hooks/hook-card";
@@ -96,21 +98,8 @@ async function SeasonPageView({ params }: Props) {
   return (
     <HooksProvider>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-afterglow" />
-        <div className="container-marketing relative pt-8 pb-10 md:pt-12">
-          <Breadcrumbs items={crumbs} />
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1.5fr_1fr]">
-            <div>
-              <SeasonCountdown slug={season} />
-              <h1 className="mt-5 text-h1"><SmartText text={h1} /></h1>
-              <div className="mt-6 flex flex-col gap-4 text-body-lg text-text-2">
-                {SEASON_PAGES[season].intro.map((p) => (
-                  <p key={p.slice(0, 30)}><SmartText text={p} /></p>
-                ))}
-              </div>
-            </div>
-            <aside className="flex h-fit flex-col gap-4 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
+      <PageHero align="split" eyebrow={<SeasonCountdown slug={season} />} title={<SmartText text={h1} />} sub={<SmartText text={SEASON_PAGES[season].intro[0] ?? ""} />}>
+            <aside className="mx-auto flex w-full max-w-md flex-col gap-5 rounded-[28px] bg-surface-1 p-7 elev-3 ring-hairline">
               <div className="flex gap-3">
                 <CalendarDays className="mt-1 size-5 shrink-0 text-primary-text" aria-hidden />
                 <div>
@@ -138,14 +127,12 @@ async function SeasonPageView({ params }: Props) {
                 </p>
               )}
             </aside>
-          </div>
-        </div>
-      </section>
+      </PageHero>
 
       <div className="container-marketing flex flex-col gap-8">
         {fields.length > 0 && <HookPersonalizer fields={fields} />}
         <section aria-labelledby="season-hooks">
-          <h2 id="season-hooks" className="mb-6 text-h2">{S.hooks}</h2>
+          <h2 id="season-hooks" className={cn(h2Class, "mb-10 text-center")}>{S.hooks}</h2>
           {own.length > 0 ? (
             <ul className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
               {own.map((h) => (
@@ -159,13 +146,13 @@ async function SeasonPageView({ params }: Props) {
       </div>
 
       {nicheBlocks.length > 0 && (
-        <section aria-labelledby="season-niches" className="container-marketing mt-20">
-          <h2 id="season-niches" className="mb-6 text-h2">{S.niches}</h2>
+        <section aria-labelledby="season-niches" className="container-marketing py-16 md:py-24">
+          <h2 id="season-niches" className={cn(h2Class, "mb-10 text-center")}>{S.niches}</h2>
           <div className="flex flex-col gap-10">
-            {nicheBlocks.map(({ n, picks }) => {
+            {nicheBlocks.slice(0, 3).map(({ n, picks }) => {
               const short = nicheShortName(n);
               return (
-                <div key={n.slug} className="rounded-lg bg-surface-1/50 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-6">
+                <div key={n.slug} className="rounded-[28px] bg-surface-2 p-5 ring-hairline md:p-7">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <h3 className="flex items-center gap-2 text-h3">
                       <NicheIcon name={n.icon} className="size-5 text-primary-text" />
@@ -175,13 +162,6 @@ async function SeasonPageView({ params }: Props) {
                       {S.nicheAll(short)} <DirIcon name="forward" />
                     </Link>
                   </div>
-                  {n.seasonal_angles_he.length > 0 && (
-                    <ul className="mb-4 flex flex-wrap gap-2">
-                      {n.seasonal_angles_he.map((a) => (
-                        <li key={a} className="rounded-xs bg-surface-3 px-2 py-1 text-micro text-text-2"><SmartText text={a} /></li>
-                      ))}
-                    </ul>
-                  )}
                   <ul className="grid items-start gap-4 md:grid-cols-2">
                     {picks.map((h) => (
                       <li key={h.id} className="contents"><HookCard hook={h} variant="compact" showNiche={false} location="season_page" /></li>
@@ -194,11 +174,11 @@ async function SeasonPageView({ params }: Props) {
         </section>
       )}
 
-      <section className="container-marketing mt-20">
-        <div className="relative overflow-hidden rounded-xl bg-surface-1 p-8 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-12">
-          <div aria-hidden className="absolute inset-0 bg-projector" />
-          <div className="relative flex flex-col gap-4">
-            <h2 className="text-h2"><SmartText text={h1} /></h2>
+      <section className="container-marketing pb-8">
+        <div className="relative overflow-hidden rounded-[40px] bg-surface-1 p-8 text-center ring-hairline md:p-16">
+          <HeroGlow />
+          <div className="relative flex flex-col items-center gap-5">
+            <h2 className={h2Class}><SmartText text={h1} /></h2>
             <QuietAwareCta href={seasonCreateHref(season, firstHook?.id)} label={S.cta} sub={S.ctaSub} />
           </div>
         </div>

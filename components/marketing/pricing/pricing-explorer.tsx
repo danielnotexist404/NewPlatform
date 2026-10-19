@@ -2,7 +2,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Check, Coins, Info, Megaphone, Sparkles } from "lucide-react";
+import { Check, Coins, Info } from "lucide-react";
+import { accentCta, inkCta } from "@/components/layout/cta-styles";
+import { LANDING } from "@/content/he/landing";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch, ToggleGroup, ToggleGroupItem } from "@/components/ui/misc";
 import { buttonVariants } from "@/components/ui/button";
@@ -122,7 +124,7 @@ function PricingView({
       )}
 
       <TabsContent value="plans" className="focus-visible:outline-none">
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <ul className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => (
             <li key={p.id} className="flex">
               <PlanCard plan={p} cycle={cycle} excl={excl} />
@@ -141,7 +143,7 @@ function PricingView({
               <li key={pk.id} className="flex">
                 <div
                   className={cn(
-                    "relative flex w-full flex-col gap-5 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]",
+                    "relative flex w-full flex-col gap-5 rounded-[28px] bg-surface-1 p-7 shadow-[inset_0_0_0_1px_var(--color-frame)]",
                     featured && "shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-primary)_55%,transparent)]",
                   )}
                 >
@@ -187,6 +189,8 @@ function PricingView({
   );
 }
 
+const FREE_FEATURES = ["כ-2 סרטונים קצרים לניסיון", "איכות טיוטה, עם סימן מים", "קמפיין ניסיון אחד עד ₪300", "בלי כרטיס אשראי"];
+
 function PlanCard({ plan: p, cycle, excl }: { plan: Plan; cycle: Cycle; excl: boolean }) {
   const highlighted = !!p.badgeHe;
   const annual = cycle === "annual" && p.annualMonthlyIls !== null;
@@ -195,6 +199,7 @@ function PlanCard({ plan: p, cycle, excl }: { plan: Plan; cycle: Cycle; excl: bo
   const strike = annual ? (excl ? netOf(p.monthlyIls) : p.monthlyIls) : null;
   const total = annual ? (excl ? netOf(p.annualTotalIls!) : p.annualTotalIls!) : null;
   const free = p.id === "free";
+  const features = free ? FREE_FEATURES : (LANDING.pricing.features[p.id] ?? p.featuresHe).slice(0, 4);
 
   let sub: string;
   if (free) sub = "בלי כרטיס אשראי";
@@ -204,65 +209,47 @@ function PlanCard({ plan: p, cycle, excl }: { plan: Plan; cycle: Cycle; excl: bo
   return (
     <article
       aria-labelledby={`plan-${p.id}`}
-      className={cn(
-        "relative flex w-full flex-col gap-5 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]",
-        highlighted && "bg-surface-2 shadow-[inset_0_0_0_1.5px_var(--color-primary)] glow-primary xl:-my-3 xl:py-9",
-      )}
+      className={cn("relative flex w-full flex-col rounded-[32px] p-px", highlighted ? "bg-accent-gradient shadow-[0_40px_80px_-36px_color-mix(in_oklab,var(--color-coral)_70%,transparent)] xl:-my-4" : "bg-border")}
     >
-      {highlighted && (
-        <span className="absolute -top-3 inset-s-6 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-micro text-on-primary">
-          <Sparkles aria-hidden className="size-3.5" />
-          {p.badgeHe}
-        </span>
-      )}
-      <div>
-        <h3 id={`plan-${p.id}`} className="text-h3">
-          {p.nameHe}
-        </h3>
-        <p className="mt-1 text-small text-text-2">{p.taglineHe}</p>
-      </div>
-
-      <div className="min-h-[112px]">
-        {strike !== null && (
-          <p className="text-body text-muted">
-            <s aria-hidden className="num">
-              {fmtIls(strike)}
-            </s>
-            <span className="sr-only">{PLAN_CARD.insteadOf(fmtIls(strike))}</span>
-          </p>
-        )}
-        <p className="text-[48px] font-extrabold leading-none tracking-tight">
-          <bdi className="num">{fmtIls(shown)}</bdi>
-        </p>
-        <p className="mt-2 text-small text-text-2">{sub}</p>
-      </div>
-
-      <div className="flex min-h-[3.25rem] items-start">
-        <p className="inline-flex w-fit items-center rounded-sm bg-surface-3 px-3 py-1 text-small font-semibold">
-          {free ? PLAN_CARD.freeVideos : PLAN_CARD.approxVideos(p.approxVideos)}
-        </p>
-      </div>
-
-      <Link href={planHref(p, cycle)} className={cn(buttonVariants({ variant: highlighted ? "primary" : "secondary", size: "lg" }), "w-full")}>
-        {PLAN_CARD.cta[p.id]}
-      </Link>
-
-      <p className="flex min-h-[3.75rem] items-center gap-2 rounded-sm bg-violet/10 px-3 py-2 text-small text-text">
-        <Megaphone aria-hidden className="size-4 shrink-0 text-violet" />
-        {free ? "קמפיין ניסיון אחד, עד ₪300" : PLAN_CARD.metaLine}
-      </p>
-
-      <ul className="flex flex-col gap-2.5 border-t border-border pt-5">
-        {p.featuresHe.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-small">
-            <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-success" />
-            <span>
-              <span className="sr-only">{PLAN_CARD.included}: </span>
-              {f}
+      <div className={cn("flex h-full flex-col rounded-[31px] bg-surface-1 p-7 xl:p-6", highlighted && "xl:py-11")}>
+        <div className="flex items-center justify-between gap-2">
+          <h3 id={`plan-${p.id}`} className="text-h2 font-extrabold">
+            {p.nameHe}
+          </h3>
+          {highlighted && <span className="rounded-full bg-accent-gradient px-3 py-1 text-small font-bold text-ink">{p.badgeHe}</span>}
+        </div>
+        <p className="mt-1 text-body text-text-2">{p.taglineHe}</p>
+        <div className="mt-6 min-h-[104px]">
+          <p className="flex items-baseline gap-2">
+            <span className="text-[3.5rem] font-black leading-none">
+              <bdi className="num">{fmtIls(shown)}</bdi>
             </span>
-          </li>
-        ))}
-      </ul>
+            {strike !== null && (
+              <>
+                <s aria-hidden className="num text-body text-muted">{fmtIls(strike)}</s>
+                <span className="sr-only">{PLAN_CARD.insteadOf(fmtIls(strike))}</span>
+              </>
+            )}
+          </p>
+          <p className="mt-2 text-small text-muted">{sub}</p>
+        </div>
+        <ul className="mt-4 flex flex-col gap-3.5">
+          {features.map((f) => (
+            <li key={f} className="flex items-start gap-3 text-body">
+              <span aria-hidden className={cn("mt-1 inline-flex size-5 shrink-0 items-center justify-center rounded-full", highlighted ? "bg-accent-gradient text-ink" : "bg-surface-3 text-text")}>
+                <Check className="size-3" strokeWidth={3} />
+              </span>
+              <span>
+                <span className="sr-only">{PLAN_CARD.included}: </span>
+                {f}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <Link href={planHref(p, cycle)} className={cn(highlighted ? accentCta : cn(inkCta, "dark:bg-text dark:text-bg"), "mt-10 h-14 w-full text-base")}>
+          {PLAN_CARD.cta[p.id]}
+        </Link>
+      </div>
     </article>
   );
 }

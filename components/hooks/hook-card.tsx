@@ -59,6 +59,8 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
   const titleId = `hook-${hook.id}-title`;
   const H = headingLevel;
   const full = variant !== "compact";
+  /** Clean redesign: the long details (first seconds, why, platforms, compliance) only on the hook's own page. */
+  const detail = variant === "page";
 
   const filled = fillText(hook.text, values);
 
@@ -91,9 +93,9 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
       aria-labelledby={titleId}
       data-location={location}
       className={cn(
-        "group/card relative flex scroll-mt-28 flex-col outline-none focus-visible:outline-2 rounded-lg bg-surface-1 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-1 transition-[background-color,box-shadow] duration-200",
+        "group/card relative flex scroll-mt-28 flex-col outline-none focus-visible:outline-2 rounded-[24px] bg-surface-1 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-1 transition-[background-color,box-shadow,translate] duration-300 hover:-translate-y-0.5",
         "hover:shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--color-primary)_28%,transparent)]",
-        variant === "featured" ? "gap-5 p-6 md:p-8" : variant === "compact" ? "gap-3 p-4" : variant === "page" ? "gap-6 p-6 md:p-8" : "gap-4 p-5",
+        variant === "featured" ? "gap-6 p-7 md:p-8" : variant === "compact" ? "gap-3 p-4" : variant === "page" ? "gap-6 p-6 md:p-8" : "gap-5 p-6",
         (variant === "featured" || variant === "page") && "glow-primary bg-[radial-gradient(120%_90%_at_100%_0%,color-mix(in_oklab,var(--color-primary)_12%,transparent),transparent_60%)]",
         className,
       )}
@@ -122,9 +124,9 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
             ) : (
               <Chip tone="outline">{C.forAny}</Chip>
             ))}
-          {full && <Chip>{hook.platforms.map((p) => PLATFORM_LABEL[p]).join(" · ")}</Chip>}
-          {full && <Chip>{GOAL_LABEL[hook.goal]}</Chip>}
-          {full && hook.gender !== "neutral" && <Chip>{GENDER_LABEL[hook.gender]}</Chip>}
+          {detail && <Chip>{hook.platforms.map((p) => PLATFORM_LABEL[p]).join(" · ")}</Chip>}
+          {detail && <Chip>{GOAL_LABEL[hook.goal]}</Chip>}
+          {detail && hook.gender !== "neutral" && <Chip>{GENDER_LABEL[hook.gender]}</Chip>}
           {hook.seasonName && <Chip tone="violet">{hook.seasonName}</Chip>}
         </ul>
         {full && (
@@ -150,14 +152,14 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
         <blockquote
           className={cn(
             "font-bold text-text",
-            variant === "featured" ? "text-h3" : variant === "compact" ? "text-[1.0625rem] leading-[1.5]" : "text-[1.25rem] leading-[1.45]",
+            variant === "featured" ? "text-h3" : variant === "compact" ? "text-[1.0625rem] leading-[1.5]" : "text-[1.375rem] leading-[1.4]",
           )}
         >
           <HookText text={hook.text} values={values} />
         </blockquote>
       )}
 
-      {full && (
+      {detail && (
         <dl className={cn("flex flex-col gap-2", variant === "page" ? "text-body" : "text-small")}>
           <div className="flex gap-2">
             <Eye className="mt-1 size-4 shrink-0 text-muted" aria-hidden />
@@ -179,7 +181,7 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
         </dl>
       )}
 
-      {full && hook.compliance && (
+      {detail && hook.compliance && (
         <p className="flex gap-2 rounded-sm bg-surface-2 p-3 text-small text-text-2">
           <ShieldAlert className="mt-0.5 size-4 shrink-0 text-primary-text" aria-hidden />
           <span>
@@ -220,11 +222,13 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
         )}
         {full && (
           <div className="ms-auto flex items-center gap-0.5">
+            {detail && (
             <Tooltip content={C.variations}>
               <Button variant="ghost" size="icon-sm" aria-label={C.variations} onClick={() => gate("variations", variationsHref(hook.id))}>
                 <WandSparkles aria-hidden className="text-violet" />
               </Button>
             </Tooltip>
+            )}
             <Tooltip content={C.whatsapp}>
               <a
                 href={waHref}
@@ -236,11 +240,13 @@ export function HookCard({ hook, variant = "library", showNiche = true, showCrea
                 <MessageCircle className="size-[1.1em]" aria-hidden />
               </a>
             </Tooltip>
+            {detail && (
             <Tooltip content={C.copyLink}>
               <Button variant="ghost" size="icon-sm" aria-label={C.copyLink} onClick={copyLink} className="text-text-2">
                 <Link2 aria-hidden />
               </Button>
             </Tooltip>
+            )}
             <Tooltip content={C.open}>
               <Link
                 href={`/hooks/h/${hook.id}`}

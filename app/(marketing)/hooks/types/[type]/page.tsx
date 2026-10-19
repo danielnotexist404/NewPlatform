@@ -3,20 +3,20 @@ import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ListOrdered } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { DirIcon } from "@/components/a11y/dir-icon";
-import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { AlertTriangle } from "lucide-react";
+import { JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { FinalCta } from "@/components/marketing/landing/faq-final";
+import { ReelCard } from "@/components/marketing/media/reel-card";
+import { reelFromHook } from "@/components/marketing/media/reel-data";
+import { Band, Chip, Disclosure, HeroActions, PageHero } from "@/components/marketing/page/kit";
 import { NicheIcon } from "@/components/marketing/niches/niche-icon";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
 import { HookCard } from "@/components/hooks/hook-card";
 import { HookText, SmartText } from "@/components/hooks/hook-text";
-import { familyOf, hooksOfType, typeHookCount, typesOfFamily } from "@/components/hooks/hook-data";
+import { familyOf, hooksOfType, typesOfFamily } from "@/components/hooks/hook-data";
 import { pageMeta, clampDesc } from "@/components/hooks/seo";
-import { plural } from "@/components/hooks/text";
 import { getHookType, getNiche, hookTypes, nicheShortName } from "@/lib/data/seed";
 import { GENERIC_STEPS, HOOKS_COPY, TYPE_GUIDES, WHY_IT_WORKS } from "@/content/he/hooks";
-import { cn } from "@/lib/utils";
 
 const T = HOOKS_COPY.types;
 
@@ -104,6 +104,8 @@ async function HookTypePageView({ params }: Props) {
     { label: t.name_he, href: `/hooks/types/${type}` },
   ];
   const S = T.sections;
+  const ex0 = examples.find((h) => h.nicheSlug);
+  const heroReel = ex0 ? reelFromHook(ex0.id, { caption: "box", viewsK: 51.3, highlight: 2 }) : null;
 
   return (
     <HooksProvider>
@@ -118,42 +120,49 @@ async function HookTypePageView({ params }: Props) {
           },
         ]}
       />
-      <section className="container-marketing pt-8 pb-6 md:pt-12">
-        <Breadcrumbs items={crumbs} />
-        <div className="mt-10 max-w-4xl">
-          {family && (
-            <Link href={`/hooks/types#${family.slug}`} className="mb-5 inline-flex rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2 hover:text-text">
-              {T.family} {family.name_he}
-            </Link>
-          )}
-          <h1 className="text-h1">{g.h1}</h1>
-          <p className="mt-6 text-body-lg text-text-2">{t.description_he}</p>
-        </div>
-      </section>
+      <PageHero
+        align="split"
+        eyebrow={family ? <Chip>{T.family} {family.name_he}</Chip> : undefined}
+        title={g.h1}
+        sub={<>{T.exampleLabel}: <strong className="font-bold text-text"><HookText text={t.example_he} /></strong></>}
+        actions={<HeroActions primary={T.allOfType(t.name_he)} primaryHref={`/hooks?type=${type}`} />}
+      >
+        {heroReel && <ReelCard reel={heroReel} frame="phone" className="mx-auto w-full max-w-[280px]" label={`דוגמה: ${heroReel.hook}`} />}
+      </PageHero>
 
-      <div className="container-marketing grid gap-10 pt-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-        <article className="prose-he max-w-none [&_h2]:mt-12 [&_h2:first-child]:mt-0">
-          <h2>{S.what}</h2>
-          {g.what.map((p) => <p key={p.slice(0, 30)}><SmartText text={p} /></p>)}
-          <h2>{S.why}</h2>
-          {g.why.map((p) => <p key={p.slice(0, 30)}><SmartText text={p} /></p>)}
+      {examples.length > 0 && (
+        <Band id="examples" title={S.examples}>
+          <ul className="grid items-start gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {examples.map((h) => (
+              <li key={h.id} className="contents"><HookCard hook={h} location="hook_type_page" /></li>
+            ))}
+          </ul>
+        </Band>
+      )}
+
+      <Band id="guide" title="המדריך המלא" tight>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4">
+          <Disclosure summary={S.what}>
+            <div className="prose-he max-w-none">{g.what.map((p) => <p key={p.slice(0, 30)}><SmartText text={p} /></p>)}</div>
+          </Disclosure>
+          <Disclosure summary={S.why}>
+            <div className="prose-he max-w-none">{g.why.map((p) => <p key={p.slice(0, 30)}><SmartText text={p} /></p>)}</div>
+          </Disclosure>
           {g.formulas.length > 0 && (
-            <>
-              <h2>{S.formulas}</h2>
-              <ol className="list-none ps-0 flex flex-col gap-3">
+            <Disclosure summary={S.formulas}>
+              <ol className="flex flex-col gap-3">
                 {g.formulas.map((f, i) => (
-                  <li key={f} className="flex gap-3 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-                    <span className="num mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-lemon text-micro text-on-primary">{i + 1}</span>
+                  <li key={f} className="flex gap-3 rounded-[16px] bg-surface-2 p-4">
+                    <span className="num mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-accent-gradient text-micro text-ink">{i + 1}</span>
                     <span className="flex-1"><Formula text={f} /></span>
                   </li>
                 ))}
               </ol>
-            </>
+            </Disclosure>
           )}
           {g.mistakes.length > 0 && (
-            <>
-              <h2>{S.mistakes}</h2>
-              <ul className="list-none ps-0 flex flex-col gap-2">
+            <Disclosure summary={S.mistakes}>
+              <ul className="flex flex-col gap-2">
                 {g.mistakes.map((m) => (
                   <li key={m} className="flex gap-3">
                     <AlertTriangle className="mt-1.5 size-4 shrink-0 text-rose" aria-hidden />
@@ -161,81 +170,49 @@ async function HookTypePageView({ params }: Props) {
                   </li>
                 ))}
               </ul>
-            </>
+            </Disclosure>
           )}
-          <h2>{S.steps}</h2>
-          <ol className="list-none ps-0 flex flex-col gap-3">
-            {g.steps.map((s, i) => (
-              <li key={s} className="flex gap-3">
-                <span className="num mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-micro">{i + 1}</span>
-                <span><SmartText text={s} /></span>
-              </li>
-            ))}
-          </ol>
-        </article>
+          <Disclosure summary={S.steps}>
+            <ol className="flex flex-col gap-3">
+              {g.steps.map((st, i) => (
+                <li key={st} className="flex gap-3">
+                  <span className="num mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-micro">{i + 1}</span>
+                  <span><SmartText text={st} /></span>
+                </li>
+              ))}
+            </ol>
+          </Disclosure>
+        </div>
+      </Band>
 
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--header-h)+24px)] lg:self-start">
-          <div className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] glow-primary">
-            <p className="text-micro text-muted">{T.exampleLabel}</p>
-            <blockquote className="mt-2 text-h3">
-              <HookText text={t.example_he} />
-            </blockquote>
-            <p className="num mt-4 text-small text-text-2">{plural(typeHookCount(type), T.inLibrary)}</p>
-            <Link href={`/hooks?type=${type}`} className={cn(buttonVariants({ size: "lg" }), "mt-5 w-full")}>
-              <ListOrdered aria-hidden />
-              {T.allOfType(t.name_he)}
-            </Link>
-          </div>
-          {related.length > 0 && (
-            <nav aria-labelledby="related-types" className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-              <h2 id="related-types" className="text-body-lg font-bold">{S.related}</h2>
-              <ul className="mt-3 flex flex-wrap gap-2">
-                {related.map((r) => (
-                  <li key={r.slug}>
-                    <Link href={`/hooks/types/${r.slug}`} className="inline-flex rounded-xs bg-surface-3 px-2.5 py-1 text-sm font-semibold text-text-2 hover:bg-lemon hover:text-on-primary">
-                      {r.name_he}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
-        </aside>
-      </div>
-
-      {examples.length > 0 && (
-        <section aria-labelledby="examples-title" className="container-marketing mt-20">
-          <h2 id="examples-title" className="mb-6 text-h2">{S.examples}</h2>
-          <ul className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {examples.map((h) => (
-              <li key={h.id} className="contents"><HookCard hook={h} location="hook_type_page" /></li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {topNiches.length > 0 && (
-        <section aria-labelledby="niches-title" className="container-marketing mt-20">
-          <h2 id="niches-title" className="mb-6 text-h2">{S.niches}</h2>
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {topNiches.map(([slug, count]) => {
+      {(topNiches.length > 0 || related.length > 0) && (
+        <Band id="more" title={S.niches} tight>
+          <ul className="flex flex-wrap justify-center gap-2.5">
+            {topNiches.map(([slug]) => {
               const n = getNiche(slug)!;
               return (
                 <li key={slug}>
-                  <Link href={`/hooks/${slug}/${type}`} className="group flex items-center gap-3 rounded-md bg-surface-1 p-3 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-2">
-                    <span className="flex size-10 items-center justify-center rounded-sm bg-surface-3 text-primary-text"><NicheIcon name={n.icon} className="size-5" /></span>
-                    <span className="flex-1">
-                      <span className="block font-semibold">{nicheShortName(n)}</span>
-                      <span className="num block text-micro font-normal text-muted">{plural(count, T.nicheCount)}</span>
-                    </span>
-                    <DirIcon name="next" className="size-4 text-muted" />
+                  <Link href={`/hooks/${slug}/${type}`} className="inline-flex h-12 items-center gap-2 rounded-full bg-surface-1 px-5 text-body font-semibold text-text ring-hairline hover:bg-surface-2">
+                    <NicheIcon name={n.icon} className="size-4 text-primary-text" />
+                    {nicheShortName(n)}
                   </Link>
                 </li>
               );
             })}
           </ul>
-        </section>
+          {related.length > 0 && (
+            <nav aria-label={S.related} className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-small text-muted">{S.related}:</span>
+              {related.map((r) => (
+                <Link key={r.slug} href={`/hooks/types/${r.slug}`} className="rounded-full bg-surface-3 px-3 py-1.5 text-small font-semibold text-text-2 hover:text-text">
+                  {r.name_he}
+                </Link>
+              ))}
+            </nav>
+          )}
+        </Band>
       )}
+      <FinalCta />
     </HooksProvider>
   );
 }

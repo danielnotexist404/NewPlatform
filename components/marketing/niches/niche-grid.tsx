@@ -7,8 +7,9 @@ import { NICHES_COPY } from "@/content/he/niches";
 import { plural, normalize } from "@/components/hooks/text";
 import { cn } from "@/lib/utils";
 import { NicheIcon } from "./niche-icon";
-import { SmartText } from "@/components/hooks/hook-text";
 import { tintFor } from "./reel-tile";
+import { ReelFootage } from "@/components/marketing/media/reel-card";
+import { nicheVisual } from "@/components/marketing/media/props";
 
 export interface NicheCardData {
   slug: string;
@@ -44,37 +45,26 @@ export function NicheCard({ n, compact = false }: { n: NicheCardData; compact?: 
       </Link>
     );
   }
+  const v = nicheVisual(n.slug);
   return (
-    <article
-      className="group relative flex h-full flex-col gap-3 rounded-md bg-surface-1 p-5 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-[background-color,box-shadow] duration-200 hover:bg-surface-2 hover:shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--tint)_40%,transparent)]"
-      style={{ "--tint": tint } as React.CSSProperties}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span className="flex size-12 items-center justify-center rounded-sm bg-[color-mix(in_oklab,var(--tint)_16%,transparent)] text-[var(--tint)]">
-          <NicheIcon name={n.icon} className="size-6" />
-        </span>
-        {n.compliance && (
-          <span className="inline-flex items-center gap-1 rounded-xs bg-surface-3 px-2 py-0.5 text-micro text-text-2">
-            <ShieldCheck className="size-3.5" aria-hidden />
-            {H.compliance}
-          </span>
-        )}
+    <article className="group relative isolate flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[26px] bg-ink text-paper @container shadow-[0_24px_48px_-28px_color-mix(in_oklab,var(--color-ink)_55%,transparent)]">
+      <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-[1.04]">
+        <ReelFootage reel={v} uid={`nc-${n.slug}`} still />
       </div>
-      <h3 className="text-body-lg font-bold leading-snug">
-        <Link href={`/niches/${n.slug}`} className="after:absolute after:inset-0 after:rounded-md focus-visible:outline-none [&:focus-visible]:after:outline-2 [&:focus-visible]:after:outline-focus">
-          {n.name}
-        </Link>
-      </h3>
-      <p className="line-clamp-2 text-small text-text-2">
-        <SmartText text={n.description} />
-      </p>
-      <div className="relative z-10 mt-auto flex items-center justify-between gap-3 pt-2 text-sm font-semibold">
-        <span className="inline-flex items-center gap-1 text-primary-text" aria-hidden>
-          {H.cardPrimary} <DirIcon name="forward" className="size-4 transition-transform group-hover:rtl:-translate-x-0.5 group-hover:ltr:translate-x-0.5" />
+      <span aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-ink/80 to-transparent" />
+      {n.compliance && (
+        <span className="absolute top-4 inset-s-4 inline-flex items-center gap-1 rounded-full bg-ink/50 px-2.5 py-1 text-micro text-paper backdrop-blur-md">
+          <ShieldCheck className="size-3.5" aria-hidden />
+          {H.compliance}
         </span>
-        <Link href={`/hooks/${n.slug}`} className="num rounded-full bg-surface-3 px-2.5 py-1 text-micro text-text-2 hover:text-text">
-          {plural(n.hookCount, H.cardHooks)}
-        </Link>
+      )}
+      <div className="relative flex flex-col gap-1 p-5">
+        <h3 className="text-h3 font-extrabold leading-tight text-paper">
+          <Link href={`/niches/${n.slug}`} className="after:absolute after:inset-0 after:rounded-[26px] focus-visible:outline-none [&:focus-visible]:after:outline-2 [&:focus-visible]:after:outline-focus">
+            {n.short}
+          </Link>
+        </h3>
+        <span className="num text-small text-paper/80">{plural(n.hookCount, H.cardHooks)}</span>
       </div>
     </article>
   );
@@ -102,7 +92,7 @@ export function NicheGrid({ groups }: { groups: NicheGroup[] }) {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <label htmlFor="niche-filter" className="sr-only">{H.filterLabel}</label>
-        <div className="relative max-w-2xl">
+        <div className="relative mx-auto w-full max-w-2xl">
           <Search className="pointer-events-none absolute inset-s-4 top-1/2 size-5 -translate-y-1/2 text-muted" aria-hidden />
           <input
             id="niche-filter"
@@ -124,7 +114,7 @@ export function NicheGrid({ groups }: { groups: NicheGroup[] }) {
             </button>
           )}
         </div>
-        <p aria-live="polite" className={cn("num text-small text-muted", !nq && "sr-only")}>
+        <p aria-live="polite" className={cn("num text-center text-small text-muted", !nq && "sr-only")}>
           {plural(total, H.results)}
         </p>
       </div>
@@ -132,23 +122,13 @@ export function NicheGrid({ groups }: { groups: NicheGroup[] }) {
       {filtered.length === 0 ? (
         <p className="rounded-lg bg-surface-1 p-8 text-center text-body-lg text-text-2 shadow-[inset_0_0_0_1px_var(--color-frame)]">{H.noResults}</p>
       ) : (
-        filtered.map((g) => (
-          <section key={g.slug} aria-labelledby={`cat-${g.slug}`} className="grid gap-4 border-t border-border pt-6 lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-8">
-            <div>
-              <h2 id={`cat-${g.slug}`} className="text-h3 lg:sticky lg:top-[calc(var(--header-h)+24px)]">
-                {g.name}
-                <span className="num mt-1 block text-small font-normal text-muted">{plural(g.niches.length, H.results)}</span>
-              </h2>
-            </div>
-            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {g.niches.map((n) => (
-                <li key={n.slug}>
-                  <NicheCard n={n} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
+        <ul className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+          {filtered.flatMap((g) => g.niches).map((n) => (
+            <li key={n.slug}>
+              <NicheCard n={n} />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

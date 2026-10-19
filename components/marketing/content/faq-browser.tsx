@@ -31,10 +31,10 @@ export function FaqBrowser({ categories }: { categories: FaqCategory[] }) {
   const shownOpen = query ? filtered.flatMap((c) => c.items.map((i) => i.id)) : open;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_17rem] lg:gap-16">
+    <div className="mx-auto flex max-w-3xl flex-col">
       <div className="min-w-0">
         <div role="search" className="relative">
-          <label htmlFor="faq-search" className="mb-2 block text-small font-semibold">
+          <label htmlFor="faq-search" className="sr-only">
             {FAQ.searchLabel}
           </label>
           <div className="relative">
@@ -47,7 +47,7 @@ export function FaqBrowser({ categories }: { categories: FaqCategory[] }) {
               onChange={(e) => setQ(e.target.value)}
               placeholder={FAQ.searchPlaceholder}
               aria-describedby="faq-count"
-              className="ps-12 pe-12 [&::-webkit-search-cancel-button]:hidden"
+              className="h-14 rounded-full bg-surface-1 ps-12 pe-12 text-body-lg elev-2 [&::-webkit-search-cancel-button]:hidden"
             />
             {q && (
               <button
@@ -73,10 +73,10 @@ export function FaqBrowser({ categories }: { categories: FaqCategory[] }) {
             </Link>
           </div>
         ) : (
-          <div className="mt-10 flex flex-col gap-14">
+          <div className="mt-8 flex flex-col gap-14">
             {filtered.map((c) => (
               <section key={c.id} aria-labelledby={`faq-${c.id}`} className="scroll-mt-[calc(var(--header-h)+24px)]" id={`cat-${c.id}`}>
-                <h2 id={`faq-${c.id}`} className="mb-2 text-h3">
+                <h2 id={`faq-${c.id}`} className="mb-5 text-h2 font-black">
                   {c.title}
                 </h2>
                 <Accordion
@@ -85,11 +85,12 @@ export function FaqBrowser({ categories }: { categories: FaqCategory[] }) {
                   onValueChange={(v) => {
                     if (!query) setOpen(v);
                   }}
+                  className="flex flex-col gap-3"
                 >
                   {c.items.map((it) => (
-                    <AccordionItem key={it.id} value={it.id} id={it.id} className="scroll-mt-[calc(var(--header-h)+24px)]">
-                      <AccordionTrigger>{it.q}</AccordionTrigger>
-                      <AccordionContent className="max-w-[68ch] text-body [&_a]:text-link [&_a]:underline">{renderInline(it.a, "site", it.id)}</AccordionContent>
+                    <AccordionItem key={it.id} value={it.id} id={it.id} className="scroll-mt-[calc(var(--header-h)+24px)] rounded-[22px] border-0 bg-surface-1 px-6 ring-hairline md:px-8">
+                      <AccordionTrigger className="py-6 text-body-lg font-bold">{it.q}</AccordionTrigger>
+                      <AccordionContent className="max-w-[68ch] pb-6 text-body-lg text-text-2 [&_a]:text-link [&_a]:underline">{renderInline(it.a, "site", it.id)}</AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
@@ -99,30 +100,23 @@ export function FaqBrowser({ categories }: { categories: FaqCategory[] }) {
         )}
       </div>
 
-      <nav aria-label={FAQ.navLabel} className="hidden lg:block">
-        <div className="sticky top-[calc(var(--header-h)+24px)]">
-          <p className="mb-3 text-micro text-muted">{FAQ.navLabel}</p>
-          <ul className="flex flex-col gap-0.5">
-            {categories.map((c) => {
-              const has = filtered.some((f) => f.id === c.id);
-              return (
-                <li key={c.id}>
-                  <a
-                    href={`#cat-${c.id}`}
-                    aria-disabled={!has || undefined}
-                    className={cn(
-                      "flex items-center justify-between gap-2 rounded-sm border-s-2 border-border py-1.5 ps-3 pe-2 text-small text-text-2 transition-colors hover:border-border-strong hover:text-text",
-                      !has && "pointer-events-none opacity-40",
-                    )}
-                  >
-                    {c.title}
-                    <span className="num text-micro font-normal text-muted">{c.items.length}</span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+      <nav aria-label={FAQ.navLabel} className="order-first mb-6">
+        <ul className="flex flex-wrap justify-center gap-2">
+          {categories.map((c) => {
+            const has = filtered.some((f) => f.id === c.id);
+            return (
+              <li key={c.id}>
+                <a
+                  href={`#cat-${c.id}`}
+                  aria-disabled={!has || undefined}
+                  className={cn("inline-flex h-10 items-center rounded-full bg-surface-1 px-4 text-small font-semibold text-text-2 ring-hairline hover:text-text", !has && "pointer-events-none opacity-40")}
+                >
+                  {c.title}
+                </a>
+              </li>
+            );
+          })}
+        </ul>
       </nav>
     </div>
   );

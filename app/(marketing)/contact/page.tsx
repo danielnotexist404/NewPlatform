@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
-import { Accessibility, Clock, LifeBuoy, Lock, Mail, MessageCircle, Undo2 } from "lucide-react";
+import { Accessibility, LifeBuoy, Lock, Mail, MessageCircle, Undo2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DirIcon } from "@/components/a11y/dir-icon";
-import { PageHero } from "@/components/marketing/content/page-hero";
+import { PageHero } from "@/components/marketing/page/kit";
 import { ContactForm } from "@/components/marketing/content/contact-form";
 import { Skeleton } from "@/components/ui/misc";
 import { BRAND, whatsappHref } from "@/lib/constants";
@@ -51,83 +51,65 @@ function FormFallback() {
 }
 
 export default function ContactPage() {
+  const all = channels();
+  const main = all.filter((c) => ["wa", "hello", "support"].includes(c.key));
+  const more = all.filter((c) => !["wa", "hello", "support"].includes(c.key));
   return (
-    <div className="pb-8">
-      <PageHero crumbs={[{ label: CONTACT.crumb }]} eyebrow={CONTACT.eyebrow} title={CONTACT.h1} lede={CONTACT.lede} />
-
-      <section aria-labelledby="channels" className="container-marketing">
-        <h2 id="channels" className="sr-only">{CONTACT.channelsTitle}</h2>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {channels().map((ch) => {
-            const Icon = ch.icon;
-            const inner = (
-              <>
-                <span aria-hidden className="inline-flex size-11 items-center justify-center rounded-md bg-surface-2 text-primary-text shadow-[inset_0_0_0_1px_var(--color-frame)]">
-                  <Icon className="size-5" />
-                </span>
-                <span className="flex flex-1 flex-col gap-1.5">
-                  <span className="text-h3">{ch.title}</span>
-                  <span className="text-small text-text-2">{ch.text}</span>
-                </span>
-                <span className="mt-2 inline-flex items-center gap-1.5 text-small font-semibold text-primary-text">
-                  {ch.ltr ? <bdi dir="ltr">{ch.action}</bdi> : ch.action}
-                  {!ch.ltr && <DirIcon name="forward" className="size-4" />}
-                </span>
-              </>
-            );
-            const cls =
-              "group flex h-full flex-col gap-4 rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-1 transition-[background-color,box-shadow] hover:bg-surface-2 hover:elev-2";
-            return (
-              <li key={ch.key}>
-                {ch.href.startsWith("/") ? (
-                  <Link href={ch.href} className={cls}>{inner}</Link>
-                ) : (
-                  <a href={ch.href} className={cls} {...(ch.external ? { target: "_blank", rel: "noopener" } : {})}>
-                    {inner}
-                  </a>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section aria-labelledby="form-title" className="container-marketing mt-16">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="relative overflow-hidden rounded-xl bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)] elev-2 md:p-10">
-            <div aria-hidden className="pointer-events-none absolute -top-24 inset-s-[-6rem] size-72 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative">
-              <h2 id="form-title" className="text-h2">{CONTACT.formTitle}</h2>
-              <p className="mt-2 mb-8 text-text-2">{CONTACT.formLede}</p>
-              <Suspense fallback={<FormFallback />}>
-                <ContactForm />
-              </Suspense>
-            </div>
-          </div>
-          <aside className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--header-h)+24px)] lg:self-start">
-            <div className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-              <h2 className="flex items-center gap-2 text-body font-bold">
-                <Clock aria-hidden className="size-4 text-primary-text" />
-                {CONTACT.hoursTitle}
-              </h2>
-              <p className="mt-2 text-small text-text-2">{CONTACT.hours}</p>
-            </div>
-            <nav aria-labelledby="quick-links" className="rounded-lg bg-surface-1 p-6 shadow-[inset_0_0_0_1px_var(--color-frame)]">
-              <h2 id="quick-links" className="text-body font-bold">{CONTACT.asideTitle}</h2>
-              <ul className="mt-3 flex flex-col">
-                {CONTACT.asideLinks.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} className="flex items-center justify-between gap-3 border-b border-border py-3 text-small text-text-2 transition-colors last:border-0 hover:text-text">
-                      {l.label}
-                      <DirIcon name="next" className="size-4 text-muted" />
-                    </Link>
+    <>
+      <PageHero title="דברו איתנו." accent="בעברית." sub={CONTACT.hours} className="pb-6 md:pb-10">
+        <div className="grid gap-6 text-start lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-8">
+          <section aria-labelledby="channels" className="flex flex-col gap-4">
+            <h2 id="channels" className="sr-only">{CONTACT.channelsTitle}</h2>
+            <ul className="flex flex-col gap-4">
+              {main.map((ch) => {
+                const Icon = ch.icon;
+                const inner = (
+                  <>
+                    <span aria-hidden className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-accent-gradient text-ink">
+                      <Icon className="size-5" />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-h3">{ch.title}</span>
+                      <span className="truncate text-body font-semibold text-primary-text">{ch.ltr ? <bdi dir="ltr">{ch.action}</bdi> : ch.action}</span>
+                    </span>
+                    <DirIcon name="forward" className="size-5 shrink-0 text-muted" />
+                  </>
+                );
+                const cls = "group flex items-center gap-4 rounded-[24px] bg-surface-1 p-5 ring-hairline elev-1 transition-[translate,box-shadow] duration-300 hover:-translate-y-0.5 hover:elev-2 md:p-6";
+                return (
+                  <li key={ch.key}>
+                    {ch.href.startsWith("/") ? (
+                      <Link href={ch.href} className={cls}>{inner}</Link>
+                    ) : (
+                      <a href={ch.href} className={cls} {...(ch.external ? { target: "_blank", rel: "noopener" } : {})}>
+                        {inner}
+                      </a>
+                    )}
                   </li>
-                ))}
-              </ul>
-            </nav>
-          </aside>
+                );
+              })}
+            </ul>
+            <ul className="flex flex-wrap gap-x-5 gap-y-2 px-2 pt-2 text-small">
+              {more.map((ch) => (
+                <li key={ch.key}>
+                  {ch.href.startsWith("/") ? (
+                    <Link href={ch.href} className="font-semibold text-text-2 hover:text-text">{ch.title}</Link>
+                  ) : (
+                    <a href={ch.href} className="font-semibold text-text-2 hover:text-text">{ch.title}</a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section aria-labelledby="form-title" className="rounded-[32px] bg-surface-1 p-6 ring-hairline elev-3 md:p-10">
+            <h2 id="form-title" className="text-h2 font-black">{CONTACT.formTitle}</h2>
+            <p className="mt-2 mb-8 text-body text-text-2">{CONTACT.formLede}</p>
+            <Suspense fallback={<FormFallback />}>
+              <ContactForm />
+            </Suspense>
+          </section>
         </div>
-      </section>
-    </div>
+      </PageHero>
+    </>
   );
 }

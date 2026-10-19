@@ -1,125 +1,95 @@
-import { House, Clapperboard, Scissors, Sparkles, Smile } from "lucide-react";
-import { getHook } from "@/lib/data/seed";
+import { Clapperboard, Scissors, Sparkles } from "lucide-react";
+import { ReelCard } from "@/components/marketing/media/reel-card";
+import { reelFromHook, reelFromText, isReel } from "@/components/marketing/media/reel-data";
 import { cn } from "@/lib/utils";
 import { BLOG_COVER_ART, type BlogPost } from "@/content/he/blog";
-import { ReelTile } from "./reel-tile";
-import { renderInline } from "./inline";
-
-/** Film-strip perforations (decorative). */
-function Perforations({ className }: { className?: string }) {
-  return (
-    <div aria-hidden className={cn("absolute inset-x-0 flex justify-between gap-2 px-3", className)}>
-      {Array.from({ length: 22 }).map((_, i) => (
-        <span key={i} className="h-2.5 w-4 shrink-0 rounded-[3px] bg-white/[0.07]" />
-      ))}
-    </div>
-  );
-}
 
 /**
- * Cover illustrations for the launch articles (CSS art in place of photos; Part 02 §8.1 cover).
- * The frame is a 16:9 "screen"; content scales with the container (container queries).
+ * Cover illustrations for the articles (CSS/SVG art in place of photos; Part 02 §8.1 cover):
+ * a warm light "studio" with looping demo reels. 16:9; content scales with the container.
  */
 export function BlogCover({ post, size = "lg", className }: { post: BlogPost; size?: "lg" | "sm"; className?: string }) {
   const sm = size === "sm";
   return (
-    <div
-      role="img"
-      aria-label={post.cover.alt}
-      className={cn("@container relative isolate aspect-wide overflow-hidden rounded-lg bg-black shadow-[inset_0_0_0_1px_var(--color-frame)]", className)}
-    >
-      {post.cover.art === "real-estate" && <RealEstateArt sm={sm} />}
+    <div role="img" aria-label={post.cover.alt} className={cn("@container relative isolate aspect-wide overflow-hidden rounded-[28px] bg-surface-3", className)}>
+      <div
+        aria-hidden
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            "radial-gradient(60% 80% at 50% 110%, color-mix(in oklab, var(--color-primary) 55%, transparent), transparent 70%), radial-gradient(40% 60% at 90% 0%, color-mix(in oklab, var(--color-coral) 30%, transparent), transparent 70%)",
+        }}
+      />
+      <span aria-hidden className="absolute inset-0 -z-10 bg-dots opacity-40" />
+      {post.cover.art === "real-estate" && <RealEstateArt />}
       {post.cover.art === "cost" && <CostArt sm={sm} />}
       {post.cover.art === "reels" && <ReelsArt sm={sm} />}
     </div>
   );
 }
 
-function Glow({ a, b }: { a: string; b: string }) {
+function RealEstateArt() {
+  const reels = [
+    reelFromHook("real-estate-03", { caption: "shadow", highlight: 2 }),
+    reelFromHook(BLOG_COVER_ART.realEstate.hooks[0], { caption: "box", highlight: 1, viewsK: 61.4 }),
+    reelFromHook("real-estate-02", { caption: "box", highlight: 4, scene: "sky", prop: "building" }),
+  ].filter(isReel);
   return (
-    <div
-      aria-hidden
-      className="absolute inset-0 -z-10"
-      style={{
-        backgroundImage: `radial-gradient(55% 75% at 50% 110%, color-mix(in oklab, var(${a}) 45%, transparent), transparent 70%), radial-gradient(40% 60% at 85% 0%, color-mix(in oklab, var(${b}) 35%, transparent), transparent 70%), linear-gradient(180deg, color-mix(in oklab, var(--color-black) 92%, var(--color-violet)), var(--color-black))`,
-      }}
-    />
-  );
-}
-
-function RealEstateArt({ sm }: { sm: boolean }) {
-  const front = getHook(BLOG_COVER_ART.realEstate.hooks[0])?.text_he ?? "";
-  return (
-    <>
-      <Glow a="--color-primary" b="--color-rose" />
-      <div aria-hidden className="absolute inset-0 flex items-center justify-center" dir="ltr">
-        <div className="absolute h-[70%] -translate-x-[62%] -rotate-[9deg] opacity-70">
-          <ReelTile hook="" icon={House} tone="violet" size="sm" demo={false} className="h-full w-auto" decorative />
-        </div>
-        <div className="absolute h-[70%] translate-x-[62%] rotate-[9deg] opacity-70">
-          <ReelTile hook="" icon={House} tone="rose" size="sm" demo={false} className="h-full w-auto" decorative />
-        </div>
-        <div className="relative h-[86%] drop-shadow-[0_24px_48px_rgb(0_0_0/.6)]">
-          <ReelTile hook={front} label={BLOG_COVER_ART.realEstate.label} icon={House} tone="gold" size={sm ? "sm" : "md"} className="h-full w-auto" decorative />
-        </div>
-      </div>
-    </>
+    <div aria-hidden className="absolute inset-0 flex items-end justify-center gap-[3cqw] pt-[6cqw]">
+      {reels.map((r, i) => (
+        <ReelCard
+          key={r.key}
+          reel={r}
+          frame="phone"
+          decorative
+          lite={i !== 1}
+          offset={i * 2}
+          instance="-cover"
+          className={cn(i === 1 ? "z-10 w-[24cqw] translate-y-[6cqw]" : "w-[19cqw] translate-y-[14cqw]", i === 0 && "rotate-[-6deg]", i === 2 && "rotate-[6deg]")}
+        />
+      ))}
+    </div>
   );
 }
 
 function CostArt({ sm }: { sm: boolean }) {
   const icons = [Clapperboard, Scissors, Sparkles];
   return (
-    <>
-      <Glow a="--color-primary" b="--color-violet" />
-      <Perforations className="top-3" />
-      <Perforations className="bottom-3" />
-      <div aria-hidden className="absolute inset-0 flex flex-col items-center justify-center gap-[4cqw]">
-        <div className="flex items-center gap-[3cqw]">
-          <span className="text-[19cqw] font-black leading-none text-gold-gradient">₪</span>
-          {!sm && <span className="max-w-[30cqw] text-[4.2cqw] font-extrabold leading-tight text-white">{BLOG_COVER_ART.cost.title}</span>}
-        </div>
-        <div className="flex gap-[2cqw]">
-          {BLOG_COVER_ART.cost.cards.map((c, i) => {
-            const I = icons[i];
-            return (
-              <span key={c} className={cn("flex items-center gap-[1cqw] rounded-full border border-white/15 bg-white/[0.06] px-[2.2cqw] py-[1cqw] text-[2.4cqw] font-semibold text-white/90 backdrop-blur", i === 2 && "border-primary/60 text-primary")}>
-                <I className="size-[2.8cqw]" />
-                {c}
-              </span>
-            );
-          })}
-        </div>
+    <div aria-hidden className="absolute inset-0 flex flex-col items-center justify-center gap-[3cqw]">
+      <div className="flex items-center gap-[3cqw]">
+        <span className="text-[20cqw] font-black leading-none text-accent-gradient">₪</span>
+        {!sm && <span className="max-w-[32cqw] text-[5cqw] font-black leading-tight text-ink">{BLOG_COVER_ART.cost.title}</span>}
       </div>
-    </>
+      <div className="flex gap-[2cqw]">
+        {BLOG_COVER_ART.cost.cards.map((c, i) => {
+          const I = icons[i];
+          return (
+            <span key={c} className={cn("flex items-center gap-[1cqw] rounded-full px-[2.4cqw] py-[1.1cqw] text-[2.6cqw] font-bold", i === 2 ? "bg-accent-gradient text-ink" : "bg-paper text-ink shadow-[0_8px_20px_-10px_rgb(0_0_0/.3)]")}>
+              <I className="size-[3cqw]" />
+              {c}
+            </span>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
 function ReelsArt({ sm }: { sm: boolean }) {
   const a = BLOG_COVER_ART.reels;
+  const reel = reelFromText("blog-reels", a.hook, "dentists", { caption: "box", highlight: 1, viewsK: 33.8 });
   return (
-    <>
-      <Glow a="--color-violet" b="--color-primary" />
-      <div aria-hidden className="absolute inset-0 flex items-center justify-center gap-[5cqw]">
-        {!sm && (
-          <ul className="flex flex-col gap-[1.6cqw]">
-            {a.chips.map((c) => (
-              <li key={c} className="rounded-full border border-white/15 bg-white/[0.06] px-[2cqw] py-[0.9cqw] text-[2.3cqw] font-semibold text-white/90 backdrop-blur">
-                {c}
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="flex h-[88%] flex-col items-center gap-[1.6cqw]">
-          <ReelTile hook={a.hook} label={a.label} icon={Smile} tone="violet" caption={a.caption} size={sm ? "sm" : "md"} className="h-[88%] w-auto drop-shadow-[0_24px_48px_rgb(0_0_0/.6)]" decorative />
-          {/* timeline: media stays LTR */}
-          <div dir="ltr" className="flex w-[26cqw] items-center gap-[0.6cqw]">
-            <span className="h-[1.1cqw] w-[22%] rounded-full bg-primary shadow-[0_0_12px_var(--color-primary)]" />
-            <span className="h-[1.1cqw] flex-1 rounded-full bg-white/20" />
-          </div>
-          {!sm && <span className="text-[2cqw] font-semibold text-primary">{renderInline(a.firstSeconds, "site", "fs")}</span>}
-        </div>
-      </div>
-    </>
+    <div aria-hidden className="absolute inset-0 flex items-end justify-center gap-[5cqw] pt-[5cqw]">
+      {!sm && (
+        <ul className="mb-[14cqw] flex flex-col gap-[1.6cqw]">
+          {a.chips.map((c) => (
+            <li key={c} className="rounded-full bg-paper px-[2.4cqw] py-[1cqw] text-[2.5cqw] font-bold text-ink shadow-[0_8px_20px_-10px_rgb(0_0_0/.3)]">
+              {c}
+            </li>
+          ))}
+        </ul>
+      )}
+      <ReelCard reel={reel} frame="phone" decorative instance="-cover" className="w-[26cqw] translate-y-[8cqw]" />
+    </div>
   );
 }

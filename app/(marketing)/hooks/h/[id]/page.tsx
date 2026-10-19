@@ -2,14 +2,16 @@ import { Suspense } from "react";
 import { PageSkeleton } from "@/components/hooks/page-skeleton";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Breadcrumbs, JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
-import { PhoneFrame, ReelTile } from "@/components/marketing/niches/reel-tile";
+import { JsonLd, breadcrumbJsonLd } from "@/components/marketing/niches/breadcrumbs";
+import { ReelCard } from "@/components/marketing/media/reel-card";
+import { reelFromHook, reelFromText } from "@/components/marketing/media/reel-data";
+import { HeroGlow, h2Class } from "@/components/marketing/page/kit";
+import { cn } from "@/lib/utils";
 import { HooksProvider } from "@/components/hooks/hooks-provider";
 import { HookCard } from "@/components/hooks/hook-card";
 import { HookPersonalizer } from "@/components/hooks/hook-personalizer";
 import { HookScore } from "@/components/hooks/hook-score";
-import { CreateFromHookButton } from "@/components/hooks/single-hook";
-import { ALL_HOOKS, hookById, hooksOfNiche, hooksOfType } from "@/components/hooks/hook-data";
+import { ALL_HOOKS, hookById, hooksOfNiche } from "@/components/hooks/hook-data";
 import { pageMeta } from "@/components/hooks/seo";
 import { getHookType } from "@/lib/data/seed";
 import { HOOKS_COPY } from "@/content/he/hooks";
@@ -54,16 +56,9 @@ async function SingleHookPageView({ params }: Props) {
   const h = hookById.get(id);
   if (!h) notFound();
   const sameNiche = h.nicheSlug ? hooksOfNiche(h.nicheSlug).filter((x) => x.id !== h.id && x.typeSlug !== h.typeSlug).slice(0, 3) : [];
-  const sameType = hooksOfType(h.typeSlug).filter((x) => x.id !== h.id && x.nicheSlug !== h.nicheSlug);
-  const sameTypeMixed: typeof sameType = [];
-  const seen = new Set<string>();
-  for (const x of sameType) {
-    const k = x.nicheSlug ?? x.id;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    sameTypeMixed.push(x);
-    if (sameTypeMixed.length >= 3) break;
-  }
+  const reel = h.nicheSlug
+    ? reelFromHook(h.id, { caption: "box", viewsK: 36.2, highlight: 2 })
+    : reelFromText(h.id, h.text.replace(/[{}]/g, ""), null, { caption: "box", viewsK: 36.2, highlight: 2 });
   const middle = h.nicheSlug
     ? { label: h.nicheShort!, href: `/hooks/${h.nicheSlug}` }
     : h.seasonSlug
@@ -80,11 +75,10 @@ async function SingleHookPageView({ params }: Props) {
   return (
     <HooksProvider>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-afterglow" />
-        <div className="container-marketing relative pt-8 pb-10 md:pt-12">
-          <Breadcrumbs items={crumbs} />
-          <div className="mt-10 grid items-start gap-12 lg:grid-cols-[1.5fr_1fr]">
+      <section className="relative isolate overflow-x-clip">
+        <HeroGlow />
+        <div className="container-marketing relative pt-14 pb-10 md:pt-24">
+          <div className="grid items-start gap-12 lg:grid-cols-[1.5fr_1fr] lg:gap-16">
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-4">
                 <p className="inline-flex w-fit rounded-full bg-surface-2 px-3 py-1 text-micro text-text-2">{S.eyebrow(h.typeName)}</p>
@@ -93,57 +87,21 @@ async function SingleHookPageView({ params }: Props) {
               {fields.length > 0 && <HookPersonalizer only={fields} />}
             </div>
             <div className="flex flex-col gap-6 lg:sticky lg:top-[calc(var(--header-h)+24px)]">
-              <PhoneFrame label={`תצוגה להמחשה: ${h.typeName}`} className="max-w-[260px]">
-                <ReelTile icon={h.nicheIcon} category={h.nicheCategory} hookText={h.text} handle={h.nicheShort ?? undefined} badge="דוגמה להמחשה" />
-              </PhoneFrame>
+              {reel && <ReelCard reel={reel} frame="phone" className="mx-auto w-full max-w-[280px]" label={`תצוגה להמחשה: ${h.typeName}`} />}
               <HookScore hook={h} />
             </div>
           </div>
         </div>
       </section>
 
-      <section aria-labelledby="how-title" className="container-marketing mt-12">
-        <div className="rounded-xl bg-surface-1 p-8 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-12">
-          <h2 id="how-title" className="text-h2">{S.howTitle}</h2>
-          <ol className="mt-8 grid gap-6 md:grid-cols-3">
-            {S.how.map((step, i) => (
-              <li key={step} className="flex gap-4">
-                <span className="num inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-bold text-on-primary">{i + 1}</span>
-                <span className="pt-1.5 text-body-lg font-semibold">{step}</span>
-              </li>
+      {sameNiche.length > 0 && (
+        <section aria-labelledby="similar-title" className="container-marketing py-16 md:py-24">
+          <h2 id="similar-title" className={cn(h2Class, "mb-10 text-center")}>{S.similar}</h2>
+          <ul className="grid items-start gap-5 md:grid-cols-3">
+            {sameNiche.map((x) => (
+              <li key={x.id} className="contents"><HookCard hook={x} variant="compact" showNiche={false} location="hook_page" headingLevel="h3" /></li>
             ))}
-          </ol>
-          <div className="mt-8">
-            <CreateFromHookButton id={h.id} />
-          </div>
-        </div>
-      </section>
-
-      {(sameNiche.length > 0 || sameTypeMixed.length > 0) && (
-        <section aria-labelledby="similar-title" className="container-marketing mt-20">
-          <h2 id="similar-title" className="mb-6 text-h2">{S.similar}</h2>
-          <div className="flex flex-col gap-10">
-            {sameNiche.length > 0 && (
-              <div>
-                <h3 className="mb-4 text-body-lg font-bold text-text-2">{S.sameNiche(h.nicheShort!)}</h3>
-                <ul className="grid items-start gap-4 md:grid-cols-3">
-                  {sameNiche.map((x) => (
-                    <li key={x.id} className="contents"><HookCard hook={x} variant="compact" showNiche={false} location="hook_page" headingLevel="h4" /></li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {sameTypeMixed.length > 0 && (
-              <div>
-                <h3 className="mb-4 text-body-lg font-bold text-text-2">{S.sameType(h.typeName)}</h3>
-                <ul className="grid items-start gap-4 md:grid-cols-3">
-                  {sameTypeMixed.map((x) => (
-                    <li key={x.id} className="contents"><HookCard hook={x} variant="compact" location="hook_page" headingLevel="h4" /></li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+          </ul>
         </section>
       )}
     </HooksProvider>
