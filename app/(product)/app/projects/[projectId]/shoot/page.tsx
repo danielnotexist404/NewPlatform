@@ -10,7 +10,7 @@ import { PageSkeleton } from "@/components/trends/page-skeleton";
 import { GUIDED, TRENDS_META } from "@/content/he/trends-app";
 import { getNiche } from "@/lib/data/seed";
 import { getShootProject, getTrend, MOCK_WORKSPACE, SHOOT_PROJECTS } from "@/lib/mock/trends-app";
-import { ALL_PROJECTS, getProject, NEW_DRAFT_ID } from "@/lib/mock/projects";
+import { ALL_PROJECTS, getProject } from "@/lib/mock/projects";
 
 /** Projects without a trend template use the generic behind-the-scenes shot list (personalised later by `guided.shotlist.v1`). */
 const DEFAULT_SHOOT_TREND = "behind-the-viral";
@@ -20,12 +20,12 @@ function resolveShoot(projectId: string) {
   if (t) {
     const q = new URLSearchParams({ trend: t.trend.slug, mode: "guided", src: "trend", niche: MOCK_WORKSPACE.nicheSlug });
     // The wizard (components/wizard) opens a new draft with the trend preselected, at the preview step.
-    return { trend: t.trend, titleHe: t.trend.nameHe, backHref: `/app/trends/${t.trend.slug}`, backHe: GUIDED.back, continueHref: `/app/projects/${NEW_DRAFT_ID}/create/preview?${q}` };
+    return { trend: t.trend, titleHe: t.trend.nameHe, backHref: `/app/trends/${t.trend.slug}`, backHe: GUIDED.back, continueHref: `/app/create?${q}` };
   }
   const project = getProject(projectId);
   const trend = getTrend(DEFAULT_SHOOT_TREND);
   if (!project || !trend) return undefined;
-  return { trend, titleHe: project.title, backHref: `/app/projects/${project.id}`, backHe: GUIDED.backToProject, continueHref: `/app/projects/${project.id}/create/preview` };
+  return { trend, titleHe: project.title, backHref: `/app/projects/${project.id}`, backHe: GUIDED.backToProject, continueHref: `/app/create?project=${project.id}` };
 }
 
 /** Guided filming kit (spec 07–08 §J.7). Mock projects: one per trend template with a shot list. */

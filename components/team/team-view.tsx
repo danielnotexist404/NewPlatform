@@ -43,6 +43,7 @@ export function TeamView() {
     <>
       <PageHeader
         title={t.title}
+        back={{ href: "/app/account", label: "חשבון" }}
         actions={<Button size="lg" onClick={() => setInviteOpen(true)}><MailPlus aria-hidden />{t.invite}</Button>}
       />
       <div className="flex flex-col gap-10">

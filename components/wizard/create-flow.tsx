@@ -134,7 +134,7 @@ function AboutScreen({ s, set }: { s: CreateState; set: (p: Partial<CreateState>
               id={nicheId}
               value={s.nicheSlug}
               onChange={(e) => set({ nicheSlug: e.target.value, hook: null, trend: false, facts: {} })}
-              className="h-11 appearance-none rounded-full bg-surface-1 pe-11 ps-5 text-[15px] font-semibold text-text ring-1 ring-border-strong hover:bg-surface-2"
+              className="h-11 max-w-full appearance-none rounded-full bg-surface-1 pe-11 ps-5 md:max-w-xs text-[15px] font-semibold text-text ring-1 ring-border-strong hover:bg-surface-2"
             >
               {niches.map((n) => (
                 <option key={n.slug} value={n.slug}>{n.name_he}</option>
@@ -344,7 +344,7 @@ function PreviewScreen({ s, set, onGo, onGenerate }: { s: CreateState; set: (p: 
             {rows.map((r) => (
               <div key={r.k} className="flex items-start gap-4 py-3 first:pt-0">
                 <dt className="w-20 shrink-0 pt-0.5 text-small text-muted">{r.k}</dt>
-                <dd dir="auto" className="min-w-0 flex-1 text-body font-semibold">{r.k === P.rows.format ? <bdi dir="ltr" className="num">{r.v}</bdi> : r.v}</dd>
+                <dd className="min-w-0 flex-1 text-body font-semibold">{r.k === P.rows.format ? <bdi dir="ltr" className="num">{r.v}</bdi> : <bdi>{r.v}</bdi>}</dd>
                 <button type="button" onClick={() => onGo(r.to)} className="shrink-0 rounded-full px-2 text-small font-semibold text-primary-text hover:underline">
                   {P.edit}
                   <span className="sr-only"> {r.k}</span>
@@ -387,7 +387,7 @@ function PreviewScreen({ s, set, onGo, onGenerate }: { s: CreateState; set: (p: 
           </button>
         </div>
 
-        <div className="order-1 flex flex-col items-center gap-3 lg:order-2">
+        <div className="order-1 mx-auto flex w-full max-w-[280px] flex-col items-center gap-3 lg:order-2 lg:max-w-none">
           <PhonePreview
             scenes={scenes}
             title={finalHook(s) || P.title}
@@ -429,7 +429,10 @@ export function CreateFlow() {
   const [screen, setScreen] = React.useState<Screen>(init.screen);
   const [phase, setPhase] = React.useState<Phase>({ kind: "edit" });
   const alive = React.useRef(true);
-  React.useEffect(() => () => { alive.current = false; }, []);
+  React.useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
 
   const set = React.useCallback((p: Partial<CreateState>) => setS((d) => ({ ...d, ...p })), []);
   const hookOk = rawHook(s).length > 1;
@@ -518,7 +521,7 @@ export function CreateFlow() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1040px] flex-col">
+    <div className="mx-auto flex w-full max-w-[1040px] flex-col overflow-x-clip">
       <div className="flex items-center justify-between gap-4 pb-8 md:pb-12">
         <Link href="/app" className="inline-flex items-center gap-1.5 text-small font-semibold text-text-2 hover:text-text">
           <DirIcon name="back" className="size-4" />

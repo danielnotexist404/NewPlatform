@@ -1,11 +1,4 @@
-import { Suspense } from "react";
-import { WizardRoot, WizardSkeleton } from "@/components/wizard/wizard-root";
-
-/** The wizard state lives in this layout, so it survives navigation between the 9 step routes. */
+/** Legacy wizard routes: every step now redirects to the 3-screen flow at /app/create. */
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <Suspense fallback={<WizardSkeleton />}>
-      <WizardRoot>{children}</WizardRoot>
-    </Suspense>
-  );
+  return children;
 }

@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { ClipboardList, Globe2, MapPin, MessageCircle, MousePointerClick, Plus, Radar, ShieldCheck, TriangleAlert, X } from "lucide-react";
+import { ClipboardList, Globe2, MapPin, MessageCircle, MousePointerClick, Plus, Radar, TriangleAlert, X } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input, LtrInput } from "@/components/ui/input";
@@ -419,8 +419,6 @@ export function BudgetStep({ d, patch }: { d: DraftState; patch: Patch }) {
 
       <div className="flex flex-col gap-1 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5">
         <p className="text-h3 font-bold">{fill(B.budget.monthly, { amount: <Price ils={monthly} className="text-gold-gradient" /> })}</p>
-        <p className="text-small text-text-2">{B.budget.monthlyNote}</p>
-        <p className="mt-2 text-small text-text-2">{B.budget.noPromise}</p>
       </div>
 
       <section className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5" aria-labelledby="duration-label">
@@ -442,7 +440,6 @@ export function BudgetStep({ d, patch }: { d: DraftState; patch: Patch }) {
             )}
           </div>
         )}
-        <p className="text-small text-text-2">{B.budget.firstTip}</p>
       </section>
 
       <section className="flex flex-col gap-4 rounded-md bg-surface-1 p-4 shadow-[inset_0_0_0_1px_var(--color-frame)] md:p-5" aria-labelledby="cap-label">
@@ -468,11 +465,6 @@ export function BudgetStep({ d, patch }: { d: DraftState; patch: Patch }) {
           </div>
         )}
       </section>
-
-      <div className="flex flex-col gap-2 text-small text-text-2">
-        <p className="flex items-start gap-2"><ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />{B.budget.money}</p>
-        <p className="ps-6">{B.budget.honest}</p>
-      </div>
     </div>
   );
 }

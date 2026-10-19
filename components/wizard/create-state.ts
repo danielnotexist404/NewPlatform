@@ -86,6 +86,8 @@ export function initCreate(q: URLSearchParams): { state: CreateState; screen: Sc
     state.durationSec = 15;
     state.hook = { key: "trend:0", text: MOCK_TREND.hooks[0], source: "trend", typeSlug: "pattern-interrupt" };
   }
+  // smart default: the top suggestion is preselected, so "המשך" works right away
+  if (!state.hook) state.hook = suggestedHooks(state, 0)[0] ?? null;
   return { state, screen };
 }
 

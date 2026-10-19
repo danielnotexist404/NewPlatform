@@ -119,8 +119,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  // The create flow has its own sticky action bar on mobile, so the tab bar steps aside there.
-  const focused = pathname.startsWith("/app/create");
+  // Focused flows (create, campaign builder, publish composer) have their own bottom action bar on mobile.
+  const focused = ["/app/create", "/app/campaigns/new", "/app/publish/new"].some((x) => pathname.startsWith(x));
   return (
     <div data-shell="app" className="min-h-dvh bg-bg">
       <SkipLink />

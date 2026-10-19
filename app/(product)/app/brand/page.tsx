@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function BrandPage() {
   return (
     <>
-      <PageHeader title={brandCopy.title} description={brandCopy.subtitle} />
+      <PageHeader back={{ href: "/app/account", label: "חשבון" }} title={brandCopy.title} description={brandCopy.subtitle} />
       <Suspense>
         <BrandView />
       </Suspense>

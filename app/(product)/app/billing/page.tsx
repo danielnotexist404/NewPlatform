@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function BillingPage() {
   return (
     <>
-      <PageHeader title={billingCopy.title} description={billingCopy.subtitle} />
+      <PageHeader back={{ href: "/app/account", label: "חשבון" }} title={billingCopy.title} description={billingCopy.subtitle} />
       <Suspense>
         <BillingOverview />
       </Suspense>

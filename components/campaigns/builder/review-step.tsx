@@ -116,7 +116,6 @@ export function ReviewStep({ d, patch, phase, confirm, setConfirm, showConfirmHi
       <section aria-labelledby="copy-title" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h3 id="copy-title" className="text-h3">{B.review.copyTitle}</h3>
-          <p className="inline-flex items-center gap-1.5 text-small text-text-2"><Sparkles className="size-4 text-violet" aria-hidden />{B.review.copyNote}</p>
         </div>
         <div className="grid gap-3 lg:grid-cols-3">
           {builderDraft.variants.map((v, i) => {
@@ -162,7 +161,6 @@ export function ReviewStep({ d, patch, phase, confirm, setConfirm, showConfirmHi
             );
           })}
         </div>
-        <p className="text-micro font-normal text-muted">{B.review.hookScore}: {B.review.hookScoreCaption}</p>
       </section>
 
       {/* Ad-safety gate (F.12) */}

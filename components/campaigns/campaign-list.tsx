@@ -38,14 +38,13 @@ export function CampaignList({ items }: { items: Campaign[] }) {
           ))}
         </ToggleGroup>
       </div>
-      <p id="campaigns-list-note" className="-mt-2 text-micro font-normal text-muted">{D.list.lifetime}</p>
       {shown.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-border-strong p-10 text-center text-text-2">
           <Megaphone className="size-6" aria-hidden />
           {D.list.empty}
         </div>
       ) : (
-        <ul className="flex flex-col gap-2.5" aria-describedby="campaigns-list-note">
+        <ul className="flex flex-col gap-2.5">
           {shown.map((c) => (
             <li key={c.id}>
               <CampaignRow c={c} />
@@ -65,7 +64,7 @@ function CampaignRow({ c }: { c: Campaign }) {
   return (
     <Link
       href={`/app/campaigns/${c.id}`}
-      className="group flex items-center gap-3 rounded-md bg-surface-1 p-3 shadow-[inset_0_0_0_1px_var(--color-frame)] transition-colors hover:bg-surface-2 md:gap-4 md:p-4"
+      className="group flex items-center gap-3 rounded-lg bg-surface-1 p-3 elev-1 ring-hairline transition-shadow hover:elev-2 md:gap-5 md:p-4"
     >
       <VideoThumb size="sm" tone={lead.tone} className="w-12 md:w-14" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 md:flex-row md:items-center md:gap-4">

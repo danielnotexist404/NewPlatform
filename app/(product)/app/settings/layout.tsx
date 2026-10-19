@@ -6,7 +6,7 @@ import { settingsCopy } from "@/content/he/account";
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col">
-      <PageHeader title={settingsCopy.title} description={settingsCopy.subtitle} />
+      <PageHeader back={{ href: "/app/account", label: "חשבון" }} title={settingsCopy.title} description={settingsCopy.subtitle} />
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
         <SettingsNav />
         <div className="min-w-0 max-w-[880px]">{children}</div>

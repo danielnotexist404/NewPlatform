@@ -3,7 +3,7 @@
 import { Rubik, Assistant, Secular_One, Suez_One, Fredoka } from "next/font/google";
 import type { BrandFont } from "@/lib/mock/account";
 
-const rubik = Rubik({ subsets: ["hebrew", "latin"], weight: ["500", "800"], display: "swap", preload: false });
+const rubik = Rubik({ subsets: ["hebrew", "latin"], display: "swap", preload: false }); // variable font: explicit weights broke the Turbopack font loader in production builds
 const assistant = Assistant({ subsets: ["hebrew", "latin"], weight: ["400", "700"], display: "swap", preload: false });
 const secular = Secular_One({ subsets: ["hebrew", "latin"], weight: "400", display: "swap", preload: false });
 const suez = Suez_One({ subsets: ["hebrew", "latin"], weight: "400", display: "swap", preload: false });
