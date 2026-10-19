@@ -14,7 +14,7 @@ export function resolveTheme(shellDefault: ShellThemeName): ShellThemeName {
 
 /**
  * Applies the shell's default theme after client-side navigation between shells
- * (marketing = light, app = dark). The first paint is handled by the blocking ThemeScript.
+ * (both shells default to light). The first paint is handled by the blocking ThemeScript.
  */
 export function ShellTheme({ theme }: { theme: ShellThemeName }) {
   React.useEffect(() => {

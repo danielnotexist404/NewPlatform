@@ -38,7 +38,6 @@ export function Greeting({ firstName }: { firstName?: string }) {
         {word}
         {firstName ? `, ${firstName}` : ""}
       </h1>
-      <p className="text-body-lg text-text-2">{APP_CORE.dashboard.subtitle}</p>
     </div>
   );
 }

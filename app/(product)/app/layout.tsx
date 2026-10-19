@@ -7,7 +7,7 @@ import { ShellTheme } from "@/components/a11y/shell-theme";
 export default function ProductLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-    <ShellTheme theme="dark" />
+    <ShellTheme theme="light" />
     <Suspense fallback={<div data-shell="app" className="min-h-dvh bg-bg" aria-busy="true" />}>
       <AppShell>{children}</AppShell>
     </Suspense>

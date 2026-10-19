@@ -21,6 +21,8 @@ export interface PreviewScene {
   tone: SceneTone;
   icon?: string | null;
   role?: BeatRole;
+  /** Generated frame (data URL); falls back to the styled placeholder art. */
+  image?: string | null;
 }
 
 export interface PreviewEndCard { headline: string; name: string; logoLetter: string; lines: string[] }
@@ -46,6 +48,8 @@ export interface PhonePreviewProps {
   onSceneChange?: (index: number) => void;
   feedHeader?: React.ReactNode;
   emptyLabel?: string;
+  /** Reads the voice-over aloud with the browser's Hebrew speech voice while playing (demo until TTS exists). */
+  speak?: "male" | "female" | null;
   className?: string;
 }
 
@@ -139,6 +143,7 @@ export function PhonePreview({
   onSceneChange,
   feedHeader,
   emptyLabel,
+  speak = null,
   className,
 }: PhonePreviewProps) {
   const reduced = useReducedMotion();
@@ -230,6 +235,25 @@ export function PhonePreview({
     }
   }, [idx, onSceneChange]);
 
+  // browser speech voice-over: one utterance per scene while playing
+  React.useEffect(() => {
+    if (!speak || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const synth = window.speechSynthesis;
+    if (!playing || !scene) { synth.cancel(); return; }
+    const voices = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith("he"));
+    if (!voices.length) return;
+    const female = /female|carmit|אישה|woman/i;
+    const pick = voices.find((v) => (speak === "female" ? female.test(v.name) : !female.test(v.name))) ?? voices[0];
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(scene.vo.replace(/\{[^}]+\}/g, ""));
+    u.lang = "he-IL";
+    u.voice = pick;
+    u.rate = 1.05;
+    synth.speak(u);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- restart only when the scene or play state changes
+  }, [idx, playing, speak]);
+  React.useEffect(() => () => { if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); }, []);
+
   const words = scene ? scene.vo.split(/\s+/).filter(Boolean) : [];
   const active = scene ? Math.min(words.length - 1, Math.floor((local / 0.94) * words.length)) : -1;
   const kbScale = reduced ? 1.02 : 1.02 + 0.07 * local;
@@ -303,7 +327,18 @@ export function PhonePreview({
                     </div>
                   </SceneArt>
                 ) : scene ? (
-                  <SceneArt tone={scene.tone} icon={scene.icon} scale={kbScale} shift={kbShift} />
+                  <SceneArt tone={scene.tone} icon={scene.icon} scale={kbScale} shift={kbShift} glyph={!scene.image}>
+                    {scene.image && (
+                      // eslint-disable-next-line @next/next/no-img-element -- generated data URL frame
+                      <img
+                        src={scene.image}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover will-change-transform"
+                        style={{ transform: `scale(${kbScale}) translate3d(${kbShift}%, ${-kbShift / 2}%, 0)` }}
+                      />
+                    )}
+                    {scene.image && <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-black)_35%,transparent)_0%,transparent_30%,transparent_55%,color-mix(in_oklab,var(--color-black)_70%,transparent)_100%)]" />}
+                  </SceneArt>
                 ) : null}
               </motion.div>
             </AnimatePresence>

@@ -2,80 +2,113 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home, Plus, FolderOpen, Flame, Megaphone, Inbox, CalendarClock, LayoutTemplate, BookOpen,
-  Palette, Images, Users, Briefcase, CreditCard, Settings, Globe, CalendarRange, Menu,
-} from "lucide-react";
+import { Clapperboard, Home, Inbox, Megaphone, Plus, UserRound } from "lucide-react";
 import { Logo } from "./logo";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { accentCta } from "./cta-styles";
 import { DisplaySettings } from "@/components/a11y/display-settings";
 import { SkipLink } from "@/components/a11y/skip-link";
+import { SIMPLE_APP } from "@/content/he/simple-app";
 import { cn } from "@/lib/utils";
 
-/** SidebarNav order — spec 07–08 §L.1 (+ §S: התוכנית שלי, דפי עסק). */
+const N = SIMPLE_APP.nav;
+
+/** Six destinations (founder feedback): everything else is reached from inside these pages. */
 export const APP_NAV = [
-  { href: "/app", label: "ראשי", icon: Home, exact: true },
-  { href: "/app/create", label: "סרטון חדש", icon: Plus, accent: true },
-  { href: "/app/projects", label: "פרויקטים", icon: FolderOpen },
-  { href: "/app/trends", label: "טרנדים", icon: Flame },
-  { href: "/app/campaigns", label: "קמפיינים", icon: Megaphone },
-  { href: "/app/leads", label: "לידים", icon: Inbox },
-  { href: "/app/publish", label: "פרסום ותזמון", icon: CalendarClock },
-  { href: "/app/plan", label: "התוכנית שלי", icon: CalendarRange },
-  { href: "/app/landing-pages", label: "דפי עסק", icon: Globe },
-  { href: "/app/templates", label: "תבניות", icon: LayoutTemplate },
-  { href: "/app/hooks", label: "ספריית הוקים", icon: BookOpen },
-  { href: "/app/brand", label: "ערכת מותג", icon: Palette },
-  { href: "/app/library", label: "ספריית מדיה", icon: Images },
-  { href: "/app/team", label: "צוות", icon: Users },
-  { href: "/app/clients", label: "לקוחות", icon: Briefcase },
-  { href: "/app/billing", label: "חיוב וקרדיטים", icon: CreditCard },
-  { href: "/app/settings", label: "הגדרות", icon: Settings },
+  { href: "/app", label: N.home, short: N.home, icon: Home, match: (p: string) => p === "/app" || p.startsWith("/app/trends") || p.startsWith("/app/plan") },
+  { href: "/app/projects", label: N.videos, short: N.videosShort, icon: Clapperboard, match: (p: string) => p.startsWith("/app/projects") || p.startsWith("/app/publish") || p.startsWith("/app/templates") || p.startsWith("/app/hooks") || p.startsWith("/app/library") },
+  { href: "/app/campaigns", label: N.campaigns, short: N.campaigns, icon: Megaphone, match: (p: string) => p.startsWith("/app/campaigns") || p.startsWith("/app/landing-pages") },
+  { href: "/app/leads", label: N.leads, short: N.leads, icon: Inbox, match: (p: string) => p.startsWith("/app/leads") },
+  { href: "/app/account", label: N.account, short: N.account, icon: UserRound, match: (p: string) => ["/app/account", "/app/brand", "/app/billing", "/app/settings", "/app/team", "/app/clients"].some((x) => p.startsWith(x)) },
 ] as const;
 
-function NavList({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
+export function CreditsMeter({ credits = 400, className }: { credits?: number; className?: string }) {
   return (
-    <ul className="flex flex-col gap-0.5">
-      {APP_NAV.map((item) => {
-        const active = "exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href);
-        const Icon = item.icon;
-        return (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-sm px-3 py-2 text-sm font-semibold text-text-2 transition-colors hover:bg-surface-2 hover:text-text",
-                active && "bg-surface-3 text-text",
-                "accent" in item && item.accent && "text-primary-text",
-              )}
-            >
-              <Icon className="size-[18px]" aria-hidden />
-              {item.label}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-export function CreditsMeter({ credits = 400 }: { credits?: number }) {
-  return (
-    <Link href="/app/billing" className="flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1.5 text-sm font-semibold hover:bg-surface-3">
-      <span className="size-2 rounded-full bg-primary" aria-hidden />
-      <bdi className="num">{credits.toLocaleString("he-IL")}</bdi> קרדיטים
+    <Link
+      href="/app/billing"
+      aria-label={`${credits.toLocaleString("he-IL")} ${N.credits}, ${N.buyCredits}`}
+      className={cn("inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1.5 text-sm font-semibold text-text shadow-[inset_0_0_0_1px_var(--color-border)] transition-colors hover:bg-surface-3", className)}
+    >
+      <span className="size-2 rounded-full bg-accent-gradient" aria-hidden />
+      <bdi className="num">{credits.toLocaleString("he-IL")}</bdi>
+      <span className="text-text-2">{N.credits}</span>
     </Link>
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
+function SideNav() {
   const pathname = usePathname();
-  // Onboarding is a focused full-screen flow without the sidebar (Part 03 §4).
+  const creating = pathname.startsWith("/app/create") || /\/create(\/|$)/.test(pathname);
+  return (
+    <nav aria-label={N.label} className="flex flex-col gap-6">
+      <Link href="/app/create" aria-current={creating ? "page" : undefined} className={cn(accentCta, "h-12 w-full text-base")}>
+        <Plus className="size-5" aria-hidden />
+        {N.create}
+      </Link>
+      <ul className="flex flex-col gap-1">
+        {APP_NAV.map((item) => {
+          const active = !creating && item.match(pathname);
+          const Icon = item.icon;
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex h-11 items-center gap-3 rounded-full px-4 text-[15px] font-semibold text-text-2 transition-colors hover:bg-surface-2 hover:text-text",
+                  active && "bg-surface-3 text-text",
+                )}
+              >
+                <Icon className={cn("size-[19px]", active ? "text-primary-text" : "")} strokeWidth={active ? 2.2 : 1.9} aria-hidden />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+/** Mobile bottom tab bar: 5 items, the create button raised in the middle. */
+function TabBar() {
+  const pathname = usePathname();
+  const [home, videos, campaigns, leads] = APP_NAV;
+  const tab = (item: (typeof APP_NAV)[number]) => {
+    const active = item.match(pathname);
+    const Icon = item.icon;
+    return (
+      <li key={item.href} className="flex-1">
+        <Link
+          href={item.href}
+          aria-current={active ? "page" : undefined}
+          className={cn("flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold", active ? "text-text" : "text-muted")}
+        >
+          <Icon className={cn("size-[22px]", active && "text-primary-text")} strokeWidth={active ? 2.2 : 1.8} aria-hidden />
+          {item.short}
+        </Link>
+      </li>
+    );
+  };
+  return (
+    <nav aria-label={N.label} className="fixed inset-x-0 bottom-0 z-[var(--z-sticky)] border-t border-border bg-surface-1/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+      <ul className="mx-auto flex max-w-md items-stretch px-2">
+        {tab(home)}
+        {tab(videos)}
+        <li className="flex flex-1 items-center justify-center">
+          <Link href="/app/create" aria-label={N.create} className={cn(accentCta, "-mt-5 size-14 rounded-full p-0")}>
+            <Plus className="size-6" strokeWidth={2.4} aria-hidden />
+          </Link>
+        </li>
+        {tab(campaigns)}
+        {tab(leads)}
+      </ul>
+    </nav>
+  );
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // Onboarding is a focused full-screen flow without navigation (Part 03 §4).
   if (pathname.startsWith("/app/onboarding")) {
     return (
       <div data-shell="app" className="min-h-dvh bg-bg">
@@ -86,39 +119,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+  // The create flow has its own sticky action bar on mobile, so the tab bar steps aside there.
+  const focused = pathname.startsWith("/app/create");
   return (
     <div data-shell="app" className="min-h-dvh bg-bg">
       <SkipLink />
-      <aside className="fixed inset-y-0 inset-s-0 z-[var(--z-sticky)] hidden w-64 flex-col gap-4 border-e border-border bg-surface-1 p-4 lg:flex">
-        <Logo href="/app" />
-        <nav aria-label="ניווט באפליקציה" className="flex-1 overflow-y-auto">
-          <NavList />
-        </nav>
+      <aside className="fixed inset-y-0 inset-s-0 z-[var(--z-sticky)] hidden w-[264px] flex-col gap-8 border-e border-border bg-surface-1 px-5 py-6 lg:flex">
+        <Logo href="/app" className="px-2" />
+        <SideNav />
+        <div className="mt-auto flex items-center justify-between gap-2">
+          <CreditsMeter />
+          <DisplaySettings />
+        </div>
       </aside>
-      <div className="lg:ps-64">
-        <header className="sticky top-0 z-[var(--z-sticky)] flex h-14 items-center justify-between gap-3 border-b border-border glass px-4">
-          <div className="flex items-center gap-2">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden" aria-label="פתיחת התפריט">
-                  <Menu aria-hidden />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="start" title="תפריט" closeLabel="סגירת התפריט">
-                <NavList onNavigate={() => setOpen(false)} />
-              </SheetContent>
-            </Sheet>
-            <span className="lg:hidden"><Logo href="/app" /></span>
-          </div>
-          <div className="flex items-center gap-2">
+      <div className="lg:ps-[264px]">
+        <header className="sticky top-0 z-[var(--z-sticky)] flex h-14 items-center justify-between gap-3 border-b border-border glass px-4 lg:hidden">
+          <Logo href="/app" />
+          <div className="flex items-center gap-1.5">
             <CreditsMeter />
-            <DisplaySettings />
+            <Link
+              href="/app/account"
+              aria-label={N.account}
+              className="flex size-10 items-center justify-center rounded-full text-text-2 hover:bg-surface-2 hover:text-text"
+            >
+              <UserRound className="size-5" aria-hidden />
+            </Link>
           </div>
         </header>
-        <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1280px] px-4 py-6 outline-none md:px-8">
+        <main
+          id="main"
+          tabIndex={-1}
+          className={cn("mx-auto w-full max-w-[1180px] px-4 pt-6 outline-none md:px-10 lg:pt-12", focused ? "pb-8" : "pb-28 lg:pb-16")}
+        >
           {children}
         </main>
       </div>
+      {!focused && <TabBar />}
     </div>
   );
 }

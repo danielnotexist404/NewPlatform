@@ -336,7 +336,7 @@ export const PROJECT_STAGE_GROUP: Record<ProjectStage, "drafts" | "progress" | "
 /** Where a click on a project card goes (Part 03 §5.3). */
 export function projectHref(p: MockProject): string {
   const g = PROJECT_STAGE_GROUP[p.stage];
-  if (g === "drafts") return `/app/projects/${p.id}/create/${p.wizardStep ?? "business"}`;
+  if (g === "drafts") return `/app/create?project=${p.id}`;
   if (g === "progress" && p.latestJobId) return `/app/projects/${p.id}/jobs/${p.latestJobId}`;
   return `/app/projects/${p.id}`;
 }

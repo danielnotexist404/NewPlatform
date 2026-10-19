@@ -1,48 +1,34 @@
 /**
- * Demo data for the home page hero (2026 redesign). Hooks are real seed hooks (lib/data/seed.ts);
+ * Demo reels for the marketing site (2026 "clean" redesign). Hooks are real seed hooks (lib/data/seed.ts);
  * the view counters are illustrative and always rendered with a visible "דוגמה" label.
  * No real business, customer or result is represented.
  */
-import { getHook, getNiche, nicheShortName } from "@/lib/data/seed";
+import { isReel, reelFromHook, type ReelData } from "@/components/marketing/media/reel-data";
 
-export type SceneName = "teal" | "cocoa" | "dusk" | "blush" | "sky";
-export type CaptionStyle = "box" | "shadow" | "accent";
+export type { ReelData };
 
-export interface HeroReel {
-  key: string;
-  nicheSlug: string;
-  nicheLabel: string;
-  icon: string;
-  hook: string;
-  scene: SceneName;
-  caption: CaptionStyle;
-  /** Illustrative view counter, in thousands. Always labelled "דוגמה". */
-  viewsK: number;
-  sponsored: boolean;
-}
+/** Hero fan, in DOM (reading) order: start side → end side. Index 2 is the large center phone. */
+export const HERO_REELS: ReelData[] = [
+  reelFromHook("barbers-salons-01", { caption: "box", viewsK: 48.2, sponsored: true, highlight: 1 }),
+  reelFromHook("restaurants-01", { caption: "shadow", viewsK: 31.7, highlight: 3 }),
+  reelFromHook("real-estate-02", { caption: "box", viewsK: 126, sponsored: true, highlight: 4 }),
+  reelFromHook("beauty-nails-01", { caption: "box", viewsK: 22.4, highlight: 3 }),
+  reelFromHook("zimmers-boutique-hotels-02", { caption: "shadow", viewsK: 57.9, sponsored: true, highlight: 0 }),
+].filter(isReel);
 
-function reel(key: string, hookId: string, scene: SceneName, caption: CaptionStyle, viewsK: number, sponsored = false): HeroReel | null {
-  const hook = getHook(hookId);
-  const niche = hook?.niche_slug ? getNiche(hook.niche_slug) : undefined;
-  if (!hook || !niche) return null;
-  return { key, nicheSlug: niche.slug, nicheLabel: nicheShortName(niche), icon: niche.icon, hook: hook.text_he, scene, caption, viewsK, sponsored };
-}
+/** The looping gallery strip. */
+export const STRIP_REELS: ReelData[] = [
+  reelFromHook("dentists-03", { caption: "box", viewsK: 64.3, highlight: 0 }),
+  reelFromHook("fitness-trainers-01", { caption: "shadow", viewsK: 88.1, highlight: 2 }),
+  reelFromHook("renovation-contractors-01", { caption: "box", viewsK: 41.5, highlight: 3 }),
+  reelFromHook("ecommerce-02", { caption: "accent", viewsK: 19.8, highlight: 4, sponsored: true }),
+  reelFromHook("event-venues-01", { caption: "shadow", viewsK: 73.2, highlight: 3 }),
+  reelFromHook("interior-design-01", { caption: "box", viewsK: 36.4, highlight: 4 }),
+  reelFromHook("vets-dog-grooming-01", { caption: "shadow", viewsK: 52.6, highlight: 3 }),
+  reelFromHook("aesthetic-clinics-01", { caption: "box", viewsK: 27.9, highlight: 3, sponsored: true }),
+  reelFromHook("djs-musicians-01", { caption: "shadow", viewsK: 95.4, highlight: 4 }),
+  reelFromHook("car-dealers-01", { caption: "box", viewsK: 44.7, highlight: 0 }),
+].filter(isReel);
 
-const defined = <T,>(x: T | null): x is T => x !== null;
-
-/** The fan, in DOM (reading) order: start side → end side. Index 2 is the large center phone. */
-export const HERO_REELS: HeroReel[] = [
-  reel("r1", "barbers-salons-01", "teal", "box", 48.2, true),
-  reel("r2", "restaurants-01", "cocoa", "shadow", 31.7),
-  reel("r3", "real-estate-02", "dusk", "accent", 126, true),
-  reel("r4", "beauty-nails-01", "blush", "box", 22.4),
-  reel("r5", "zimmers-boutique-hotels-02", "sky", "shadow", 57.9, true),
-].filter(defined);
-
-/** Hooks the center phone types out, one after another (real seed hooks). */
-export const TYPING_REELS: HeroReel[] = [
-  reel("t1", "real-estate-02", "dusk", "accent", 126, true),
-  reel("t2", "dentists-03", "dusk", "accent", 64.3, true),
-  reel("t3", "fitness-trainers-01", "dusk", "accent", 88.1, true),
-  reel("t4", "renovation-contractors-01", "dusk", "accent", 41.5, true),
-].filter(defined);
+/** Reel shown inside "איך זה עובד", step 2. */
+export const STEP_REEL: ReelData | null = reelFromHook("restaurants-01", { caption: "box", viewsK: 31.7, highlight: 3 });
